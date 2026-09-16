@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
-import { setAssetOwnerAction, setAssetStatusAction } from "@/lib/actions";
+import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction } from "@/lib/actions";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -192,6 +192,29 @@ export default async function AssetDetailPage({ params }: { params: { id: string
                   ))}
                 </div>
               </div>
+
+              <form action={setAssetEuAiActTierAction} className="flex flex-col gap-1">
+                <input type="hidden" name="assetId" value={asset.id} />
+                <label className="text-xs text-ink-400">EU AI Act classification</label>
+                <div className="flex gap-2">
+                  <select
+                    name="tier"
+                    defaultValue={asset.euAiActTier}
+                    className="flex-1 bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100"
+                  >
+                    <option value="UNCLASSIFIED">Not classified yet</option>
+                    <option value="MINIMAL_RISK">Minimal risk</option>
+                    <option value="LIMITED_RISK">Limited risk</option>
+                    <option value="HIGH_RISK">High risk (Annex III)</option>
+                  </select>
+                  <button
+                    type="submit"
+                    className="text-xs px-2.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
 

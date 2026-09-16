@@ -1,20 +1,45 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
+import type { AiAssetType, AiAssetStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 const ORG_ID = "demo-org";
 
-export default async function AssetsPage() {
+const TYPE_OPTIONS: AiAssetType[] = [
+  "AI_APPLICATION",
+  "AI_AGENT",
+  "AI_API",
+  "MCP_SERVER",
+  "AI_DEV_TOOL",
+  "AI_FEATURE",
+];
+const STATUS_OPTIONS: AiAssetStatus[] = ["APPROVED", "UNREVIEWED", "UNAPPROVED", "UNKNOWN"];
+const RISK_OPTIONS = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
+
+export default async function AssetsPage({
+  searchParams,
+}: {
+  searchParams: { type?: string; status?: string; risk?: string };
+}) {
   const assets = await db.aiAsset.findMany({
-    where: { organizationId: ORG_ID, deletedAt: null },
+    where: {
+      organizationId: ORG_ID,
+      deletedAt: null,
+      ...(searchParams.type ? { type: searchParams.type as AiAssetType } : {}),
+      ...(searchParams.status ? { status: searchParams.status as AiAssetStatus } : {}),
+    },
     include: {
       owner: true,
       riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
     },
     orderBy: { lastSeenAt: "desc" },
   });
+
+  const filtered = searchParams.risk
+    ? assets.filter((a) => a.riskAssessments[0]?.level === searchParams.risk)
+    : assets;
 
   return (
     <div className="flex flex-col gap-6">
@@ -24,6 +49,41 @@ export default async function AssetsPage() {
           Every application, agent, API or MCP server detected across your connectors.
         </p>
       </div>
+
+      <form className="flex items-center gap-3" method="GET">
+        <select name="type" defaultValue={searchParams.type ?? ""} className="bg-panel border border-line rounded px-2.5 py-1.5 text-xs text-ink-100">
+          <option value="">All types</option>
+          {TYPE_OPTIONS.map((t) => (
+            <option key={t} value={t}>
+              {t.replace(/_/g, " ").toLowerCase()}
+            </option>
+          ))}
+        </select>
+        <select name="status" defaultValue={searchParams.status ?? ""} className="bg-panel border border-line rounded px-2.5 py-1.5 text-xs text-ink-100">
+          <option value="">All statuses</option>
+          {STATUS_OPTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+        <select name="risk" defaultValue={searchParams.risk ?? ""} className="bg-panel border border-line rounded px-2.5 py-1.5 text-xs text-ink-100">
+          <option value="">All risk levels</option>
+          {RISK_OPTIONS.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+        <button type="submit" className="text-xs px-3 py-1.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors">
+          Filter
+        </button>
+        {(searchParams.type || searchParams.status || searchParams.risk) && (
+          <Link href="/assets" className="text-xs text-ink-400 hover:text-ink-100">
+            Clear
+          </Link>
+        )}
+      </form>
 
       <div className="rounded-md border border-line bg-panel overflow-hidden">
         <table className="w-full text-sm">
@@ -38,7 +98,7 @@ export default async function AssetsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {assets.map((asset) => {
+            {filtered.map((asset) => {
               const risk = asset.riskAssessments[0];
               return (
                 <tr key={asset.id} className="hover:bg-white/[0.03]">
@@ -62,10 +122,12 @@ export default async function AssetsPage() {
                 </tr>
               );
             })}
-            {assets.length === 0 && (
+            {filtered.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-6 text-sm text-ink-400">
-                  No assets yet. Connect Microsoft 365 or GitHub to start discovery.
+                  {assets.length === 0
+                    ? "No assets yet. Connect Microsoft 365 or GitHub to start discovery."
+                    : "No assets match this filter."}
                 </td>
               </tr>
             )}

@@ -5,10 +5,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const NAV = [
-  { href: "/", label: "Overview" },
-  { href: "/assets", label: "AI assets" },
-  { href: "/connectors", label: "Connectors" },
-  { href: "/evidence", label: "Evidence" },
+  { href: "/", label: "Overview", short: "Ov" },
+  { href: "/assets", label: "AI assets", short: "As" },
+  { href: "/approvals", label: "Approvals", short: "Ap" },
+  { href: "/policies", label: "Policies", short: "Po" },
+  { href: "/people", label: "People", short: "Pe" },
+  { href: "/data", label: "Data registry", short: "Da" },
+  { href: "/activity", label: "Activity", short: "Ac" },
+  { href: "/connectors", label: "Connectors", short: "Co" },
+  { href: "/evidence", label: "Evidence", short: "Ev" },
+  { href: "/settings", label: "Settings", short: "Se" },
 ];
 
 const STORAGE_KEY = "ai-control:sidebar-collapsed";
@@ -82,7 +88,7 @@ export default function Sidebar() {
                   : "text-ink-400 hover:text-ink-100 hover:bg-white/[0.03]"
               }`}
             >
-              {collapsed ? item.label.slice(0, 1) : item.label}
+              {collapsed ? item.short : item.label}
             </Link>
           );
         })}

@@ -43,6 +43,18 @@ enum AiAssetStatus {
   UNKNOWN
 }
 
+// Classificazione EU AI Act — deliberatamente leggera (un tag, non un
+// framework di conformità completo): serve come "reason to buy" per il
+// buyer compliance/DPO, non come prodotto a sé stante (PRD §15 dei
+// documenti di analisi: "l'AI Act deve essere una conseguenza, non il
+// centro del prodotto").
+enum EuAiActTier {
+  UNCLASSIFIED
+  MINIMAL_RISK
+  LIMITED_RISK
+  HIGH_RISK
+}
+
 enum RiskLevel {
   LOW
   MEDIUM
@@ -59,6 +71,24 @@ enum DataSensitivity {
   FINANCIAL
 }
 
+// Libreria/istanze di policy — testo leggibile da un umano, valutato per
+// ora manualmente (non da un rule engine runtime, quello è V4). Serve a
+// dimostrare intento di governance, come il Policy Manager di OneTrust,
+// senza costruire un motore di enforcement che non abbiamo ancora.
+model Policy {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  description    String
+  category       String   // "data_access" | "approval" | "environment" | "vendor"
+  enabled        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
 model Organization {
   id        String   @id @default(cuid())
   name      String
@@ -71,6 +101,7 @@ model Organization {
   aiAssets   AiAsset[]
   dataAssets DataAsset[]
   evidence   Evidence[]
+  policies   Policy[]
 }
 
 model User {
@@ -140,6 +171,7 @@ model AiAsset {
   department String?
 
   status AiAssetStatus @default(UNKNOWN)
+  euAiActTier EuAiActTier @default(UNCLASSIFIED)
 
   firstSeenAt DateTime  @default(now())
   lastSeenAt  DateTime?

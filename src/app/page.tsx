@@ -17,7 +17,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export default async function OverviewPage() {
-  const [total, byType, unknownCount, unapprovedCount, highRisk, recentAssets] = await Promise.all([
+  const [total, byType, unknownCount, unapprovedCount, highRisk, activePolicies, recentAssets] = await Promise.all([
     db.aiAsset.count({ where: { organizationId: ORG_ID, deletedAt: null } }),
     db.aiAsset.groupBy({
       by: ["type"],
@@ -31,6 +31,7 @@ export default async function OverviewPage() {
       where: { aiAsset: { organizationId: ORG_ID }, level: { in: ["HIGH", "CRITICAL"] } },
       _max: { createdAt: true },
     }),
+    db.policy.count({ where: { organizationId: ORG_ID, enabled: true } }),
     db.aiAsset.findMany({
       where: { organizationId: ORG_ID, deletedAt: null },
       orderBy: { firstSeenAt: "desc" },
@@ -60,8 +61,18 @@ export default async function OverviewPage() {
           { label: "Unknown", value: unknownCount, tone: unknownCount > 0 ? "signal" : "default" },
           { label: "Unapproved", value: unapprovedCount, tone: unapprovedCount > 0 ? "signal" : "default" },
           { label: "High or critical risk", value: highRisk.length, tone: highRisk.length > 0 ? "alarm" : "default" },
+          { label: "Active policies", value: activePolicies },
         ]}
       />
+
+      {(unknownCount > 0 || unapprovedCount > 0) && (
+        <Link
+          href="/approvals"
+          className="text-sm text-ink-100 hover:underline -mt-4 w-fit"
+        >
+          {unknownCount + unapprovedCount} asset{unknownCount + unapprovedCount === 1 ? "" : "s"} waiting on review →
+        </Link>
+      )}
 
       {byType.length > 0 && (
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
