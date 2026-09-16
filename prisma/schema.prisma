@@ -1,0 +1,249 @@
+// AI Control — data model per PRD (AI-Control-PRD.md, sezione 4)
+// Principio: il database e' sempre fonte di verita' per identita', permessi,
+// risk score e stato di approvazione. Claude/LLM non scrive mai questi valori
+// direttamente — puo' solo spiegarli (vedi src/lib/risk-engine.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ConnectorProvider {
+  MICROSOFT_365
+  GITHUB
+  ANTHROPIC
+  OPENAI
+  GOOGLE_WORKSPACE // predisposto, non attivo in MVP1
+}
+
+enum ConnectorStatus {
+  CONNECTED
+  ERROR
+  DISCONNECTED
+  SYNCING
+}
+
+enum AiAssetType {
+  AI_APPLICATION
+  AI_FEATURE
+  AI_API
+  AI_AGENT
+  MCP_SERVER
+  AI_DEV_TOOL
+}
+
+enum AiAssetStatus {
+  APPROVED
+  UNREVIEWED
+  UNAPPROVED
+  UNKNOWN
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum DataSensitivity {
+  PUBLIC
+  INTERNAL
+  CONFIDENTIAL
+  PII
+  SOURCE_CODE
+  FINANCIAL
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  country   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      User[]
+  connectors Connector[]
+  aiAssets   AiAsset[]
+  dataAssets DataAsset[]
+  evidence   Evidence[]
+}
+
+model User {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  name           String?
+  department     String?
+  role           String       @default("member")
+  externalIds    Json?
+  createdAt      DateTime     @default(now())
+
+  ownedAssets AiAsset[]      @relation("AssetOwner")
+  usages      AiAssetUsage[]
+
+  @@unique([organizationId, email])
+}
+
+model Connector {
+  id                   String            @id @default(cuid())
+  organizationId       String
+  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider             ConnectorProvider
+  status               ConnectorStatus   @default(SYNCING)
+  credentialsEncrypted String?           @db.Text
+  scopes               String[]
+  lastSyncedAt         DateTime?
+  lastSyncError        String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  assets AiAsset[]
+
+  @@unique([organizationId, provider])
+}
+
+model DataAsset {
+  id             String          @id @default(cuid())
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  sensitivity    DataSensitivity @default(INTERNAL)
+  createdAt      DateTime        @default(now())
+
+  accessedBy AiAssetDataAccess[]
+
+  @@unique([organizationId, name])
+}
+
+model AiAsset {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  type   AiAssetType
+  name   String
+  vendor String?
+  model  String?
+
+  connectorId String?
+  connector   Connector? @relation(fields: [connectorId], references: [id])
+  externalId  String?
+
+  ownerId    String?
+  owner      User?   @relation("AssetOwner", fields: [ownerId], references: [id])
+  department String?
+
+  status AiAssetStatus @default(UNKNOWN)
+
+  firstSeenAt DateTime  @default(now())
+  lastSeenAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  connectedSystems AiAssetConnectedSystem[]
+  dataAccess       AiAssetDataAccess[]
+  usages           AiAssetUsage[]
+  riskAssessments  RiskAssessment[]
+  activities       AiAssetActivity[]
+  relationsFrom    AiAssetRelationship[]    @relation("RelationSource")
+  relationsTo      AiAssetRelationship[]    @relation("RelationTarget")
+
+  @@unique([organizationId, connectorId, externalId])
+  @@index([organizationId, type])
+  @@index([organizationId, status])
+}
+
+model AiAssetConnectedSystem {
+  id        String   @id @default(cuid())
+  aiAssetId String
+  aiAsset   AiAsset  @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  system    String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@index([aiAssetId])
+}
+
+model AiAssetDataAccess {
+  id          String    @id @default(cuid())
+  aiAssetId   String
+  aiAsset     AiAsset   @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  dataAssetId String
+  dataAsset   DataAsset @relation(fields: [dataAssetId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([aiAssetId, dataAssetId])
+}
+
+model AiAssetRelationship {
+  id            String   @id @default(cuid())
+  sourceAssetId String
+  sourceAsset   AiAsset  @relation("RelationSource", fields: [sourceAssetId], references: [id], onDelete: Cascade)
+  targetAssetId String
+  targetAsset   AiAsset  @relation("RelationTarget", fields: [targetAssetId], references: [id], onDelete: Cascade)
+  relationType  String
+  createdAt     DateTime @default(now())
+
+  @@unique([sourceAssetId, targetAssetId, relationType])
+}
+
+model AiAssetUsage {
+  id                  String    @id @default(cuid())
+  aiAssetId           String
+  aiAsset             AiAsset   @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  userId              String?
+  user                User?     @relation(fields: [userId], references: [id])
+  externalUserRef     String?
+  firstSeenAt         DateTime  @default(now())
+  lastSeenAt          DateTime?
+  messageOrEventCount Int?
+
+  @@unique([aiAssetId, userId])
+  @@index([aiAssetId])
+}
+
+model AiAssetActivity {
+  id         String            @id @default(cuid())
+  aiAssetId  String
+  aiAsset    AiAsset           @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  source     ConnectorProvider
+  eventType  String
+  actorRef   String?
+  occurredAt DateTime
+  payload    Json?
+  createdAt  DateTime          @default(now())
+
+  @@index([aiAssetId, occurredAt])
+}
+
+model RiskAssessment {
+  id          String    @id @default(cuid())
+  aiAssetId   String
+  aiAsset     AiAsset   @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  level       RiskLevel
+  score       Int
+  reasons     Json
+  mitigations Json
+  createdAt   DateTime  @default(now())
+
+  @@index([aiAssetId, createdAt])
+}
+
+model Evidence {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  type           String
+  summary        String
+  payload        Json
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, type])
+}
