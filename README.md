@@ -13,14 +13,29 @@ connettori, AI Asset Graph, risk engine deterministico, dashboard.
 - **Connettore Microsoft 365/Entra** (`src/lib/connectors/microsoft365.ts`) —
   flusso client-credentials reale via Graph API. Funziona se fornisci
   `MS365_TENANT_ID/CLIENT_ID/CLIENT_SECRET` con una vera app registration e
-  admin consent concesso. La correlazione sign-in→asset è marcata come TODO
-  esplicito nel codice: non è ancora completa (vedi commento nel file).
+  admin consent concesso. Correlazione sign-in→asset via mappa appId→service
+  principal (non più un TODO).
 - **Connettore GitHub** (`src/lib/connectors/github.ts`) — GitHub App con
   JWT firmato via `node:crypto` (nessuna dipendenza extra), seat Copilot,
   repository, audit log best-effort. Funziona con una vera GitHub App
   installata sull'org.
-- **Trigger di sync manuale**: `POST /api/sync/microsoft_365` o
-  `POST /api/sync/github` (finché non c'è uno scheduler/cron).
+- **Connettore Anthropic** (`src/lib/connectors/anthropic.ts`) — Admin API
+  di Claude Enterprise/Team (`ANTHROPIC_ADMIN_API_KEY`). Vede solo i membri
+  dell'organizzazione gestita, mai il contenuto delle conversazioni — vedi
+  il commento nel file per il limite strutturale (PRD §5.3). Endpoint da
+  riverificare contro la documentazione corrente prima del primo uso reale.
+- **Connettore OpenAI** (`src/lib/connectors/openai.ts`) — Organization
+  Admin API di ChatGPT Enterprise/Edu (`OPENAI_ADMIN_API_KEY`). Utenti e
+  audit log best-effort; le metriche di utilizzo (Workspace Analytics) sono
+  esplicitamente segnalate come non ancora importate (PRD §5.4). Stesso
+  avviso di verifica endpoint del connettore Anthropic.
+- **Trigger di sync**: bottone "Sync now" nella pagina Connectors (server
+  action), oppure `POST /api/sync/{provider}` direttamente.
+- **Assegnazione owner e approvazione/rifiuto asset** dalla pagina di
+  dettaglio (server actions in `src/lib/actions.ts`) — il primo pezzo reale
+  di controllo amministrativo, non enforcement runtime.
+- **Evidence**: snapshot automatico dell'inventario dopo ogni sync
+  (`src/lib/evidence.ts`), con confronto "N nuovi/rimossi dall'ultima volta".
 - **Dashboard, lista asset, dettaglio asset** con dati demo seedati che
   rispecchiano lo scenario "aha moment" del PRD (un tool AI di terze parti
   scoperto via OAuth grant che IT non conosceva, un coding agent su un repo
@@ -28,20 +43,22 @@ connettori, AI Asset Graph, risk engine deterministico, dashboard.
 
 ## Cosa NON è ancora implementato (onestamente, non nascosto)
 
-- **Connettori Anthropic e OpenAI**: solo l'interfaccia esiste
-  (`src/lib/connectors/types.ts`), nessuna implementazione — richiedono un
-  cliente pilota con Claude Enterprise / ChatGPT Enterprise reale per essere
-  scritti e testati (PRD §5.3, §5.4).
 - **Autenticazione multi-tenant reale**: tutto gira su `ORG_ID = "demo-org"`
   hardcoded. Fuori scope MVP1 per esplicita scelta del PRD.
 - **Enforcement/blocco attivo**: il prodotto osserva, non blocca ancora
   nulla (Control/Policy engine è V4 nella roadmap del PRD, richiede
   integrazioni con proxy/endpoint/IdP che non abbiamo).
-- **Scheduler dei sync**: oggi il sync è manuale via API route. Un cron
-  reale (Railway cron, o un job scheduler) è il prossimo passo naturale.
-- **Correlazione sign-in Microsoft → asset**: il connettore MS365 legge i
-  sign-in log ma non li collega ancora agli asset per `appId`/`objectId`
-  (vedi TODO nel codice).
+- **Scheduler dei sync**: oggi il sync parte a mano (bottone o API route).
+  Un cron reale (Railway cron, o un job scheduler) è il prossimo passo
+  naturale.
+- **Cifratura credenziali connettore**: il campo `credentialsEncrypted` è
+  nello schema ma nessun connettore lo popola ancora — tutti e quattro
+  leggono le credenziali direttamente da variabili d'ambiente, non da
+  righe salvate nel database.
+- **Endpoint Anthropic/OpenAI da riverificare**: entrambi i connettori
+  sono scritti secondo le Admin API note dei due vendor, ma vanno testati
+  contro un'organizzazione reale prima di fare affidamento sui path esatti
+  (vedi i commenti nei rispettivi file).
 
 ## Sviluppo locale
 

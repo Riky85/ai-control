@@ -2,6 +2,8 @@ import { db } from "@/lib/db";
 import { persistSyncResult } from "./upsert";
 import { microsoft365Connector } from "./microsoft365";
 import { githubConnector } from "./github";
+import { anthropicConnector } from "./anthropic";
+import { openaiConnector } from "./openai";
 import { recordInventorySnapshot } from "@/lib/evidence";
 import type { Connector } from "./types";
 import type { ConnectorProvider } from "@prisma/client";
@@ -9,9 +11,8 @@ import type { ConnectorProvider } from "@prisma/client";
 const REGISTRY: Record<string, Connector> = {
   MICROSOFT_365: microsoft365Connector,
   GITHUB: githubConnector,
-  // ANTHROPIC / OPENAI: da implementare quando un cliente pilota ha
-  // rispettivamente Claude Enterprise / ChatGPT Enterprise attivo
-  // (vedi PRD §5.3, §5.4). Interfaccia identica alle altre due.
+  ANTHROPIC: anthropicConnector,
+  OPENAI: openaiConnector,
 };
 
 export async function runConnectorSync(organizationId: string, provider: ConnectorProvider) {

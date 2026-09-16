@@ -20,13 +20,13 @@ const CONNECTOR_INFO: Record<string, { label: string; implemented: boolean; note
   },
   ANTHROPIC: {
     label: "Anthropic (Claude)",
-    implemented: false,
-    note: "Not implemented yet — needs a pilot customer on Claude Enterprise (PRD §5.3).",
+    implemented: true,
+    note: "Requires ANTHROPIC_ADMIN_API_KEY. Sees org members only, never conversation content — see PRD §5.3.",
   },
   OPENAI: {
     label: "OpenAI (ChatGPT)",
-    implemented: false,
-    note: "Not implemented yet — needs a pilot customer on ChatGPT Enterprise/Edu (PRD §5.4).",
+    implemented: true,
+    note: "Requires OPENAI_ADMIN_API_KEY. Usage metrics (Workspace Analytics) not yet imported — see PRD §5.4.",
   },
   GOOGLE_WORKSPACE: {
     label: "Google Workspace",
