@@ -41,8 +41,8 @@ export default async function ConnectorsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Connectors</h1>
-        <p className="text-sm text-muted mt-1">
+        <h1 className="font-display text-2xl font-semibold text-ink-100">Connectors</h1>
+        <p className="text-sm text-ink-400 mt-1.5">
           Fonti collegate per la discovery. Sync manuale via POST /api/sync/&#123;provider&#125;
           finché non c'è uno scheduler.
         </p>
@@ -52,7 +52,7 @@ export default async function ConnectorsPage() {
         {Object.entries(CONNECTOR_INFO).map(([provider, info]) => {
           const row = byProvider.get(provider as ConnectorProvider);
           return (
-            <div key={provider} className="rounded-lg border border-border bg-panel p-4">
+            <div key={provider} className="rounded-md border border-line bg-panel p-4">
               <div className="flex items-center justify-between">
                 <div className="font-medium text-sm">{info.label}</div>
                 <div className="flex items-center gap-2">
@@ -60,14 +60,14 @@ export default async function ConnectorsPage() {
                   {row && <Badge>{row.status}</Badge>}
                 </div>
               </div>
-              <p className="text-xs text-muted mt-1">{info.note}</p>
+              <p className="text-xs text-ink-400 mt-1">{info.note}</p>
               {row?.lastSyncedAt && (
-                <p className="text-xs text-muted mt-1">
+                <p className="text-xs text-ink-400 mt-1">
                   Ultimo sync: {new Date(row.lastSyncedAt).toLocaleString()}
                 </p>
               )}
               {row?.lastSyncError && (
-                <p className="text-xs text-danger mt-1">Errore: {row.lastSyncError}</p>
+                <p className="text-xs text-alarm mt-1">Errore: {row.lastSyncError}</p>
               )}
             </div>
           );

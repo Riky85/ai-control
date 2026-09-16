@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { persistSyncResult } from "./upsert";
 import { microsoft365Connector } from "./microsoft365";
 import { githubConnector } from "./github";
+import { recordInventorySnapshot } from "@/lib/evidence";
 import type { Connector } from "./types";
 import type { ConnectorProvider } from "@prisma/client";
 
@@ -28,6 +29,7 @@ export async function runConnectorSync(organizationId: string, provider: Connect
   try {
     const result = await connectorImpl.sync();
     const summary = await persistSyncResult(organizationId, connectorRow.id, result);
+    await recordInventorySnapshot(organizationId);
     return { ok: true as const, ...summary };
   } catch (err) {
     await db.connector.update({

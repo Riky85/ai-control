@@ -209,12 +209,30 @@ async function main() {
     });
   }
 
+  // Stessa forma di payload usata da src/lib/evidence.ts a runtime (dopo ogni
+  // sync) — qui replicata invece di importarla, per non dipendere dall'alias
+  // "@/" che tsx non risolve in questo script standalone.
+  const [totalAssets, byType, byStatus, highRisk] = await Promise.all([
+    db.aiAsset.count({ where: { organizationId: org.id, deletedAt: null } }),
+    db.aiAsset.groupBy({ by: ["type"], where: { organizationId: org.id, deletedAt: null }, _count: { _all: true } }),
+    db.aiAsset.groupBy({ by: ["status"], where: { organizationId: org.id, deletedAt: null }, _count: { _all: true } }),
+    db.riskAssessment.groupBy({
+      by: ["aiAssetId"],
+      where: { aiAsset: { organizationId: org.id }, level: { in: ["HIGH", "CRITICAL"] } },
+      _max: { createdAt: true },
+    }),
+  ]);
   await db.evidence.create({
     data: {
       organizationId: org.id,
       type: "inventory_snapshot",
-      summary: "Snapshot iniziale: 4 AI asset rilevati, 2 senza owner, 1 ad alto rischio.",
-      payload: { totalAssets: 4, unowned: 2 },
+      summary: `${totalAssets} AI assets on record.`,
+      payload: {
+        total: totalAssets,
+        byType: Object.fromEntries(byType.map((t) => [t.type, t._count._all])),
+        byStatus: Object.fromEntries(byStatus.map((s) => [s.status, s._count._all])),
+        highRiskCount: highRisk.length,
+      },
     },
   });
 

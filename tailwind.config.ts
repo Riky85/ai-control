@@ -5,18 +5,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "#0b0c0f",
-        panel: "#121317",
-        border: "#22242a",
-        muted: "#8b8f98",
-        accent: "#5b8cff",
-        danger: "#ef4444",
-        warning: "#f59e0b",
-        success: "#22c55e",
+        ink: {
+          DEFAULT: "#12151C",
+          100: "#EDEFF3",
+          400: "#8891A0",
+        },
+        panel: "#1B1F2A",
+        line: "#2A303D",
+        signal: "#FFB454", // rilevato / da rivedere
+        steady: "#5EEAD4", // noto e approvato
+        alarm: "#FB7185",  // solo risk critico
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
+        display: ["var(--font-display)", "ui-sans-serif", "system-ui"],
+        body: ["var(--font-body)", "ui-sans-serif", "system-ui"],
       },
     },
   },
