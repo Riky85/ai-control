@@ -3,19 +3,16 @@
 @tailwind utilities;
 
 body {
-  background-color: #12151C;
-  color: #EDEFF3;
+  background-color: #0F1114;
+  color: #EDEEF0;
 }
 
 ::selection {
-  background-color: #FFB45433;
+  background-color: #5B8DEF33;
 }
 
-/* Numeri e conteggi: leggibili come un log tecnico, senza passare a un
-   font monospace (che diventa subito una firma da "dashboard generata"). */
 .tabular {
   font-variant-numeric: tabular-nums;
-  font-family: var(--font-display);
 }
 
 @media (prefers-reduced-motion: reduce) {

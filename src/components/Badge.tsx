@@ -1,20 +1,18 @@
-const COLORS: Record<string, string> = {
-  LOW: "bg-steady/10 text-steady",
-  MEDIUM: "bg-signal/10 text-signal",
-  HIGH: "bg-alarm/10 text-alarm",
-  CRITICAL: "bg-alarm/20 text-alarm",
-  APPROVED: "bg-steady/10 text-steady",
-  UNREVIEWED: "bg-signal/10 text-signal",
-  UNAPPROVED: "bg-alarm/10 text-alarm",
-  UNKNOWN: "bg-white/[0.06] text-ink-400",
-  CONNECTED: "bg-steady/10 text-steady",
-  ERROR: "bg-alarm/10 text-alarm",
-  SYNCING: "bg-signal/10 text-signal",
-  DISCONNECTED: "bg-white/[0.06] text-ink-400",
+const DOT_COLOR: Record<string, string> = {
+  LOW: "bg-steady",
+  MEDIUM: "bg-signal",
+  HIGH: "bg-alarm",
+  CRITICAL: "bg-alarm",
+  APPROVED: "bg-steady",
+  UNREVIEWED: "bg-signal",
+  UNAPPROVED: "bg-alarm",
+  UNKNOWN: "bg-ink-400",
+  CONNECTED: "bg-steady",
+  ERROR: "bg-alarm",
+  SYNCING: "bg-signal",
+  DISCONNECTED: "bg-ink-400",
 };
 
-// Sentence case invece delle maiuscole dell'enum: leggibile come parola,
-// non come etichetta gridata.
 const LABEL: Record<string, string> = {
   LOW: "Low",
   MEDIUM: "Medium",
@@ -30,10 +28,13 @@ const LABEL: Record<string, string> = {
   DISCONNECTED: "Disconnected",
 };
 
+// Un pallino colorato più il testo in tinta neutra: lo stato si legge
+// senza che l'intero elemento diventi un blocco di colore.
 export default function Badge({ children }: { children: string }) {
-  const cls = COLORS[children] ?? "bg-white/[0.06] text-ink-400";
+  const dot = DOT_COLOR[children] ?? "bg-ink-400";
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${cls}`}>
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-100">
+      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
       {LABEL[children] ?? children}
     </span>
   );

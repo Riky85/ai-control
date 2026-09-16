@@ -5,10 +5,10 @@
  * dove essere l'oggetto principale della pagina, non un dettaglio a lato.
  */
 const TONE: Record<string, string> = {
-  LOW: "#5EEAD4",
-  MEDIUM: "#FFB454",
-  HIGH: "#FB7185",
-  CRITICAL: "#FB7185",
+  LOW: "#5C8A7A",
+  MEDIUM: "#C99A4B",
+  HIGH: "#B85C56",
+  CRITICAL: "#B85C56",
 };
 
 export default function RiskGauge({ score, level }: { score: number; level: string }) {
@@ -25,7 +25,7 @@ export default function RiskGauge({ score, level }: { score: number; level: stri
         <path
           d="M 10 74 A 60 60 0 0 1 130 74"
           fill="none"
-          stroke="#2A303D"
+          stroke="#26282D"
           strokeWidth={stroke}
           strokeLinecap="round"
         />

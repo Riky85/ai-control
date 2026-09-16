@@ -94,6 +94,10 @@ export const microsoft365Connector: Connector = {
 
     // 1. Service principal (Enterprise Applications) — candidate AI_APPLICATION
     // Richiede Application.Read.All
+    // Manteniamo una mappa appId (client id) -> asset osservato, perché il
+    // sign-in log (step 2) identifica l'app per appId, non per l'objectId
+    // del service principal usato come externalId.
+    const assetByAppId = new Map<string, ObservedAsset>();
     try {
       const apps = await graphGet(
         token,
@@ -104,34 +108,47 @@ export const microsoft365Connector: Connector = {
         const matched = AI_VENDOR_KEYWORDS.find((kw) => nameLower.includes(kw));
         if (!matched) continue;
 
-        assets.push({
+        const asset: ObservedAsset = {
           externalId: sp.id,
           type: "AI_APPLICATION",
           name: sp.displayName ?? "Unknown application",
           vendor: sp.publisherName ?? undefined,
-        });
+          users: [],
+          activities: [],
+        };
+        assets.push(asset);
+        if (sp.appId) assetByAppId.set(sp.appId, asset);
       }
     } catch (err) {
       warnings.push(`Impossibile leggere le Enterprise Applications: ${(err as Error).message}`);
     }
 
     // 2. Sign-in audit log — per popolare AiAssetUsage/AiAssetActivity
-    // Richiede AuditLog.Read.All. Filtriamo lato client sugli appId già trovati.
+    // Richiede AuditLog.Read.All. Correlato via appId -> service principal
+    // costruito allo step 1 (assetByAppId), non più un TODO.
     try {
       const signIns = await graphGet(
         token,
         "/auditLogs/signIns?$top=200&$select=appId,appDisplayName,userPrincipalName,createdDateTime"
       );
-      const byAppId = new Map(assets.map((a) => [a.externalId, a]));
+      let matchedCount = 0;
       for (const s of signIns.value ?? []) {
-        // qui l'external id del service principal non coincide direttamente con
-        // appId del sign-in log; una implementazione reale dovrebbe mappare
-        // appId -> objectId del service principal. Segnaliamo il limite.
-        void byAppId;
+        const asset = assetByAppId.get(s.appId);
+        if (!asset) continue; // sign-in di un'app non AI-related: fuori scope qui
+        matchedCount++;
+        asset.users!.push({ email: s.userPrincipalName, externalRef: s.userPrincipalName });
+        asset.activities!.push({
+          eventType: "signin",
+          actorRef: s.userPrincipalName,
+          occurredAt: s.createdDateTime ? new Date(s.createdDateTime) : new Date(),
+          payload: s,
+        });
       }
-      warnings.push(
-        "Sign-in log letto ma non ancora correlato agli asset per appId->objectId: da rifinire prima della release (vedi TODO nel codice)."
-      );
+      if (matchedCount === 0 && assetByAppId.size > 0) {
+        warnings.push(
+          "Nessun sign-in trovato per le app AI rilevate nella finestra restituita dall'API (normale se non usate di recente)."
+        );
+      }
     } catch (err) {
       warnings.push(`Impossibile leggere i sign-in log: ${(err as Error).message}`);
     }

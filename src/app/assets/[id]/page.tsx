@@ -1,25 +1,29 @@
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
+import { setAssetOwnerAction, setAssetStatusAction } from "@/lib/actions";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function AssetDetailPage({ params }: { params: { id: string } }) {
-  const asset = await db.aiAsset.findUnique({
-    where: { id: params.id },
-    include: {
-      owner: true,
-      connector: true,
-      connectedSystems: true,
-      dataAccess: { include: { dataAsset: true } },
-      usages: { include: { user: true }, take: 20 },
-      riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
-      activities: { orderBy: { occurredAt: "desc" }, take: 15 },
-      relationsFrom: { include: { targetAsset: true } },
-      relationsTo: { include: { sourceAsset: true } },
-    },
-  });
+  const [asset, orgUsers] = await Promise.all([
+    db.aiAsset.findUnique({
+      where: { id: params.id },
+      include: {
+        owner: true,
+        connector: true,
+        connectedSystems: true,
+        dataAccess: { include: { dataAsset: true } },
+        usages: { include: { user: true }, take: 20 },
+        riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
+        activities: { orderBy: { occurredAt: "desc" }, take: 15 },
+        relationsFrom: { include: { targetAsset: true } },
+        relationsTo: { include: { sourceAsset: true } },
+      },
+    }),
+    db.user.findMany({ where: { organizationId: "demo-org" }, orderBy: { name: "asc" } }),
+  ]);
 
   if (!asset) notFound();
 
@@ -129,8 +133,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
         <aside className="flex flex-col gap-6">
           <div className="rounded-md border border-line bg-panel p-5 text-sm">
             <h2 className="text-xs font-medium text-ink-400 mb-3">Profile</h2>
-            <dl className="flex flex-col gap-2">
-              <Row label="Owner" value={asset.owner?.name ?? "No owner on record"} />
+            <dl className="flex flex-col gap-2 mb-4">
               <Row label="Department" value={asset.department ?? "—"} />
               <Row label="Model" value={asset.model ?? "—"} />
               <Row label="Connector" value={asset.connector?.provider ?? "Manual"} />
@@ -140,6 +143,56 @@ export default async function AssetDetailPage({ params }: { params: { id: string
                 value={asset.lastSeenAt ? new Date(asset.lastSeenAt).toLocaleDateString() : "—"}
               />
             </dl>
+
+            <div className="border-t border-line pt-3 flex flex-col gap-3">
+              <form action={setAssetOwnerAction} className="flex flex-col gap-1">
+                <input type="hidden" name="assetId" value={asset.id} />
+                <label className="text-xs text-ink-400">Owner</label>
+                <div className="flex gap-2">
+                  <select
+                    name="ownerId"
+                    defaultValue={asset.ownerId ?? ""}
+                    className="flex-1 bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100"
+                  >
+                    <option value="">No owner on record</option>
+                    {orgUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name ?? u.email}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="text-xs px-2.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-ink-400">Status</span>
+                <div className="flex gap-2">
+                  {(["APPROVED", "UNAPPROVED", "UNREVIEWED"] as const).map((s) => (
+                    <form key={s} action={setAssetStatusAction}>
+                      <input type="hidden" name="assetId" value={asset.id} />
+                      <input type="hidden" name="status" value={s} />
+                      <button
+                        type="submit"
+                        disabled={asset.status === s}
+                        className={`text-xs px-2.5 py-1 rounded border transition-colors ${
+                          asset.status === s
+                            ? "border-accent text-accent cursor-default"
+                            : "border-line text-ink-400 hover:text-ink-100 hover:border-ink-400"
+                        }`}
+                      >
+                        {s === "APPROVED" ? "Approve" : s === "UNAPPROVED" ? "Reject" : "Unreviewed"}
+                      </button>
+                    </form>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {risk && (

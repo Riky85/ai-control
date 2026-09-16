@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
+import { syncConnectorAction } from "@/lib/actions";
 import type { Connector, ConnectorProvider } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -10,27 +11,27 @@ const CONNECTOR_INFO: Record<string, { label: string; implemented: boolean; note
   MICROSOFT_365: {
     label: "Microsoft 365 / Entra ID",
     implemented: true,
-    note: "Richiede MS365_TENANT_ID, MS365_CLIENT_ID, MS365_CLIENT_SECRET (app registration con admin consent).",
+    note: "Requires MS365_TENANT_ID, MS365_CLIENT_ID, MS365_CLIENT_SECRET (app registration with admin consent).",
   },
   GITHUB: {
     label: "GitHub",
     implemented: true,
-    note: "Richiede GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_APP_INSTALLATION_ID, GITHUB_ORG.",
+    note: "Requires GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_APP_INSTALLATION_ID, GITHUB_ORG.",
   },
   ANTHROPIC: {
     label: "Anthropic (Claude)",
     implemented: false,
-    note: "Non ancora implementato — richiede Claude Enterprise del cliente pilota (PRD §5.3).",
+    note: "Not implemented yet — needs a pilot customer on Claude Enterprise (PRD §5.3).",
   },
   OPENAI: {
     label: "OpenAI (ChatGPT)",
     implemented: false,
-    note: "Non ancora implementato — richiede ChatGPT Enterprise/Edu del cliente pilota (PRD §5.4).",
+    note: "Not implemented yet — needs a pilot customer on ChatGPT Enterprise/Edu (PRD §5.4).",
   },
   GOOGLE_WORKSPACE: {
     label: "Google Workspace",
     implemented: false,
-    note: "Predisposto nello schema, non nel piano MVP1 (PRD §5.5).",
+    note: "Reserved in the schema, not planned for MVP1 (PRD §5.5).",
   },
 };
 
@@ -43,8 +44,7 @@ export default async function ConnectorsPage() {
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink-100">Connectors</h1>
         <p className="text-sm text-ink-400 mt-1.5">
-          Fonti collegate per la discovery. Sync manuale via POST /api/sync/&#123;provider&#125;
-          finché non c'è uno scheduler.
+          Sources feeding the inventory. Sync runs on demand until a scheduler is in place.
         </p>
       </div>
 
@@ -54,20 +54,31 @@ export default async function ConnectorsPage() {
           return (
             <div key={provider} className="rounded-md border border-line bg-panel p-4">
               <div className="flex items-center justify-between">
-                <div className="font-medium text-sm">{info.label}</div>
-                <div className="flex items-center gap-2">
-                  {!info.implemented && <Badge>DISCONNECTED</Badge>}
+                <div className="font-medium text-sm text-ink-100">{info.label}</div>
+                <div className="flex items-center gap-3">
                   {row && <Badge>{row.status}</Badge>}
+                  {!row && <Badge>DISCONNECTED</Badge>}
+                  {info.implemented && (
+                    <form action={syncConnectorAction}>
+                      <input type="hidden" name="provider" value={provider} />
+                      <button
+                        type="submit"
+                        className="text-xs px-2.5 py-1 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors"
+                      >
+                        Sync now
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
-              <p className="text-xs text-ink-400 mt-1">{info.note}</p>
+              <p className="text-xs text-ink-400 mt-1.5">{info.note}</p>
               {row?.lastSyncedAt && (
                 <p className="text-xs text-ink-400 mt-1">
-                  Ultimo sync: {new Date(row.lastSyncedAt).toLocaleString()}
+                  Last synced {new Date(row.lastSyncedAt).toLocaleString()}
                 </p>
               )}
               {row?.lastSyncError && (
-                <p className="text-xs text-alarm mt-1">Errore: {row.lastSyncError}</p>
+                <p className="text-xs text-alarm mt-1">{row.lastSyncError}</p>
               )}
             </div>
           );
