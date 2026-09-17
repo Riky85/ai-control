@@ -38,6 +38,15 @@ function Icon({ name }: { name: string }) {
   }
 }
 
+function PanelToggleIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <rect x="1.5" y="2.5" width="13" height="11" rx="2" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M6 2.5V13.5" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
 const NAV_GROUPS: { label: string | null; items: { href: string; label: string; icon: string }[] }[] = [
   { label: null, items: [{ href: "/", label: "Overview", icon: "home" }] },
   {
@@ -105,34 +114,33 @@ export default function Sidebar() {
         collapsed ? "w-[64px] px-3" : "w-60 px-4"
       } ${ready ? "" : "invisible"}`}
     >
-      <div className={`flex items-center mb-7 gap-2 ${collapsed ? "justify-center" : "px-1"}`}>
-        <span className="text-white shrink-0">
-          <Logo size={16} />
-        </span>
-        {!collapsed && (
+      {!collapsed && (
+        <div className="flex items-center mb-7 gap-2 px-1">
+          <span className="text-white shrink-0">
+            <Logo size={16} />
+          </span>
           <span className="font-semibold text-[15px] tracking-tight text-white">AI Control</span>
-        )}
-        {!collapsed && (
           <button
             onClick={toggle}
             aria-label="Collapse sidebar"
             className="ml-auto h-7 w-7 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M9 2 L4 7 L9 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <PanelToggleIcon />
           </button>
-        )}
-      </div>
+        </div>
+      )}
       {collapsed && (
         <button
           onClick={toggle}
           aria-label="Expand sidebar"
-          className="h-7 w-7 mx-auto mb-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors"
+          className="group relative h-8 w-8 mx-auto mb-5 flex items-center justify-center"
         >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M4 2 L9 7 L4 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <span className="text-white transition-opacity group-hover:opacity-0">
+            <Logo size={16} />
+          </span>
+          <span className="absolute inset-0 flex items-center justify-center text-white/70 opacity-0 group-hover:opacity-100 group-hover:text-white transition-opacity rounded hover:bg-white/[0.08]">
+            <PanelToggleIcon />
+          </span>
         </button>
       )}
 
