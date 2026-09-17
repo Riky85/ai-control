@@ -284,6 +284,28 @@ async function main() {
     console.log(`Removed ${duplicateIds.length} duplicate polic${duplicateIds.length === 1 ? "y" : "ies"}.`);
   }
 
+  // One-time cleanup for the noisy evidence snapshots created before
+  // recordInventorySnapshot started skipping no-op runs (see src/lib/evidence.ts):
+  // collapse consecutive identical snapshots down to the earliest of each run.
+  const allSnapshots = await db.evidence.findMany({
+    where: { organizationId: org.id, type: "inventory_snapshot" },
+    orderBy: { createdAt: "asc" },
+  });
+  let lastKeptPayload: string | null = null;
+  const staleSnapshotIds: string[] = [];
+  for (const snap of allSnapshots) {
+    const key = JSON.stringify(snap.payload);
+    if (key === lastKeptPayload) {
+      staleSnapshotIds.push(snap.id);
+    } else {
+      lastKeptPayload = key;
+    }
+  }
+  if (staleSnapshotIds.length > 0) {
+    await db.evidence.deleteMany({ where: { id: { in: staleSnapshotIds } } });
+    console.log(`Removed ${staleSnapshotIds.length} no-op evidence snapshot(s).`);
+  }
+
   console.log("Seed complete.");
 }
 

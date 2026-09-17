@@ -39,16 +39,27 @@ export async function recordInventorySnapshot(organizationId: string) {
     orderBy: { createdAt: "desc" },
   });
 
+  // Se nulla e' cambiato rispetto all'ultimo snapshot, non aggiungerne uno
+  // nuovo: un audit trail con una riga identica ogni volta che gira un sync
+  // senza novita' e' rumore, non evidenza. Si registra solo un vero cambiamento.
+  if (previous) {
+    const prevPayload = previous.payload as typeof payload;
+    const unchanged =
+      prevPayload.total === payload.total &&
+      prevPayload.highRiskCount === payload.highRiskCount &&
+      JSON.stringify(prevPayload.byType) === JSON.stringify(payload.byType) &&
+      JSON.stringify(prevPayload.byStatus) === JSON.stringify(payload.byStatus);
+    if (unchanged) return previous;
+  }
+
   const previousTotal = previous ? (previous.payload as { total?: number }).total ?? 0 : null;
   const delta = previousTotal === null ? null : total - previousTotal;
   const summary =
     delta === null
       ? `${total} AI assets on record.`
-      : delta === 0
-        ? `${total} AI assets on record, no change since last snapshot.`
-        : delta > 0
-          ? `${total} AI assets on record, ${delta} new since last snapshot.`
-          : `${total} AI assets on record, ${Math.abs(delta)} removed since last snapshot.`;
+      : delta > 0
+        ? `${total} AI assets on record, ${delta} new since last snapshot.`
+        : `${total} AI assets on record, ${Math.abs(delta)} removed since last snapshot.`;
 
   return db.evidence.create({
     data: { organizationId, type: "inventory_snapshot", summary, payload },
