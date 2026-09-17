@@ -12,7 +12,7 @@ function Icon({ name }: { name: string }) {
   const stroke = { stroke: "currentColor", strokeWidth: 1.4, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   switch (name) {
     case "home":
-      return <svg {...common}><path {...stroke} d="M2.5 8 9 2.5 15.5 8" /><path {...stroke} d="M4 6.8V15h10V6.8" /></svg>;
+      return <svg {...common}><rect {...stroke} x="2.5" y="2.5" width="13" height="13" rx="1.5" /><path {...stroke} d="M2.5 7h13" /><path {...stroke} d="M7 7v8.5" /></svg>;
     case "assets":
       return <svg {...common}><rect {...stroke} x="2.5" y="2.5" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="10" y="2.5" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="2.5" y="10" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="10" y="10" width="5.5" height="5.5" rx="1" /></svg>;
     case "people":
@@ -115,7 +115,7 @@ export default function Sidebar() {
       } ${ready ? "" : "invisible"}`}
     >
       {!collapsed && (
-        <div className="flex items-center mb-7 gap-2 px-1">
+        <div className="flex items-center mb-7 gap-2 px-3">
           <span className="text-white shrink-0">
             <Logo size={16} />
           </span>

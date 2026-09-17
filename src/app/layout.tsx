@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={sans.variable}>
       <body className="flex min-h-screen bg-ink text-ink-100 font-body">
         <Sidebar />
-        <main className="flex-1 px-10 py-9 max-w-[1100px]">{children}</main>
+        <main className="flex-1 px-10 py-9">{children}</main>
       </body>
     </html>
   );
