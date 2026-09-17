@@ -238,25 +238,30 @@ async function main() {
 
   // Un paio di policy attive dalla libreria, per non mostrare la pagina
   // Policies vuota alla prima visita.
-  await db.policy.createMany({
-    data: [
-      {
-        organizationId: org.id,
-        name: "No unapproved agent in production",
-        description:
-          "AI agents cannot remain in Unapproved or Unreviewed status while connected to a production system.",
-        category: "environment",
-      },
-      {
-        organizationId: org.id,
-        name: "No PII to unmanaged AI",
-        description:
-          "AI applications without an enterprise/managed connector cannot be granted access to data classified as PII.",
-        category: "data_access",
-      },
-    ],
-    skipDuplicates: true,
-  });
+  // NOTA: Policy non ha un vincolo unique su (organizationId, name), quindi
+  // Prisma's skipDuplicates (che si traduce in ON CONFLICT DO NOTHING) non ha
+  // nulla su cui fare conflitto ed e' un no-op silenzioso — createMany
+  // creerebbe due righe duplicate ad ogni deploy. Check-then-create invece.
+  const seedPolicies = [
+    {
+      name: "No unapproved agent in production",
+      description:
+        "AI agents cannot remain in Unapproved or Unreviewed status while connected to a production system.",
+      category: "environment",
+    },
+    {
+      name: "No PII to unmanaged AI",
+      description:
+        "AI applications without an enterprise/managed connector cannot be granted access to data classified as PII.",
+      category: "data_access",
+    },
+  ];
+  for (const p of seedPolicies) {
+    const exists = await db.policy.findFirst({ where: { organizationId: org.id, name: p.name } });
+    if (!exists) {
+      await db.policy.create({ data: { organizationId: org.id, ...p } });
+    }
+  }
 
   // Classificazione EU AI Act di esempio (tag leggero, non un framework
   // completo — vedi commento nello schema).
