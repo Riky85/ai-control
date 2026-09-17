@@ -17,7 +17,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export default async function OverviewPage() {
-  const [total, byType, unknownCount, unapprovedCount, highRisk, activePolicies, recentAssets] = await Promise.all([
+  const [total, byType, unknownCount, unapprovedCount, highRisk, activePolicies, pendingReviewCount, recentAssets] = await Promise.all([
     db.aiAsset.count({ where: { organizationId: ORG_ID, deletedAt: null } }),
     db.aiAsset.groupBy({
       by: ["type"],
@@ -32,6 +32,9 @@ export default async function OverviewPage() {
       _max: { createdAt: true },
     }),
     db.policy.count({ where: { organizationId: ORG_ID, enabled: true } }),
+    db.aiAsset.count({
+      where: { organizationId: ORG_ID, status: { in: ["UNKNOWN", "UNAPPROVED", "UNREVIEWED"] }, deletedAt: null },
+    }),
     db.aiAsset.findMany({
       where: { organizationId: ORG_ID, deletedAt: null },
       orderBy: { firstSeenAt: "desc" },
@@ -65,12 +68,12 @@ export default async function OverviewPage() {
         ]}
       />
 
-      {(unknownCount > 0 || unapprovedCount > 0) && (
+      {pendingReviewCount > 0 && (
         <Link
           href="/approvals"
           className="text-sm text-ink-100 hover:underline -mt-4 w-fit"
         >
-          {unknownCount + unapprovedCount} asset{unknownCount + unapprovedCount === 1 ? "" : "s"} waiting on review →
+          {pendingReviewCount} asset{pendingReviewCount === 1 ? "" : "s"} waiting on review →
         </Link>
       )}
 

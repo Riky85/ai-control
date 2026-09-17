@@ -4,17 +4,40 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const NAV = [
-  { href: "/", label: "Overview", short: "Ov" },
-  { href: "/assets", label: "AI assets", short: "As" },
-  { href: "/approvals", label: "Approvals", short: "Ap" },
-  { href: "/policies", label: "Policies", short: "Po" },
-  { href: "/people", label: "People", short: "Pe" },
-  { href: "/data", label: "Data registry", short: "Da" },
-  { href: "/activity", label: "Activity", short: "Ac" },
-  { href: "/connectors", label: "Connectors", short: "Co" },
-  { href: "/evidence", label: "Evidence", short: "Ev" },
-  { href: "/settings", label: "Settings", short: "Se" },
+// Raggruppato per area di responsabilità (Inventory / Governance /
+// Monitoring / Setup) invece di una lista piatta — è la struttura che
+// distingue un "AI Program Center" da un semplice elenco di pagine.
+const NAV_GROUPS: { label: string | null; items: { href: string; label: string; short: string }[] }[] = [
+  { label: null, items: [{ href: "/", label: "Overview", short: "Ov" }] },
+  {
+    label: "Inventory",
+    items: [
+      { href: "/assets", label: "AI assets", short: "As" },
+      { href: "/people", label: "People", short: "Pe" },
+      { href: "/data", label: "Data registry", short: "Da" },
+    ],
+  },
+  {
+    label: "Governance",
+    items: [
+      { href: "/approvals", label: "Approvals", short: "Ap" },
+      { href: "/policies", label: "Policies", short: "Po" },
+    ],
+  },
+  {
+    label: "Monitoring",
+    items: [
+      { href: "/activity", label: "Activity", short: "Ac" },
+      { href: "/evidence", label: "Evidence", short: "Ev" },
+    ],
+  },
+  {
+    label: "Setup",
+    items: [
+      { href: "/connectors", label: "Connectors", short: "Co" },
+      { href: "/settings", label: "Settings", short: "Se" },
+    ],
+  },
 ];
 
 const STORAGE_KEY = "ai-control:sidebar-collapsed";
@@ -51,7 +74,7 @@ export default function Sidebar() {
         collapsed ? "w-[68px] px-3" : "w-60 px-5"
       } ${ready ? "" : "invisible"}`}
     >
-      <div className={`flex items-center mb-8 ${collapsed ? "justify-center" : "justify-between"}`}>
+      <div className={`flex items-center mb-7 ${collapsed ? "justify-center" : "justify-between"}`}>
         {!collapsed && (
           <span className="font-semibold text-[15px] tracking-tight text-ink-100">AI Control</span>
         )}
@@ -72,26 +95,33 @@ export default function Sidebar() {
         </button>
       </div>
 
-      <nav className="flex flex-col gap-0.5">
-        {NAV.map((item) => {
-          const active = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={collapsed ? item.label : undefined}
-              className={`rounded text-sm transition-colors ${
-                collapsed ? "px-0 py-2 text-center" : "px-3 py-2"
-              } ${
-                active
-                  ? "text-ink-100 bg-white/[0.05]"
-                  : "text-ink-400 hover:text-ink-100 hover:bg-white/[0.03]"
-              }`}
-            >
-              {collapsed ? item.short : item.label}
-            </Link>
-          );
-        })}
+      <nav className="flex flex-col gap-5 overflow-y-auto">
+        {NAV_GROUPS.map((group, gi) => (
+          <div key={gi} className="flex flex-col gap-0.5">
+            {group.label && !collapsed && (
+              <div className="text-[11px] text-ink-400/70 px-3 mb-1">{group.label}</div>
+            )}
+            {group.items.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={collapsed ? item.label : undefined}
+                  className={`rounded text-sm transition-colors ${
+                    collapsed ? "px-0 py-2 text-center" : "px-3 py-2"
+                  } ${
+                    active
+                      ? "text-ink-100 bg-white/[0.05]"
+                      : "text-ink-400 hover:text-ink-100 hover:bg-white/[0.03]"
+                  }`}
+                >
+                  {collapsed ? item.short : item.label}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
     </aside>
   );

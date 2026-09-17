@@ -16,7 +16,14 @@ const TYPE_OPTIONS: AiAssetType[] = [
   "AI_FEATURE",
 ];
 const STATUS_OPTIONS: AiAssetStatus[] = ["APPROVED", "UNREVIEWED", "UNAPPROVED", "UNKNOWN"];
+const STATUS_LABEL: Record<string, string> = {
+  APPROVED: "Approved",
+  UNREVIEWED: "Unreviewed",
+  UNAPPROVED: "Not approved",
+  UNKNOWN: "Unknown",
+};
 const RISK_OPTIONS = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
+const RISK_LABEL: Record<string, string> = { LOW: "Low", MEDIUM: "Medium", HIGH: "High", CRITICAL: "Critical" };
 
 export default async function AssetsPage({
   searchParams,
@@ -63,7 +70,7 @@ export default async function AssetsPage({
           <option value="">All statuses</option>
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {STATUS_LABEL[s]}
             </option>
           ))}
         </select>
@@ -71,7 +78,7 @@ export default async function AssetsPage({
           <option value="">All risk levels</option>
           {RISK_OPTIONS.map((r) => (
             <option key={r} value={r}>
-              {r}
+              {RISK_LABEL[r]}
             </option>
           ))}
         </select>
