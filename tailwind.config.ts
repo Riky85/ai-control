@@ -9,13 +9,13 @@ const config: Config = {
         // ispirato a OneTrust: "ink" resta lo sfondo di pagina, "ink-100"
         // resta il testo principale — solo i valori esadecimali cambiano.
         ink: {
-          DEFAULT: "#EFEDE6", // sfondo di pagina, crema caldo
-          100: "#18181B",     // testo principale, quasi nero
-          400: "#75746D",     // testo secondario
+          DEFAULT: "#F6F5F2", // sfondo di pagina, bianco caldo appena percettibile
+          100: "#1A1A18",     // testo principale, quasi nero
+          400: "#8C8A83",     // testo secondario — grigio pulito, non olivastro
         },
         panel: "#FFFFFF",     // card
-        line: "#E3E0D6",      // bordi
-        accent: "#18181B",    // hover → nero pieno, come i bottoni OneTrust
+        line: "#EAE8E3",      // bordi, sottili e puliti
+        accent: "#1A1A18",    // hover → nero pieno, come i bottoni OneTrust
         signal: "#C2740F",    // attenzione / rischio medio
         steady: "#1F9254",    // approvato / rischio basso
         alarm: "#D1453B",     // rischio alto/critico

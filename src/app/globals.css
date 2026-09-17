@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 body {
-  background-color: #EFEDE6;
-  color: #18181B;
+  background-color: #F6F5F2;
+  color: #1A1A18;
 }
 
 ::selection {
-  background-color: #18181B22;
+  background-color: #1A1A1822;
 }
 
 .tabular {
