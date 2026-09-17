@@ -263,6 +263,27 @@ async function main() {
   await db.aiAsset.update({ where: { id: financeAgent.id }, data: { euAiActTier: "HIGH_RISK" } });
   await db.aiAsset.update({ where: { id: claudeCode.id }, data: { euAiActTier: "MINIMAL_RISK" } });
 
+  // One-time cleanup for duplicate policies created before addPolicyFromLibraryAction
+  // and createPolicyAction were made idempotent by name (see src/lib/actions.ts).
+  // Safe to run on every deploy: once there are no duplicates left, this is a no-op.
+  const allPolicies = await db.policy.findMany({
+    where: { organizationId: org.id },
+    orderBy: { createdAt: "asc" },
+  });
+  const seenNames = new Set<string>();
+  const duplicateIds: string[] = [];
+  for (const p of allPolicies) {
+    if (seenNames.has(p.name)) {
+      duplicateIds.push(p.id);
+    } else {
+      seenNames.add(p.name);
+    }
+  }
+  if (duplicateIds.length > 0) {
+    await db.policy.deleteMany({ where: { id: { in: duplicateIds } } });
+    console.log(`Removed ${duplicateIds.length} duplicate polic${duplicateIds.length === 1 ? "y" : "ies"}.`);
+  }
+
   console.log("Seed complete.");
 }
 

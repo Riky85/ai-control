@@ -63,6 +63,11 @@ export async function createPolicyAction(formData: FormData) {
   const description = (formData.get("description") as string)?.trim();
   const category = (formData.get("category") as string) || "other";
   if (!name || !description) return;
+  const existing = await db.policy.findFirst({ where: { organizationId: ORG_ID, name } });
+  if (existing) {
+    revalidatePath("/policies");
+    return; // already exists under this name — never create a duplicate
+  }
   await db.policy.create({
     data: { organizationId: ORG_ID, name, description, category },
   });
@@ -73,6 +78,11 @@ export async function addPolicyFromLibraryAction(formData: FormData) {
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
   const category = formData.get("category") as string;
+  const existing = await db.policy.findFirst({ where: { organizationId: ORG_ID, name } });
+  if (existing) {
+    revalidatePath("/policies");
+    return; // already added — clicking "Add" again is a no-op, not a duplicate
+  }
   await db.policy.create({
     data: { organizationId: ORG_ID, name, description, category },
   });
