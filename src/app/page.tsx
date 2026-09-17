@@ -98,20 +98,17 @@ export default async function OverviewPage() {
         </div>
       )}
 
-      {/* AI posture — un unico numero, non cinque card separate */}
-      <div>
-        <div className="flex items-baseline gap-3">
-          <span className="tabular font-display text-4xl font-semibold text-ink-100">{total}</span>
-          <span className="text-sm text-ink-400">AI assets</span>
-        </div>
-        <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-sm text-ink-400">
-          <span><span className="text-ink-100 font-medium">{statusCount.APPROVED ?? 0}</span> approved</span>
-          <span><span className="text-ink-100 font-medium">{(statusCount.UNREVIEWED ?? 0) + (statusCount.UNAPPROVED ?? 0)}</span> under review</span>
-          <span><span className="text-ink-100 font-medium">{statusCount.UNKNOWN ?? 0}</span> unknown</span>
-          <span className={highRisk.length > 0 ? "text-alarm" : ""}>
-            <span className={`font-medium ${highRisk.length > 0 ? "text-alarm" : "text-ink-100"}`}>{highRisk.length}</span> high risk
-          </span>
-        </div>
+      {/* AI posture — un'unica fascia di mini-widget, non testo semplice né
+          cinque card sparse: numero, indicatore colorato, etichetta. */}
+      <div className="rounded-lg border border-line bg-panel shadow-card grid grid-cols-4 divide-x divide-line">
+        <PostureTile value={total} label="AI assets" dotClass="bg-ink-100" />
+        <PostureTile value={statusCount.APPROVED ?? 0} label="Approved" dotClass="bg-accent" />
+        <PostureTile
+          value={(statusCount.UNREVIEWED ?? 0) + (statusCount.UNAPPROVED ?? 0) + (statusCount.UNKNOWN ?? 0)}
+          label="Under review"
+          dotClass="bg-signal"
+        />
+        <PostureTile value={highRisk.length} label="High risk" dotClass="bg-alarm" tone={highRisk.length > 0 ? "alarm" : undefined} />
       </div>
 
       {/* Attention — cosa richiede davvero uno sguardo, non tutto l'inventario */}
@@ -122,23 +119,28 @@ export default async function OverviewPage() {
           </h2>
           <Link href="/approvals" className="text-xs text-ink-100 hover:underline">View all</Link>
         </div>
-        <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line">
+        <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line overflow-hidden">
           {attention.length === 0 && (
             <div className="p-5 text-sm text-ink-400">Nothing needs attention right now.</div>
           )}
           {attention.map((a) => {
             const r = a.riskAssessments[0];
+            const edgeClass = r?.level === "HIGH" || r?.level === "CRITICAL" ? "border-l-alarm" : "border-l-signal";
             return (
-              <div key={a.id} className="flex items-center justify-between px-4 py-3 text-sm">
+              <Link
+                href={`/assets/${a.id}`}
+                key={a.id}
+                className={`flex items-center justify-between px-4 py-3 text-sm border-l-2 ${edgeClass} hover:bg-black/[0.015] transition-colors`}
+              >
                 <div className="flex items-center gap-3">
-                  <Link href={`/assets/${a.id}`} className="hover:underline font-medium text-ink-100">{a.name}</Link>
+                  <span className="font-medium text-ink-100">{a.name}</span>
                   <span className="text-ink-400 text-xs">{a.owner?.name ?? "No owner"}</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs">
                   {r && <Badge>{r.level}</Badge>}
                   <Badge>{a.status}</Badge>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -211,16 +213,45 @@ export default async function OverviewPage() {
             <div className="p-5 text-sm text-ink-400">No activity imported yet.</div>
           )}
           {recentActivity.map((a) => (
-            <div key={a.id} className="flex items-center justify-between px-4 py-3 text-sm">
+            <Link
+              href={`/assets/${a.aiAssetId}`}
+              key={a.id}
+              className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.015] transition-colors"
+            >
               <div className="flex items-center gap-3">
+                <span className="h-1.5 w-1.5 rounded-full bg-ink-400/50 shrink-0" />
                 <span className="tabular text-xs text-ink-400">{new Date(a.occurredAt).toLocaleTimeString()}</span>
-                <Link href={`/assets/${a.aiAssetId}`} className="hover:underline font-medium text-ink-100">{a.aiAsset.name}</Link>
+                <span className="font-medium text-ink-100">{a.aiAsset.name}</span>
                 <span className="text-ink-400 text-xs">{a.eventType}</span>
               </div>
               <span className="text-ink-400 text-xs">{a.source}</span>
-            </div>
+            </Link>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PostureTile({
+  value,
+  label,
+  dotClass,
+  tone,
+}: {
+  value: number;
+  label: string;
+  dotClass: string;
+  tone?: "alarm";
+}) {
+  return (
+    <div className="px-5 py-4">
+      <div className="flex items-center gap-2 mb-1">
+        <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
+        <span className="text-xs text-ink-400">{label}</span>
+      </div>
+      <div className={`tabular font-display text-2xl font-semibold ${tone === "alarm" ? "text-alarm" : "text-ink-100"}`}>
+        {value}
       </div>
     </div>
   );

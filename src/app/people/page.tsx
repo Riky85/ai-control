@@ -11,6 +11,10 @@ export default async function PeoplePage() {
     orderBy: { name: "asc" },
     include: {
       _count: { select: { ownedAssets: true, usages: true } },
+      ownedAssets: {
+        where: { deletedAt: null },
+        include: { riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 } },
+      },
     },
   });
 
@@ -31,31 +35,38 @@ export default async function PeoplePage() {
               <th className="px-4 py-3 font-medium">Department</th>
               <th className="px-4 py-3 font-medium">Owns</th>
               <th className="px-4 py-3 font-medium">Uses</th>
+              <th className="px-4 py-3 font-medium">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {users.map((u) => (
-              <tr key={u.id} className="hover:bg-black/[0.02]">
-                <td className="px-4 py-3">
-                  <div className="font-medium text-ink-100">{u.name ?? u.email}</div>
-                  <div className="text-xs text-ink-400">{u.email}</div>
-                </td>
-                <td className="px-4 py-3 text-ink-400">{u.department ?? "—"}</td>
-                <td className="px-4 py-3">
-                  {u._count.ownedAssets > 0 ? (
-                    <Link href="/assets" className="tabular text-ink-100 hover:underline">
-                      {u._count.ownedAssets}
+            {users.map((u) => {
+              const highRiskOwned = u.ownedAssets.filter((a) =>
+                ["HIGH", "CRITICAL"].includes(a.riskAssessments[0]?.level ?? "")
+              ).length;
+              return (
+                <tr key={u.id} className="hover:bg-black/[0.02]">
+                  <td className="px-4 py-3">
+                    <Link href={`/people/${u.id}`} className="font-medium text-ink-100 hover:underline">
+                      {u.name ?? u.email}
                     </Link>
-                  ) : (
-                    <span className="text-ink-400">0</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 tabular text-ink-400">{u._count.usages}</td>
-              </tr>
-            ))}
+                    <div className="text-xs text-ink-400">{u.email}</div>
+                  </td>
+                  <td className="px-4 py-3 text-ink-400">{u.department ?? "—"}</td>
+                  <td className="px-4 py-3 tabular text-ink-100">{u._count.ownedAssets}</td>
+                  <td className="px-4 py-3 tabular text-ink-400">{u._count.usages}</td>
+                  <td className="px-4 py-3 text-xs">
+                    {highRiskOwned > 0 ? (
+                      <span className="text-alarm">Attention</span>
+                    ) : (
+                      <span className="text-accent">Good</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
             {users.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-sm text-ink-400">
+                <td colSpan={5} className="px-4 py-6 text-sm text-ink-400">
                   No people on record yet. They appear automatically once a connector syncs, or add one from Settings.
                 </td>
               </tr>

@@ -9,6 +9,7 @@ const ORG_ID = "demo-org";
 
 interface ConnectorInfo {
   label: string;
+  category: "Identity" | "Development" | "AI";
   implemented: boolean;
   requiresOrg: boolean; // needs an Enterprise/Team/Org plan, not a personal account
   envVars: string[];
@@ -19,6 +20,7 @@ interface ConnectorInfo {
 const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
   GITHUB: {
     label: "GitHub",
+    category: "Development",
     implemented: true,
     requiresOrg: false,
     envVars: ["GITHUB_APP_ID", "GITHUB_APP_PRIVATE_KEY", "GITHUB_APP_INSTALLATION_ID", "GITHUB_ORG"],
@@ -40,6 +42,7 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
   },
   MICROSOFT_365: {
     label: "Microsoft 365 / Entra ID",
+    category: "Identity",
     implemented: true,
     requiresOrg: true,
     envVars: ["MS365_TENANT_ID", "MS365_CLIENT_ID", "MS365_CLIENT_SECRET"],
@@ -57,6 +60,7 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
   },
   ANTHROPIC: {
     label: "Anthropic (Claude)",
+    category: "AI",
     implemented: true,
     requiresOrg: true,
     envVars: ["ANTHROPIC_ADMIN_API_KEY"],
@@ -70,6 +74,7 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
   },
   OPENAI: {
     label: "OpenAI (ChatGPT)",
+    category: "AI",
     implemented: true,
     requiresOrg: true,
     envVars: ["OPENAI_ADMIN_API_KEY"],
@@ -83,6 +88,7 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
   },
   GOOGLE_WORKSPACE: {
     label: "Google Workspace",
+    category: "Identity",
     implemented: false,
     requiresOrg: true,
     envVars: [],
@@ -105,13 +111,17 @@ export default async function ConnectorsPage() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3">
-        {Object.entries(CONNECTOR_INFO).map(([provider, info]) => {
-          const row = byProvider.get(provider as ConnectorProvider);
-          const warnings = (row?.lastSyncWarnings as string[] | null) ?? [];
-          return (
-            <div key={provider} className="rounded-lg border border-line bg-panel shadow-card p-4">
-              <div className="flex items-center justify-between">
+      {(["Identity", "Development", "AI"] as const).map((category) => (
+        <div key={category} className="flex flex-col gap-3">
+          <h2 className="text-xs font-medium text-ink-400">{category}</h2>
+          {Object.entries(CONNECTOR_INFO)
+            .filter(([, info]) => info.category === category)
+            .map(([provider, info]) => {
+              const row = byProvider.get(provider as ConnectorProvider);
+              const warnings = (row?.lastSyncWarnings as string[] | null) ?? [];
+              return (
+                <div key={provider} className="rounded-lg border border-line bg-panel shadow-card p-4">
+                  <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="font-medium text-sm text-ink-100">{info.label}</span>
                   {row ? <Badge>{row.status}</Badge> : <Badge>DISCONNECTED</Badge>}
@@ -178,7 +188,8 @@ export default async function ConnectorsPage() {
             </div>
           );
         })}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }

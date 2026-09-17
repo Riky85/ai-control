@@ -158,7 +158,7 @@ export default function Sidebar() {
                   }`}
                 >
                   {active && !collapsed && (
-                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-accent rounded-full" />
+                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full" style={{ backgroundColor: "#383838" }} />
                   )}
                   <Icon name={item.icon} />
                   {!collapsed && item.label}

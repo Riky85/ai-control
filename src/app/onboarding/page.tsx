@@ -20,34 +20,59 @@ export default async function OnboardingPage({
 }) {
   const step = Math.min(Math.max(parseInt(searchParams.step ?? "1", 10) || 1, 1), STEPS.length);
 
-  const [org, people, activePolicies] = await Promise.all([
+  const [org, people, activePolicies, connectedCount] = await Promise.all([
     db.organization.findUnique({ where: { id: ORG_ID } }),
     db.user.findMany({ where: { organizationId: ORG_ID }, orderBy: { name: "asc" } }),
     db.policy.findMany({ where: { organizationId: ORG_ID } }),
+    db.connector.count({ where: { organizationId: ORG_ID, status: "CONNECTED" } }),
   ]);
   const activeNames = new Set(activePolicies.map((p) => p.name));
 
+  // Il completamento di ogni voce e' verificato contro dati reali dove
+  // possibile (connettori, persone, policy), non solo "hai visitato lo step":
+  // e' l'idea di checklist di OneTrust applicata onestamente al nostro dato.
+  const checklistDone = [
+    step > 1,
+    step > 2,
+    connectedCount > 0,
+    people.length > 0,
+    activePolicies.length > 0,
+  ];
+
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-8">
-      {/* Progress */}
-      <div className="flex items-center gap-2">
+      <div>
+        <h1 className="font-display text-xl font-semibold text-ink-100">Get AI Control set up</h1>
+        <p className="text-sm text-ink-400 mt-1">{checklistDone.filter(Boolean).length} of {STEPS.length} done</p>
+      </div>
+
+      <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line">
         {STEPS.map((label, i) => {
           const n = i + 1;
-          const state = n < step ? "done" : n === step ? "active" : "pending";
+          const done = checklistDone[i];
+          const active = n === step;
           return (
-            <div key={label} className="flex items-center gap-2 flex-1">
-              <div
-                className={`h-1.5 flex-1 rounded-full ${
-                  state === "pending" ? "bg-line" : "bg-ink-100"
+            <Link
+              key={label}
+              href={`/onboarding?step=${n}`}
+              className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                active ? "bg-black/[0.02]" : "hover:bg-black/[0.015]"
+              }`}
+            >
+              <span
+                className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 text-[10px] ${
+                  done ? "bg-accent text-white" : active ? "border-2 border-accent text-accent" : "border border-line text-ink-400"
                 }`}
-              />
-            </div>
+              >
+                {done ? "✓" : n}
+              </span>
+              <span className={active ? "text-ink-100 font-medium" : done ? "text-ink-400" : "text-ink-400"}>
+                {label}
+              </span>
+            </Link>
           );
         })}
       </div>
-      <p className="text-xs text-ink-400 -mt-6">
-        Step {step} of {STEPS.length} — {STEPS[step - 1]}
-      </p>
 
       {step === 1 && (
         <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
