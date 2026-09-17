@@ -10,9 +10,9 @@ const ORG_ID = "demo-org";
 interface ConnectorInfo {
   label: string;
   implemented: boolean;
-  requiresOrg: boolean; // richiede un piano Enterprise/Team/Org, non un account personale
+  requiresOrg: boolean; // needs an Enterprise/Team/Org plan, not a personal account
   envVars: string[];
-  testOnYourself: string; // onestà su cosa serve davvero per provarlo con il proprio account
+  testOnYourself: string; // honest about what it actually takes to try with your own account
   steps: string[];
 }
 
@@ -23,19 +23,19 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
     requiresOrg: false,
     envVars: ["GITHUB_APP_ID", "GITHUB_APP_PRIVATE_KEY", "GITHUB_APP_INSTALLATION_ID", "GITHUB_ORG"],
     testOnYourself:
-      "Il più realistico da provare su di te. Serve un'organizzazione GitHub (anche gratuita — chiunque può crearne una in 1 minuto). Copilot e audit log richiedono un piano a pagamento sull'org, ma la scansione dei repository funziona anche su un'org free.",
+      "The most realistic one to try on yourself. Needs a GitHub organization (even a free one — anyone can create one in a minute). Copilot and audit log data require a paid org plan, but repository scanning works even on a free org.",
     steps: [
-      "Se non ne hai già una: github.com → icona + in alto a destra → \"New organization\" → scegli il piano Free.",
-      "Vai su github.com/settings/apps/new (GitHub App a livello personale, installabile sulla tua org).",
-      "GitHub App name: un nome qualsiasi (es. \"AI Control Sync\"). Homepage URL: l'URL della tua app su Railway.",
-      "Sezione Webhook: disattiva \"Active\" (non gestiamo ancora i webhook).",
+      "If you don't already have one: github.com → the + icon top right → \"New organization\" → pick the Free plan.",
+      "Go to github.com/settings/apps/new (a personal GitHub App, installable on your org).",
+      "GitHub App name: anything (e.g. \"AI Control Sync\"). Homepage URL: your app's URL on Railway.",
+      "Webhook section: uncheck \"Active\" (webhooks aren't handled yet).",
       "Permissions → Repository permissions: Metadata = Read-only.",
       "Permissions → Organization permissions: Members = Read-only, Administration = Read-only.",
-      "Crea l'app, poi clicca \"Generate a private key\" — scarica il file .pem: è il valore di GITHUB_APP_PRIVATE_KEY.",
-      "Vai su github.com/settings/apps/<nome-app>/installations → Install → seleziona la tua organizzazione.",
-      "Dall'URL dopo l'installazione (o dalla pagina \"Advanced\" dell'app) copia l'Installation ID numerico.",
-      "Su Railway → progetto ai-control → servizio ai-control → Variables: imposta i 4 valori (App ID e Installation ID li trovi nella pagina dell'app; GITHUB_ORG è lo slug della tua org).",
-      "Railway riavvia da solo il servizio dopo aver salvato le variabili. Torna qui e premi \"Sync now\".",
+      "Create the app, then click \"Generate a private key\" — download the .pem file: that's your GITHUB_APP_PRIVATE_KEY.",
+      "Go to github.com/settings/apps/<app-name>/installations → Install → select your organization.",
+      "From the URL after installing (or the app's \"Advanced\" page) copy the numeric Installation ID.",
+      "On Railway → ai-control project → ai-control service → Variables: set all 4 values (App ID and Installation ID are on the app's page; GITHUB_ORG is your org's slug).",
+      "Railway redeploys the service on its own after you save the variables. Come back here and press \"Sync now\".",
     ],
   },
   MICROSOFT_365: {
@@ -44,15 +44,15 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
     requiresOrg: true,
     envVars: ["MS365_TENANT_ID", "MS365_CLIENT_ID", "MS365_CLIENT_SECRET"],
     testOnYourself:
-      "Serve un tenant Microsoft Entra con permessi da amministratore per dare admin consent. Un account Microsoft personale (outlook.com) non basta — serve un'organizzazione (anche un tenant developer gratuito di Microsoft 365).",
+      "Needs a Microsoft Entra tenant with admin rights to grant admin consent. A personal Microsoft account (outlook.com) isn't enough — you need an organization (a free Microsoft 365 developer tenant works too).",
     steps: [
       "portal.azure.com → Microsoft Entra ID → App registrations → New registration.",
-      "Dopo la creazione, copia Application (client) ID e Directory (tenant) ID dalla pagina Overview.",
+      "After creating it, copy the Application (client) ID and Directory (tenant) ID from the Overview page.",
       "API permissions → Add a permission → Microsoft Graph → Application permissions: Application.Read.All, AuditLog.Read.All, Directory.Read.All.",
-      "Sulla stessa pagina, clicca \"Grant admin consent\" (richiede un ruolo da amministratore del tenant).",
-      "Certificates & secrets → New client secret → copia il Value subito (non sarà più visibile dopo).",
-      "Su Railway, imposta MS365_TENANT_ID, MS365_CLIENT_ID, MS365_CLIENT_SECRET con questi tre valori.",
-      "Premi \"Sync now\" dopo che Railway ha riavviato il servizio.",
+      "On the same page, click \"Grant admin consent\" (requires a tenant admin role).",
+      "Certificates & secrets → New client secret → copy the Value right away (it won't be shown again).",
+      "On Railway, set MS365_TENANT_ID, MS365_CLIENT_ID, MS365_CLIENT_SECRET with these three values.",
+      "Press \"Sync now\" once Railway has redeployed the service.",
     ],
   },
   ANTHROPIC: {
@@ -61,11 +61,11 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
     requiresOrg: true,
     envVars: ["ANTHROPIC_ADMIN_API_KEY"],
     testOnYourself:
-      "Non testabile su un account Claude.ai personale o Pro: serve un'organizzazione Claude Enterprise/Team con l'Admin API abilitata.",
+      "Not testable on a personal Claude.ai or Pro account: needs a Claude Enterprise/Team organization with the Admin API enabled.",
     steps: [
-      "console.anthropic.com → Settings → Admin API keys (visibile solo su organizzazioni Enterprise/Team con questa funzione abilitata).",
-      "Genera una Admin API key (prefisso sk-ant-admin...).",
-      "Su Railway, imposta ANTHROPIC_ADMIN_API_KEY con questo valore.",
+      "console.anthropic.com → Settings → Admin API keys (only visible on Enterprise/Team organizations with this feature enabled).",
+      "Generate an Admin API key (prefix sk-ant-admin...).",
+      "On Railway, set ANTHROPIC_ADMIN_API_KEY with this value.",
     ],
   },
   OPENAI: {
@@ -74,11 +74,11 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
     requiresOrg: true,
     envVars: ["OPENAI_ADMIN_API_KEY"],
     testOnYourself:
-      "Non testabile su un account ChatGPT personale o Plus: serve un'organizzazione ChatGPT Enterprise o Edu.",
+      "Not testable on a personal ChatGPT or Plus account: needs a ChatGPT Enterprise or Edu organization.",
     steps: [
       "platform.openai.com → Settings → Organization → Admin keys.",
-      "Genera una Admin API key (permesso di lettura su utenti e audit log).",
-      "Su Railway, imposta OPENAI_ADMIN_API_KEY con questo valore.",
+      "Generate an Admin API key (with read permission on users and audit logs).",
+      "On Railway, set OPENAI_ADMIN_API_KEY with this value.",
     ],
   },
   GOOGLE_WORKSPACE: {
@@ -86,7 +86,7 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
     implemented: false,
     requiresOrg: true,
     envVars: [],
-    testOnYourself: "Riservato nello schema, non ancora costruito (PRD §5.5).",
+    testOnYourself: "Reserved in the schema, not built yet (PRD §5.5).",
     steps: [],
   },
 };
