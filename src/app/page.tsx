@@ -89,7 +89,7 @@ export default async function OverviewPage() {
 
       {!org?.onboardingCompletedAt && (
         <div className="rounded-lg border border-line bg-panel shadow-card px-5 py-3.5 flex items-center gap-3">
-          <span className="text-xs font-medium text-white bg-ink-100 rounded-full px-2.5 py-1 shrink-0">
+          <span className="text-xs font-medium text-white bg-accent rounded-full px-2.5 py-1 shrink-0">
             Setup
           </span>
           <p className="text-sm text-ink-100">

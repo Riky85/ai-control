@@ -7,7 +7,7 @@ export interface Stage {
 
 const DOT: Record<StageState, string> = {
   done: "bg-ink-100",
-  active: "bg-signal",
+  active: "bg-accent",
   pending: "bg-line",
   continuous: "bg-steady",
 };
