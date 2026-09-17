@@ -50,7 +50,7 @@ export default async function OnboardingPage({
       </p>
 
       {step === 1 && (
-        <div className="rounded-lg border border-line bg-panel p-8 flex flex-col gap-4">
+        <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
           <h1 className="font-display text-2xl font-semibold text-ink-100">Welcome to AI Control</h1>
           <p className="text-sm text-ink-400">
             This walks you through the four things worth setting up before the
@@ -61,7 +61,7 @@ export default async function OnboardingPage({
           </p>
           <Link
             href="/onboarding?step=2"
-            className="self-start text-sm px-4 py-2 rounded-md bg-ink-100 text-white hover:bg-black transition-colors"
+            className="self-start text-sm px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
           >
             Get started
           </Link>
@@ -69,7 +69,7 @@ export default async function OnboardingPage({
       )}
 
       {step === 2 && (
-        <div className="rounded-lg border border-line bg-panel p-8 flex flex-col gap-4">
+        <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
           <h1 className="font-display text-xl font-semibold text-ink-100">Your organization</h1>
           <p className="text-sm text-ink-400">
             This is what shows up on evidence exports and audit trails.
@@ -106,7 +106,7 @@ export default async function OnboardingPage({
             </Link>
             <Link
               href="/onboarding?step=3"
-              className="text-sm px-4 py-2 rounded-md bg-ink-100 text-white hover:bg-black transition-colors"
+              className="text-sm px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
             >
               Continue
             </Link>
@@ -115,7 +115,7 @@ export default async function OnboardingPage({
       )}
 
       {step === 3 && (
-        <div className="rounded-lg border border-line bg-panel p-8 flex flex-col gap-4">
+        <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
           <h1 className="font-display text-xl font-semibold text-ink-100">Connect a source</h1>
           <p className="text-sm text-ink-400">
             Nothing shows up until a connector actually syncs. GitHub is the
@@ -145,7 +145,7 @@ export default async function OnboardingPage({
             </Link>
             <Link
               href="/onboarding?step=4"
-              className="text-sm px-4 py-2 rounded-md bg-ink-100 text-white hover:bg-black transition-colors"
+              className="text-sm px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
             >
               I'll do this later — continue
             </Link>
@@ -154,7 +154,7 @@ export default async function OnboardingPage({
       )}
 
       {step === 4 && (
-        <div className="rounded-lg border border-line bg-panel p-8 flex flex-col gap-4">
+        <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
           <h1 className="font-display text-xl font-semibold text-ink-100">Add the people who'll own things</h1>
           <p className="text-sm text-ink-400">
             Assets show up unowned until someone is assigned. You don't need
@@ -188,7 +188,7 @@ export default async function OnboardingPage({
             </Link>
             <Link
               href="/onboarding?step=5"
-              className="text-sm px-4 py-2 rounded-md bg-ink-100 text-white hover:bg-black transition-colors"
+              className="text-sm px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
             >
               Continue
             </Link>
@@ -197,7 +197,7 @@ export default async function OnboardingPage({
       )}
 
       {step === 5 && (
-        <div className="rounded-lg border border-line bg-panel p-8 flex flex-col gap-4">
+        <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
           <h1 className="font-display text-xl font-semibold text-ink-100">Turn on a couple of policies</h1>
           <p className="text-sm text-ink-400">
             These are read as governance intent, not enforced automatically
@@ -237,7 +237,7 @@ export default async function OnboardingPage({
             <form action={completeOnboardingAction}>
               <button
                 type="submit"
-                className="text-sm px-4 py-2 rounded-md bg-ink-100 text-white hover:bg-black transition-colors"
+                className="text-sm px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
               >
                 Finish setup
               </button>

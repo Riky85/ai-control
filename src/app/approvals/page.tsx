@@ -36,7 +36,7 @@ export default async function ApprovalsPage() {
         {pending.map((asset) => {
           const risk = asset.riskAssessments[0];
           return (
-            <div key={asset.id} className="rounded-md border border-line bg-panel p-4 flex items-center gap-5">
+            <div key={asset.id} className="rounded-md border border-line bg-panel shadow-card p-4 flex items-center gap-5">
               {risk && (
                 <div className="shrink-0 scale-75 -my-3">
                   <RiskGauge score={risk.score} level={risk.level} />
@@ -81,7 +81,7 @@ export default async function ApprovalsPage() {
           );
         })}
         {pending.length === 0 && (
-          <div className="rounded-md border border-line bg-panel p-6 text-sm text-ink-400">
+          <div className="rounded-md border border-line bg-panel shadow-card p-6 text-sm text-ink-400">
             Nothing waiting on review. Every known asset has been approved or rejected.
           </div>
         )}

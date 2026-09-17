@@ -30,7 +30,7 @@ export default async function ActivityPage() {
         </p>
       </div>
 
-      <div className="rounded-md border border-line bg-panel divide-y divide-line">
+      <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
         {activities.map((a) => (
           <div key={a.id} className="flex items-center justify-between px-4 py-3 text-sm">
             <div className="flex items-center gap-3">

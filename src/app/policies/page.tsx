@@ -34,7 +34,7 @@ export default async function PoliciesPage() {
 
       <div>
         <h2 className="text-sm font-medium text-ink-400 mb-3">Active policies</h2>
-        <div className="rounded-md border border-line bg-panel divide-y divide-line">
+        <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
           {policies.length === 0 && (
             <div className="p-5 text-sm text-ink-400">
               No policies yet. Add one from the library below, or write a custom one.
@@ -81,7 +81,7 @@ export default async function PoliciesPage() {
       {availableTemplates.length > 0 && (
         <div>
           <h2 className="text-sm font-medium text-ink-400 mb-3">Policy library</h2>
-          <div className="rounded-md border border-line bg-panel divide-y divide-line">
+          <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
             {availableTemplates.map((t) => (
               <div key={t.name} className="px-5 py-4 flex items-start justify-between gap-4">
                 <div>
@@ -112,7 +112,7 @@ export default async function PoliciesPage() {
 
       <div>
         <h2 className="text-sm font-medium text-ink-400 mb-3">Write a custom policy</h2>
-        <form action={createPolicyAction} className="rounded-md border border-line bg-panel p-5 flex flex-col gap-3">
+        <form action={createPolicyAction} className="rounded-md border border-line bg-panel shadow-card p-5 flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-ink-400">Name</label>
             <input

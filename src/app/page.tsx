@@ -88,7 +88,7 @@ export default async function OverviewPage() {
       </div>
 
       {!org?.onboardingCompletedAt && (
-        <div className="rounded-lg border border-line bg-panel px-5 py-3.5 flex items-center gap-3">
+        <div className="rounded-lg border border-line bg-panel shadow-card px-5 py-3.5 flex items-center gap-3">
           <span className="text-xs font-medium text-white bg-ink-100 rounded-full px-2.5 py-1 shrink-0">
             Setup
           </span>
@@ -102,7 +102,7 @@ export default async function OverviewPage() {
       )}
 
       {pendingReviewCount > 0 && (
-        <div className="rounded-lg border border-line bg-panel px-5 py-3.5 flex items-center gap-3">
+        <div className="rounded-lg border border-line bg-panel shadow-card px-5 py-3.5 flex items-center gap-3">
           <span className="text-xs font-medium text-white bg-signal rounded-full px-2.5 py-1 shrink-0">
             Needs review
           </span>
@@ -117,7 +117,7 @@ export default async function OverviewPage() {
       )}
 
       {spotlight && (
-        <div className="rounded-lg border border-line bg-panel p-6">
+        <div className="rounded-lg border border-line bg-panel shadow-card p-6">
           <div className="flex items-start justify-between mb-5">
             <div>
               <h2 className="text-sm font-semibold text-ink-100">AI asset lifecycle</h2>
@@ -197,7 +197,7 @@ export default async function OverviewPage() {
                     <input type="hidden" name="status" value="APPROVED" />
                     <button
                       type="submit"
-                      className="text-xs px-3 py-1.5 rounded-md bg-ink-100 text-white hover:bg-black transition-colors"
+                      className="text-xs px-3 py-1.5 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
                     >
                       Approve
                     </button>
@@ -256,7 +256,7 @@ export default async function OverviewPage() {
             View all assets
           </Link>
         </div>
-        <div className="rounded-lg border border-line bg-panel divide-y divide-line">
+        <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line">
           {recentAssets.length === 0 && (
             <div className="p-5 text-sm text-ink-400">
               No assets yet. Connect Microsoft 365 or GitHub to start discovery.
@@ -289,7 +289,7 @@ export default async function OverviewPage() {
 function Stat({ label, value, tone }: { label: string; value: number; tone?: "signal" | "alarm" }) {
   const toneClass = tone === "signal" ? "text-signal" : tone === "alarm" ? "text-alarm" : "text-ink-100";
   return (
-    <div className="rounded-lg border border-line bg-panel px-4 py-3.5">
+    <div className="rounded-lg border border-line bg-panel shadow-card px-4 py-3.5">
       <div className={`tabular text-2xl font-display font-semibold ${toneClass}`}>{value}</div>
       <div className="text-xs text-ink-400 mt-0.5">{label}</div>
     </div>

@@ -110,7 +110,7 @@ export default async function ConnectorsPage() {
           const row = byProvider.get(provider as ConnectorProvider);
           const warnings = (row?.lastSyncWarnings as string[] | null) ?? [];
           return (
-            <div key={provider} className="rounded-lg border border-line bg-panel p-4">
+            <div key={provider} className="rounded-lg border border-line bg-panel shadow-card p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="font-medium text-sm text-ink-100">{info.label}</span>

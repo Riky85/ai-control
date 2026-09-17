@@ -28,7 +28,7 @@ export default async function EvidencePage() {
         </p>
       </div>
 
-      <div className="rounded-md border border-line bg-panel divide-y divide-line">
+      <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
         {snapshots.length === 0 && (
           <div className="p-5 text-sm text-ink-400">
             No snapshots yet. One is recorded automatically the first time a connector syncs.

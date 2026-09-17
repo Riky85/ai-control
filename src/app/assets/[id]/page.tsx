@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
+import AssetGraph from "@/components/AssetGraph";
 import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction } from "@/lib/actions";
 import { notFound } from "next/navigation";
 
@@ -45,7 +46,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
 
       <div className="grid grid-cols-3 gap-6">
         <section className="col-span-2 flex flex-col gap-6">
-          <div className="rounded-md border border-line bg-panel p-5">
+          <div className="rounded-md border border-line bg-panel shadow-card p-5">
             <h2 className="text-sm font-medium text-ink-400 mb-3">Connected systems</h2>
             <div className="flex flex-wrap gap-2 text-sm">
               {asset.connectedSystems.map((s) => (
@@ -60,7 +61,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
             </div>
           </div>
 
-          <div className="rounded-md border border-line bg-panel p-5">
+          <div className="rounded-md border border-line bg-panel shadow-card p-5">
             <h2 className="text-sm font-medium text-ink-400 mb-3">Data access</h2>
             <div className="flex flex-wrap gap-2 text-sm">
               {asset.dataAccess.map((d) => (
@@ -81,35 +82,35 @@ export default async function AssetDetailPage({ params }: { params: { id: string
             </div>
           </div>
 
-          <div className="rounded-md border border-line bg-panel p-5">
+          <div className="rounded-md border border-line bg-panel shadow-card p-5">
             <h2 className="text-sm font-medium text-ink-400 mb-3">Asset graph</h2>
-            <div className="text-sm leading-7 text-ink-400">
-              {asset.usages.slice(0, 3).map((u) => (
-                <div key={u.id} className="text-ink-100">
-                  {u.user?.name ?? u.externalUserRef ?? "Unknown user"}
-                </div>
-              ))}
-              <div className="pl-4">↓ {asset.name}</div>
-              {asset.connectedSystems.map((s) => (
-                <div key={s.id} className="pl-8">
-                  ↓ {s.system}
-                  {s.detail && ` (${s.detail})`}
-                </div>
-              ))}
-              {asset.relationsFrom.map((r) => (
-                <div key={r.id} className="pl-8">
-                  ↓ {r.relationType} → {r.targetAsset.name}
-                </div>
-              ))}
-              {asset.dataAccess.map((d) => (
-                <div key={d.id} className="pl-12">
-                  ↓ {d.dataAsset.name}
-                </div>
-              ))}
-            </div>
+            <AssetGraph
+              center={asset.name}
+              left={asset.usages.slice(0, 6).map((u) => ({
+                label: u.user?.name ?? u.externalUserRef ?? "Unknown user",
+              }))}
+              right={[
+                ...asset.connectedSystems.map((s) => ({
+                  label: s.system,
+                  sublabel: s.detail ?? undefined,
+                  tone: (s.detail?.match(/prod/i) ? "alarm" : "default") as "default" | "alarm",
+                })),
+                ...asset.relationsFrom.map((r) => ({
+                  label: r.targetAsset.name,
+                  sublabel: r.relationType,
+                })),
+                ...asset.dataAccess.map((d) => ({
+                  label: d.dataAsset.name,
+                  sublabel: d.dataAsset.sensitivity,
+                  tone: (["PII", "FINANCIAL", "SOURCE_CODE"].includes(d.dataAsset.sensitivity)
+                    ? "alarm"
+                    : "default") as "default" | "alarm",
+                })),
+              ]}
+            />
           </div>
 
-          <div className="rounded-md border border-line bg-panel p-5">
+          <div className="rounded-md border border-line bg-panel shadow-card p-5">
             <h2 className="text-sm font-medium text-ink-400 mb-3">Recent activity</h2>
             <div className="divide-y divide-line text-sm">
               {asset.activities.map((a) => (
@@ -131,7 +132,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
         </section>
 
         <aside className="flex flex-col gap-6">
-          <div className="rounded-md border border-line bg-panel p-5 text-sm">
+          <div className="rounded-md border border-line bg-panel shadow-card p-5 text-sm">
             <h2 className="text-xs font-medium text-ink-400 mb-3">Profile</h2>
             <dl className="flex flex-col gap-2 mb-4">
               <Row label="Department" value={asset.department ?? "—"} />
@@ -219,7 +220,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
           </div>
 
           {risk && (
-            <div className="rounded-md border border-line bg-panel p-5 text-sm">
+            <div className="rounded-md border border-line bg-panel shadow-card p-5 text-sm">
               <div className="flex items-center justify-between mb-1">
                 <h2 className="text-xs font-medium text-ink-400">Risk</h2>
                 <Badge>{risk.level}</Badge>

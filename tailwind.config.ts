@@ -15,7 +15,11 @@ const config: Config = {
         },
         panel: "#FFFFFF",     // card
         line: "#EAE8E3",      // bordi, sottili e puliti
-        accent: "#1A1A18",    // hover → nero pieno, come i bottoni OneTrust
+        accent: {
+          DEFAULT: "#6D4FEB", // indaco — colore di brand per azioni primarie e stato attivo
+          dark: "#5A3AD1",
+          soft: "#F1EDFD",    // sfondo tenue per stati attivi/selezionati
+        },
         signal: "#C2740F",    // attenzione / rischio medio
         steady: "#1F9254",    // approvato / rischio basso
         alarm: "#D1453B",     // rischio alto/critico
@@ -23,6 +27,9 @@ const config: Config = {
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
         body: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
+      },
+      boxShadow: {
+        card: "0 1px 2px 0 rgba(20,20,18,0.04), 0 2px 8px -2px rgba(20,20,18,0.06)",
       },
     },
   },

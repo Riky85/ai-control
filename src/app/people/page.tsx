@@ -23,7 +23,7 @@ export default async function PeoplePage() {
         </p>
       </div>
 
-      <div className="rounded-md border border-line bg-panel overflow-hidden">
+      <div className="rounded-md border border-line bg-panel shadow-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-ink-400 border-b border-line">
