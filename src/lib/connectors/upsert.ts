@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import type { ConnectorSyncResult } from "./types";
 import { assessAssetRisk } from "@/lib/risk-engine";
 
@@ -94,7 +95,7 @@ export async function persistSyncResult(
       lastSyncedAt: new Date(),
       status: "CONNECTED",
       lastSyncError: null,
-      lastSyncWarnings: result.warnings.length > 0 ? result.warnings : null,
+      lastSyncWarnings: result.warnings.length > 0 ? result.warnings : Prisma.JsonNull,
     },
   });
 
