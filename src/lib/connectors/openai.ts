@@ -29,7 +29,7 @@ const ASSET_EXTERNAL_ID = "chatgpt:organization";
 async function adminGet(path: string) {
   const apiKey = process.env.OPENAI_ADMIN_API_KEY;
   if (!apiKey) {
-    throw new Error("Connettore OpenAI non configurato: manca OPENAI_ADMIN_API_KEY");
+    throw new Error("OpenAI connector not configured: missing OPENAI_ADMIN_API_KEY");
   }
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { Authorization: `Bearer ${apiKey}` },
@@ -69,7 +69,7 @@ export const openaiConnector: Connector = {
       } while (after);
     } catch (err) {
       warnings.push(
-        `Impossibile leggere gli utenti dell'organizzazione OpenAI (serve Enterprise/Edu con Admin key abilitata): ${
+        `Unable to read OpenAI organization users (needs Enterprise/Edu with Admin key enabled): ${
           (err as Error).message
         }`
       );
@@ -89,7 +89,7 @@ export const openaiConnector: Connector = {
       }
     } catch (err) {
       warnings.push(
-        `Audit log organizzazione non disponibile o piano non abilitato: ${(err as Error).message}`
+        `Organization audit log not available or plan not enabled: ${(err as Error).message}`
       );
     }
 
@@ -98,7 +98,7 @@ export const openaiConnector: Connector = {
     // l'endpoint pubblico corrispondente va verificato contro la
     // documentazione OpenAI corrente prima di aggiungerlo (PRD §5.4).
     warnings.push(
-      "Metriche di utilizzo (Workspace Analytics: messaggi, GPT personalizzate) non ancora importate: endpoint da verificare contro la documentazione OpenAI corrente."
+      "Usage metrics (Workspace Analytics: messages, custom GPTs) not yet imported: endpoint needs verifying against current OpenAI documentation."
     );
 
     return {

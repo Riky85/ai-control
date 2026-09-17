@@ -56,7 +56,7 @@ async function getInstallationToken(): Promise<string> {
 
   if (!appId || !privateKey || !installationId) {
     throw new Error(
-      "Connettore GitHub non configurato: mancano GITHUB_APP_ID / GITHUB_APP_PRIVATE_KEY / GITHUB_APP_INSTALLATION_ID"
+      "GitHub connector not configured: missing GITHUB_APP_ID / GITHUB_APP_PRIVATE_KEY / GITHUB_APP_INSTALLATION_ID"
     );
   }
 
@@ -95,7 +95,7 @@ export const githubConnector: Connector = {
     const warnings: string[] = [];
     const org = process.env.GITHUB_ORG;
     if (!org) {
-      throw new Error("Connettore GitHub non configurato: manca GITHUB_ORG");
+      throw new Error("GitHub connector not configured: missing GITHUB_ORG");
     }
     const token = await getInstallationToken();
 
@@ -120,7 +120,7 @@ export const githubConnector: Connector = {
       }
     } catch (err) {
       warnings.push(
-        `Impossibile leggere i seat Copilot (serve GitHub Enterprise/Business con Copilot abilitato): ${
+        `Unable to read Copilot seats (needs GitHub Enterprise/Business with Copilot enabled): ${
           (err as Error).message
         }`
       );
@@ -137,7 +137,7 @@ export const githubConnector: Connector = {
         });
       }
     } catch (err) {
-      warnings.push(`Impossibile leggere i repository dell'org: ${(err as Error).message}`);
+      warnings.push(`Unable to read org repositories: ${(err as Error).message}`);
     }
 
     // Eventi "agentic" dall'audit log (schema in evoluzione lato GitHub —
@@ -157,7 +157,7 @@ export const githubConnector: Connector = {
       }
     } catch (err) {
       warnings.push(
-        `Audit log non disponibile o piano non abilitato (richiede GitHub Enterprise Cloud): ${
+        `Audit log not available or plan not enabled (requires GitHub Enterprise Cloud): ${
           (err as Error).message
         }`
       );

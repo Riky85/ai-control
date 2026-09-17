@@ -52,7 +52,7 @@ async function getAppOnlyToken(): Promise<string> {
 
   if (!tenantId || !clientId || !clientSecret) {
     throw new Error(
-      "Connettore Microsoft 365 non configurato: mancano MS365_TENANT_ID / MS365_CLIENT_ID / MS365_CLIENT_SECRET"
+      "Microsoft 365 connector not configured: missing MS365_TENANT_ID / MS365_CLIENT_ID / MS365_CLIENT_SECRET"
     );
   }
 
@@ -120,7 +120,7 @@ export const microsoft365Connector: Connector = {
         if (sp.appId) assetByAppId.set(sp.appId, asset);
       }
     } catch (err) {
-      warnings.push(`Impossibile leggere le Enterprise Applications: ${(err as Error).message}`);
+      warnings.push(`Unable to read Enterprise Applications: ${(err as Error).message}`);
     }
 
     // 2. Sign-in audit log — per popolare AiAssetUsage/AiAssetActivity
@@ -146,22 +146,22 @@ export const microsoft365Connector: Connector = {
       }
       if (matchedCount === 0 && assetByAppId.size > 0) {
         warnings.push(
-          "Nessun sign-in trovato per le app AI rilevate nella finestra restituita dall'API (normale se non usate di recente)."
+          "No sign-ins found for the detected AI apps in the window returned by the API (normal if not used recently)."
         );
       }
     } catch (err) {
-      warnings.push(`Impossibile leggere i sign-in log: ${(err as Error).message}`);
+      warnings.push(`Unable to read sign-in logs: ${(err as Error).message}`);
     }
 
     // 3. Report Copilot (disponibilità dipende dal piano del cliente — PRD §5.1)
     try {
       await graphGet(token, "/reports/getMicrosoft365CopilotUsageUserDetail(period='D7')");
       warnings.push(
-        "Report Copilot disponibile per questo tenant: implementare il parsing (non incluso in questo scaffold)."
+        "Copilot report available for this tenant: parsing not implemented yet (not included in this scaffold)."
       );
     } catch {
       warnings.push(
-        "Report Copilot non disponibile per questo tenant/piano — atteso, vedi PRD §5.1."
+        "Copilot report not available for this tenant/plan — expected, see PRD §5.1."
       );
     }
 

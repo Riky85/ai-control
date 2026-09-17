@@ -33,7 +33,7 @@ const ASSET_EXTERNAL_ID = "claude:organization";
 async function adminGet(path: string) {
   const apiKey = process.env.ANTHROPIC_ADMIN_API_KEY;
   if (!apiKey) {
-    throw new Error("Connettore Anthropic non configurato: manca ANTHROPIC_ADMIN_API_KEY");
+    throw new Error("Anthropic connector not configured: missing ANTHROPIC_ADMIN_API_KEY");
   }
   const res = await fetch(`${ADMIN_API_BASE}${path}`, {
     headers: {
@@ -77,18 +77,18 @@ export const anthropicConnector: Connector = {
       } while (pageAfter);
     } catch (err) {
       warnings.push(
-        `Impossibile leggere gli utenti dell'organizzazione Claude (serve Enterprise/Team con Admin API abilitata): ${
+        `Unable to read Claude organization users (needs Enterprise/Team with Admin API enabled): ${
           (err as Error).message
         }`
       );
     }
 
-    // Non esiste un endpoint pubblico documentato equivalente a un "audit log
-    // delle conversazioni": deliberatamente non inventiamo un percorso. Se e
-    // quando Anthropic espone un log di audit/accesso per l'Admin API, va
-    // aggiunto qui seguendo lo stesso pattern try/catch degli altri connettori.
+    // No documented public endpoint equivalent to a "conversation access
+    // audit log" exists: we deliberately don't invent one. If and when
+    // Anthropic exposes an audit/access log for the Admin API, it goes
+    // here, following the same try/catch pattern as the other connectors.
     warnings.push(
-      "Nessun audit log di accesso importato: da collegare quando disponibile un endpoint Admin API dedicato (vedi commento nel codice). Il contenuto delle conversazioni non è comunque mai accessibile via API."
+      "No access audit log imported: to be wired up once a dedicated Admin API endpoint is available (see code comment). Conversation content is never accessible via API regardless."
     );
 
     return {

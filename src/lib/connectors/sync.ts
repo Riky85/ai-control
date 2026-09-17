@@ -18,7 +18,7 @@ const REGISTRY: Record<string, Connector> = {
 export async function runConnectorSync(organizationId: string, provider: ConnectorProvider) {
   const connectorImpl = REGISTRY[provider];
   if (!connectorImpl) {
-    throw new Error(`Connettore ${provider} non ancora implementato in questo scaffold.`);
+    throw new Error(`Connector ${provider} is not implemented yet in this scaffold.`);
   }
 
   const connectorRow = await db.connector.upsert({

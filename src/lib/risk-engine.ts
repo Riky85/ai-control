@@ -43,7 +43,7 @@ export function assessAssetRisk(asset: AssetWithGraph): RiskResult {
   // piano Enterprise/managed del cliente.
   if (!asset.connectorId) {
     score += 20;
-    reasons.push("Provider esterno non gestito (nessuna integrazione enterprise nota)");
+    reasons.push("Unmanaged external provider (no known enterprise integration)");
   }
 
   // Accesso a dati sensibili
@@ -53,7 +53,7 @@ export function assessAssetRisk(asset: AssetWithGraph): RiskResult {
   if (sensitiveAccess.length > 0) {
     score += Math.min(20, sensitiveAccess.length * 8);
     reasons.push(
-      `Accesso a dati sensibili: ${sensitiveAccess.map((d) => d.dataAsset.name).join(", ")}`
+      `Access to sensitive data: ${sensitiveAccess.map((d) => d.dataAsset.name).join(", ")}`
     );
   }
 
@@ -62,26 +62,26 @@ export function assessAssetRisk(asset: AssetWithGraph): RiskResult {
   const hasWriteActivity = asset.activities.some((a) => WRITE_EVENT_PATTERN.test(a.eventType));
   if (isAgentic && hasWriteActivity) {
     score += 20;
-    reasons.push("Capacita' agentica con azioni di scrittura osservate");
+    reasons.push("Agentic capability with observed write actions");
   } else if (isAgentic) {
     score += 8;
-    reasons.push("Capacita' agentica (nessuna azione di scrittura osservata finora)");
+    reasons.push("Agentic capability (no write action observed so far)");
   }
 
   // Nessun owner assegnato
   if (!asset.ownerId) {
     score += 15;
-    reasons.push("Nessun owner assegnato");
+    reasons.push("No owner assigned");
   } else {
-    mitigations.push("Owner assegnato");
+    mitigations.push("Owner assigned");
   }
 
   // Stato non revisionato/non approvato
   if (asset.status === "UNKNOWN" || asset.status === "UNAPPROVED") {
     score += 15;
-    reasons.push(`Stato: ${asset.status === "UNKNOWN" ? "sconosciuto" : "non approvato"}`);
+    reasons.push(`Status: ${asset.status === "UNKNOWN" ? "unknown" : "not approved"}`);
   } else if (asset.status === "APPROVED") {
-    mitigations.push("Asset approvato e revisionato");
+    mitigations.push("Asset approved and reviewed");
   }
 
   // Sistema collegato di produzione
@@ -89,7 +89,7 @@ export function assessAssetRisk(asset: AssetWithGraph): RiskResult {
   if (prodSystems.length > 0) {
     score += 10;
     reasons.push(
-      `Collegato a sistemi di produzione: ${prodSystems.map((s) => s.detail).join(", ")}`
+      `Connected to production systems: ${prodSystems.map((s) => s.detail).join(", ")}`
     );
   }
 
@@ -101,7 +101,7 @@ export function assessAssetRisk(asset: AssetWithGraph): RiskResult {
   else if (score >= 20) level = "MEDIUM";
 
   if (reasons.length === 0) {
-    reasons.push("Nessun fattore di rischio elevato rilevato");
+    reasons.push("No elevated risk factors detected");
   }
 
   return { score, level, reasons, mitigations };
