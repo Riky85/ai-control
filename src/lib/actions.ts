@@ -6,6 +6,7 @@
  * le pagine interessate, così l'utente vede subito il risultato.
  */
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { runConnectorSync } from "@/lib/connectors/sync";
 import type { ConnectorProvider, AiAssetStatus, EuAiActTier } from "@prisma/client";
@@ -106,4 +107,37 @@ export async function addUserAction(formData: FormData) {
   });
   revalidatePath("/people");
   revalidatePath("/settings");
+  revalidatePath("/onboarding");
+}
+
+export async function updateOrganizationAction(formData: FormData) {
+  const name = (formData.get("name") as string)?.trim();
+  const country = (formData.get("country") as string)?.trim();
+  if (!name) return;
+  await db.organization.update({
+    where: { id: ORG_ID },
+    data: { name, country: country || null },
+  });
+  revalidatePath("/settings");
+  revalidatePath("/onboarding");
+  revalidatePath("/");
+}
+
+export async function completeOnboardingAction() {
+  await db.organization.update({
+    where: { id: ORG_ID },
+    data: { onboardingCompletedAt: new Date() },
+  });
+  revalidatePath("/");
+  revalidatePath("/settings");
+  redirect("/");
+}
+
+export async function restartOnboardingAction() {
+  await db.organization.update({
+    where: { id: ORG_ID },
+    data: { onboardingCompletedAt: null },
+  });
+  revalidatePath("/settings");
+  redirect("/onboarding?step=1");
 }

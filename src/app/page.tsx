@@ -18,6 +18,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export default async function OverviewPage() {
+  const org = await db.organization.findUnique({ where: { id: ORG_ID } });
   const [total, unknownCount, unapprovedCount, highRisk, activePolicies, pendingReviewCount, candidates, recentAssets] =
     await Promise.all([
       db.aiAsset.count({ where: { organizationId: ORG_ID, deletedAt: null } }),
@@ -85,6 +86,20 @@ export default async function OverviewPage() {
           What connectors have found, and where it stands in review.
         </p>
       </div>
+
+      {!org?.onboardingCompletedAt && (
+        <div className="rounded-lg border border-line bg-panel px-5 py-3.5 flex items-center gap-3">
+          <span className="text-xs font-medium text-white bg-ink-100 rounded-full px-2.5 py-1 shrink-0">
+            Setup
+          </span>
+          <p className="text-sm text-ink-100">
+            Finish setting up AI Control — organization, a real connector, owners, and starting policies.{" "}
+            <Link href="/onboarding" className="underline hover:text-ink-400">
+              Run setup
+            </Link>
+          </p>
+        </div>
+      )}
 
       {pendingReviewCount > 0 && (
         <div className="rounded-lg border border-line bg-panel px-5 py-3.5 flex items-center gap-3">

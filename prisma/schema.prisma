@@ -90,11 +90,12 @@ model Policy {
 }
 
 model Organization {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
   country   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  onboardingCompletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   users      User[]
   connectors Connector[]

@@ -30,6 +30,8 @@ function Icon({ name }: { name: string }) {
       return <svg {...common}><circle {...stroke} cx="4.5" cy="9" r="2" /><circle {...stroke} cx="13.5" cy="9" r="2" /><path {...stroke} d="M6.5 9h5" /></svg>;
     case "settings":
       return <svg {...common}><circle {...stroke} cx="9" cy="9" r="2.6" /><path {...stroke} d="M9 2.8v2M9 13.2v2M14.2 9h2M1.8 9h2M12.7 5.3l1.4-1.4M3.9 14.1l1.4-1.4M12.7 12.7l1.4 1.4M3.9 3.9l1.4 1.4" /></svg>;
+    case "onboarding":
+      return <svg {...common}><circle {...stroke} cx="9" cy="9" r="6.5" /><path {...stroke} d="M9 5.5v4l2.5 1.5" /></svg>;
     default:
       return null;
   }
@@ -63,6 +65,7 @@ const NAV_GROUPS: { label: string | null; items: { href: string; label: string; 
     label: "Setup",
     items: [
       { href: "/connectors", label: "Connectors", icon: "connectors" },
+      { href: "/onboarding", label: "Setup wizard", icon: "onboarding" },
       { href: "/settings", label: "Settings", icon: "settings" },
     ],
   },

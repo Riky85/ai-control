@@ -7,7 +7,7 @@ async function main() {
   const org = await db.organization.upsert({
     where: { id: "demo-org" },
     update: {},
-    create: { id: "demo-org", name: "Demo Manufacturing SpA", country: "IT" },
+    create: { id: "demo-org", name: "Demo Manufacturing SpA", country: "IT", onboardingCompletedAt: new Date() },
   });
 
   const [marco, laura, finance] = await Promise.all([

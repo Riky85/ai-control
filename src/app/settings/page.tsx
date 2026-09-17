@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { addUserAction } from "@/lib/actions";
+import { addUserAction, restartOnboardingAction } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +51,25 @@ export default async function SettingsPage() {
             Add person
           </button>
         </form>
+      </div>
+
+      <div>
+        <h2 className="text-sm font-medium text-ink-400 mb-3">Setup wizard</h2>
+        <div className="rounded-md border border-line bg-panel p-5 flex items-center justify-between">
+          <p className="text-sm text-ink-400 max-w-sm">
+            {org?.onboardingCompletedAt
+              ? `Completed on ${new Date(org.onboardingCompletedAt).toLocaleDateString()}.`
+              : "Not completed yet."}
+          </p>
+          <form action={restartOnboardingAction}>
+            <button
+              type="submit"
+              className="text-sm px-4 py-2 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors"
+            >
+              {org?.onboardingCompletedAt ? "Run again" : "Run setup"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
