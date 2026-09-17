@@ -108,7 +108,7 @@ export default async function AssetsPage({
             {filtered.map((asset) => {
               const risk = asset.riskAssessments[0];
               return (
-                <tr key={asset.id} className="hover:bg-white/[0.03]">
+                <tr key={asset.id} className="hover:bg-black/[0.02]">
                   <td className="px-4 py-3">
                     <Link href={`/assets/${asset.id}`} className="hover:underline font-medium text-ink-100">
                       {asset.name}

@@ -131,6 +131,7 @@ model Connector {
   scopes               String[]
   lastSyncedAt         DateTime?
   lastSyncError        String?
+  lastSyncWarnings     Json?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 

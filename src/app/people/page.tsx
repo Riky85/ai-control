@@ -35,7 +35,7 @@ export default async function PeoplePage() {
           </thead>
           <tbody className="divide-y divide-line">
             {users.map((u) => (
-              <tr key={u.id} className="hover:bg-white/[0.03]">
+              <tr key={u.id} className="hover:bg-black/[0.02]">
                 <td className="px-4 py-3">
                   <div className="font-medium text-ink-100">{u.name ?? u.email}</div>
                   <div className="text-xs text-ink-400">{u.email}</div>

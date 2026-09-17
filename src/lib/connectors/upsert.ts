@@ -90,7 +90,12 @@ export async function persistSyncResult(
 
   await db.connector.update({
     where: { id: connectorId },
-    data: { lastSyncedAt: new Date(), status: "CONNECTED", lastSyncError: null },
+    data: {
+      lastSyncedAt: new Date(),
+      status: "CONNECTED",
+      lastSyncError: null,
+      lastSyncWarnings: result.warnings.length > 0 ? result.warnings : null,
+    },
   });
 
   // Ricalcola il risk assessment per ogni asset toccato in questo sync
