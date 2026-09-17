@@ -16,8 +16,12 @@ export interface AssetGraphProps {
   right: GraphNode[];
 }
 
-const ROW_H = 34;
-const NODE_W_SIDE = 168;
+const NODE_H = 38; // fissa per tutti i nodi laterali, con o senza sublabel,
+// cosi' l'etichetta secondaria va su una seconda riga e non puo' mai
+// sovrapporsi al testo principale (bug osservato con label lunghe tipo
+// "repo:production-api (production)").
+const ROW_H = 50;
+const NODE_W_SIDE = 176;
 const NODE_W_CENTER = 176;
 const PAD_TOP = 20;
 
@@ -38,7 +42,6 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
 
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
-      {/* Connettori: da ogni nodo sinistro al centro */}
       {left.map((_, i) => {
         const y = colY(i, left.length);
         return (
@@ -51,7 +54,6 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
           />
         );
       })}
-      {/* Connettori: dal centro a ogni nodo destro */}
       {right.map((_, i) => {
         const y = colY(i, right.length);
         return (
@@ -65,21 +67,18 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
         );
       })}
 
-      {/* Nodo centrale */}
       <g transform={`translate(${xCenter}, ${centerY - 16})`}>
         <rect width={NODE_W_CENTER} height={32} rx={7} fill="#1A1A18" />
         <text x={NODE_W_CENTER / 2} y={20} textAnchor="middle" fontSize="12" fontWeight={600} fill="#FFFFFF">
-          {center.length > 24 ? center.slice(0, 23) + "…" : center}
+          {truncate(center, 24)}
         </text>
       </g>
 
-      {/* Nodi a sinistra (chi usa) */}
       {left.map((n, i) => (
-        <Node key={`ln-${i}`} x={xLeft} y={colY(i, left.length) - 14} node={n} />
+        <Node key={`ln-${i}`} x={xLeft} y={colY(i, left.length) - NODE_H / 2} node={n} />
       ))}
-      {/* Nodi a destra (cosa tocca) */}
       {right.map((n, i) => (
-        <Node key={`rn-${i}`} x={xRight} y={colY(i, right.length) - 14} node={n} />
+        <Node key={`rn-${i}`} x={xRight} y={colY(i, right.length) - NODE_H / 2} node={n} />
       ))}
 
       {left.length === 0 && (
@@ -96,18 +95,21 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
   );
 }
 
+function truncate(s: string, max: number) {
+  return s.length > max ? s.slice(0, max - 1) + "…" : s;
+}
+
 function Node({ x, y, node }: { x: number; y: number; node: GraphNode }) {
   const stroke = node.tone === "alarm" ? "#D1453B" : "#EAE8E3";
-  const label = node.label.length > 22 ? node.label.slice(0, 21) + "…" : node.label;
   return (
     <g transform={`translate(${x}, ${y})`}>
-      <rect width={NODE_W_SIDE} height={28} rx={6} fill="#FFFFFF" stroke={stroke} strokeWidth={1.3} />
-      <text x={10} y={17.5} fontSize="11.5" fontWeight={500} fill="#1A1A18">
-        {label}
+      <rect width={NODE_W_SIDE} height={NODE_H} rx={6} fill="#FFFFFF" stroke={stroke} strokeWidth={1.3} />
+      <text x={10} y={node.sublabel ? 16 : 23} fontSize="11.5" fontWeight={500} fill="#1A1A18">
+        {truncate(node.label, 26)}
       </text>
       {node.sublabel && (
-        <text x={NODE_W_SIDE - 8} y={17.5} textAnchor="end" fontSize="10" fill="#8C8A83">
-          {node.sublabel}
+        <text x={10} y={29} fontSize="9.5" fill="#8C8A83">
+          {truncate(node.sublabel, 32)}
         </text>
       )}
     </g>
