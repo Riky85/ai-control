@@ -15,21 +15,24 @@ const config: Config = {
         },
         panel: "#FFFFFF",     // card
         line: "#EAE8E3",      // bordi, sottili e puliti
+        // Un solo verde di brand, controllato — fa doppio servizio da
+        // colore d'azione/stato-attivo E da "approvato/sano" (il documento
+        // condiviso chiede esplicitamente un solo accento, non due).
         accent: {
-          DEFAULT: "#6D4FEB", // indaco — colore di brand per azioni primarie e stato attivo
-          dark: "#5A3AD1",
-          soft: "#F1EDFD",    // sfondo tenue per stati attivi/selezionati
+          DEFAULT: "#1F9254",
+          dark: "#17753F",
+          soft: "#EAF6EF",
         },
-        signal: "#C2740F",    // attenzione / rischio medio
-        steady: "#1F9254",    // approvato / rischio basso
-        alarm: "#D1453B",     // rischio alto/critico
+        signal: "#B7791F",    // attenzione / rischio medio — giallo-senape tenue, non arancio acceso
+        steady: "#1F9254",    // alias dello stesso verde di brand
+        alarm: "#C4433B",     // rischio alto/critico
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
         body: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
       },
       boxShadow: {
-        card: "0 1px 2px 0 rgba(20,20,18,0.04), 0 2px 8px -2px rgba(20,20,18,0.06)",
+        card: "0 1px 1px 0 rgba(20,20,18,0.03)",
       },
     },
   },

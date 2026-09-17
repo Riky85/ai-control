@@ -6,9 +6,9 @@
  */
 const TONE: Record<string, string> = {
   LOW: "#1F9254",
-  MEDIUM: "#C2740F",
-  HIGH: "#D1453B",
-  CRITICAL: "#D1453B",
+  MEDIUM: "#B7791F",
+  HIGH: "#C4433B",
+  CRITICAL: "#C4433B",
 };
 
 export default function RiskGauge({ score, level }: { score: number; level: string }) {

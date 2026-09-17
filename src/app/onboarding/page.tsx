@@ -137,7 +137,7 @@ export default async function OnboardingPage({
             ))}
           </div>
           <Link href="/connectors" className="text-sm text-ink-100 hover:underline">
-            Open Connectors for setup instructions →
+            Open Connections for setup instructions →
           </Link>
           <div className="flex justify-between pt-2">
             <Link href="/onboarding?step=2" className="text-xs text-ink-400 hover:text-ink-100">

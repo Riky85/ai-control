@@ -98,7 +98,7 @@ export default async function ConnectorsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">Connectors</h1>
+        <h1 className="font-display text-2xl font-semibold text-ink-100">Connections</h1>
         <p className="text-sm text-ink-400 mt-1.5 max-w-lg">
           Sources feeding the inventory. Each one needs real credentials to do
           anything — set them as variables on the Railway service, then sync.

@@ -27,7 +27,7 @@ export default async function DataRegistryPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">Data registry</h1>
+        <h1 className="font-display text-2xl font-semibold text-ink-100">Data Exposure</h1>
         <p className="text-sm text-ink-400 mt-1.5 max-w-lg">
           Every category of data your AI assets have been observed touching,
           and which assets reach each one.

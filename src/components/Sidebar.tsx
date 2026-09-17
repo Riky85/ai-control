@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import Logo from "./Logo";
 
 // Icone minimali, un solo stroke-width, coerenti tra loro — niente set di
 // icone eterogeneo preso da librerie diverse.
@@ -42,15 +43,15 @@ const NAV_GROUPS: { label: string | null; items: { href: string; label: string; 
   {
     label: "Inventory",
     items: [
-      { href: "/assets", label: "AI assets", icon: "assets" },
+      { href: "/assets", label: "AI Assets", icon: "assets" },
       { href: "/people", label: "People", icon: "people" },
-      { href: "/data", label: "Data registry", icon: "data" },
+      { href: "/data", label: "Data Exposure", icon: "data" },
     ],
   },
   {
     label: "Governance",
     items: [
-      { href: "/approvals", label: "Approvals", icon: "approvals" },
+      { href: "/approvals", label: "Reviews", icon: "approvals" },
       { href: "/policies", label: "Policies", icon: "policies" },
     ],
   },
@@ -62,10 +63,9 @@ const NAV_GROUPS: { label: string | null; items: { href: string; label: string; 
     ],
   },
   {
-    label: "Setup",
+    label: "Admin",
     items: [
-      { href: "/connectors", label: "Connectors", icon: "connectors" },
-      { href: "/onboarding", label: "Setup wizard", icon: "onboarding" },
+      { href: "/connectors", label: "Connections", icon: "connectors" },
       { href: "/settings", label: "Settings", icon: "settings" },
     ],
   },
@@ -105,26 +105,36 @@ export default function Sidebar() {
         collapsed ? "w-[64px] px-3" : "w-60 px-4"
       } ${ready ? "" : "invisible"}`}
     >
-      <div className={`flex items-center mb-7 ${collapsed ? "justify-center" : "justify-between px-1"}`}>
+      <div className={`flex items-center mb-7 gap-2 ${collapsed ? "justify-center" : "px-1"}`}>
+        <span className="text-white shrink-0">
+          <Logo size={16} />
+        </span>
         {!collapsed && (
           <span className="font-semibold text-[15px] tracking-tight text-white">AI Control</span>
         )}
+        {!collapsed && (
+          <button
+            onClick={toggle}
+            aria-label="Collapse sidebar"
+            className="ml-auto h-7 w-7 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M9 2 L4 7 L9 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
+      </div>
+      {collapsed && (
         <button
           onClick={toggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="h-7 w-7 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors"
+          aria-label="Expand sidebar"
+          className="h-7 w-7 mx-auto mb-5 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path
-              d={collapsed ? "M4 2 L9 7 L4 12" : "M9 2 L4 7 L9 12"}
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <path d="M4 2 L9 7 L4 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-      </div>
+      )}
 
       <nav className="flex flex-col gap-5 overflow-y-auto">
         {NAV_GROUPS.map((group, gi) => (
@@ -139,14 +149,17 @@ export default function Sidebar() {
                   key={item.href}
                   href={item.href}
                   title={collapsed ? item.label : undefined}
-                  className={`flex items-center gap-2.5 rounded-md text-sm transition-colors ${
-                    collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"
+                  className={`relative flex items-center gap-2.5 text-sm transition-colors ${
+                    collapsed ? "justify-center px-0 py-2.5 rounded-md" : "pl-3 pr-3 py-2 rounded-r-md"
                   } ${
                     active
-                      ? "text-white bg-accent/25"
-                      : "text-white/55 hover:text-white hover:bg-white/[0.06]"
+                      ? "text-white bg-white/[0.05]"
+                      : "text-white/55 hover:text-white hover:bg-white/[0.04]"
                   }`}
                 >
+                  {active && !collapsed && (
+                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-accent rounded-full" />
+                  )}
                   <Icon name={item.icon} />
                   {!collapsed && item.label}
                 </Link>
