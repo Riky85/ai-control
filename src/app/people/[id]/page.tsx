@@ -25,10 +25,15 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
     ["HIGH", "CRITICAL"].includes(a.riskAssessments[0]?.level ?? "")
   ).length;
 
-  // Attività recenti attribuite a questa persona via actorRef (email) —
-  // stessa fonte usata dal connettore, nessuna nuova assunzione sui dati.
+  // Attività recenti attribuite a questa persona via actorRef. Match esatto
+  // sull'email (vale per Microsoft 365, che usa userPrincipalName) più un
+  // fallback euristico sulla parte locale dell'email (utile per GitHub, che
+  // popola actorRef con lo username GitHub — un sistema di identità diverso,
+  // senza garanzia di coincidenza: e' un best-effort, non un'attribuzione
+  // certa, e va trattato come tale in un prodotto di governance).
+  const emailLocalPart = person.email.split("@")[0];
   const recentActivity = await db.aiAssetActivity.findMany({
-    where: { actorRef: person.email },
+    where: { actorRef: { in: [person.email, emailLocalPart] } },
     orderBy: { occurredAt: "desc" },
     take: 10,
     include: { aiAsset: true },

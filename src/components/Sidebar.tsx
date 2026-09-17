@@ -157,9 +157,6 @@ export default function Sidebar() {
                       : "text-white/55 hover:text-white hover:bg-white/[0.04]"
                   }`}
                 >
-                  {active && !collapsed && (
-                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full" style={{ backgroundColor: "#383838" }} />
-                  )}
                   <Icon name={item.icon} />
                   {!collapsed && item.label}
                 </Link>
