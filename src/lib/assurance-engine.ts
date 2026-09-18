@@ -9,6 +9,15 @@
  * l'asset è pericoloso, l'assurance score misura quanto è stato verificato.
  * Un asset può avere rischio alto ma assurance alta se è stato revisionato,
  * ha un owner, è classificato e il rischio è mitigato.
+ *
+ * ATTENZIONE SUI 4 LIVELLI (ASSURED/NEEDS_REVIEW/RESTRICTED/BLOCKED):
+ * "Restricted" e "Blocked" sono etichette dichiarative — descrivono quanto
+ * l'asset dovrebbe essere limitato, ma il prodotto non applica ancora
+ * nessun blocco reale (nessun enforcement runtime, per scelta esplicita
+ * di scope). Sono calcolate deterministicamente da quanti controlli
+ * falliscono e da quanto è alto il rischio, non da un evento di blocco
+ * effettivo. Non vanno presentate all'utente come "l'asset è stato
+ * bloccato", ma come "l'asset dovrebbe essere trattato come bloccato".
  */
 
 import type {
@@ -21,7 +30,7 @@ import type {
 import type { RiskLevel } from "./risk-engine";
 
 export type CheckStatus = "PASSED" | "WARNING" | "FAILED";
-export type AssuranceLevel = "ASSURED" | "NEEDS_REVIEW" | "FAILED";
+export type AssuranceLevel = "ASSURED" | "NEEDS_REVIEW" | "RESTRICTED" | "BLOCKED";
 
 export interface AssuranceCheck {
   key: string;
@@ -131,7 +140,14 @@ export function runAssuranceChecks(
   const failedCount = checks.filter((c) => c.status === "FAILED").length;
   const score = Math.round((100 * (passedCount + warningCount * 0.5)) / checks.length);
 
-  const level: AssuranceLevel = failedCount > 0 ? "FAILED" : warningCount > 0 ? "NEEDS_REVIEW" : "ASSURED";
+  const level: AssuranceLevel =
+    failedCount > 0 && (risk.level === "CRITICAL" || failedCount >= 2)
+      ? "BLOCKED"
+      : failedCount > 0
+        ? "RESTRICTED"
+        : warningCount > 0
+          ? "NEEDS_REVIEW"
+          : "ASSURED";
 
   return { score, level, passedCount, warningCount, failedCount, checks };
 }

@@ -274,7 +274,8 @@ model RiskAssessment {
 enum AssuranceLevel {
   ASSURED
   NEEDS_REVIEW
-  FAILED
+  RESTRICTED
+  BLOCKED
 }
 
 // Snapshot dei controlli di assurance calcolati per un asset — stessa

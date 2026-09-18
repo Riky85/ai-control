@@ -9,6 +9,13 @@ import VendorIcon from "@/components/VendorIcon";
 
 export const dynamic = "force-dynamic";
 
+const ASSURANCE_LABEL: Record<string, string> = {
+  ASSURED: "Assured",
+  NEEDS_REVIEW: "Needs review",
+  RESTRICTED: "Restricted",
+  BLOCKED: "Blocked",
+};
+
 export default async function AssetDetailPage({ params }: { params: { id: string } }) {
   const [asset, orgUsers] = await Promise.all([
     db.aiAsset.findUnique({
@@ -66,7 +73,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
                       : "text-alarm font-medium"
                 }
               >
-                Assurance {assurance.score}%
+                {ASSURANCE_LABEL[assurance.level]} · {assurance.score}%
               </span>
             )}
           </div>
@@ -180,7 +187,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
                         : "text-alarm text-xs font-medium"
                   }
                 >
-                  {assurance.score}% · {assurance.passedCount + assurance.warningCount + assurance.failedCount} checks
+                  {ASSURANCE_LABEL[assurance.level]} · {assurance.score}% · {assurance.passedCount + assurance.warningCount + assurance.failedCount} checks
                 </span>
               </div>
               <p className="text-xs text-ink-400 mb-4">

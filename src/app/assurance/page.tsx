@@ -8,12 +8,14 @@ const ORG_ID = "demo-org";
 const LEVEL_LABEL: Record<string, string> = {
   ASSURED: "Assured",
   NEEDS_REVIEW: "Needs review",
-  FAILED: "Failed",
+  RESTRICTED: "Restricted",
+  BLOCKED: "Blocked",
 };
 const LEVEL_COLOR: Record<string, string> = {
   ASSURED: "text-steady",
   NEEDS_REVIEW: "text-signal",
-  FAILED: "text-alarm",
+  RESTRICTED: "text-alarm",
+  BLOCKED: "text-alarm",
 };
 const STATUS_COLOR: Record<string, string> = {
   PASSED: "text-steady",
@@ -43,7 +45,8 @@ export default async function AssurancePage() {
   const totalWarning = withReport.reduce((sum, x) => sum + x.report!.warningCount, 0);
   const totalFailed = withReport.reduce((sum, x) => sum + x.report!.failedCount, 0);
 
-  const failedItems = withReport.filter((x) => x.report!.level === "FAILED");
+  const blockedItems = withReport.filter((x) => x.report!.level === "BLOCKED");
+  const restrictedItems = withReport.filter((x) => x.report!.level === "RESTRICTED");
   const reviewItems = withReport.filter((x) => x.report!.level === "NEEDS_REVIEW");
   const assuredItems = withReport.filter((x) => x.report!.level === "ASSURED");
 
@@ -84,7 +87,8 @@ export default async function AssurancePage() {
       </div>
 
       {([
-        ["Failed assurance", failedItems],
+        ["Blocked", blockedItems],
+        ["Restricted", restrictedItems],
         ["Needs review", reviewItems],
         ["Assured", assuredItems],
       ] as [string, typeof withReport][]).map(([title, items]) =>
