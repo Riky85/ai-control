@@ -30,17 +30,11 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
     testOnYourself:
       "The most realistic one to try on yourself. Needs a GitHub organization (even a free one — anyone can create one in a minute). Copilot and audit log data require a paid org plan, but repository scanning works even on a free org.",
     steps: [
-      "If you don't already have one: github.com → the + icon top right → \"New organization\" → pick the Free plan.",
-      "Go to github.com/settings/apps/new (a personal GitHub App, installable on your org).",
-      "GitHub App name: anything (e.g. \"AI Control Sync\"). Homepage URL: your app's URL on Railway.",
-      "Webhook section: uncheck \"Active\" (webhooks aren't handled yet).",
-      "Permissions → Repository permissions: Metadata = Read-only.",
-      "Permissions → Organization permissions: Members = Read-only, Administration = Read-only.",
-      "Create the app, then click \"Generate a private key\" — download the .pem file: that's your GITHUB_APP_PRIVATE_KEY.",
-      "Go to github.com/settings/apps/<app-name>/installations → Install → select your organization.",
-      "From the URL after installing (or the app's \"Advanced\" page) copy the numeric Installation ID.",
-      "On Railway → ai-control project → ai-control service → Variables: set all 4 values (App ID and Installation ID are on the app's page; GITHUB_ORG is your org's slug).",
-      "Railway redeploys the service on its own after you save the variables. Come back here and press \"Sync now\".",
+      "No org yet? github.com → \"New organization\" → Free plan (1 minute).",
+      "github.com/settings/apps/new → any name → uncheck webhook \"Active\" → Repository: Metadata (Read-only), Organization: Members + Administration (Read-only) → Create.",
+      "Generate a private key (downloads a .pem — that's GITHUB_APP_PRIVATE_KEY) → install the app on your org.",
+      "Copy App ID, Installation ID (from the app/install pages) and your org's slug (GITHUB_ORG).",
+      "Paste all 4 values into Railway's Variables tab, then come back and press \"Sync now\".",
     ],
   },
   MICROSOFT_365: {
@@ -113,36 +107,13 @@ export default async function ConnectorsPage() {
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink-100">Connections</h1>
         <p className="text-sm text-ink-400 mt-1.5 max-w-lg">
-          Sources feeding the inventory. Press Connect on any source to see exactly what to set up.
+          Each row is a different company with its own credentials — GitHub is the only one you can
+          realistically test yourself. Press Connect on any source for exact setup steps.
         </p>
       </div>
 
-      <div className="rounded-lg border border-line bg-panel shadow-card p-5 text-sm">
-        <h2 className="font-medium text-ink-100 mb-2">How this actually works</h2>
-        <ul className="text-ink-400 flex flex-col gap-1.5 list-disc list-inside">
-          <li>
-            Each row below is a <span className="text-ink-100">different company</span> — Microsoft, GitHub,
-            Anthropic, OpenAI. <span className="text-ink-100">There's no single login that covers all of them</span>{" "}
-            — you connect each one separately, with credentials from that company.
-          </li>
-          <li>
-            <span className="text-ink-100">GitHub is the only one an individual can realistically test</span> —
-            it just needs a free GitHub organization (not a company account). The other three need an actual
-            Enterprise/Team plan with admin rights, which a personal account never has.
-          </li>
-          <li>
-            "Connect" doesn't happen inside this app — it opens a short guide. You create the access on the
-            provider's own site, then paste a few values into this app's hosting settings (Railway) yourself.
-          </li>
-        </ul>
-      </div>
-
-      {(["Identity", "Development", "AI"] as const).map((category) => (
-        <div key={category} className="flex flex-col gap-3">
-          <h2 className="text-xs font-medium text-ink-400">{category}</h2>
-          {Object.entries(CONNECTOR_INFO)
-            .filter(([, info]) => info.category === category)
-            .map(([provider, info]) => {
+      <div className="flex flex-col gap-3">
+        {Object.entries(CONNECTOR_INFO).map(([provider, info]) => {
               const row = byProvider.get(provider as ConnectorProvider);
               const warnings = (row?.lastSyncWarnings as string[] | null) ?? [];
               const connected = row?.status === "CONNECTED";
@@ -232,8 +203,7 @@ export default async function ConnectorsPage() {
                 </div>
               );
             })}
-        </div>
-      ))}
+      </div>
     </div>
   );
 }

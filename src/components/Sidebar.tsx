@@ -33,8 +33,6 @@ function Icon({ name }: { name: string }) {
       return <svg {...common}><circle {...stroke} cx="4.5" cy="9" r="2" /><circle {...stroke} cx="13.5" cy="9" r="2" /><path {...stroke} d="M6.5 9h5" /></svg>;
     case "settings":
       return <svg {...common}><circle {...stroke} cx="9" cy="9" r="2.6" /><path {...stroke} d="M9 2.8v2M9 13.2v2M14.2 9h2M1.8 9h2M12.7 5.3l1.4-1.4M3.9 14.1l1.4-1.4M12.7 12.7l1.4 1.4M3.9 3.9l1.4 1.4" /></svg>;
-    case "onboarding":
-      return <svg {...common}><circle {...stroke} cx="9" cy="9" r="6.5" /><path {...stroke} d="M9 5.5v4l2.5 1.5" /></svg>;
     default:
       return null;
   }
@@ -49,48 +47,26 @@ function PanelToggleIcon() {
   );
 }
 
-const NAV_GROUPS: { label: string | null; items: { href: string; label: string; icon: string }[] }[] = [
-  { label: null, items: [{ href: "/", label: "Overview", icon: "home" }] },
-  {
-    label: "Inventory",
-    items: [
-      { href: "/assets", label: "AI Passports", icon: "assets" },
-      { href: "/people", label: "People", icon: "people" },
-      { href: "/data", label: "Data Exposure", icon: "data" },
-    ],
-  },
-  {
-    label: "Assurance",
-    items: [{ href: "/assurance", label: "Assurance", icon: "assurance" }],
-  },
-  {
-    label: "Governance",
-    items: [
-      { href: "/approvals", label: "Reviews", icon: "approvals" },
-      { href: "/policies", label: "Policies", icon: "policies" },
-    ],
-  },
-  {
-    label: "Monitoring",
-    items: [
-      { href: "/activity", label: "Activity", icon: "activity" },
-      { href: "/evidence", label: "Evidence", icon: "evidence" },
-    ],
-  },
-  {
-    label: "Admin",
-    items: [
-      { href: "/connectors", label: "Connections", icon: "connectors" },
-      { href: "/settings", label: "Settings", icon: "settings" },
-    ],
-  },
+// Lista piatta, come Angar: nessun raggruppamento con etichette, nessuno
+// spazio extra tra "sezioni" — solo una spaziatura uniforme tra voci.
+const NAV_ITEMS = [
+  { href: "/", label: "Overview", icon: "home" },
+  { href: "/assets", label: "AI Passports", icon: "assets" },
+  { href: "/people", label: "People", icon: "people" },
+  { href: "/data", label: "Data Exposure", icon: "data" },
+  { href: "/assurance", label: "Assurance", icon: "assurance" },
+  { href: "/approvals", label: "Reviews", icon: "approvals" },
+  { href: "/policies", label: "Policies", icon: "policies" },
+  { href: "/activity", label: "Activity", icon: "activity" },
+  { href: "/evidence", label: "Evidence", icon: "evidence" },
+  { href: "/connectors", label: "Connections", icon: "connectors" },
 ];
 
 const STORAGE_KEY = "ai-control:sidebar-collapsed";
 
-// Sidebar chiara — stile Angar: sfondo quasi bianco, bordo destro sottile,
-// icone/testo scuri, evidenziazione neutra sull'elemento attivo (niente
-// tinta di brand qui, l'accento resta per bottoni/CTA come in Angar).
+// Sidebar stile Angar: sfondo appena grigiastro (contro il bianco pieno del
+// contenuto), lista piatta senza sezioni, Settings separato in fondo da una
+// riga sottile — non un gruppo tra tanti.
 export default function Sidebar({ orgName }: { orgName?: string }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -117,14 +93,20 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
     });
   }
 
+  function itemClass(active: boolean) {
+    return `relative flex items-center gap-2.5 text-sm transition-colors ${
+      collapsed ? "justify-center px-0 py-2.5 rounded-md" : "px-3 py-2 rounded-md"
+    } ${active ? "text-ink-100 bg-black/[0.045] font-medium" : "text-ink-400 hover:text-ink-100 hover:bg-black/[0.03]"}`;
+  }
+
   return (
     <aside
-      className={`shrink-0 bg-panel border-r border-line min-h-screen py-6 flex flex-col transition-[width] duration-150 ${
+      className={`shrink-0 bg-ink min-h-screen py-6 flex flex-col transition-[width] duration-150 ${
         collapsed ? "w-[64px] px-3" : "w-60 px-4"
       } ${ready ? "" : "invisible"}`}
     >
       {!collapsed && (
-        <div className="flex items-center mb-7 gap-2 px-3">
+        <div className="flex items-center mb-6 gap-2 px-3">
           <span className="text-ink-100 shrink-0">
             <Logo size={16} />
           </span>
@@ -142,7 +124,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         <button
           onClick={toggle}
           aria-label="Expand sidebar"
-          className="group relative h-8 w-8 mx-auto mb-5 flex items-center justify-center"
+          className="group relative h-8 w-8 mx-auto mb-4 flex items-center justify-center"
         >
           <span className="text-ink-100 transition-opacity group-hover:opacity-0">
             <Logo size={16} />
@@ -153,38 +135,24 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         </button>
       )}
 
-      <nav className="flex flex-col gap-5 overflow-y-auto">
-        {NAV_GROUPS.map((group, gi) => (
-          <div key={gi} className="flex flex-col gap-0.5">
-            {group.label && !collapsed && (
-              <div className="text-[11px] text-ink-400/70 px-3 mb-1">{group.label}</div>
-            )}
-            {group.items.map((item) => {
-              const active = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={collapsed ? item.label : undefined}
-                  className={`relative flex items-center gap-2.5 text-sm transition-colors ${
-                    collapsed ? "justify-center px-0 py-2.5 rounded-md" : "pl-3 pr-3 py-2 rounded-md"
-                  } ${
-                    active
-                      ? "text-ink-100 bg-black/[0.045] font-medium"
-                      : "text-ink-400 hover:text-ink-100 hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <Icon name={item.icon} />
-                  {!collapsed && item.label}
-                </Link>
-              );
-            })}
-          </div>
+      <nav className="flex flex-col gap-0.5 overflow-y-auto">
+        {NAV_ITEMS.map((item) => (
+          <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(pathname === item.href)}>
+            <Icon name={item.icon} />
+            {!collapsed && item.label}
+          </Link>
         ))}
       </nav>
 
+      <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-line">
+        <Link href="/settings" title={collapsed ? "Settings" : undefined} className={itemClass(pathname === "/settings")}>
+          <Icon name="settings" />
+          {!collapsed && "Settings"}
+        </Link>
+      </div>
+
       {orgName && (
-        <div className={`mt-auto pt-4 border-t border-line flex items-center gap-2.5 ${collapsed ? "justify-center px-0" : "px-3"}`}>
+        <div className={`mt-4 pt-3 border-t border-line flex items-center gap-2.5 ${collapsed ? "justify-center px-0" : "px-3"}`}>
           <div className="h-6 w-6 rounded-full bg-black/[0.06] flex items-center justify-center text-[11px] text-ink-400 shrink-0">
             {orgName.charAt(0).toUpperCase()}
           </div>
