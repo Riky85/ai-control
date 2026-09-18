@@ -68,7 +68,7 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
       })}
 
       <g transform={`translate(${xCenter}, ${centerY - 16})`}>
-        <rect width={NODE_W_CENTER} height={32} rx={7} fill="#D97757" />
+        <rect width={NODE_W_CENTER} height={32} rx={7} fill="#1A1A18" />
         <text x={NODE_W_CENTER / 2} y={20} textAnchor="middle" fontSize="12" fontWeight={600} fill="#FFFFFF">
           {truncate(center, 24)}
         </text>

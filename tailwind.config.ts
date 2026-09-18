@@ -14,16 +14,17 @@ const config: Config = {
         },
         panel: "#FFFFFF",     // card
         line: "#EAE8E3",      // bordi, sottili e puliti
-        // Arancio "Claude" come colore di brand/azioni primarie — distinto
-        // dal verde "approvato" (steady), che resta il significato universale
-        // di stato positivo indipendentemente dal colore di brand scelto.
+        // Palette Angar: nessun colore di brand acceso — i bottoni/azioni
+        // primarie sono neri (come "Import customers" / "Upgrade" in Angar),
+        // il verde è riservato allo stato positivo (come "Agent is online"),
+        // non è un accento di brand separato.
         accent: {
-          DEFAULT: "#D97757",
-          dark: "#C15F3C",
-          soft: "#FBEEEA",
+          DEFAULT: "#1A1A18",
+          dark: "#000000",
+          soft: "#EDECE9",
         },
         signal: "#B7791F",    // attenzione / rischio medio
-        steady: "#1F9254",    // approvato / sano
+        steady: "#1F9254",    // approvato / sano / online — verde Angar
         alarm: "#C4433B",     // rischio alto/critico
       },
       fontFamily: {
