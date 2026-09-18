@@ -49,7 +49,7 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
             key={`l-${i}`}
             d={`M ${xLeft + NODE_W_SIDE} ${y} C ${xCenter - 30} ${y}, ${xCenter - 30} ${centerY}, ${xCenter} ${centerY}`}
             fill="none"
-            stroke="#EAE8E3"
+            stroke="#262624"
             strokeWidth={1.5}
           />
         );
@@ -61,15 +61,15 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
             key={`r-${i}`}
             d={`M ${xCenter + NODE_W_CENTER} ${centerY} C ${xRight - 30} ${centerY}, ${xRight - 30} ${y}, ${xRight} ${y}`}
             fill="none"
-            stroke="#EAE8E3"
+            stroke="#262624"
             strokeWidth={1.5}
           />
         );
       })}
 
       <g transform={`translate(${xCenter}, ${centerY - 16})`}>
-        <rect width={NODE_W_CENTER} height={32} rx={7} fill="#1A1A18" />
-        <text x={NODE_W_CENTER / 2} y={20} textAnchor="middle" fontSize="12" fontWeight={600} fill="#FFFFFF">
+        <rect width={NODE_W_CENTER} height={32} rx={7} fill="#D97757" />
+        <text x={NODE_W_CENTER / 2} y={20} textAnchor="middle" fontSize="12" fontWeight={600} fill="#0A0A0A">
           {truncate(center, 24)}
         </text>
       </g>
@@ -82,12 +82,12 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
       ))}
 
       {left.length === 0 && (
-        <text x={xLeft} y={centerY} fontSize="11" fill="#8C8A83">
+        <text x={xLeft} y={centerY} fontSize="11" fill="#8B8B88">
           No known users
         </text>
       )}
       {right.length === 0 && (
-        <text x={xRight} y={centerY} fontSize="11" fill="#8C8A83">
+        <text x={xRight} y={centerY} fontSize="11" fill="#8B8B88">
           Nothing declared
         </text>
       )}
@@ -100,15 +100,15 @@ function truncate(s: string, max: number) {
 }
 
 function Node({ x, y, node }: { x: number; y: number; node: GraphNode }) {
-  const stroke = node.tone === "alarm" ? "#D1453B" : "#EAE8E3";
+  const stroke = node.tone === "alarm" ? "#E5534B" : "#262624";
   return (
     <g transform={`translate(${x}, ${y})`}>
-      <rect width={NODE_W_SIDE} height={NODE_H} rx={6} fill="#FFFFFF" stroke={stroke} strokeWidth={1.3} />
-      <text x={10} y={node.sublabel ? 16 : 23} fontSize="11.5" fontWeight={500} fill="#1A1A18">
+      <rect width={NODE_W_SIDE} height={NODE_H} rx={6} fill="#141413" stroke={stroke} strokeWidth={1.3} />
+      <text x={10} y={node.sublabel ? 16 : 23} fontSize="11.5" fontWeight={500} fill="#F2F2F0">
         {truncate(node.label, 26)}
       </text>
       {node.sublabel && (
-        <text x={10} y={29} fontSize="9.5" fill="#8C8A83">
+        <text x={10} y={29} fontSize="9.5" fill="#8B8B88">
           {truncate(node.sublabel, 32)}
         </text>
       )}

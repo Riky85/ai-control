@@ -130,7 +130,7 @@ export default async function OverviewPage() {
               <Link
                 href={`/assets/${a.id}`}
                 key={a.id}
-                className={`flex items-center justify-between px-4 py-3 text-sm border-l-2 ${edgeClass} hover:bg-black/[0.015] transition-colors`}
+                className={`flex items-center justify-between px-4 py-3 text-sm border-l-2 ${edgeClass} hover:bg-white/[0.025] transition-colors`}
               >
                 <div className="flex items-center gap-3">
                   <span className="font-medium text-ink-100">{a.name}</span>
@@ -216,7 +216,7 @@ export default async function OverviewPage() {
             <Link
               href={`/assets/${a.aiAssetId}`}
               key={a.id}
-              className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.015] transition-colors"
+              className="flex items-center justify-between px-4 py-3 text-sm hover:bg-white/[0.025] transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="h-1.5 w-1.5 rounded-full bg-ink-400/50 shrink-0" />

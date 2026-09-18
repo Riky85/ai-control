@@ -69,7 +69,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: { q
             <Link
               href={`/activity/${a.id}`}
               key={a.id}
-              className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.015] transition-colors"
+              className="flex items-center justify-between px-4 py-3 text-sm hover:bg-white/[0.025] transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="tabular text-xs text-ink-400 w-36 shrink-0">

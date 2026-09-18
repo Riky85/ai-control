@@ -88,7 +88,7 @@ const NAV_GROUPS: { label: string | null; items: { href: string; label: string; 
 
 const STORAGE_KEY = "ai-control:sidebar-collapsed";
 
-export default function Sidebar() {
+export default function Sidebar({ orgName }: { orgName?: string }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [ready, setReady] = useState(false);
@@ -179,6 +179,20 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
+
+      {orgName && (
+        <div className={`mt-auto pt-4 border-t border-white/[0.08] flex items-center gap-2.5 ${collapsed ? "justify-center px-0" : "px-3"}`}>
+          <div className="h-6 w-6 rounded-full bg-white/[0.08] flex items-center justify-center text-[11px] text-white/70 shrink-0">
+            {orgName.charAt(0).toUpperCase()}
+          </div>
+          {!collapsed && (
+            <div className="min-w-0">
+              <div className="text-xs text-white/80 truncate">{orgName}</div>
+              <div className="text-[10px] text-white/35">Organization</div>
+            </div>
+          )}
+        </div>
+      )}
     </aside>
   );
 }

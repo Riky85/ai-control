@@ -5,27 +5,27 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Stessi nomi di prima, valori ribaltati per il tema chiaro
-        // ispirato a OneTrust: "ink" resta lo sfondo di pagina, "ink-100"
-        // resta il testo principale — solo i valori esadecimali cambiano.
+        // Tema scuro ispirato a Exa.ai / OpenRouter: canvas quasi nero,
+        // card leggermente più chiare per separazione, bordi sottili.
+        // Stessi nomi di prima — solo i valori esadecimali cambiano.
         ink: {
-          DEFAULT: "#F6F5F2", // sfondo di pagina, bianco caldo appena percettibile
-          100: "#1A1A18",     // testo principale, quasi nero
-          400: "#8C8A83",     // testo secondario — grigio pulito, non olivastro
+          DEFAULT: "#0A0A0A", // sfondo di pagina, quasi nero
+          100: "#F2F2F0",     // testo principale, quasi bianco
+          400: "#8B8B88",     // testo secondario
         },
-        panel: "#FFFFFF",     // card
-        line: "#EAE8E3",      // bordi, sottili e puliti
+        panel: "#141413",     // card — leggermente più chiara dello sfondo
+        line: "#262624",      // bordi sottili
         // Arancio "Claude" come colore di brand/azioni primarie — distinto
         // dal verde "approvato" (steady), che resta il significato universale
         // di stato positivo indipendentemente dal colore di brand scelto.
         accent: {
           DEFAULT: "#D97757",
-          dark: "#C15F3C",
-          soft: "#FBEEEA",
+          dark: "#E8926F",
+          soft: "#2A1B15",
         },
-        signal: "#B7791F",    // attenzione / rischio medio — giallo-senape tenue
-        steady: "#1F9254",    // approvato / sano — verde indipendente dal brand
-        alarm: "#C4433B",     // rischio alto/critico
+        signal: "#D9A441",    // attenzione / rischio medio — più chiaro per leggibilità su sfondo scuro
+        steady: "#3EB271",    // approvato / sano — verde indipendente dal brand, più chiaro su scuro
+        alarm: "#E5534B",     // rischio alto/critico — più chiaro su scuro
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
