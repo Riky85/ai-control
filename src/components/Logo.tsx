@@ -7,8 +7,8 @@
 export default function Logo({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-      <circle cx="38" cy="50" r="32" fill="currentColor" />
-      <circle cx="80" cy="50" r="16" fill="currentColor" />
+      <circle cx="28" cy="50" r="26" fill="currentColor" />
+      <circle cx="85" cy="50" r="13" fill="currentColor" />
     </svg>
   );
 }
