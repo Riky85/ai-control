@@ -1,14 +1,17 @@
 /**
- * Simbolo di AI Control — stessa geometria a cerchi del logo Angar (l'altro
- * prodotto dell'utente: un cerchio grande + una fila di cerchi più piccoli),
- * riadattata alla palette di AI Control per coerenza visiva nel portfolio,
- * ma non identica: qui è resa in monotono con l'accento di brand.
+ * Simbolo di AI Control — reinterpretazione del logo Angar (scacchiera
+ * dinamica a colonne sfalsate), riadattato in monotono per il nostro
+ * accento di brand. Non è una copia pixel-per-pixel del file originale,
+ * ma la stessa famiglia geometrica: colonne verticali con lo spartiacque
+ * bianco/nero sfalsato invece di una scacchiera regolare.
  */
 export default function Logo({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-      <circle cx="28" cy="50" r="26" fill="currentColor" />
-      <circle cx="85" cy="50" r="13" fill="currentColor" />
+      <rect x="0" y="0" width="25" height="62.5" fill="currentColor" />
+      <rect x="25" y="25" width="25" height="75" fill="currentColor" />
+      <rect x="50" y="0" width="25" height="75" fill="currentColor" />
+      <rect x="75" y="37.5" width="25" height="62.5" fill="currentColor" />
     </svg>
   );
 }

@@ -88,6 +88,9 @@ const NAV_GROUPS: { label: string | null; items: { href: string; label: string; 
 
 const STORAGE_KEY = "ai-control:sidebar-collapsed";
 
+// Sidebar chiara — stile Angar: sfondo quasi bianco, bordo destro sottile,
+// icone/testo scuri, evidenziazione neutra sull'elemento attivo (niente
+// tinta di brand qui, l'accento resta per bottoni/CTA come in Angar).
 export default function Sidebar({ orgName }: { orgName?: string }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -116,20 +119,20 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
 
   return (
     <aside
-      className={`shrink-0 bg-[#0A0A0B] min-h-screen py-6 flex flex-col transition-[width] duration-150 ${
+      className={`shrink-0 bg-panel border-r border-line min-h-screen py-6 flex flex-col transition-[width] duration-150 ${
         collapsed ? "w-[64px] px-3" : "w-60 px-4"
       } ${ready ? "" : "invisible"}`}
     >
       {!collapsed && (
         <div className="flex items-center mb-7 gap-2 px-3">
-          <span className="text-white shrink-0">
+          <span className="text-ink-100 shrink-0">
             <Logo size={16} />
           </span>
-          <span className="font-semibold text-[15px] tracking-tight text-white">AI Control</span>
+          <span className="font-semibold text-[15px] tracking-tight text-ink-100">AI Control</span>
           <button
             onClick={toggle}
             aria-label="Collapse sidebar"
-            className="ml-auto h-7 w-7 flex items-center justify-center rounded text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors"
+            className="ml-auto h-7 w-7 flex items-center justify-center rounded text-ink-400 hover:text-ink-100 hover:bg-black/[0.05] transition-colors"
           >
             <PanelToggleIcon />
           </button>
@@ -141,10 +144,10 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
           aria-label="Expand sidebar"
           className="group relative h-8 w-8 mx-auto mb-5 flex items-center justify-center"
         >
-          <span className="text-white transition-opacity group-hover:opacity-0">
+          <span className="text-ink-100 transition-opacity group-hover:opacity-0">
             <Logo size={16} />
           </span>
-          <span className="absolute inset-0 flex items-center justify-center text-white/70 opacity-0 group-hover:opacity-100 group-hover:text-white transition-opacity rounded hover:bg-white/[0.08]">
+          <span className="absolute inset-0 flex items-center justify-center text-ink-400 opacity-0 group-hover:opacity-100 group-hover:text-ink-100 transition-opacity rounded hover:bg-black/[0.05]">
             <PanelToggleIcon />
           </span>
         </button>
@@ -154,7 +157,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         {NAV_GROUPS.map((group, gi) => (
           <div key={gi} className="flex flex-col gap-0.5">
             {group.label && !collapsed && (
-              <div className="text-[11px] text-white/35 px-3 mb-1">{group.label}</div>
+              <div className="text-[11px] text-ink-400/70 px-3 mb-1">{group.label}</div>
             )}
             {group.items.map((item) => {
               const active = pathname === item.href;
@@ -164,11 +167,11 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
                   href={item.href}
                   title={collapsed ? item.label : undefined}
                   className={`relative flex items-center gap-2.5 text-sm transition-colors ${
-                    collapsed ? "justify-center px-0 py-2.5 rounded-md" : "pl-3 pr-3 py-2 rounded-r-md"
+                    collapsed ? "justify-center px-0 py-2.5 rounded-md" : "pl-3 pr-3 py-2 rounded-md"
                   } ${
                     active
-                      ? "text-white bg-white/[0.05]"
-                      : "text-white/55 hover:text-white hover:bg-white/[0.04]"
+                      ? "text-ink-100 bg-black/[0.045] font-medium"
+                      : "text-ink-400 hover:text-ink-100 hover:bg-black/[0.03]"
                   }`}
                 >
                   <Icon name={item.icon} />
@@ -181,14 +184,14 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
       </nav>
 
       {orgName && (
-        <div className={`mt-auto pt-4 border-t border-white/[0.08] flex items-center gap-2.5 ${collapsed ? "justify-center px-0" : "px-3"}`}>
-          <div className="h-6 w-6 rounded-full bg-white/[0.08] flex items-center justify-center text-[11px] text-white/70 shrink-0">
+        <div className={`mt-auto pt-4 border-t border-line flex items-center gap-2.5 ${collapsed ? "justify-center px-0" : "px-3"}`}>
+          <div className="h-6 w-6 rounded-full bg-black/[0.06] flex items-center justify-center text-[11px] text-ink-400 shrink-0">
             {orgName.charAt(0).toUpperCase()}
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="text-xs text-white/80 truncate">{orgName}</div>
-              <div className="text-[10px] text-white/35">Organization</div>
+              <div className="text-xs text-ink-100 truncate">{orgName}</div>
+              <div className="text-[10px] text-ink-400">Organization</div>
             </div>
           )}
         </div>

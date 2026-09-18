@@ -28,7 +28,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className={sans.variable}>
       <body className="flex min-h-screen bg-ink text-ink-100 font-body">
         <Sidebar orgName={orgName} />
-        <main className="flex-1 px-10 py-9">{children}</main>
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="h-14 border-b border-line flex items-center justify-end px-10 shrink-0">
+            {orgName && (
+              <span className="text-xs text-ink-400 border border-line rounded-md px-3 py-1.5">
+                {orgName}
+              </span>
+            )}
+          </header>
+          <main className="flex-1 px-10 py-9">{children}</main>
+        </div>
       </body>
     </html>
   );
