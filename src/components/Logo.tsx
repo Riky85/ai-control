@@ -6,11 +6,9 @@
  */
 export default function Logo({ size = 18 }: { size?: number }) {
   return (
-    <svg width={size} height={size * (144 / 256)} viewBox="0 0 256 144" fill="none">
-      <circle cx="65" cy="73" r="60" fill="currentColor" />
-      <circle cx="140" cy="73" r="25" fill="currentColor" />
-      <circle cx="190" cy="73" r="25" fill="currentColor" />
-      <circle cx="230" cy="73" r="18" fill="currentColor" />
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+      <circle cx="38" cy="50" r="32" fill="currentColor" />
+      <circle cx="80" cy="50" r="16" fill="currentColor" />
     </svg>
   );
 }
