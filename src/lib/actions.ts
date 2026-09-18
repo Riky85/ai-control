@@ -9,9 +9,40 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { runConnectorSync } from "@/lib/connectors/sync";
+import { assessAssetRisk } from "@/lib/risk-engine";
+import { runAssuranceChecks } from "@/lib/assurance-engine";
 import type { ConnectorProvider, AiAssetStatus, EuAiActTier } from "@prisma/client";
 
 const ORG_ID = "demo-org"; // MVP: single-tenant demo; sostituire con auth reale
+
+// Ricalcola risk + assurance per un singolo asset dopo una modifica manuale
+// (owner, stato, classificazione) — le stesse funzioni deterministiche usate
+// dopo ogni sync, così l'assurance non resta mai disallineata da un edit.
+async function recomputeAssuranceFor(assetId: string) {
+  const full = await db.aiAsset.findUnique({
+    where: { id: assetId },
+    include: {
+      connectedSystems: true,
+      dataAccess: { include: { dataAsset: true } },
+      activities: { orderBy: { occurredAt: "desc" }, take: 50 },
+    },
+  });
+  if (!full) return;
+  const risk = assessAssetRisk(full);
+  const orgHasActivePolicy = (await db.policy.count({ where: { organizationId: full.organizationId, enabled: true } })) > 0;
+  const assurance = runAssuranceChecks(full, risk, orgHasActivePolicy);
+  await db.assuranceReport.create({
+    data: {
+      aiAssetId: assetId,
+      level: assurance.level,
+      score: assurance.score,
+      passedCount: assurance.passedCount,
+      warningCount: assurance.warningCount,
+      failedCount: assurance.failedCount,
+      checks: assurance.checks as any,
+    },
+  });
+}
 
 export async function syncConnectorAction(formData: FormData) {
   const provider = formData.get("provider") as ConnectorProvider;
@@ -19,6 +50,7 @@ export async function syncConnectorAction(formData: FormData) {
   revalidatePath("/connectors");
   revalidatePath("/assets");
   revalidatePath("/evidence");
+  revalidatePath("/assurance");
   revalidatePath("/");
 }
 
@@ -29,8 +61,10 @@ export async function setAssetOwnerAction(formData: FormData) {
     where: { id: assetId },
     data: { ownerId: ownerId || null },
   });
+  await recomputeAssuranceFor(assetId);
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
+  revalidatePath("/assurance");
   revalidatePath("/");
 }
 
@@ -41,9 +75,11 @@ export async function setAssetStatusAction(formData: FormData) {
     where: { id: assetId },
     data: { status },
   });
+  await recomputeAssuranceFor(assetId);
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
   revalidatePath("/approvals");
+  revalidatePath("/assurance");
   revalidatePath("/");
 }
 
@@ -54,8 +90,10 @@ export async function setAssetEuAiActTierAction(formData: FormData) {
     where: { id: assetId },
     data: { euAiActTier: tier },
   });
+  await recomputeAssuranceFor(assetId);
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
+  revalidatePath("/assurance");
 }
 
 export async function createPolicyAction(formData: FormData) {

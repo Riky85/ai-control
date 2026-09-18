@@ -42,6 +42,7 @@ export default async function AssetsPage({
       owner: true,
       connector: true,
       riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
+      assuranceReports: { orderBy: { createdAt: "desc" }, take: 1 },
     },
     orderBy: { lastSeenAt: "desc" },
   });
@@ -53,7 +54,7 @@ export default async function AssetsPage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">AI assets</h1>
+        <h1 className="font-display text-2xl font-semibold text-ink-100">AI Passports</h1>
         <p className="text-sm text-ink-400 mt-1.5">
           Every application, agent, API or MCP server detected across your connectors.
         </p>
@@ -103,12 +104,14 @@ export default async function AssetsPage({
               <th className="px-4 py-3 font-medium">Owner</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Risk</th>
+              <th className="px-4 py-3 font-medium">Assurance</th>
               <th className="px-4 py-3 font-medium">Last seen</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {filtered.map((asset) => {
               const risk = asset.riskAssessments[0];
+              const assurance = asset.assuranceReports[0];
               return (
                 <tr key={asset.id} className="hover:bg-black/[0.02]">
                   <td className="px-4 py-3">
@@ -128,6 +131,23 @@ export default async function AssetsPage({
                     <Badge>{asset.status}</Badge>
                   </td>
                   <td className="px-4 py-3">{risk ? <Badge>{risk.level}</Badge> : "—"}</td>
+                  <td className="px-4 py-3 text-xs">
+                    {assurance ? (
+                      <span
+                        className={
+                          assurance.level === "ASSURED"
+                            ? "text-steady"
+                            : assurance.level === "NEEDS_REVIEW"
+                              ? "text-signal"
+                              : "text-alarm"
+                        }
+                      >
+                        {assurance.score}%
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-ink-400 text-xs tabular">
                     {asset.lastSeenAt ? new Date(asset.lastSeenAt).toLocaleString() : "Never"}
                   </td>
@@ -136,7 +156,7 @@ export default async function AssetsPage({
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-sm text-ink-400">
+                <td colSpan={7} className="px-4 py-6 text-sm text-ink-400">
                   {assets.length === 0
                     ? "No assets yet. Connect Microsoft 365 or GitHub to start discovery."
                     : "No assets match this filter."}

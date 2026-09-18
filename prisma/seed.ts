@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { assessAssetRisk } from "../src/lib/risk-engine";
+import { runAssuranceChecks } from "../src/lib/assurance-engine";
 
 const db = new PrismaClient();
 
@@ -196,8 +197,10 @@ async function main() {
   });
 
   // Ricalcola risk assessment per ogni asset col motore deterministico
+  const riskByAssetId = new Map<string, ReturnType<typeof assessAssetRisk>>();
   for (const asset of [claudeCode, copilot, financeAgent, shadowSalesTool]) {
     const risk = assessAssetRisk(asset as any);
+    riskByAssetId.set(asset.id, risk);
     await db.riskAssessment.create({
       data: {
         aiAssetId: asset.id,
@@ -267,6 +270,33 @@ async function main() {
   // completo — vedi commento nello schema).
   await db.aiAsset.update({ where: { id: financeAgent.id }, data: { euAiActTier: "HIGH_RISK" } });
   await db.aiAsset.update({ where: { id: claudeCode.id }, data: { euAiActTier: "MINIMAL_RISK" } });
+
+  // Assurance: calcolata qui (dopo policy ed EU AI Act) così riflette lo
+  // stato finale dei dati demo, non uno stato intermedio del seed.
+  const orgHasActivePolicy = (await db.policy.count({ where: { organizationId: org.id, enabled: true } })) > 0;
+  for (const assetId of [claudeCode.id, copilot.id, financeAgent.id, shadowSalesTool.id]) {
+    const full = await db.aiAsset.findUniqueOrThrow({
+      where: { id: assetId },
+      include: {
+        connectedSystems: true,
+        dataAccess: { include: { dataAsset: true } },
+        activities: { orderBy: { occurredAt: "desc" }, take: 50 },
+      },
+    });
+    const risk = riskByAssetId.get(assetId) ?? assessAssetRisk(full as any);
+    const assurance = runAssuranceChecks(full as any, risk, orgHasActivePolicy);
+    await db.assuranceReport.create({
+      data: {
+        aiAssetId: assetId,
+        level: assurance.level,
+        score: assurance.score,
+        passedCount: assurance.passedCount,
+        warningCount: assurance.warningCount,
+        failedCount: assurance.failedCount,
+        checks: assurance.checks as any,
+      },
+    });
+  }
 
   // One-time cleanup for duplicate policies created before addPolicyFromLibraryAction
   // and createPolicyAction were made idempotent by name (see src/lib/actions.ts).

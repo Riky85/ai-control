@@ -20,6 +20,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
         dataAccess: { include: { dataAsset: true } },
         usages: { include: { user: true }, take: 20 },
         riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
+        assuranceReports: { orderBy: { createdAt: "desc" }, take: 1 },
         activities: { orderBy: { occurredAt: "desc" }, take: 15 },
         relationsFrom: { include: { targetAsset: true } },
         relationsTo: { include: { sourceAsset: true } },
@@ -31,6 +32,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
   if (!asset) notFound();
 
   const risk = asset.riskAssessments[0];
+  const assurance = asset.assuranceReports[0];
   const sensitiveAccess = asset.dataAccess.filter((d) =>
     ["PII", "FINANCIAL", "SOURCE_CODE"].includes(d.dataAsset.sensitivity)
   );
@@ -39,7 +41,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
     <div className="flex flex-col gap-7">
       <div>
         <div className="text-xs text-ink-400 mb-2">
-          <Link href="/assets" className="hover:text-ink-100 hover:underline">AI Assets</Link>
+          <Link href="/assets" className="hover:text-ink-100 hover:underline">AI Passports</Link>
           <span className="mx-1.5">/</span>
           {asset.name}
         </div>
@@ -54,6 +56,19 @@ export default async function AssetDetailPage({ params }: { params: { id: string
           <div className="flex items-center gap-3 pt-1 text-xs">
             <Badge>{asset.status}</Badge>
             {risk && <Badge>{risk.level}</Badge>}
+            {assurance && (
+              <span
+                className={
+                  assurance.level === "ASSURED"
+                    ? "text-steady font-medium"
+                    : assurance.level === "NEEDS_REVIEW"
+                      ? "text-signal font-medium"
+                      : "text-alarm font-medium"
+                }
+              >
+                Assurance {assurance.score}%
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -149,6 +164,43 @@ export default async function AssetDetailPage({ params }: { params: { id: string
                   </ul>
                 </>
               )}
+            </div>
+          )}
+
+          {assurance && (
+            <div className="rounded-md border border-line bg-panel shadow-card p-5">
+              <div className="flex items-center justify-between mb-0.5">
+                <h2 className="text-sm font-medium text-ink-100">Assurance</h2>
+                <span
+                  className={
+                    assurance.level === "ASSURED"
+                      ? "text-steady text-xs font-medium"
+                      : assurance.level === "NEEDS_REVIEW"
+                        ? "text-signal text-xs font-medium"
+                        : "text-alarm text-xs font-medium"
+                  }
+                >
+                  {assurance.score}% · {assurance.passedCount + assurance.warningCount + assurance.failedCount} checks
+                </span>
+              </div>
+              <p className="text-xs text-ink-400 mb-4">
+                What's been verified about this asset — each check reads a fact from the database.
+              </p>
+              <ul className="text-sm flex flex-col gap-1.5">
+                {(assurance.checks as unknown as { key: string; label: string; status: string; detail: string }[]).map((c) => (
+                  <li key={c.key} className="flex gap-2">
+                    <span
+                      className={
+                        c.status === "PASSED" ? "text-steady" : c.status === "WARNING" ? "text-signal" : "text-alarm"
+                      }
+                    >
+                      {c.status === "PASSED" ? "✓" : c.status === "WARNING" ? "!" : "✕"}
+                    </span>
+                    <span className="text-ink-100">{c.label}</span>
+                    <span className="text-ink-400">— {c.detail}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

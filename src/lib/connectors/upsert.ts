@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import type { ConnectorSyncResult } from "./types";
 import { assessAssetRisk } from "@/lib/risk-engine";
+import { runAssuranceChecks } from "@/lib/assurance-engine";
 
 /**
  * Scrive il risultato di un sync nel database in modo idempotente:
@@ -99,7 +100,9 @@ export async function persistSyncResult(
     },
   });
 
-  // Ricalcola il risk assessment per ogni asset toccato in questo sync
+  // Ricalcola il risk assessment e l'assurance report per ogni asset toccato
+  // in questo sync (entrambi deterministici, mai un LLM).
+  const orgHasActivePolicy = (await db.policy.count({ where: { organizationId, enabled: true } })) > 0;
   for (const assetId of touchedAssetIds) {
     const full = await db.aiAsset.findUniqueOrThrow({
       where: { id: assetId },
@@ -117,6 +120,18 @@ export async function persistSyncResult(
         score: risk.score,
         reasons: risk.reasons,
         mitigations: risk.mitigations,
+      },
+    });
+    const assurance = runAssuranceChecks(full, risk, orgHasActivePolicy);
+    await db.assuranceReport.create({
+      data: {
+        aiAssetId: assetId,
+        level: assurance.level,
+        score: assurance.score,
+        passedCount: assurance.passedCount,
+        warningCount: assurance.warningCount,
+        failedCount: assurance.failedCount,
+        checks: assurance.checks as any,
       },
     });
   }

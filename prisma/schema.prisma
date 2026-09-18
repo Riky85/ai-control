@@ -185,6 +185,7 @@ model AiAsset {
   dataAccess       AiAssetDataAccess[]
   usages           AiAssetUsage[]
   riskAssessments  RiskAssessment[]
+  assuranceReports AssuranceReport[]
   activities       AiAssetActivity[]
   relationsFrom    AiAssetRelationship[]    @relation("RelationSource")
   relationsTo      AiAssetRelationship[]    @relation("RelationTarget")
@@ -266,6 +267,31 @@ model RiskAssessment {
   reasons     Json
   mitigations Json
   createdAt   DateTime  @default(now())
+
+  @@index([aiAssetId, createdAt])
+}
+
+enum AssuranceLevel {
+  ASSURED
+  NEEDS_REVIEW
+  FAILED
+}
+
+// Snapshot dei controlli di assurance calcolati per un asset — stessa
+// architettura di RiskAssessment: ricalcolato deterministicamente a ogni
+// sync, mai deciso da un LLM. "checks" è un array Json di
+// { key, label, status: "PASSED"|"WARNING"|"FAILED", detail }.
+model AssuranceReport {
+  id            String         @id @default(cuid())
+  aiAssetId     String
+  aiAsset       AiAsset        @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  level         AssuranceLevel
+  score         Int            // 0-100
+  passedCount   Int
+  warningCount  Int
+  failedCount   Int
+  checks        Json
+  createdAt     DateTime       @default(now())
 
   @@index([aiAssetId, createdAt])
 }
