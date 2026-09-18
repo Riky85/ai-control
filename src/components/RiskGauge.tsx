@@ -5,10 +5,10 @@
  * dove essere l'oggetto principale della pagina, non un dettaglio a lato.
  */
 const TONE: Record<string, string> = {
-  LOW: "#3EB271",
-  MEDIUM: "#D9A441",
-  HIGH: "#E5534B",
-  CRITICAL: "#E5534B",
+  LOW: "#1F9254",
+  MEDIUM: "#B7791F",
+  HIGH: "#C4433B",
+  CRITICAL: "#C4433B",
 };
 
 export default function RiskGauge({ score, level }: { score: number; level: string }) {
@@ -17,7 +17,7 @@ export default function RiskGauge({ score, level }: { score: number; level: stri
   const circumference = Math.PI * radius; // semicerchio
   const progress = Math.min(100, Math.max(0, score)) / 100;
   const dash = circumference * progress;
-  const color = TONE[level] ?? "#8B8B88";
+  const color = TONE[level] ?? "#8C8A83";
 
   return (
     <div className="flex flex-col items-center">
@@ -25,7 +25,7 @@ export default function RiskGauge({ score, level }: { score: number; level: stri
         <path
           d="M 10 74 A 60 60 0 0 1 130 74"
           fill="none"
-          stroke="#262624"
+          stroke="#EAE8E3"
           strokeWidth={stroke}
           strokeLinecap="round"
         />

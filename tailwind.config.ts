@@ -5,27 +5,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Tema scuro ispirato a Exa.ai / OpenRouter: canvas quasi nero,
-        // card leggermente più chiare per separazione, bordi sottili.
-        // Stessi nomi di prima — solo i valori esadecimali cambiano.
+        // Tema chiaro ispirato ad Angar: canvas quasi bianco, card bianche,
+        // bordi sottili. Stessi nomi di prima — solo i valori cambiano.
         ink: {
-          DEFAULT: "#0A0A0A", // sfondo di pagina, quasi nero
-          100: "#F2F2F0",     // testo principale, quasi bianco
-          400: "#8B8B88",     // testo secondario
+          DEFAULT: "#F6F5F2", // sfondo di pagina, bianco caldo appena percettibile
+          100: "#1A1A18",     // testo principale, quasi nero
+          400: "#8C8A83",     // testo secondario — grigio pulito
         },
-        panel: "#141413",     // card — leggermente più chiara dello sfondo
-        line: "#262624",      // bordi sottili
+        panel: "#FFFFFF",     // card
+        line: "#EAE8E3",      // bordi, sottili e puliti
         // Arancio "Claude" come colore di brand/azioni primarie — distinto
         // dal verde "approvato" (steady), che resta il significato universale
         // di stato positivo indipendentemente dal colore di brand scelto.
         accent: {
           DEFAULT: "#D97757",
-          dark: "#E8926F",
-          soft: "#2A1B15",
+          dark: "#C15F3C",
+          soft: "#FBEEEA",
         },
-        signal: "#D9A441",    // attenzione / rischio medio — più chiaro per leggibilità su sfondo scuro
-        steady: "#3EB271",    // approvato / sano — verde indipendente dal brand, più chiaro su scuro
-        alarm: "#E5534B",     // rischio alto/critico — più chiaro su scuro
+        signal: "#B7791F",    // attenzione / rischio medio
+        steady: "#1F9254",    // approvato / sano
+        alarm: "#C4433B",     // rischio alto/critico
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
