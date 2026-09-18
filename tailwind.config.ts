@@ -15,16 +15,16 @@ const config: Config = {
         },
         panel: "#FFFFFF",     // card
         line: "#EAE8E3",      // bordi, sottili e puliti
-        // Un solo verde di brand, controllato — fa doppio servizio da
-        // colore d'azione/stato-attivo E da "approvato/sano" (il documento
-        // condiviso chiede esplicitamente un solo accento, non due).
+        // Arancio "Claude" come colore di brand/azioni primarie — distinto
+        // dal verde "approvato" (steady), che resta il significato universale
+        // di stato positivo indipendentemente dal colore di brand scelto.
         accent: {
-          DEFAULT: "#1F9254",
-          dark: "#17753F",
-          soft: "#EAF6EF",
+          DEFAULT: "#D97757",
+          dark: "#C15F3C",
+          soft: "#FBEEEA",
         },
-        signal: "#B7791F",    // attenzione / rischio medio — giallo-senape tenue, non arancio acceso
-        steady: "#1F9254",    // alias dello stesso verde di brand
+        signal: "#B7791F",    // attenzione / rischio medio — giallo-senape tenue
+        steady: "#1F9254",    // approvato / sano — verde indipendente dal brand
         alarm: "#C4433B",     // rischio alto/critico
       },
       fontFamily: {

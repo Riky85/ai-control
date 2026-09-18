@@ -58,7 +58,7 @@ export default async function PeoplePage() {
                     {highRiskOwned > 0 ? (
                       <span className="text-alarm">Attention</span>
                     ) : (
-                      <span className="text-accent">Good</span>
+                      <span className="text-steady">Good</span>
                     )}
                   </td>
                 </tr>

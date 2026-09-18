@@ -61,7 +61,7 @@ export default async function OnboardingPage({
             >
               <span
                 className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 text-[10px] ${
-                  done ? "bg-accent text-white" : active ? "border-2 border-accent text-accent" : "border border-line text-ink-400"
+                  done ? "bg-steady text-white" : active ? "border-2 border-accent text-accent" : "border border-line text-ink-400"
                 }`}
               >
                 {done ? "✓" : n}

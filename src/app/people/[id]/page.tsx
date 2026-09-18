@@ -65,7 +65,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
           <div className="text-xs text-ink-400 mt-0.5">High risk owned</div>
         </div>
         <div className="px-5 py-4">
-          <div className={`text-sm font-medium mt-1.5 ${highRiskOwned > 0 ? "text-alarm" : "text-accent"}`}>
+          <div className={`text-sm font-medium mt-1.5 ${highRiskOwned > 0 ? "text-alarm" : "text-steady"}`}>
             {highRiskOwned > 0 ? "Attention" : "Good"}
           </div>
           <div className="text-xs text-ink-400 mt-0.5">Status</div>

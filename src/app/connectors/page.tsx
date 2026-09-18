@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
+import VendorIcon from "@/components/VendorIcon";
 import { syncConnectorAction } from "@/lib/actions";
 import type { Connector, ConnectorProvider } from "@prisma/client";
 
@@ -116,6 +117,26 @@ export default async function ConnectorsPage() {
         </p>
       </div>
 
+      <div className="rounded-lg border border-line bg-panel shadow-card p-5 text-sm">
+        <h2 className="font-medium text-ink-100 mb-2">How this actually works</h2>
+        <ul className="text-ink-400 flex flex-col gap-1.5 list-disc list-inside">
+          <li>
+            Each row below is a <span className="text-ink-100">different company</span> — Microsoft, GitHub,
+            Anthropic, OpenAI. <span className="text-ink-100">There's no single login that covers all of them</span>{" "}
+            — you connect each one separately, with credentials from that company.
+          </li>
+          <li>
+            <span className="text-ink-100">GitHub is the only one an individual can realistically test</span> —
+            it just needs a free GitHub organization (not a company account). The other three need an actual
+            Enterprise/Team plan with admin rights, which a personal account never has.
+          </li>
+          <li>
+            "Connect" doesn't happen inside this app — it opens a short guide. You create the access on the
+            provider's own site, then paste a few values into this app's hosting settings (Railway) yourself.
+          </li>
+        </ul>
+      </div>
+
       {(["Identity", "Development", "AI"] as const).map((category) => (
         <div key={category} className="flex flex-col gap-3">
           <h2 className="text-xs font-medium text-ink-400">{category}</h2>
@@ -129,6 +150,7 @@ export default async function ConnectorsPage() {
                 <div key={provider} className="rounded-lg border border-line bg-panel shadow-card p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
+                      <span className="text-ink-400"><VendorIcon vendor={provider} /></span>
                       <span className="font-medium text-sm text-ink-100">{info.label}</span>
                       {row ? <Badge>{row.status}</Badge> : <Badge>DISCONNECTED</Badge>}
                     </div>

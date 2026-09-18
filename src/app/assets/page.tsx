@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
+import VendorIcon from "@/components/VendorIcon";
 import type { AiAssetType, AiAssetStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,7 @@ export default async function AssetsPage({
     },
     include: {
       owner: true,
+      connector: true,
       riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
     },
     orderBy: { lastSeenAt: "desc" },
@@ -113,7 +115,10 @@ export default async function AssetsPage({
                     <Link href={`/assets/${asset.id}`} className="hover:underline font-medium text-ink-100">
                       {asset.name}
                     </Link>
-                    <div className="text-xs text-ink-400">{asset.vendor ?? "Vendor unknown"}</div>
+                    <div className="flex items-center gap-1.5 text-xs text-ink-400">
+                      <span className="text-ink-400/80"><VendorIcon vendor={asset.vendor ?? asset.connector?.provider ?? ""} size={12} /></span>
+                      {asset.vendor ?? "Vendor unknown"}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-ink-400">{asset.type.replace(/_/g, " ").toLowerCase()}</td>
                   <td className="px-4 py-3 text-ink-400">

@@ -102,7 +102,7 @@ export default async function OverviewPage() {
           cinque card sparse: numero, indicatore colorato, etichetta. */}
       <div className="rounded-lg border border-line bg-panel shadow-card grid grid-cols-4 divide-x divide-line">
         <PostureTile value={total} label="AI assets" dotClass="bg-ink-100" />
-        <PostureTile value={statusCount.APPROVED ?? 0} label="Approved" dotClass="bg-accent" />
+        <PostureTile value={statusCount.APPROVED ?? 0} label="Approved" dotClass="bg-steady" />
         <PostureTile
           value={(statusCount.UNREVIEWED ?? 0) + (statusCount.UNAPPROVED ?? 0) + (statusCount.UNKNOWN ?? 0)}
           label="Under review"

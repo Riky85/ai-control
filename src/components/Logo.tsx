@@ -1,28 +1,16 @@
 /**
- * Simbolo originale per AI Control — una raggiera minimale a 12 raggi.
- * Non è il logo Claude/Anthropic (marchio registrato, non riutilizzabile):
- * disegno distinto, stessa famiglia concettuale di "segnale/scansione"
- * coerente con cosa fa il prodotto (scoprire cio' che e' nascosto).
+ * Simbolo di AI Control — stessa geometria a cerchi del logo Angar (l'altro
+ * prodotto dell'utente: un cerchio grande + una fila di cerchi più piccoli),
+ * riadattata alla palette di AI Control per coerenza visiva nel portfolio,
+ * ma non identica: qui è resa in monotono con l'accento di brand.
  */
 export default function Logo({ size = 18 }: { size?: number }) {
-  const rays = 12;
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {Array.from({ length: rays }).map((_, i) => {
-        const angle = (i * 360) / rays;
-        return (
-          <rect
-            key={i}
-            x="11.25"
-            y="1.5"
-            width="1.5"
-            height="7"
-            rx="0.75"
-            fill="currentColor"
-            transform={`rotate(${angle} 12 12)`}
-          />
-        );
-      })}
+    <svg width={size} height={size * (144 / 256)} viewBox="0 0 256 144" fill="none">
+      <circle cx="65" cy="73" r="60" fill="currentColor" />
+      <circle cx="140" cy="73" r="25" fill="currentColor" />
+      <circle cx="190" cy="73" r="25" fill="currentColor" />
+      <circle cx="230" cy="73" r="18" fill="currentColor" />
     </svg>
   );
 }
