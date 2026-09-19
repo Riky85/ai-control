@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
 import VendorIcon from "@/components/VendorIcon";
+import AssetFilters from "@/components/AssetFilters";
 import type { AiAssetType, AiAssetStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -61,40 +62,13 @@ export default async function AssetsPage({
         </p>
       </div>
 
-      <form className="flex items-center gap-3" method="GET">
-        <select name="type" defaultValue={searchParams.type ?? ""} className="bg-panel border border-line rounded px-2.5 py-1.5 text-xs text-ink-100">
-          <option value="">All types</option>
-          {TYPE_OPTIONS.map((t) => (
-            <option key={t} value={t}>
-              {t.replace(/_/g, " ").toLowerCase()}
-            </option>
-          ))}
-        </select>
-        <select name="status" defaultValue={searchParams.status ?? ""} className="bg-panel border border-line rounded px-2.5 py-1.5 text-xs text-ink-100">
-          <option value="">All statuses</option>
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {STATUS_LABEL[s]}
-            </option>
-          ))}
-        </select>
-        <select name="risk" defaultValue={searchParams.risk ?? ""} className="bg-panel border border-line rounded px-2.5 py-1.5 text-xs text-ink-100">
-          <option value="">All risk levels</option>
-          {RISK_OPTIONS.map((r) => (
-            <option key={r} value={r}>
-              {RISK_LABEL[r]}
-            </option>
-          ))}
-        </select>
-        <button type="submit" className="text-xs px-3 py-1.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors">
-          Filter
-        </button>
-        {(searchParams.type || searchParams.status || searchParams.risk) && (
-          <Link href="/assets" className="text-xs text-ink-400 hover:text-ink-100">
-            Clear
-          </Link>
-        )}
-      </form>
+      <AssetFilters
+        typeOptions={TYPE_OPTIONS}
+        statusOptions={STATUS_OPTIONS}
+        statusLabels={STATUS_LABEL}
+        riskOptions={RISK_OPTIONS}
+        riskLabels={RISK_LABEL}
+      />
 
       <div className="rounded-md border border-line bg-panel shadow-card overflow-hidden">
         <table className="w-full text-sm">
@@ -115,7 +89,7 @@ export default async function AssetsPage({
               const risk = asset.riskAssessments[0];
               const assurance = asset.assuranceReports[0];
               return (
-                <tr key={asset.id} className="hover:bg-white/[0.03]">
+                <tr key={asset.id} className="hover:bg-black/[0.02]">
                   <td className="px-4 py-3">
                     <Link href={`/assets/${asset.id}`} className="hover:underline font-medium text-ink-100">
                       {asset.name}
