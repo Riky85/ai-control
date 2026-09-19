@@ -126,6 +126,37 @@ export async function setAssetCostAction(formData: FormData) {
   revalidatePath("/providers");
 }
 
+// Alternativa registrata a mano — mai generata da un modello, mai un
+// punteggio nascosto. L'utente dice cosa ha confrontato e perché.
+export async function addAlternativeAction(formData: FormData) {
+  const assetId = formData.get("assetId") as string;
+  const provider = (formData.get("provider") as string)?.trim();
+  const model = (formData.get("model") as string)?.trim();
+  if (!provider || !model) return;
+  const costRaw = formData.get("estimatedMonthlyCost") as string;
+  await db.modelAlternative.create({
+    data: {
+      aiAssetId: assetId,
+      provider,
+      model,
+      estimatedMonthlyCost: costRaw ? parseFloat(costRaw) : null,
+      qualityConfidence: (formData.get("qualityConfidence") as string) || null,
+      migrationEffortDays: (formData.get("migrationEffortDays") as string)?.trim() || null,
+      reasoning: (formData.get("reasoning") as string)?.trim() || null,
+    },
+  });
+  revalidatePath(`/assets/${assetId}`);
+  revalidatePath("/savings");
+}
+
+export async function deleteAlternativeAction(formData: FormData) {
+  const id = formData.get("alternativeId") as string;
+  const assetId = formData.get("assetId") as string;
+  await db.modelAlternative.delete({ where: { id } });
+  revalidatePath(`/assets/${assetId}`);
+  revalidatePath("/savings");
+}
+
 export async function createPolicyAction(formData: FormData) {
   const name = (formData.get("name") as string)?.trim();
   const description = (formData.get("description") as string)?.trim();

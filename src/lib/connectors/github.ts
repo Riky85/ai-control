@@ -1,14 +1,20 @@
 /**
  * Connettore GitHub — PRD sezione 5.2.
  *
- * Usa una GitHub App installata a livello organizzazione (non OAuth
- * personale), per accesso stabile indipendente dal singolo utente.
+ * Usa una GitHub App di PIATTAFORMA (una sola, di proprietà nostra — non
+ * del cliente) installata sull'organizzazione del cliente tramite il
+ * flusso "Connect" reale: il cliente clicca Connect, sceglie la propria
+ * org su github.com, e torna qui già collegato. Nessuna password, nessuna
+ * chiave API da copiare a mano (vedi /api/connectors/github/install e
+ * /callback). L'installation ID risultante è salvato per-organizzazione
+ * in Connector.credentialsEncrypted (JSON), non in una env var globale
+ * che varrebbe per tutti i clienti.
  *
- * Variabili d'ambiente richieste:
+ * Variabili d'ambiente richieste (di PIATTAFORMA, impostate una sola
+ * volta da chi gestisce AI Control — mai dal cliente):
  *   GITHUB_APP_ID
  *   GITHUB_APP_PRIVATE_KEY   (PEM, con newline reali o escaped \n)
- *   GITHUB_APP_INSTALLATION_ID
- *   GITHUB_ORG
+ *   GITHUB_APP_SLUG          (per costruire il link di installazione)
  *
  * Permessi GitHub App richiesti: Organization members (read),
  * Organization administration (read), Repository metadata (read).
@@ -21,6 +27,19 @@
 
 import { createSign } from "node:crypto";
 import type { Connector, ConnectorSyncResult, ObservedAsset } from "./types";
+
+interface GithubCredentials {
+  installationId: string;
+}
+
+function readCredentials(connectorRow: { credentialsEncrypted: string | null }): GithubCredentials | null {
+  if (!connectorRow.credentialsEncrypted) return null;
+  try {
+    return JSON.parse(connectorRow.credentialsEncrypted) as GithubCredentials;
+  } catch {
+    return null;
+  }
+}
 
 const GITHUB_API = "https://api.github.com";
 
@@ -49,18 +68,17 @@ function buildAppJwt(appId: string, privateKeyPem: string): string {
   return `${signingInput}.${base64url(signature)}`;
 }
 
-async function getInstallationToken(): Promise<string> {
+function buildJwt(): string {
   const appId = process.env.GITHUB_APP_ID;
   const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
-  const installationId = process.env.GITHUB_APP_INSTALLATION_ID;
-
-  if (!appId || !privateKey || !installationId) {
-    throw new Error(
-      "GitHub connector not configured: missing GITHUB_APP_ID / GITHUB_APP_PRIVATE_KEY / GITHUB_APP_INSTALLATION_ID"
-    );
+  if (!appId || !privateKey) {
+    throw new Error("GitHub connector not configured on this platform: missing GITHUB_APP_ID / GITHUB_APP_PRIVATE_KEY");
   }
+  return buildAppJwt(appId, privateKey);
+}
 
-  const jwt = buildAppJwt(appId, privateKey);
+async function getInstallationToken(installationId: string): Promise<string> {
+  const jwt = buildJwt();
   const res = await fetch(`${GITHUB_API}/app/installations/${installationId}/access_tokens`, {
     method: "POST",
     headers: {
@@ -73,6 +91,19 @@ async function getInstallationToken(): Promise<string> {
   }
   const data = (await res.json()) as { token: string };
   return data.token;
+}
+
+async function getInstallationOrgLogin(installationId: string): Promise<string> {
+  const jwt = buildJwt();
+  const res = await fetch(`${GITHUB_API}/app/installations/${installationId}`, {
+    headers: { Authorization: `Bearer ${jwt}`, Accept: "application/vnd.github+json" },
+  });
+  if (!res.ok) {
+    throw new Error(`Unable to read installation details: ${res.status} ${await res.text()}`);
+  }
+  const data = (await res.json()) as { account?: { login?: string } };
+  if (!data.account?.login) throw new Error("Installation has no associated organization login.");
+  return data.account.login;
 }
 
 async function ghGet(token: string, path: string) {
@@ -91,13 +122,14 @@ async function ghGet(token: string, path: string) {
 export const githubConnector: Connector = {
   provider: "GITHUB",
 
-  async sync(): Promise<ConnectorSyncResult> {
+  async sync(connectorRow): Promise<ConnectorSyncResult> {
     const warnings: string[] = [];
-    const org = process.env.GITHUB_ORG;
-    if (!org) {
-      throw new Error("GitHub connector not configured: missing GITHUB_ORG");
+    const creds = readCredentials(connectorRow);
+    if (!creds?.installationId) {
+      throw new Error("GitHub not connected yet — press Connect and install the app on your organization.");
     }
-    const token = await getInstallationToken();
+    const token = await getInstallationToken(creds.installationId);
+    const org = await getInstallationOrgLogin(creds.installationId);
 
     const copilotAsset: ObservedAsset = {
       externalId: `github-copilot:${org}`,

@@ -28,7 +28,7 @@ export async function runConnectorSync(organizationId: string, provider: Connect
   });
 
   try {
-    const result = await connectorImpl.sync();
+    const result = await connectorImpl.sync(connectorRow);
     const summary = await persistSyncResult(organizationId, connectorRow.id, result);
     await recordInventorySnapshot(organizationId);
     return { ok: true as const, ...summary };

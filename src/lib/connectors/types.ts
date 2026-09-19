@@ -8,7 +8,7 @@
  * in un unico posto, indipendente da come ciascun provider espone i dati.
  */
 
-import type { AiAssetType, ConnectorProvider } from "@prisma/client";
+import type { AiAssetType, ConnectorProvider, Connector as ConnectorRow } from "@prisma/client";
 
 export interface ObservedUser {
   email: string;
@@ -50,10 +50,15 @@ export interface ConnectorSyncResult {
 export interface Connector {
   provider: ConnectorProvider;
   /**
-   * Esegue una sincronizzazione completa. Deve essere tollerante a campi
-   * mancanti nella risposta del provider (schema-on-read) e non deve mai
-   * lanciare per un singolo record malformato: lo salta e lo segnala in
-   * `warnings`, senza interrompere l'intero sync.
+   * Esegue una sincronizzazione completa. Riceve la riga Connector dal
+   * database — serve ai connettori che hanno credenziali specifiche per
+   * organizzazione (es. GitHub: l'installation ID ottenuto dal flusso di
+   * installazione dell'app, salvato in credentialsEncrypted) invece che
+   * variabili d'ambiente globali condivise da tutti i clienti.
+   * Deve essere tollerante a campi mancanti nella risposta del provider
+   * (schema-on-read) e non deve mai lanciare per un singolo record
+   * malformato: lo salta e lo segnala in `warnings`, senza interrompere
+   * l'intero sync.
    */
-  sync(): Promise<ConnectorSyncResult>;
+  sync(connectorRow: ConnectorRow): Promise<ConnectorSyncResult>;
 }

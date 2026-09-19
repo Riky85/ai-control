@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
 import VendorIcon from "@/components/VendorIcon";
+import BarChart from "@/components/BarChart";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,16 @@ export default async function ProvidersPage() {
           </p>
         )}
       </div>
+
+      {rows.some((r) => r.hasCostData) && (
+        <div className="rounded-md border border-line bg-panel shadow-card p-5">
+          <h2 className="text-sm font-medium text-ink-400 mb-4">Monthly spend by provider</h2>
+          <BarChart
+            rows={rows.filter((r) => r.hasCostData).map((r) => ({ label: r.vendor, value: r.monthlySpend }))}
+            formatValue={(v) => `€${v.toLocaleString()}`}
+          />
+        </div>
+      )}
 
       <div className="flex flex-col gap-3">
         {rows.map(({ vendor, list, critical, production, monthlySpend, hasCostData, costedCount }) => (

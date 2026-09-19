@@ -19,6 +19,8 @@ function Icon({ name }: { name: string }) {
       return <svg {...common}><circle {...stroke} cx="7" cy="6" r="2.3" /><path {...stroke} d="M2.5 15c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" /><circle {...stroke} cx="13" cy="5.5" r="1.8" /><path {...stroke} d="M11.5 8.2c1.9.3 3 1.5 3 3.8" /></svg>;
     case "data":
       return <svg {...common}><ellipse {...stroke} cx="9" cy="4" rx="5.5" ry="1.8" /><path {...stroke} d="M3.5 4v10c0 1 2.5 1.8 5.5 1.8s5.5-.8 5.5-1.8V4" /><path {...stroke} d="M3.5 9c0 1 2.5 1.8 5.5 1.8s5.5-.8 5.5-1.8" /></svg>;
+    case "savings":
+      return <svg {...common}><circle {...stroke} cx="9" cy="9" r="7" /><path {...stroke} d="M9 5.5v1M9 11.5v1" /><path {...stroke} d="M11 7.2c0-.9-.9-1.7-2-1.7s-2 .6-2 1.5c0 2 4 1 4 3 0 .9-.9 1.5-2 1.5s-2-.8-2-1.7" /></svg>;
     case "providers":
       return <svg {...common}><circle {...stroke} cx="9" cy="3.5" r="1.8" /><circle {...stroke} cx="4" cy="14" r="1.8" /><circle {...stroke} cx="14" cy="14" r="1.8" /><path {...stroke} d="M9 5.3v3.2M9 8.5L5 12.5M9 8.5l4 4" /></svg>;
     case "changes":
@@ -57,6 +59,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Overview", icon: "home" },
   { href: "/assets", label: "AI Passports", icon: "assets" },
   { href: "/providers", label: "Providers", icon: "providers" },
+  { href: "/savings", label: "Savings", icon: "savings" },
   { href: "/people", label: "People", icon: "people" },
   { href: "/data", label: "Data Exposure", icon: "data" },
   { href: "/assurance", label: "Assurance", icon: "assurance" },

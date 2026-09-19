@@ -189,6 +189,7 @@ model AiAsset {
   activities       AiAssetActivity[]
   changes          AssetChange[]
   cost             AiSystemCost?
+  alternatives     ModelAlternative[]
   relationsFrom    AiAssetRelationship[]    @relation("RelationSource")
   relationsTo      AiAssetRelationship[]    @relation("RelationTarget")
 
@@ -228,6 +229,22 @@ model AiSystemCost {
   confidence          String   @default("MEDIUM")  // "LOW" | "MEDIUM" | "HIGH"
   notes               String?
   updatedAt           DateTime @updatedAt
+}
+
+// Un'alternativa registrata manualmente per un AI system — mai generata
+// automaticamente: l'utente (o chi valuta) inserisce cosa ha confrontato e
+// perché. "reasoning" è testo libero, non un punteggio nascosto.
+model ModelAlternative {
+  id                   String   @id @default(cuid())
+  aiAssetId            String
+  aiAsset              AiAsset  @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  provider             String
+  model                String
+  estimatedMonthlyCost Float?
+  qualityConfidence    String?  // "LOW" | "MEDIUM" | "HIGH"
+  migrationEffortDays  String?  // testo libero tipo "3-5", mai un numero finto-preciso
+  reasoning            String?
+  createdAt            DateTime @default(now())
 }
 
 model AiAssetConnectedSystem {

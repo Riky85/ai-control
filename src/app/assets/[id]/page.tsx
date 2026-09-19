@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
 import AssetGraph from "@/components/AssetGraph";
-import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, setAssetCostAction } from "@/lib/actions";
+import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, setAssetCostAction, addAlternativeAction, deleteAlternativeAction } from "@/lib/actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import VendorIcon from "@/components/VendorIcon";
@@ -38,6 +38,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
         relationsFrom: { include: { targetAsset: true } },
         relationsTo: { include: { sourceAsset: true } },
         cost: true,
+        alternatives: { orderBy: { createdAt: "desc" } },
       },
     }),
     db.user.findMany({ where: { organizationId: "demo-org" }, orderBy: { name: "asc" } }),
@@ -209,6 +210,52 @@ export default async function AssetDetailPage({ params }: { params: { id: string
               ))}
               {asset.activities.length === 0 && <div className="py-2 text-ink-400">No activity recorded yet.</div>}
             </div>
+          </div>
+
+          <div className="rounded-md border border-line bg-panel shadow-card p-5">
+            <h2 className="text-sm font-medium text-ink-400 mb-3">Alternatives</h2>
+            {asset.alternatives.length > 0 && (
+              <div className="flex flex-col gap-2 mb-4">
+                {asset.alternatives.map((alt) => (
+                  <div key={alt.id} className="flex items-center justify-between text-sm border-b border-line pb-2 last:border-0">
+                    <div>
+                      <span className="text-ink-100 font-medium">{alt.provider} · {alt.model}</span>
+                      {alt.estimatedMonthlyCost != null && <span className="text-ink-400 text-xs ml-2">€{alt.estimatedMonthlyCost.toLocaleString()}/mo</span>}
+                      {alt.migrationEffortDays && <span className="text-ink-400 text-xs ml-2">· {alt.migrationEffortDays} days to migrate</span>}
+                    </div>
+                    <form action={deleteAlternativeAction}>
+                      <input type="hidden" name="alternativeId" value={alt.id} />
+                      <input type="hidden" name="assetId" value={asset.id} />
+                      <button type="submit" className="text-xs text-ink-400 hover:text-alarm transition-colors">Remove</button>
+                    </form>
+                  </div>
+                ))}
+              </div>
+            )}
+            <details>
+              <summary className="cursor-pointer text-xs text-ink-400 hover:text-ink-100">+ Add an alternative you've evaluated</summary>
+              <form action={addAlternativeAction} className="mt-3 flex flex-col gap-2 text-sm">
+                <input type="hidden" name="assetId" value={asset.id} />
+                <div className="grid grid-cols-2 gap-2">
+                  <input name="provider" placeholder="Provider (e.g. OpenAI)" className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100" />
+                  <input name="model" placeholder="Model (e.g. GPT-5)" className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100" />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <input name="estimatedMonthlyCost" type="number" step="0.01" placeholder="Est. €/mo" className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100" />
+                  <select name="qualityConfidence" defaultValue="" className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100">
+                    <option value="">Quality?</option>
+                    <option value="LOW">Low quality confidence</option>
+                    <option value="MEDIUM">Medium quality confidence</option>
+                    <option value="HIGH">High quality confidence</option>
+                  </select>
+                  <input name="migrationEffortDays" placeholder="Migration days, e.g. 3-5" className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100" />
+                </div>
+                <textarea name="reasoning" placeholder="Why this could work (optional)" rows={2} className="bg-ink border border-line rounded px-2 py-1.5 text-xs text-ink-100" />
+                <button type="submit" className="text-xs px-2.5 py-1.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors self-start">
+                  Add alternative
+                </button>
+              </form>
+            </details>
           </div>
         </section>
 

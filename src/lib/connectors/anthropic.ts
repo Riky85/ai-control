@@ -50,7 +50,7 @@ async function adminGet(path: string) {
 export const anthropicConnector: Connector = {
   provider: "ANTHROPIC",
 
-  async sync(): Promise<ConnectorSyncResult> {
+  async sync(_connectorRow): Promise<ConnectorSyncResult> {
     const warnings: string[] = [];
 
     const asset: ObservedAsset = {

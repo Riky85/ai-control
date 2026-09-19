@@ -87,7 +87,7 @@ async function graphGet(token: string, path: string) {
 export const microsoft365Connector: Connector = {
   provider: "MICROSOFT_365",
 
-  async sync(): Promise<ConnectorSyncResult> {
+  async sync(_connectorRow): Promise<ConnectorSyncResult> {
     const warnings: string[] = [];
     const assets: ObservedAsset[] = [];
     const token = await getAppOnlyToken();

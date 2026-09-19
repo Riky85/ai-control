@@ -43,7 +43,7 @@ async function adminGet(path: string) {
 export const openaiConnector: Connector = {
   provider: "OPENAI",
 
-  async sync(): Promise<ConnectorSyncResult> {
+  async sync(_connectorRow): Promise<ConnectorSyncResult> {
     const warnings: string[] = [];
 
     const asset: ObservedAsset = {
