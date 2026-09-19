@@ -93,7 +93,9 @@ export default async function ConnectorsPage({ searchParams }: { searchParams: {
             <div key={provider} className="rounded-lg border border-line bg-panel shadow-card p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-ink-400"><VendorIcon vendor={provider} /></span>
+                  <div className="h-9 w-9 rounded-md border border-line bg-ink flex items-center justify-center text-ink-100 shrink-0">
+                    <VendorIcon vendor={provider} size={17} />
+                  </div>
                   <span className="font-medium text-sm text-ink-100">{info.label}</span>
                   {row ? <Badge>{row.status}</Badge> : <Badge>DISCONNECTED</Badge>}
                 </div>

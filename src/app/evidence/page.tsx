@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
+import StatusDot from "@/components/StatusDot";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,7 @@ interface CheckRow {
   detail: string;
 }
 
-const ICON: Record<string, string> = { PASSED: "✓", WARNING: "!", FAILED: "✕" };
-const COLOR: Record<string, string> = { PASSED: "text-steady", WARNING: "text-signal", FAILED: "text-alarm" };
+
 
 export default async function EvidencePage() {
   const [assets, snapshots] = await Promise.all([
@@ -71,7 +71,7 @@ export default async function EvidencePage() {
                   {checks.map((c) => (
                     <tr key={c.key}>
                       <td className="px-5 py-2 text-ink-100">{c.label}</td>
-                      <td className={`px-5 py-2 ${COLOR[c.status]}`}>{ICON[c.status]}</td>
+                      <td className="px-5 py-2"><StatusDot status={c.status} /></td>
                       <td className="px-5 py-2 text-ink-400">{c.detail}</td>
                     </tr>
                   ))}

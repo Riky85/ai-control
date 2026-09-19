@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
+import StatusDot from "@/components/StatusDot";
 
 export const dynamic = "force-dynamic";
 
@@ -17,11 +18,7 @@ const LEVEL_COLOR: Record<string, string> = {
   RESTRICTED: "text-alarm",
   BLOCKED: "text-alarm",
 };
-const STATUS_COLOR: Record<string, string> = {
-  PASSED: "text-steady",
-  WARNING: "text-signal",
-  FAILED: "text-alarm",
-};
+
 
 interface CheckRow {
   key: string;
@@ -108,12 +105,14 @@ export default async function AssurancePage() {
                       {LEVEL_LABEL[report!.level]} · {report!.score}%
                     </span>
                   </div>
-                  <ul className="text-xs flex flex-col gap-1">
+                  <ul className="text-xs flex flex-col gap-1.5">
                     {(report!.checks as unknown as CheckRow[])
                       .filter((c) => c.status !== "PASSED")
                       .map((c) => (
-                        <li key={c.key} className={STATUS_COLOR[c.status]}>
-                          {c.label} — {c.detail}
+                        <li key={c.key} className="flex items-start gap-2">
+                          <StatusDot status={c.status} size={13} />
+                          <span className="text-ink-100">{c.label}</span>
+                          <span className="text-ink-400">— {c.detail}</span>
                         </li>
                       ))}
                     {(report!.checks as unknown as CheckRow[]).every((c) => c.status === "PASSED") && (

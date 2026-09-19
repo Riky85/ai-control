@@ -3,6 +3,7 @@ import Link from "next/link";
 import Badge from "@/components/Badge";
 import VendorIcon from "@/components/VendorIcon";
 import AssetFilters from "@/components/AssetFilters";
+import DonutChart from "@/components/DonutChart";
 import type { AiAssetType, AiAssetStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,15 @@ export default async function AssetsPage({
     ? assets.filter((a) => a.riskAssessments[0]?.level === searchParams.risk)
     : assets;
 
+  const TYPE_COLORS = ["#1A1A18", "#6B6862", "#B7791F", "#1F9254", "#C4433B", "#8C8A83"];
+  const typeCounts = new Map<string, number>();
+  for (const a of assets) typeCounts.set(a.type, (typeCounts.get(a.type) ?? 0) + 1);
+  const typeSlices = Array.from(typeCounts.entries()).map(([type, value], i) => ({
+    label: type.replace(/_/g, " ").toLowerCase(),
+    value,
+    color: TYPE_COLORS[i % TYPE_COLORS.length],
+  }));
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -69,6 +79,13 @@ export default async function AssetsPage({
         riskOptions={RISK_OPTIONS}
         riskLabels={RISK_LABEL}
       />
+
+      {typeSlices.length > 0 && (
+        <div className="rounded-lg border border-line bg-panel shadow-card p-5">
+          <h2 className="text-sm font-medium text-ink-400 mb-4">By type</h2>
+          <DonutChart slices={typeSlices} centerLabel={`${assets.length} total`} />
+        </div>
+      )}
 
       <div className="rounded-md border border-line bg-panel shadow-card overflow-hidden">
         <table className="w-full text-sm">

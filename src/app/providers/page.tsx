@@ -65,8 +65,10 @@ export default async function ProvidersPage() {
         {rows.map(({ vendor, list, critical, production, monthlySpend, hasCostData, costedCount }) => (
           <div key={vendor} className="rounded-md border border-line bg-panel shadow-card p-5">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <VendorIcon vendor={vendor} />
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-md border border-line bg-ink flex items-center justify-center text-ink-100 shrink-0">
+                  <VendorIcon vendor={vendor} size={17} />
+                </div>
                 <span className="font-medium text-sm text-ink-100">{vendor}</span>
               </div>
               <span className="text-xs text-ink-400">
