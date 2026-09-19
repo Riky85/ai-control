@@ -188,6 +188,7 @@ model AiAsset {
   assuranceReports AssuranceReport[]
   activities       AiAssetActivity[]
   changes          AssetChange[]
+  cost             AiSystemCost?
   relationsFrom    AiAssetRelationship[]    @relation("RelationSource")
   relationsTo      AiAssetRelationship[]    @relation("RelationTarget")
 
@@ -211,6 +212,22 @@ model AssetChange {
   detectedAt DateTime @default(now())
 
   @@index([aiAssetId, detectedAt])
+}
+
+// Costo di un AI system — solo inserimento manuale in questa prima versione.
+// Nessun calcolo automatico da token/utilizzo: non abbiamo un connettore di
+// billing reale, e stimare una cifra precisa senza dati veri violerebbe il
+// principio seguito in tutto il prodotto (mai un numero senza un fatto
+// dietro). "confidence" e "basis" restano sempre visibili in UI.
+model AiSystemCost {
+  id                  String   @id @default(cuid())
+  aiAssetId           String   @unique
+  aiAsset             AiAsset  @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  monthlyCostEstimate Float?
+  basis               String   @default("manual") // "manual" | "csv_import" (futuro) | "billing_connector" (futuro)
+  confidence          String   @default("MEDIUM")  // "LOW" | "MEDIUM" | "HIGH"
+  notes               String?
+  updatedAt           DateTime @updatedAt
 }
 
 model AiAssetConnectedSystem {

@@ -12,6 +12,7 @@ export default async function ProvidersPage() {
     include: {
       connectedSystems: true,
       riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
+      cost: true,
     },
   });
 
@@ -26,9 +27,13 @@ export default async function ProvidersPage() {
     .map(([vendor, list]) => {
       const critical = list.filter((a) => ["HIGH", "CRITICAL"].includes(a.riskAssessments[0]?.level ?? ""));
       const production = list.filter((a) => a.connectedSystems.some((s) => s.detail?.match(/prod/i)));
-      return { vendor, list, critical, production };
+      const withCost = list.filter((a) => a.cost?.monthlyCostEstimate != null);
+      const monthlySpend = withCost.reduce((sum, a) => sum + (a.cost!.monthlyCostEstimate ?? 0), 0);
+      return { vendor, list, critical, production, monthlySpend, hasCostData: withCost.length > 0, costedCount: withCost.length };
     })
     .sort((a, b) => b.list.length - a.list.length);
+
+  const totalMonthlySpend = rows.reduce((sum, r) => sum + r.monthlySpend, 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,10 +43,15 @@ export default async function ProvidersPage() {
           What your AI estate actually depends on, grouped by vendor — so you can answer
           "how exposed are we to this provider?" at a glance.
         </p>
+        {totalMonthlySpend > 0 && (
+          <p className="text-xs text-ink-400 mt-1">
+            €{totalMonthlySpend.toLocaleString()}/mo tracked across providers (manually entered — not every system has a cost on record).
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-3">
-        {rows.map(({ vendor, list, critical, production }) => (
+        {rows.map(({ vendor, list, critical, production, monthlySpend, hasCostData, costedCount }) => (
           <div key={vendor} className="rounded-md border border-line bg-panel shadow-card p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -52,7 +62,7 @@ export default async function ProvidersPage() {
                 {list.length} system{list.length === 1 ? "" : "s"}
               </span>
             </div>
-            <div className="grid grid-cols-3 gap-4 text-xs text-ink-400 mb-3">
+            <div className="grid grid-cols-4 gap-4 text-xs text-ink-400 mb-3">
               <span>
                 <span className={`font-medium ${critical.length > 0 ? "text-alarm" : "text-ink-100"}`}>{critical.length}</span> critical
               </span>
@@ -61,6 +71,16 @@ export default async function ProvidersPage() {
               </span>
               <span>
                 <span className="font-medium text-ink-100">{list.length}</span> total
+              </span>
+              <span>
+                {hasCostData ? (
+                  <>
+                    <span className="font-medium text-ink-100">€{monthlySpend.toLocaleString()}</span>/mo
+                    {costedCount < list.length && <span className="block text-[10px]">({costedCount}/{list.length} costed)</span>}
+                  </>
+                ) : (
+                  <span className="text-ink-400">No cost data</span>
+                )}
               </span>
             </div>
             <div className="flex flex-wrap gap-2 pt-3 border-t border-line">

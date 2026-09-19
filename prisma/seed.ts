@@ -271,6 +271,20 @@ async function main() {
   await db.aiAsset.update({ where: { id: financeAgent.id }, data: { euAiActTier: "HIGH_RISK" } });
   await db.aiAsset.update({ where: { id: claudeCode.id }, data: { euAiActTier: "MINIMAL_RISK" } });
 
+  // Costo demo per mostrare la funzionalità — solo su Claude Code, inserito
+  // "a mano" come farebbe un utente reale (idempotente via upsert).
+  await db.aiSystemCost.upsert({
+    where: { aiAssetId: claudeCode.id },
+    update: {},
+    create: {
+      aiAssetId: claudeCode.id,
+      monthlyCostEstimate: 1840,
+      confidence: "MEDIUM",
+      basis: "manual",
+      notes: "Rough estimate from the Anthropic console usage page, not exact billing data.",
+    },
+  });
+
   // Esempio dimostrativo di change detection: un cambio di modello già
   // avvenuto, per mostrare la funzionalità anche nei dati demo. Idempotente
   // (creato una sola volta, non ad ogni deploy).

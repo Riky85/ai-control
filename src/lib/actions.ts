@@ -106,6 +106,26 @@ export async function setAssetEuAiActTierAction(formData: FormData) {
   revalidatePath("/changes");
 }
 
+// Costo manuale — nessuna automazione, l'utente inserisce quello che sa e
+// dichiara quanto ne è sicuro. "basis" resta sempre "manual" finché non
+// esiste un vero connettore di billing.
+export async function setAssetCostAction(formData: FormData) {
+  const assetId = formData.get("assetId") as string;
+  const monthlyRaw = formData.get("monthlyCostEstimate") as string;
+  const confidence = formData.get("confidence") as string;
+  const notes = (formData.get("notes") as string)?.trim() || null;
+  const monthlyCostEstimate = monthlyRaw ? parseFloat(monthlyRaw) : null;
+
+  await db.aiSystemCost.upsert({
+    where: { aiAssetId: assetId },
+    update: { monthlyCostEstimate, confidence, notes, basis: "manual" },
+    create: { aiAssetId: assetId, monthlyCostEstimate, confidence, notes, basis: "manual" },
+  });
+  revalidatePath(`/assets/${assetId}`);
+  revalidatePath("/assets");
+  revalidatePath("/providers");
+}
+
 export async function createPolicyAction(formData: FormData) {
   const name = (formData.get("name") as string)?.trim();
   const description = (formData.get("description") as string)?.trim();

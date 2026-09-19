@@ -43,6 +43,7 @@ export default async function AssetsPage({
       connector: true,
       riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
       assuranceReports: { orderBy: { createdAt: "desc" }, take: 1 },
+      cost: true,
     },
     orderBy: { lastSeenAt: "desc" },
   });
@@ -105,6 +106,7 @@ export default async function AssetsPage({
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Risk</th>
               <th className="px-4 py-3 font-medium">Assurance</th>
+              <th className="px-4 py-3 font-medium">Cost/mo</th>
               <th className="px-4 py-3 font-medium">Last seen</th>
             </tr>
           </thead>
@@ -149,6 +151,9 @@ export default async function AssetsPage({
                     )}
                   </td>
                   <td className="px-4 py-3 text-ink-400 text-xs tabular">
+                    {asset.cost?.monthlyCostEstimate != null ? `€${asset.cost.monthlyCostEstimate.toLocaleString()}` : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-ink-400 text-xs tabular">
                     {asset.lastSeenAt ? new Date(asset.lastSeenAt).toLocaleString() : "Never"}
                   </td>
                 </tr>
@@ -156,7 +161,7 @@ export default async function AssetsPage({
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-sm text-ink-400">
+                <td colSpan={8} className="px-4 py-6 text-sm text-ink-400">
                   {assets.length === 0
                     ? "No assets yet. Connect Microsoft 365 or GitHub to start discovery."
                     : "No assets match this filter."}

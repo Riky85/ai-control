@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
 import AssetGraph from "@/components/AssetGraph";
-import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction } from "@/lib/actions";
+import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, setAssetCostAction } from "@/lib/actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import VendorIcon from "@/components/VendorIcon";
@@ -14,6 +14,12 @@ const ASSURANCE_LABEL: Record<string, string> = {
   NEEDS_REVIEW: "Needs review",
   RESTRICTED: "Restricted",
   BLOCKED: "Blocked",
+};
+
+const CONFIDENCE_LABEL: Record<string, string> = {
+  LOW: "Low",
+  MEDIUM: "Medium",
+  HIGH: "High",
 };
 
 export default async function AssetDetailPage({ params }: { params: { id: string } }) {
@@ -31,6 +37,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
         activities: { orderBy: { occurredAt: "desc" }, take: 8 },
         relationsFrom: { include: { targetAsset: true } },
         relationsTo: { include: { sourceAsset: true } },
+        cost: true,
       },
     }),
     db.user.findMany({ where: { organizationId: "demo-org" }, orderBy: { name: "asc" } }),
@@ -69,6 +76,36 @@ export default async function AssetDetailPage({ params }: { params: { id: string
                 {ASSURANCE_LABEL[assurance.level]} · {assurance.score}%
               </span>
             )}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
+        <div className="px-5 py-4">
+          <div className="text-xs text-ink-400 mb-1">Current cost</div>
+          {asset.cost?.monthlyCostEstimate != null ? (
+            <>
+              <div className="font-display text-xl font-semibold text-ink-100">
+                €{asset.cost.monthlyCostEstimate.toLocaleString()}<span className="text-sm font-normal text-ink-400">/mo</span>
+              </div>
+              <div className="text-xs text-ink-400 mt-0.5">
+                {CONFIDENCE_LABEL[asset.cost.confidence] ?? asset.cost.confidence} confidence · manually entered
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-ink-400">Not entered yet</div>
+          )}
+        </div>
+        <div className="px-5 py-4">
+          <div className="text-xs text-ink-400 mb-1">Annualized</div>
+          <div className="font-display text-xl font-semibold text-ink-100">
+            {asset.cost?.monthlyCostEstimate != null ? `€${(asset.cost.monthlyCostEstimate * 12).toLocaleString()}` : "—"}
+          </div>
+        </div>
+        <div className="px-5 py-4">
+          <div className="text-xs text-ink-400 mb-1">Dependencies</div>
+          <div className="font-display text-xl font-semibold text-ink-100">
+            {asset.connectedSystems.length + asset.dataAccess.length}
           </div>
         </div>
       </div>
@@ -227,6 +264,39 @@ export default async function AssetDetailPage({ params }: { params: { id: string
                 Save
               </button>
             </div>
+          </form>
+
+          <form action={setAssetCostAction} className="flex flex-col gap-1 pt-4 border-t border-line">
+            <input type="hidden" name="assetId" value={asset.id} />
+            <label className="text-xs text-ink-400">Monthly cost (manual entry)</label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                step="0.01"
+                name="monthlyCostEstimate"
+                defaultValue={asset.cost?.monthlyCostEstimate ?? ""}
+                placeholder="€ / month"
+                className="flex-1 bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100"
+              />
+              <select name="confidence" defaultValue={asset.cost?.confidence ?? "MEDIUM"} className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100">
+                <option value="LOW">Low confidence</option>
+                <option value="MEDIUM">Medium confidence</option>
+                <option value="HIGH">High confidence</option>
+              </select>
+            </div>
+            <textarea
+              name="notes"
+              defaultValue={asset.cost?.notes ?? ""}
+              placeholder="How was this estimated? (optional)"
+              rows={2}
+              className="bg-ink border border-line rounded px-2 py-1.5 text-xs text-ink-100 mt-1"
+            />
+            <button type="submit" className="text-xs px-2.5 py-1.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors mt-1 self-start">
+              Save cost
+            </button>
+            <p className="text-[11px] text-ink-400 mt-1">
+              No billing connector yet — this is whatever you enter, nothing is estimated automatically.
+            </p>
           </form>
         </aside>
       </div>
