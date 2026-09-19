@@ -187,12 +187,30 @@ model AiAsset {
   riskAssessments  RiskAssessment[]
   assuranceReports AssuranceReport[]
   activities       AiAssetActivity[]
+  changes          AssetChange[]
   relationsFrom    AiAssetRelationship[]    @relation("RelationSource")
   relationsTo      AiAssetRelationship[]    @relation("RelationTarget")
 
   @@unique([organizationId, connectorId, externalId])
   @@index([organizationId, type])
   @@index([organizationId, status])
+}
+
+// Un cambiamento materiale rilevato su un campo di dipendenza (modello,
+// vendor...) tra un sync e il successivo. Confronto diretto valore-vecchio
+// vs valore-nuovo dal connettore — nessuna inferenza, solo un fatto:
+// "questo campo era X, ora è Y". Rende il Passaporto "vivo" invece che
+// una fotografia statica.
+model AssetChange {
+  id        String   @id @default(cuid())
+  aiAssetId String
+  aiAsset   AiAsset  @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  field     String   // "model" | "vendor" | "status"
+  oldValue  String?
+  newValue  String?
+  detectedAt DateTime @default(now())
+
+  @@index([aiAssetId, detectedAt])
 }
 
 model AiAssetConnectedSystem {

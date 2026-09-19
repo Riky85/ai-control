@@ -271,6 +271,24 @@ async function main() {
   await db.aiAsset.update({ where: { id: financeAgent.id }, data: { euAiActTier: "HIGH_RISK" } });
   await db.aiAsset.update({ where: { id: claudeCode.id }, data: { euAiActTier: "MINIMAL_RISK" } });
 
+  // Esempio dimostrativo di change detection: un cambio di modello già
+  // avvenuto, per mostrare la funzionalità anche nei dati demo. Idempotente
+  // (creato una sola volta, non ad ogni deploy).
+  const existingChange = await db.assetChange.findFirst({
+    where: { aiAssetId: claudeCode.id, field: "model" },
+  });
+  if (!existingChange) {
+    await db.assetChange.create({
+      data: {
+        aiAssetId: claudeCode.id,
+        field: "model",
+        oldValue: "Claude Sonnet 4",
+        newValue: "Claude Sonnet 4.6",
+        detectedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
+      },
+    });
+  }
+
   // Assurance: calcolata qui (dopo policy ed EU AI Act) così riflette lo
   // stato finale dei dati demo, non uno stato intermedio del seed.
   const orgHasActivePolicy = (await db.policy.count({ where: { organizationId: org.id, enabled: true } })) > 0;

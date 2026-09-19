@@ -51,6 +51,7 @@ export async function syncConnectorAction(formData: FormData) {
   revalidatePath("/assets");
   revalidatePath("/evidence");
   revalidatePath("/assurance");
+  revalidatePath("/changes");
   revalidatePath("/");
 }
 
@@ -65,21 +66,29 @@ export async function setAssetOwnerAction(formData: FormData) {
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
   revalidatePath("/assurance");
+  revalidatePath("/changes");
   revalidatePath("/");
 }
 
 export async function setAssetStatusAction(formData: FormData) {
   const assetId = formData.get("assetId") as string;
   const status = formData.get("status") as AiAssetStatus;
+  const before = await db.aiAsset.findUnique({ where: { id: assetId }, select: { status: true } });
   await db.aiAsset.update({
     where: { id: assetId },
     data: { status },
   });
+  if (before && before.status !== status) {
+    await db.assetChange.create({
+      data: { aiAssetId: assetId, field: "status", oldValue: before.status, newValue: status },
+    });
+  }
   await recomputeAssuranceFor(assetId);
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
   revalidatePath("/approvals");
   revalidatePath("/assurance");
+  revalidatePath("/changes");
   revalidatePath("/");
 }
 
@@ -94,6 +103,7 @@ export async function setAssetEuAiActTierAction(formData: FormData) {
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
   revalidatePath("/assurance");
+  revalidatePath("/changes");
 }
 
 export async function createPolicyAction(formData: FormData) {

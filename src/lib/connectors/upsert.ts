@@ -18,6 +18,16 @@ export async function persistSyncResult(
   const touchedAssetIds: string[] = [];
 
   for (const observed of result.assets) {
+    const existing = await db.aiAsset.findUnique({
+      where: {
+        organizationId_connectorId_externalId: {
+          organizationId,
+          connectorId,
+          externalId: observed.externalId,
+        },
+      },
+    });
+
     const asset = await db.aiAsset.upsert({
       where: {
         organizationId_connectorId_externalId: {
@@ -45,6 +55,23 @@ export async function persistSyncResult(
       },
     });
     touchedAssetIds.push(asset.id);
+
+    // Change detection: confronto diretto vecchio/nuovo su model e vendor —
+    // i due campi di "dipendenza" che il sync può davvero osservare cambiare.
+    // Solo per asset già esistenti: un asset appena creato non e' un cambiamento.
+    if (existing) {
+      const trackedFields: [string, string | null, string | null][] = [
+        ["model", existing.model, observed.model ?? null],
+        ["vendor", existing.vendor, observed.vendor ?? null],
+      ];
+      for (const [field, oldValue, newValue] of trackedFields) {
+        if (oldValue !== newValue && (oldValue || newValue)) {
+          await db.assetChange.create({
+            data: { aiAssetId: asset.id, field, oldValue, newValue },
+          });
+        }
+      }
+    }
 
     for (const sys of observed.connectedSystems ?? []) {
       const exists = await db.aiAssetConnectedSystem.findFirst({
