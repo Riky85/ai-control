@@ -3,6 +3,8 @@ import Badge from "@/components/Badge";
 import WorkflowStepper, { type Stage } from "@/components/WorkflowStepper";
 import { setAssetStatusAction } from "@/lib/actions";
 import Link from "next/link";
+import VendorIcon from "@/components/VendorIcon";
+import BarChart from "@/components/BarChart";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +74,17 @@ export default async function OverviewPage() {
     .sort((a, b) => (b.riskAssessments[0]?.score ?? -1) - (a.riskAssessments[0]?.score ?? -1))[0];
 
   const risk = spotlight?.riskAssessments[0];
+  const RISK_ORDER = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
+  const riskCounts = new Map<string, number>();
+  for (const a of candidates) {
+    const level = a.riskAssessments[0]?.level;
+    if (level) riskCounts.set(level, (riskCounts.get(level) ?? 0) + 1);
+  }
+  const riskByLevel = RISK_ORDER.filter((l) => riskCounts.has(l)).map((l) => ({
+    label: l.charAt(0) + l.slice(1).toLowerCase(),
+    value: riskCounts.get(l)!,
+  }));
+
   const stages: Stage[] = spotlight
     ? [
         { label: "Discover", state: "done" },
@@ -111,6 +124,13 @@ export default async function OverviewPage() {
         <PostureTile value={highRisk.length} label="High risk" dotClass="bg-alarm" tone={highRisk.length > 0 ? "alarm" : undefined} />
       </div>
 
+      {riskByLevel.length > 0 && (
+        <div className="rounded-lg border border-line bg-panel shadow-card p-5">
+          <h2 className="text-sm font-medium text-ink-400 mb-4">Risk distribution</h2>
+          <BarChart rows={riskByLevel} />
+        </div>
+      )}
+
       {/* Attention — cosa richiede davvero uno sguardo, non tutto l'inventario */}
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -133,6 +153,7 @@ export default async function OverviewPage() {
                 className={`flex items-center justify-between px-4 py-3 text-sm border-l-2 ${edgeClass} hover:bg-black/[0.02] transition-colors`}
               >
                 <div className="flex items-center gap-3">
+                  <span className="text-ink-400"><VendorIcon vendor={a.vendor ?? ""} size={13} /></span>
                   <span className="font-medium text-ink-100">{a.name}</span>
                   <span className="text-ink-400 text-xs">{a.owner?.name ?? "No owner"}</span>
                 </div>
@@ -221,6 +242,7 @@ export default async function OverviewPage() {
               <div className="flex items-center gap-3">
                 <span className="h-1.5 w-1.5 rounded-full bg-ink-400/50 shrink-0" />
                 <span className="tabular text-xs text-ink-400">{new Date(a.occurredAt).toLocaleTimeString()}</span>
+                <span className="text-ink-400"><VendorIcon vendor={a.aiAsset.vendor ?? ""} size={13} /></span>
                 <span className="font-medium text-ink-100">{a.aiAsset.name}</span>
                 <span className="text-ink-400 text-xs">{a.eventType}</span>
               </div>
