@@ -119,6 +119,54 @@ async function ghGet(token: string, path: string) {
   return res.json();
 }
 
+// Legge un singolo file da un repo, o null se non esiste — un 404 su
+// package.json/requirements.txt e' normalissimo (repo senza quel
+// linguaggio), non un errore da segnalare.
+async function ghGetFileText(token: string, fullName: string, path: string): Promise<string | null> {
+  const res = await fetch(`${GITHUB_API}/repos/${fullName}/contents/${path}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) return null; // altri errori (rate limit, repo vuoto...): tratta come "non trovato", non bloccare il sync
+  const data = (await res.json()) as { content?: string; encoding?: string };
+  if (!data.content || data.encoding !== "base64") return null;
+  return Buffer.from(data.content, "base64").toString("utf-8");
+}
+
+// Firme note di SDK/framework AI — riconoscimento testuale semplice sui
+// file di manifest delle dipendenze, non un parser completo. Se il nome
+// compare nel file delle dipendenze, e' un'evidenza concreta (il repo
+// dichiara quella dipendenza), non un'inferenza.
+const AI_SDK_SIGNATURES: { pattern: RegExp; vendor: string | null; label: string }[] = [
+  { pattern: /"openai"\s*:/, vendor: "OpenAI", label: "OpenAI SDK (npm)" },
+  { pattern: /^openai(?:[=<>~]|$)/m, vendor: "OpenAI", label: "OpenAI SDK (pip)" },
+  { pattern: /"@anthropic-ai\/sdk"\s*:/, vendor: "Anthropic", label: "Anthropic SDK (npm)" },
+  { pattern: /^anthropic(?:[=<>~]|$)/m, vendor: "Anthropic", label: "Anthropic SDK (pip)" },
+  { pattern: /"@google\/generative-ai"\s*:/, vendor: "Google", label: "Google Generative AI SDK (npm)" },
+  { pattern: /^google-generativeai(?:[=<>~]|$)/m, vendor: "Google", label: "Google Generative AI SDK (pip)" },
+  { pattern: /^boto3(?:[=<>~]|$)/m, vendor: "AWS", label: "boto3 (possible Bedrock)" },
+  { pattern: /"langchain"\s*:|^langchain(?:[=<>~]|$)/m, vendor: null, label: "LangChain framework" },
+  { pattern: /^llama-index(?:[=<>~]|$)|"llamaindex"\s*:/m, vendor: null, label: "LlamaIndex framework" },
+];
+
+interface RepoAiEvidence {
+  matches: { label: string; vendor: string | null; file: string }[];
+}
+
+async function scanRepoForAiEvidence(token: string, fullName: string): Promise<RepoAiEvidence> {
+  const matches: RepoAiEvidence["matches"] = [];
+  for (const file of ["package.json", "requirements.txt", "pyproject.toml"]) {
+    const text = await ghGetFileText(token, fullName, file);
+    if (!text) continue;
+    for (const sig of AI_SDK_SIGNATURES) {
+      if (sig.pattern.test(text)) {
+        matches.push({ label: sig.label, vendor: sig.vendor, file });
+      }
+    }
+  }
+  return { matches };
+}
+
 export const githubConnector: Connector = {
   provider: "GITHUB",
 
@@ -160,9 +208,10 @@ export const githubConnector: Connector = {
 
     // Repository dell'org -> connected systems, per il risk factor "produzione"
     const assets: ObservedAsset[] = [copilotAsset];
+    let repos: any[] = [];
     try {
-      const repos = await ghGet(token, `/orgs/${org}/repos?per_page=100&type=all`);
-      for (const repo of repos ?? []) {
+      repos = (await ghGet(token, `/orgs/${org}/repos?per_page=100&type=all`)) ?? [];
+      for (const repo of repos) {
         copilotAsset.connectedSystems!.push({
           system: "GitHub",
           detail: `repo:${repo.full_name}${repo.name?.match(/prod/i) ? " (production)" : ""}`,
@@ -170,6 +219,43 @@ export const githubConnector: Connector = {
       }
     } catch (err) {
       warnings.push(`Unable to read org repositories: ${(err as Error).message}`);
+    }
+
+    // Scansione del contenuto dei repo per rilevare SDK/framework AI —
+    // evidenza diretta (il file di manifest dichiara la dipendenza), non
+    // un'inferenza. Limitata ai 15 repo più recenti per non esaurire la
+    // rate limit dell'API su organizzazioni molto grandi.
+    const reposToScan = repos
+      .slice()
+      .sort((a, b) => new Date(b.pushed_at ?? 0).getTime() - new Date(a.pushed_at ?? 0).getTime())
+      .slice(0, 15);
+    for (const repo of reposToScan) {
+      try {
+        const evidence = await scanRepoForAiEvidence(token, repo.full_name);
+        if (evidence.matches.length === 0) continue;
+        const vendor = evidence.matches.find((m) => m.vendor)?.vendor ?? undefined;
+        assets.push({
+          externalId: `github-discovered:${repo.full_name}`,
+          type: "AI_APPLICATION",
+          name: repo.name,
+          vendor,
+          connectedSystems: [{ system: "GitHub", detail: `repo:${repo.full_name}` }],
+          users: [],
+          activities: [
+            {
+              eventType: "ai_dependency_detected",
+              occurredAt: new Date(),
+              payload: {
+                repository: repo.full_name,
+                detected: evidence.matches,
+                note: "Detected from dependency manifest — direct evidence, not an inference.",
+              },
+            },
+          ],
+        });
+      } catch (err) {
+        warnings.push(`Unable to scan ${repo.full_name} for AI dependencies: ${(err as Error).message}`);
+      }
     }
 
     // Eventi "agentic" dall'audit log (schema in evoluzione lato GitHub —
