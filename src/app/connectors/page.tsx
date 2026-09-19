@@ -128,7 +128,7 @@ export default async function ConnectorsPage({ searchParams }: { searchParams: {
 
               {info.implemented && info.oneClick && !githubAppReady && (
                 <p className="text-xs text-signal mt-2">
-                  Not set up on this deployment yet — needs a one-time platform-level GitHub App (GITHUB_APP_ID / GITHUB_APP_PRIVATE_KEY / GITHUB_APP_SLUG), done once by whoever runs AI Control, not by each customer.
+                  Not set up on this deployment yet — needs a one-time platform-level GitHub App (GITHUB_APP_ID / GITHUB_APP_PRIVATE_KEY / GITHUB_APP_SLUG), done once by whoever runs Angar, not by each customer.
                 </p>
               )}
 

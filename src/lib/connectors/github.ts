@@ -11,7 +11,7 @@
  * che varrebbe per tutti i clienti.
  *
  * Variabili d'ambiente richieste (di PIATTAFORMA, impostate una sola
- * volta da chi gestisce AI Control — mai dal cliente):
+ * volta da chi gestisce Angar — mai dal cliente):
  *   GITHUB_APP_ID
  *   GITHUB_APP_PRIVATE_KEY   (PEM, con newline reali o escaped \n)
  *   GITHUB_APP_SLUG          (per costruire il link di installazione)

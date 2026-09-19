@@ -84,7 +84,7 @@ export default async function OverviewPage() {
   return (
     <div className="flex flex-col gap-9">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">AI Control</h1>
+        <h1 className="font-display text-2xl font-semibold text-ink-100">Angar</h1>
         <p className="text-sm text-ink-400 mt-1.5">Your AI estate, under control.</p>
       </div>
 
@@ -92,7 +92,7 @@ export default async function OverviewPage() {
         <div className="rounded-lg border border-line bg-panel shadow-card px-5 py-3.5 flex items-center gap-3">
           <span className="text-xs font-medium text-white bg-accent rounded-full px-2.5 py-1 shrink-0">Setup</span>
           <p className="text-sm text-ink-100">
-            Finish setting up AI Control — organization, a real connector, owners, and starting policies.{" "}
+            Finish setting up Angar — organization, a real connector, owners, and starting policies.{" "}
             <Link href="/onboarding" className="underline hover:text-ink-400">Run setup</Link>
           </p>
         </div>

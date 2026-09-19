@@ -8,7 +8,7 @@ const config: Config = {
         // Tema chiaro ispirato ad Angar: canvas quasi bianco, card bianche,
         // bordi sottili. Stessi nomi di prima — solo i valori cambiano.
         ink: {
-          DEFAULT: "#F6F5F2", // sfondo di pagina, bianco caldo appena percettibile
+          DEFAULT: "#F5F5F4", // grigio Angar — neutro, non il beige caldo di prima
           100: "#1A1A18",     // testo principale, quasi nero
           400: "#8C8A83",     // testo secondario — grigio pulito
         },

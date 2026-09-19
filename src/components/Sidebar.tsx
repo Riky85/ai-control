@@ -119,7 +119,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
           <span className="text-ink-100 shrink-0">
             <Logo size={16} />
           </span>
-          <span className="font-semibold text-[15px] tracking-tight text-ink-100">AI Control</span>
+          <span className="font-semibold text-[15px] tracking-tight text-ink-100">Angar</span>
           <button
             onClick={toggle}
             aria-label="Collapse sidebar"
@@ -128,6 +128,22 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
             <PanelToggleIcon />
           </button>
         </div>
+      )}
+      {!collapsed && (
+        <form action="/search" method="GET" className="mb-5 px-3">
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-line bg-panel">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-ink-400 shrink-0">
+              <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.3" />
+              <path d="M9.2 9.2L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            </svg>
+            <input
+              name="q"
+              placeholder="Search AI systems..."
+              className="flex-1 bg-transparent text-xs text-ink-100 placeholder:text-ink-400 outline-none min-w-0"
+            />
+            <kbd className="text-[10px] text-ink-400 border border-line rounded px-1 shrink-0">/</kbd>
+          </div>
+        </form>
       )}
       {collapsed && (
         <button

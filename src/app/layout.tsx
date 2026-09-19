@@ -11,7 +11,7 @@ const sans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "AI Control",
+  title: "Angar",
   description: "Discover every AI in your company. Understand what it can access. Control what it can do.",
 };
 

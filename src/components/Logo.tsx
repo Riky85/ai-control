@@ -1,17 +1,18 @@
 /**
- * Simbolo di AI Control — reinterpretazione del logo Angar (scacchiera
- * dinamica a colonne sfalsate), riadattato in monotono per il nostro
- * accento di brand. Non è una copia pixel-per-pixel del file originale,
- * ma la stessa famiglia geometrica: colonne verticali con lo spartiacque
- * bianco/nero sfalsato invece di una scacchiera regolare.
+ * Logo Angar — riproduzione fedele della scacchiera a colonne sfalsate
+ * condivisa dall'utente: colonna 1 sempre nera, colonne 2-4 alternate
+ * bianco/nero con lo spartiacque sfalsato tra la riga superiore/inferiore
+ * e le due righe centrali (che restano unite).
  */
 export default function Logo({ size = 18 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-      <rect x="0" y="0" width="25" height="62.5" fill="currentColor" />
-      <rect x="25" y="25" width="25" height="75" fill="currentColor" />
-      <rect x="50" y="0" width="25" height="75" fill="currentColor" />
-      <rect x="75" y="37.5" width="25" height="62.5" fill="currentColor" />
+    <svg width={size} height={size} viewBox="0 0 400 400" fill="none">
+      <rect x="0" y="0" width="200" height="100" fill="currentColor" />
+      <rect x="300" y="0" width="100" height="100" fill="currentColor" />
+      <rect x="0" y="100" width="100" height="200" fill="currentColor" />
+      <rect x="200" y="100" width="100" height="200" fill="currentColor" />
+      <rect x="0" y="300" width="200" height="100" fill="currentColor" />
+      <rect x="300" y="300" width="100" height="100" fill="currentColor" />
     </svg>
   );
 }
