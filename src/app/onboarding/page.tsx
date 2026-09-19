@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
+import VendorIcon from "@/components/VendorIcon";
 import {
   updateOrganizationAction,
   addUserAction,
@@ -44,6 +45,12 @@ export default async function OnboardingPage({
       <div>
         <h1 className="font-display text-xl font-semibold text-ink-100">Get Angar set up</h1>
         <p className="text-sm text-ink-400 mt-1">{checklistDone.filter(Boolean).length} of {STEPS.length} done</p>
+        <div className="h-1 bg-line rounded-full mt-3 overflow-hidden">
+          <div
+            className="h-full bg-steady rounded-full transition-all"
+            style={{ width: `${(checklistDone.filter(Boolean).length / STEPS.length) * 100}%` }}
+          />
+        </div>
       </div>
 
       <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line">
@@ -156,7 +163,10 @@ export default async function OnboardingPage({
               { name: "OpenAI (ChatGPT)", note: "Needs a ChatGPT Enterprise/Edu org" },
             ].map((c) => (
               <div key={c.name} className="border border-line rounded-md px-4 py-3 flex items-center justify-between">
-                <span className="text-sm text-ink-100">{c.name}</span>
+                <span className="text-sm text-ink-100 flex items-center gap-2">
+                  <VendorIcon vendor={c.name.split(" ")[0]} />
+                  {c.name}
+                </span>
                 <span className="text-xs text-ink-400">{c.note}</span>
               </div>
             ))}

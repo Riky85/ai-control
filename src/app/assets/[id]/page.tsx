@@ -58,12 +58,16 @@ export default async function AssetDetailPage({ params }: { params: { id: string
           {asset.name}
         </div>
         <div className="flex items-start justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-semibold text-ink-100">{asset.name}</h1>
-            <p className="text-sm text-ink-400 mt-1 flex items-center gap-1.5">
-              <VendorIcon vendor={asset.vendor ?? asset.connector?.provider ?? ""} />
-              {asset.vendor ?? "Vendor unknown"} · {asset.type.replace(/_/g, " ").toLowerCase()}
-            </p>
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-lg border border-line bg-ink flex items-center justify-center text-ink-100 shrink-0">
+              <VendorIcon vendor={asset.vendor ?? asset.connector?.provider ?? ""} size={22} />
+            </div>
+            <div>
+              <h1 className="font-display text-2xl font-semibold text-ink-100">{asset.name}</h1>
+              <p className="text-sm text-ink-400 mt-0.5">
+                {asset.vendor ?? "Vendor unknown"} · {asset.type.replace(/_/g, " ").toLowerCase()}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-3 pt-1 text-xs">
             <Badge>{asset.status}</Badge>
