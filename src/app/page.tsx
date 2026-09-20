@@ -4,7 +4,7 @@ import WorkflowStepper, { type Stage } from "@/components/WorkflowStepper";
 import { setAssetStatusAction } from "@/lib/actions";
 import Link from "next/link";
 import VendorIcon from "@/components/VendorIcon";
-import BarChart from "@/components/BarChart";
+import DonutChart from "@/components/DonutChart";
 
 export const dynamic = "force-dynamic";
 
@@ -111,59 +111,84 @@ export default async function OverviewPage() {
         </div>
       )}
 
-      {/* AI posture — un'unica fascia di mini-widget, non testo semplice né
-          cinque card sparse: numero, indicatore colorato, etichetta. */}
-      <div className="rounded-lg border border-line bg-panel shadow-card grid grid-cols-4 divide-x divide-line">
-        <PostureTile value={total} label="AI assets" dotClass="bg-ink-100" />
+      {/* Fascia statistiche — un numero "hero" in evidenza (con tinta di
+          brand) affiancato da tre metriche compatte, invece di quattro
+          caselle identiche e anonime. */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="col-span-2 rounded-xl bg-accent-soft p-6 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-accent">AI systems in your estate</span>
+            <div className="flex -space-x-1.5">
+              {Array.from(new Set(candidates.map((a) => a.vendor).filter(Boolean) as string[])).slice(0, 5).map((v, i) => (
+                <span key={i} className="h-6 w-6 rounded-full bg-white border-2 border-accent-soft flex items-center justify-center text-accent">
+                  <VendorIcon vendor={v} size={13} />
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="font-display text-5xl font-bold text-accent mt-4">{total}</div>
+        </div>
         <PostureTile value={statusCount.APPROVED ?? 0} label="Approved" dotClass="bg-steady" />
         <PostureTile
           value={(statusCount.UNREVIEWED ?? 0) + (statusCount.UNAPPROVED ?? 0) + (statusCount.UNKNOWN ?? 0)}
           label="Under review"
           dotClass="bg-signal"
         />
-        <PostureTile value={highRisk.length} label="High risk" dotClass="bg-alarm" tone={highRisk.length > 0 ? "alarm" : undefined} />
       </div>
-
-      {riskByLevel.length > 0 && (
-        <div className="rounded-lg border border-line bg-panel shadow-card p-5">
-          <h2 className="text-sm font-medium text-ink-400 mb-4">Risk distribution</h2>
-          <BarChart rows={riskByLevel} />
+      {highRisk.length > 0 && (
+        <div className="rounded-xl border border-alarm/30 bg-alarm/5 px-5 py-3 flex items-center justify-between">
+          <span className="text-sm text-alarm font-medium">{highRisk.length} asset{highRisk.length === 1 ? "" : "s"} at high or critical risk</span>
+          <Link href="/assets?risk=HIGH" className="text-xs font-medium text-alarm border border-alarm/30 rounded-md px-2.5 py-1 hover:bg-alarm/10 transition-colors">
+            Review now
+          </Link>
         </div>
       )}
 
-      {/* Attention — cosa richiede davvero uno sguardo, non tutto l'inventario */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-medium text-ink-400">
-            {attention.length} asset{attention.length === 1 ? "" : "s"} need{attention.length === 1 ? "s" : ""} attention
-          </h2>
-          <Link href="/governance?tab=reviews" className="text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1 hover:border-ink-100 transition-colors">View all</Link>
-        </div>
-        <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line overflow-hidden">
-          {attention.length === 0 && (
-            <div className="p-5 text-sm text-ink-400">Nothing needs attention right now.</div>
-          )}
-          {attention.map((a) => {
-            const r = a.riskAssessments[0];
-            const edgeClass = r?.level === "HIGH" || r?.level === "CRITICAL" ? "border-l-alarm" : "border-l-signal";
-            return (
-              <Link
-                href={`/assets/${a.id}`}
-                key={a.id}
-                className={`flex items-center justify-between px-4 py-3 text-sm border-l-2 ${edgeClass} hover:bg-black/[0.02] transition-colors`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-ink-400"><VendorIcon vendor={a.vendor ?? ""} size={13} /></span>
-                  <span className="font-medium text-ink-100">{a.name}</span>
-                  <span className="text-ink-400 text-xs">{a.owner?.name ?? "No owner"}</span>
-                </div>
-                <div className="flex items-center gap-3 text-xs">
+      {/* Due colonne compatte invece di blocchi impilati a piena larghezza */}
+      <div className="grid grid-cols-2 gap-6">
+        {riskByLevel.length > 0 && (
+          <div className="rounded-xl border border-line bg-panel shadow-card p-5">
+            <h2 className="text-sm font-medium text-ink-400 mb-4">Risk distribution</h2>
+            <DonutChart
+              slices={riskByLevel.map((r) => ({
+                label: r.label,
+                value: r.value,
+                color: r.label === "Low" ? "#1F9254" : r.label === "Medium" ? "#B7791F" : "#C4433B",
+              }))}
+              centerLabel={`${candidates.length} assessed`}
+            />
+          </div>
+        )}
+
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-medium text-ink-400">
+              {attention.length} need{attention.length === 1 ? "s" : ""} attention
+            </h2>
+            <Link href="/governance?tab=reviews" className="text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1 hover:border-ink-100 transition-colors">View all</Link>
+          </div>
+          <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line overflow-hidden">
+            {attention.length === 0 && (
+              <div className="p-5 text-sm text-ink-400">Nothing needs attention right now.</div>
+            )}
+            {attention.map((a) => {
+              const r = a.riskAssessments[0];
+              const edgeClass = r?.level === "HIGH" || r?.level === "CRITICAL" ? "border-l-alarm" : "border-l-signal";
+              return (
+                <Link
+                  href={`/assets/${a.id}`}
+                  key={a.id}
+                  className={`flex items-center justify-between px-4 py-3 text-sm border-l-2 ${edgeClass} hover:bg-black/[0.02] transition-colors`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="text-ink-400 shrink-0"><VendorIcon vendor={a.vendor ?? ""} size={13} /></span>
+                    <span className="font-medium text-ink-100 truncate">{a.name}</span>
+                  </div>
                   {r && <Badge>{r.level}</Badge>}
-                  <Badge>{a.status}</Badge>
-                </div>
-              </Link>
-            );
-          })}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -267,12 +292,12 @@ function PostureTile({
   tone?: "alarm";
 }) {
   return (
-    <div className="px-5 py-4">
-      <div className="flex items-center gap-2 mb-1">
-        <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
+    <div className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col justify-between">
+      <div className="flex items-center gap-2">
+        <span className={`h-2 w-2 rounded-full ${dotClass}`} />
         <span className="text-xs text-ink-400">{label}</span>
       </div>
-      <div className={`tabular font-display text-2xl font-semibold ${tone === "alarm" ? "text-alarm" : "text-ink-100"}`}>
+      <div className={`tabular font-display text-3xl font-bold mt-3 ${tone === "alarm" ? "text-alarm" : "text-ink-100"}`}>
         {value}
       </div>
     </div>

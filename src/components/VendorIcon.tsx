@@ -42,8 +42,8 @@ export default function VendorIcon({ vendor, size = 15 }: { vendor: string; size
   if (v === "ANTHROPIC") {
     return (
       <svg {...box} viewBox="0 0 16 16" fill="currentColor">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <rect key={i} x="7.4" y="1.2" width="1.2" height="4.6" rx="0.6" transform={`rotate(${i * 45} 8 8)`} />
+        {Array.from({ length: 6 }).map((_, i) => (
+          <path key={i} d="M8 1.6c.9 0 1.6.9 1.4 1.8L8.9 6.2a1 1 0 01-1.8 0L6.6 3.4c-.2-.9.5-1.8 1.4-1.8z" transform={`rotate(${i * 60} 8 8)`} />
         ))}
       </svg>
     );
@@ -52,7 +52,9 @@ export default function VendorIcon({ vendor, size = 15 }: { vendor: string; size
   if (v === "OPENAI") {
     return (
       <svg {...box} viewBox="0 0 16 16" fill="currentColor">
-        <path d="M8 1.2a2.4 2.4 0 00-2.3 1.6A2.6 2.6 0 003.8 6a2.5 2.5 0 000 4 2.6 2.6 0 002 3.2 2.4 2.4 0 004.4 0 2.6 2.6 0 002-3.2 2.5 2.5 0 000-4A2.6 2.6 0 0010.3 2.8 2.4 2.4 0 008 1.2zm0 2a1 1 0 01.9.6l.1.3-.1.1a4.3 4.3 0 00-1.8 0l-.1-.1.1-.3a1 1 0 01.9-.6zM4.8 6.4a1 1 0 011-.9h.3l.1.1a4.3 4.3 0 00-.9 1.6l-.2.1H5A1 1 0 014.8 6.4zm6.4 0a1 1 0 01-.2 1l-.2-.1a4.3 4.3 0 00-.9-1.6l.1-.1h.3a1 1 0 011 .8zM8 9.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm-2.3 2a1 1 0 01-.9-.6l-.1-.3.1-.1a4.3 4.3 0 001.8 0l.1.1-.1.3a1 1 0 01-.9.6zm5.4-.9a1 1 0 01-1 .9h-.3l-.1-.1a4.3 4.3 0 00.9-1.6l.2-.1h.1a1 1 0 01.2 1z" />
+        {Array.from({ length: 6 }).map((_, i) => (
+          <rect key={i} x="6.9" y="1.3" width="2.2" height="5.4" rx="1.1" transform={`rotate(${i * 60} 8 8)`} />
+        ))}
       </svg>
     );
   }
