@@ -39,15 +39,15 @@ export default async function SavingsPage() {
 
       <div className="grid grid-cols-4 gap-4">
         <div className="col-span-2 rounded-xl border border-line bg-panel shadow-card p-4 flex flex-col justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
-          <span className="text-xs font-medium text-accent">Estimated annual opportunity</span>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-accent">Estimated annual opportunity</span>
           <div className="font-display text-3xl font-bold text-accent mt-4">€{totalAnnualOpportunity.toLocaleString()}</div>
         </div>
         <div className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col justify-between">
-          <div className="text-xs text-ink-400">Tracked monthly spend</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400">Tracked monthly spend</div>
           <div className="font-display text-3xl font-bold text-ink-100 mt-3">€{totalMonthlySpend.toLocaleString()}</div>
         </div>
         <div className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col justify-between">
-          <div className="text-xs text-ink-400">Systems with cost on record</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400">Systems with cost on record</div>
           <div className="font-display text-3xl font-bold text-ink-100 mt-3">{withCost.length} / {assets.length}</div>
         </div>
       </div>

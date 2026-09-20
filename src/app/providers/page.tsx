@@ -48,11 +48,11 @@ export default async function ProvidersPage() {
       <div className="grid grid-cols-2 gap-5">
         <div className="rounded-xl border border-line bg-panel shadow-card p-4 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
           <div>
-            <div className="text-xs font-medium text-ink-400 mb-1">Tracked monthly spend</div>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Tracked monthly spend</div>
             <div className="font-display text-3xl font-bold text-accent">€{totalMonthlySpend.toLocaleString()}</div>
           </div>
           <div className="text-right">
-            <div className="text-xs text-ink-400 mb-1">Providers</div>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Providers</div>
             <div className="font-display text-xl font-semibold text-accent">{rows.length}</div>
           </div>
         </div>

@@ -85,7 +85,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
 
       <div className="rounded-xl border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line overflow-hidden">
         <div className="px-6 py-5">
-          <div className="text-xs text-ink-400 mb-1.5">Current cost</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Current cost</div>
           {asset.cost?.monthlyCostEstimate != null ? (
             <>
               <div className="font-display text-3xl font-bold text-accent">
@@ -100,13 +100,13 @@ export default async function AssetDetailPage({ params }: { params: { id: string
           )}
         </div>
         <div className="px-6 py-5">
-          <div className="text-xs text-ink-400 mb-1.5">Annualized</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Annualized</div>
           <div className="font-display text-3xl font-bold text-ink-100">
             {asset.cost?.monthlyCostEstimate != null ? `€${(asset.cost.monthlyCostEstimate * 12).toLocaleString()}` : "—"}
           </div>
         </div>
         <div className="px-6 py-5">
-          <div className="text-xs text-ink-400 mb-1.5">Dependencies</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Dependencies</div>
           <div className="font-display text-3xl font-bold text-ink-100">
             {asset.connectedSystems.length + asset.dataAccess.length}
           </div>

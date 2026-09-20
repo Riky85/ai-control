@@ -56,19 +56,19 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
       <div className="rounded-xl border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
         <div className="px-5 py-4">
           <div className="tabular font-display text-2xl font-semibold text-ink-100">{person.ownedAssets.length}</div>
-          <div className="text-xs text-ink-400 mt-0.5">AI assets owned</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mt-1">AI assets owned</div>
         </div>
         <div className="px-5 py-4">
           <div className={`tabular font-display text-2xl font-semibold ${highRiskOwned > 0 ? "text-alarm" : "text-ink-100"}`}>
             {highRiskOwned}
           </div>
-          <div className="text-xs text-ink-400 mt-0.5">High risk owned</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mt-1">High risk owned</div>
         </div>
         <div className="px-5 py-4">
           <div className={`text-sm font-medium mt-1.5 ${highRiskOwned > 0 ? "text-alarm" : "text-steady"}`}>
             {highRiskOwned > 0 ? "Attention" : "Good"}
           </div>
-          <div className="text-xs text-ink-400 mt-0.5">Status</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mt-1">Status</div>
         </div>
       </div>
 

@@ -59,17 +59,17 @@ export default async function OverviewPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4">
-        <Link href="/assets" className="rounded-xl border border-line bg-panel shadow-card p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all">
-          <div className="text-xs text-ink-400 mb-1.5">AI systems</div>
+      <div className="rounded-xl border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
+        <Link href="/assets" className="px-5 py-4 hover:bg-black/[0.015] transition-colors">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">AI systems</div>
           <div className="font-display text-3xl font-bold text-accent">{total}</div>
         </Link>
-        <Link href="/assets?status=APPROVED" className="rounded-xl border border-line bg-panel shadow-card p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all">
-          <div className="text-xs text-ink-400 mb-1.5">Approved</div>
+        <Link href="/assets?status=APPROVED" className="px-5 py-4 hover:bg-black/[0.015] transition-colors">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Approved</div>
           <div className="font-display text-3xl font-bold text-ink-100">{approvedCount}</div>
         </Link>
-        <Link href="/governance?tab=reviews" className="rounded-xl border border-line bg-panel shadow-card p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all">
-          <div className="text-xs text-ink-400 mb-1.5">Needs attention</div>
+        <Link href="/governance?tab=reviews" className="px-5 py-4 hover:bg-black/[0.015] transition-colors">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Needs attention</div>
           <div className={`font-display text-3xl font-bold ${attention.length > 0 ? "text-alarm" : "text-ink-100"}`}>{attention.length}</div>
         </Link>
       </div>

@@ -280,21 +280,21 @@ async function AssuranceTab() {
         <div className="px-5 py-4">
           <div className="flex items-center gap-2 mb-1">
             <span className="h-1.5 w-1.5 rounded-full bg-steady" />
-            <span className="text-xs text-ink-400">Passed</span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-400">Passed</span>
           </div>
           <div className="tabular font-display text-2xl font-semibold text-ink-100">{totalPassed}</div>
         </div>
         <div className="px-5 py-4">
           <div className="flex items-center gap-2 mb-1">
             <span className="h-1.5 w-1.5 rounded-full bg-signal" />
-            <span className="text-xs text-ink-400">Warnings</span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-400">Warnings</span>
           </div>
           <div className="tabular font-display text-2xl font-semibold text-ink-100">{totalWarning}</div>
         </div>
         <div className="px-5 py-4">
           <div className="flex items-center gap-2 mb-1">
             <span className="h-1.5 w-1.5 rounded-full bg-alarm" />
-            <span className="text-xs text-ink-400">Failed</span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-400">Failed</span>
           </div>
           <div className={`tabular font-display text-2xl font-semibold ${totalFailed > 0 ? "text-alarm" : "text-ink-100"}`}>{totalFailed}</div>
         </div>
