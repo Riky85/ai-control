@@ -137,7 +137,7 @@ export default async function OverviewPage() {
           <h2 className="text-sm font-medium text-ink-400">
             {attention.length} asset{attention.length === 1 ? "" : "s"} need{attention.length === 1 ? "s" : ""} attention
           </h2>
-          <Link href="/governance?tab=reviews" className="text-xs text-ink-100 hover:underline">View all</Link>
+          <Link href="/governance?tab=reviews" className="text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1 hover:border-ink-100 transition-colors">View all</Link>
         </div>
         <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line overflow-hidden">
           {attention.length === 0 && (
@@ -171,8 +171,8 @@ export default async function OverviewPage() {
         <div className="rounded-lg border border-line bg-panel shadow-card p-6">
           <div className="flex items-start justify-between mb-4">
             <h2 className="text-sm font-medium text-ink-400">{spotlight.name} — lifecycle</h2>
-            <Link href={`/assets/${spotlight.id}`} className="text-xs text-ink-400 hover:text-ink-100 hover:underline shrink-0">
-              Open asset →
+            <Link href={`/assets/${spotlight.id}`} className="text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1 hover:border-ink-100 transition-colors shrink-0">
+              Open passport
             </Link>
           </div>
 
@@ -227,7 +227,7 @@ export default async function OverviewPage() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-medium text-ink-400">Recent activity</h2>
-          <Link href="/activity" className="text-xs text-ink-100 hover:underline">View all</Link>
+          <Link href="/activity" className="text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1 hover:border-ink-100 transition-colors">View all</Link>
         </div>
         <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line">
           {recentActivity.length === 0 && (

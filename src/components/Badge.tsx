@@ -28,10 +28,27 @@ const LABEL: Record<string, string> = {
   DISCONNECTED: "Disconnected",
 };
 
-// Testo colorato, niente sfondo: più editoriale, meno "etichetta software".
+// Pillola con sfondo tenue coerente col colore semantico — non solo testo:
+// ha un padding proprio, quindi non si "incolla" mai a un elemento vicino
+// anche se il contenitore che la ospita dimentica uno spazio tra elementi.
+const BG: Record<string, string> = {
+  LOW: "bg-steady/10",
+  MEDIUM: "bg-signal/10",
+  HIGH: "bg-alarm/10",
+  CRITICAL: "bg-alarm/10",
+  APPROVED: "bg-steady/10",
+  UNREVIEWED: "bg-signal/10",
+  UNAPPROVED: "bg-alarm/10",
+  UNKNOWN: "bg-ink-400/10",
+  CONNECTED: "bg-steady/10",
+  ERROR: "bg-alarm/10",
+  SYNCING: "bg-signal/10",
+  DISCONNECTED: "bg-ink-400/10",
+};
+
 export default function Badge({ children }: { children: string }) {
   return (
-    <span className={`text-xs font-medium ${COLOR[children] ?? "text-ink-400"}`}>
+    <span className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full ${COLOR[children] ?? "text-ink-400"} ${BG[children] ?? "bg-ink-400/10"}`}>
       {LABEL[children] ?? children}
     </span>
   );

@@ -86,7 +86,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
       </div>
 
       <div className="rounded-xl border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line overflow-hidden">
-        <div className="px-6 py-5 border-l-4 border-accent">
+        <div className="px-6 py-5">
           <div className="text-xs text-ink-400 mb-1.5">Current cost</div>
           {asset.cost?.monthlyCostEstimate != null ? (
             <>
@@ -118,7 +118,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
       <div className="grid grid-cols-3 gap-6">
         <section className="col-span-2 flex flex-col gap-6">
           {/* Overview: fatti principali + accesso, un unico blocco invece di tre */}
-          <div className="rounded-xl border border-line border-l-4 border-l-ink-100 bg-panel shadow-card p-5">
+          <div className="rounded-xl border border-line bg-panel shadow-card p-5">
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
               <Row label="Department" value={asset.department ?? "—"} />
               <Row label="Model" value={asset.model ?? "—"} />
@@ -147,7 +147,9 @@ export default async function AssetDetailPage({ params }: { params: { id: string
             )}
 
             <details className="mt-3 pt-3 border-t border-line">
-              <summary className="cursor-pointer text-xs text-ink-400 hover:text-ink-100">View relationship graph →</summary>
+              <summary className="cursor-pointer text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1.5 inline-block hover:border-ink-100 transition-colors list-none">
+                View relationship graph
+              </summary>
               <div className="mt-4">
                 <AssetGraph
                   center={asset.name}
@@ -172,7 +174,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
 
           {/* Risk & Assurance uniti: la checklist completa vive solo su Evidence */}
           {risk && (
-            <div className="rounded-xl border border-line border-l-4 border-l-alarm bg-panel shadow-card p-5">
+            <div className="rounded-xl border border-line bg-panel shadow-card p-5">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-medium text-ink-100">Risk & Assurance</h2>
@@ -181,8 +183,8 @@ export default async function AssetDetailPage({ params }: { params: { id: string
                     Rule-based
                   </span>
                 </div>
-                <Link href="/activity?tab=evidence" className="text-xs text-ink-400 hover:text-ink-100 hover:underline">
-                  Full evidence →
+                <Link href="/activity?tab=evidence" className="text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1 hover:border-ink-100 transition-colors">
+                  Full evidence
                 </Link>
               </div>
               <div className="flex gap-6">
@@ -206,7 +208,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
             </div>
           )}
 
-          <div className="rounded-xl border border-line border-l-4 border-l-line bg-panel shadow-card p-5">
+          <div className="rounded-xl border border-line bg-panel shadow-card p-5">
             <h2 className="text-sm font-medium text-ink-400 mb-3">Recent activity</h2>
             <div className="divide-y divide-line text-sm">
               {asset.activities.map((a) => (
@@ -222,7 +224,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
             </div>
           </div>
 
-          <div className="rounded-xl border border-line border-l-4 border-l-steady bg-panel shadow-card p-5">
+          <div className="rounded-xl border border-line bg-panel shadow-card p-5">
             <h2 className="text-sm font-medium text-ink-400 mb-3">Alternatives</h2>
             {asset.alternatives.length > 0 && (
               <div className="flex flex-col gap-2 mb-4">
@@ -243,7 +245,9 @@ export default async function AssetDetailPage({ params }: { params: { id: string
               </div>
             )}
             <details>
-              <summary className="cursor-pointer text-xs text-ink-400 hover:text-ink-100">+ Add an alternative you've evaluated</summary>
+              <summary className="cursor-pointer text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1.5 inline-block hover:border-ink-100 transition-colors list-none">
+              + Add an alternative
+            </summary>
               <form action={addAlternativeAction} className="mt-3 flex flex-col gap-2 text-sm">
                 <input type="hidden" name="assetId" value={asset.id} />
                 <div className="grid grid-cols-2 gap-2">
@@ -269,7 +273,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
           </div>
         </section>
 
-        <aside className="rounded-xl border border-line border-l-4 border-l-accent bg-panel shadow-card p-5 text-sm h-fit flex flex-col gap-4">
+        <aside className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm h-fit flex flex-col gap-4">
           <form action={setAssetOwnerAction} className="flex flex-col gap-1">
             <input type="hidden" name="assetId" value={asset.id} />
             <label className="text-xs text-ink-400">Owner</label>
