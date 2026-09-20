@@ -115,18 +115,18 @@ export default async function OverviewPage() {
           brand) affiancato da tre metriche compatte, invece di quattro
           caselle identiche e anonime. */}
       <div className="grid grid-cols-4 gap-3">
-        <Link href="/assets" className="col-span-2 rounded-xl bg-gradient-to-br from-accent to-accent-dark p-4 flex flex-col justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
+        <Link href="/assets" className="col-span-2 rounded-xl border border-line bg-panel shadow-card p-4 flex flex-col justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-white/80">AI systems in your estate</span>
+            <span className="text-xs font-medium text-ink-400">AI systems in your estate</span>
             <div className="flex -space-x-1.5">
               {Array.from(new Set(candidates.map((a) => a.vendor).filter(Boolean) as string[])).slice(0, 5).map((v, i) => (
-                <span key={i} className="h-5 w-5 rounded-full bg-white border-2 border-accent flex items-center justify-center text-accent">
+                <span key={i} className="h-5 w-5 rounded-full bg-accent-soft border-2 border-panel flex items-center justify-center text-accent">
                   <VendorIcon vendor={v} size={11} />
                 </span>
               ))}
             </div>
           </div>
-          <div className="font-display text-3xl font-bold text-white mt-2">{total}</div>
+          <div className="font-display text-3xl font-bold text-accent mt-2">{total}</div>
         </Link>
         <PostureTile href="/assets?status=APPROVED" value={statusCount.APPROVED ?? 0} label="Approved" dotClass="bg-steady" />
         <PostureTile

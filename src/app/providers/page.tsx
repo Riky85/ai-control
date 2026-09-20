@@ -46,14 +46,14 @@ export default async function ProvidersPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-5">
-        <div className="rounded-xl bg-gradient-to-br from-accent to-accent-dark p-4 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-4 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
           <div>
-            <div className="text-xs font-medium text-white/90 mb-1">Tracked monthly spend</div>
-            <div className="font-display text-3xl font-bold text-white">€{totalMonthlySpend.toLocaleString()}</div>
+            <div className="text-xs font-medium text-ink-400 mb-1">Tracked monthly spend</div>
+            <div className="font-display text-3xl font-bold text-accent">€{totalMonthlySpend.toLocaleString()}</div>
           </div>
           <div className="text-right">
-            <div className="text-xs text-white/70 mb-1">Providers</div>
-            <div className="font-display text-xl font-semibold text-white">{rows.length}</div>
+            <div className="text-xs text-ink-400 mb-1">Providers</div>
+            <div className="font-display text-xl font-semibold text-accent">{rows.length}</div>
           </div>
         </div>
         {rows.some((r) => r.hasCostData) ? (

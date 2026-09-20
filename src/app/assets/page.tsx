@@ -77,14 +77,14 @@ export default async function AssetsPage({
       </div>
 
       <div className="grid grid-cols-2 gap-5">
-        <div className="rounded-xl bg-gradient-to-br from-accent to-accent-dark p-4 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-4 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
           <div>
-            <div className="text-xs font-medium text-white/90 mb-1">Total tracked</div>
-            <div className="font-display text-3xl font-bold text-white">{assets.length}</div>
+            <div className="text-xs font-medium text-ink-400 mb-1">Total tracked</div>
+            <div className="font-display text-3xl font-bold text-accent">{assets.length}</div>
           </div>
           <div className="text-right">
-            <div className="text-xs text-white/70 mb-1">Monthly spend tracked</div>
-            <div className="font-display text-xl font-semibold text-white">€{totalCost.toLocaleString()}</div>
+            <div className="text-xs text-ink-400 mb-1">Monthly spend tracked</div>
+            <div className="font-display text-xl font-semibold text-accent">€{totalCost.toLocaleString()}</div>
           </div>
         </div>
         {typeSlices.length > 0 ? (
