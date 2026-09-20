@@ -49,7 +49,7 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
             key={`l-${i}`}
             d={`M ${xLeft + NODE_W_SIDE} ${y} C ${xCenter - 30} ${y}, ${xCenter - 30} ${centerY}, ${xCenter} ${centerY}`}
             fill="none"
-            stroke="#EAE8E3"
+            stroke="#E7E7EC"
             strokeWidth={1.5}
           />
         );
@@ -61,7 +61,7 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
             key={`r-${i}`}
             d={`M ${xCenter + NODE_W_CENTER} ${centerY} C ${xRight - 30} ${centerY}, ${xRight - 30} ${y}, ${xRight} ${y}`}
             fill="none"
-            stroke="#EAE8E3"
+            stroke="#E7E7EC"
             strokeWidth={1.5}
           />
         );
@@ -100,11 +100,11 @@ function truncate(s: string, max: number) {
 }
 
 function Node({ x, y, node }: { x: number; y: number; node: GraphNode }) {
-  const stroke = node.tone === "alarm" ? "#C4433B" : "#EAE8E3";
+  const stroke = node.tone === "alarm" ? "#C4433B" : "#E7E7EC";
   return (
     <g transform={`translate(${x}, ${y})`}>
       <rect width={NODE_W_SIDE} height={NODE_H} rx={6} fill="#FFFFFF" stroke={stroke} strokeWidth={1.3} />
-      <text x={10} y={node.sublabel ? 16 : 23} fontSize="11.5" fontWeight={500} fill="#1A1A18">
+      <text x={10} y={node.sublabel ? 16 : 23} fontSize="11.5" fontWeight={500} fill="#16161A">
         {truncate(node.label, 26)}
       </text>
       {node.sublabel && (
