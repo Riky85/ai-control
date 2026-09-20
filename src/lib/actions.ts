@@ -49,8 +49,8 @@ export async function syncConnectorAction(formData: FormData) {
   await runConnectorSync(ORG_ID, provider);
   revalidatePath("/connectors");
   revalidatePath("/assets");
-  revalidatePath("/evidence");
-  revalidatePath("/assurance");
+  revalidatePath("/activity");
+  revalidatePath("/governance");
   revalidatePath("/changes");
   revalidatePath("/");
 }
@@ -65,7 +65,7 @@ export async function setAssetOwnerAction(formData: FormData) {
   await recomputeAssuranceFor(assetId);
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
-  revalidatePath("/assurance");
+  revalidatePath("/governance");
   revalidatePath("/changes");
   revalidatePath("/");
 }
@@ -86,8 +86,7 @@ export async function setAssetStatusAction(formData: FormData) {
   await recomputeAssuranceFor(assetId);
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
-  revalidatePath("/approvals");
-  revalidatePath("/assurance");
+  revalidatePath("/governance");
   revalidatePath("/changes");
   revalidatePath("/");
 }
@@ -102,7 +101,7 @@ export async function setAssetEuAiActTierAction(formData: FormData) {
   await recomputeAssuranceFor(assetId);
   revalidatePath(`/assets/${assetId}`);
   revalidatePath("/assets");
-  revalidatePath("/assurance");
+  revalidatePath("/governance");
   revalidatePath("/changes");
 }
 
@@ -164,13 +163,13 @@ export async function createPolicyAction(formData: FormData) {
   if (!name || !description) return;
   const existing = await db.policy.findFirst({ where: { organizationId: ORG_ID, name } });
   if (existing) {
-    revalidatePath("/policies");
+    revalidatePath("/governance");
     return; // already exists under this name — never create a duplicate
   }
   await db.policy.create({
     data: { organizationId: ORG_ID, name, description, category },
   });
-  revalidatePath("/policies");
+  revalidatePath("/governance");
 }
 
 export async function addPolicyFromLibraryAction(formData: FormData) {
@@ -179,13 +178,13 @@ export async function addPolicyFromLibraryAction(formData: FormData) {
   const category = formData.get("category") as string;
   const existing = await db.policy.findFirst({ where: { organizationId: ORG_ID, name } });
   if (existing) {
-    revalidatePath("/policies");
+    revalidatePath("/governance");
     return; // already added — clicking "Add" again is a no-op, not a duplicate
   }
   await db.policy.create({
     data: { organizationId: ORG_ID, name, description, category },
   });
-  revalidatePath("/policies");
+  revalidatePath("/governance");
 }
 
 export async function togglePolicyAction(formData: FormData) {
@@ -195,13 +194,13 @@ export async function togglePolicyAction(formData: FormData) {
     where: { id: policyId },
     data: { enabled: !enabled },
   });
-  revalidatePath("/policies");
+  revalidatePath("/governance");
 }
 
 export async function deletePolicyAction(formData: FormData) {
   const policyId = formData.get("policyId") as string;
   await db.policy.delete({ where: { id: policyId } });
-  revalidatePath("/policies");
+  revalidatePath("/governance");
 }
 
 export async function addUserAction(formData: FormData) {

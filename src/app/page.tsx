@@ -137,7 +137,7 @@ export default async function OverviewPage() {
           <h2 className="text-sm font-medium text-ink-400">
             {attention.length} asset{attention.length === 1 ? "" : "s"} need{attention.length === 1 ? "s" : ""} attention
           </h2>
-          <Link href="/approvals" className="text-xs text-ink-100 hover:underline">View all</Link>
+          <Link href="/governance?tab=reviews" className="text-xs text-ink-100 hover:underline">View all</Link>
         </div>
         <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line overflow-hidden">
           {attention.length === 0 && (

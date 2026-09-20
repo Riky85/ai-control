@@ -175,7 +175,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
             <div className="rounded-md border border-line bg-panel shadow-card p-5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-medium text-ink-100">Risk & Assurance</h2>
-                <Link href="/evidence" className="text-xs text-ink-400 hover:text-ink-100 hover:underline">
+                <Link href="/activity?tab=evidence" className="text-xs text-ink-400 hover:text-ink-100 hover:underline">
                   Full evidence →
                 </Link>
               </div>

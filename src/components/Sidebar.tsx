@@ -60,14 +60,11 @@ const NAV_ITEMS = [
   { href: "/assets", label: "AI Passports", icon: "assets" },
   { href: "/providers", label: "Providers", icon: "providers" },
   { href: "/savings", label: "Savings", icon: "savings" },
+  { href: "/changes", label: "Changes", icon: "changes" },
   { href: "/people", label: "People", icon: "people" },
   { href: "/data", label: "Data Exposure", icon: "data" },
-  { href: "/assurance", label: "Assurance", icon: "assurance" },
-  { href: "/changes", label: "Changes", icon: "changes" },
-  { href: "/approvals", label: "Reviews", icon: "approvals" },
-  { href: "/policies", label: "Policies", icon: "policies" },
+  { href: "/governance", label: "Governance", icon: "assurance" },
   { href: "/activity", label: "Activity", icon: "activity" },
-  { href: "/evidence", label: "Evidence", icon: "evidence" },
   { href: "/connectors", label: "Connections", icon: "connectors" },
 ];
 
