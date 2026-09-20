@@ -59,11 +59,11 @@ export default async function AssetDetailPage({ params }: { params: { id: string
         </div>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-lg border border-line bg-ink flex items-center justify-center text-ink-100 shrink-0">
-              <VendorIcon vendor={asset.vendor ?? asset.connector?.provider ?? ""} size={22} />
+            <div className="h-14 w-14 rounded-xl bg-accent-soft flex items-center justify-center text-accent shrink-0">
+              <VendorIcon vendor={asset.vendor ?? asset.connector?.provider ?? ""} size={26} />
             </div>
             <div>
-              <h1 className="font-display text-2xl font-semibold text-ink-100">{asset.name}</h1>
+              <h1 className="font-display text-[28px] leading-tight font-semibold text-ink-100">{asset.name}</h1>
               <p className="text-sm text-ink-400 mt-0.5">
                 {asset.vendor ?? "Vendor unknown"} · {asset.type.replace(/_/g, " ").toLowerCase()}
               </p>
@@ -85,15 +85,15 @@ export default async function AssetDetailPage({ params }: { params: { id: string
         </div>
       </div>
 
-      <div className="rounded-lg border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
-        <div className="px-5 py-4">
-          <div className="text-xs text-ink-400 mb-1">Current cost</div>
+      <div className="rounded-xl border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line overflow-hidden">
+        <div className="px-6 py-5 border-l-4 border-accent">
+          <div className="text-xs text-ink-400 mb-1.5">Current cost</div>
           {asset.cost?.monthlyCostEstimate != null ? (
             <>
-              <div className="font-display text-xl font-semibold text-ink-100">
-                €{asset.cost.monthlyCostEstimate.toLocaleString()}<span className="text-sm font-normal text-ink-400">/mo</span>
+              <div className="font-display text-3xl font-bold text-accent">
+                €{asset.cost.monthlyCostEstimate.toLocaleString()}<span className="text-sm font-medium text-ink-400">/mo</span>
               </div>
-              <div className="text-xs text-ink-400 mt-0.5">
+              <div className="text-xs text-ink-400 mt-1">
                 {CONFIDENCE_LABEL[asset.cost.confidence] ?? asset.cost.confidence} confidence · manually entered
               </div>
             </>
@@ -101,15 +101,15 @@ export default async function AssetDetailPage({ params }: { params: { id: string
             <div className="text-sm text-ink-400">Not entered yet</div>
           )}
         </div>
-        <div className="px-5 py-4">
-          <div className="text-xs text-ink-400 mb-1">Annualized</div>
-          <div className="font-display text-xl font-semibold text-ink-100">
+        <div className="px-6 py-5">
+          <div className="text-xs text-ink-400 mb-1.5">Annualized</div>
+          <div className="font-display text-3xl font-bold text-ink-100">
             {asset.cost?.monthlyCostEstimate != null ? `€${(asset.cost.monthlyCostEstimate * 12).toLocaleString()}` : "—"}
           </div>
         </div>
-        <div className="px-5 py-4">
-          <div className="text-xs text-ink-400 mb-1">Dependencies</div>
-          <div className="font-display text-xl font-semibold text-ink-100">
+        <div className="px-6 py-5">
+          <div className="text-xs text-ink-400 mb-1.5">Dependencies</div>
+          <div className="font-display text-3xl font-bold text-ink-100">
             {asset.connectedSystems.length + asset.dataAccess.length}
           </div>
         </div>
@@ -118,7 +118,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
       <div className="grid grid-cols-3 gap-6">
         <section className="col-span-2 flex flex-col gap-6">
           {/* Overview: fatti principali + accesso, un unico blocco invece di tre */}
-          <div className="rounded-md border border-line bg-panel shadow-card p-5">
+          <div className="rounded-xl border border-line border-l-4 border-l-ink-100 bg-panel shadow-card p-5">
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
               <Row label="Department" value={asset.department ?? "—"} />
               <Row label="Model" value={asset.model ?? "—"} />
@@ -172,7 +172,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
 
           {/* Risk & Assurance uniti: la checklist completa vive solo su Evidence */}
           {risk && (
-            <div className="rounded-md border border-line bg-panel shadow-card p-5">
+            <div className="rounded-xl border border-line border-l-4 border-l-alarm bg-panel shadow-card p-5">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-medium text-ink-100">Risk & Assurance</h2>
@@ -206,7 +206,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
             </div>
           )}
 
-          <div className="rounded-md border border-line bg-panel shadow-card p-5">
+          <div className="rounded-xl border border-line border-l-4 border-l-line bg-panel shadow-card p-5">
             <h2 className="text-sm font-medium text-ink-400 mb-3">Recent activity</h2>
             <div className="divide-y divide-line text-sm">
               {asset.activities.map((a) => (
@@ -222,7 +222,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
             </div>
           </div>
 
-          <div className="rounded-md border border-line bg-panel shadow-card p-5">
+          <div className="rounded-xl border border-line border-l-4 border-l-steady bg-panel shadow-card p-5">
             <h2 className="text-sm font-medium text-ink-400 mb-3">Alternatives</h2>
             {asset.alternatives.length > 0 && (
               <div className="flex flex-col gap-2 mb-4">
@@ -269,7 +269,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
           </div>
         </section>
 
-        <aside className="rounded-md border border-line bg-panel shadow-card p-5 text-sm h-fit flex flex-col gap-4">
+        <aside className="rounded-xl border border-line border-l-4 border-l-accent bg-panel shadow-card p-5 text-sm h-fit flex flex-col gap-4">
           <form action={setAssetOwnerAction} className="flex flex-col gap-1">
             <input type="hidden" name="assetId" value={asset.id} />
             <label className="text-xs text-ink-400">Owner</label>

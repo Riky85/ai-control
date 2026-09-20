@@ -18,10 +18,12 @@ const config: Config = {
         // primarie sono neri (come "Import customers" / "Upgrade" in Angar),
         // il verde è riservato allo stato positivo (come "Agent is online"),
         // non è un accento di brand separato.
+        // Arancio "Claude" come colore di brand — richiesto esplicitamente,
+        // usato per azioni primarie, stato attivo, accenti decorativi.
         accent: {
-          DEFAULT: "#1A1A18",
-          dark: "#000000",
-          soft: "#EDECE9",
+          DEFAULT: "#D97757",
+          dark: "#B85A3E",
+          soft: "#FBEEEA",
         },
         signal: "#B7791F",    // attenzione / rischio medio
         steady: "#1F9254",    // approvato / sano / online — verde Angar

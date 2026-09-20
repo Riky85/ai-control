@@ -107,7 +107,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
 
   return (
     <aside
-      className={`shrink-0 bg-ink min-h-screen py-6 flex flex-col transition-[width] duration-150 ${
+      className={`shrink-0 bg-ink h-full py-6 flex flex-col transition-[width] duration-150 ${
         collapsed ? "w-[64px] px-3" : "w-60 px-4"
       } ${ready ? "" : "invisible"}`}
     >
