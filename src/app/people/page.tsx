@@ -19,7 +19,7 @@ export default async function PeoplePage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink-100">People</h1>
         <p className="text-sm text-ink-400 mt-1.5">

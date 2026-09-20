@@ -40,7 +40,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div>
         <div className="text-xs text-ink-400 mb-2">
           <Link href="/people" className="hover:text-ink-100 hover:underline">People</Link>

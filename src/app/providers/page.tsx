@@ -37,7 +37,7 @@ export default async function ProvidersPage() {
   const totalMonthlySpend = rows.reduce((sum, r) => sum + r.monthlySpend, 0);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink-100">Providers</h1>
         <p className="text-sm text-ink-400 mt-1.5 max-w-lg">

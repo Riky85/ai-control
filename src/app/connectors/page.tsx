@@ -71,14 +71,14 @@ export default async function ConnectorsPage({ searchParams }: { searchParams: {
   const githubAppReady = Boolean(process.env.GITHUB_APP_SLUG);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink-100">Connections</h1>
         <p className="text-sm text-ink-400 mt-1.5">Each one is a separate company — no single login covers all of them.</p>
       </div>
 
       {searchParams.connected === "github" && (
-        <div className="rounded-md border border-steady/40 bg-steady/5 px-4 py-3 text-sm text-steady">
+        <div className="rounded-xl border border-steady/40 bg-steady/5 px-4 py-3 text-sm text-steady">
           GitHub connected. Press Sync now below to pull in your data.
         </div>
       )}

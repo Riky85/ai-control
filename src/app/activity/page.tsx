@@ -38,7 +38,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: { q
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "events";
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink-100">Activity</h1>
         <p className="text-sm text-ink-400 mt-1.5">
@@ -46,13 +46,13 @@ export default async function ActivityPage({ searchParams }: { searchParams: { q
         </p>
       </div>
 
-      <div className="flex gap-1 border-b border-line">
+      <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit">
         {TABS.map((t) => (
           <Link
             key={t.key}
             href={`/activity?tab=${t.key}`}
-            className={`text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
-              tab === t.key ? "border-ink-100 text-ink-100 font-medium" : "border-transparent text-ink-400 hover:text-ink-100"
+            className={`text-sm px-3.5 py-1.5 rounded-md transition-colors ${
+              tab === t.key ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"
             }`}
           >
             {t.label}
