@@ -174,7 +174,13 @@ export default async function AssetDetailPage({ params }: { params: { id: string
           {risk && (
             <div className="rounded-md border border-line bg-panel shadow-card p-5">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-medium text-ink-100">Risk & Assurance</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-medium text-ink-100">Risk & Assurance</h2>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">
+                    <svg width="9" height="9" viewBox="0 0 10 10" fill="currentColor"><path d="M5 0l1 3 3 1-3 1-1 3-1-3-3-1 3-1z" /></svg>
+                    Rule-based
+                  </span>
+                </div>
                 <Link href="/activity?tab=evidence" className="text-xs text-ink-400 hover:text-ink-100 hover:underline">
                   Full evidence →
                 </Link>

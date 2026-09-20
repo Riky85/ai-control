@@ -17,10 +17,10 @@ export default function BarChart({ rows, formatValue }: { rows: BarChartRow[]; f
       {rows.map((r) => (
         <div key={r.label} className="flex items-center gap-3">
           <div className="w-28 shrink-0 text-xs text-ink-400 truncate">{r.label}</div>
-          <div className="flex-1 h-5 bg-ink rounded overflow-hidden">
+          <div className="flex-1 h-5 bg-ink rounded-full overflow-hidden">
             <div
-              className="h-full bg-ink-100 rounded"
-              style={{ width: `${Math.max((r.value / max) * 100, 2)}%` }}
+              className="h-full bg-ink-100 rounded-full"
+              style={{ width: `${Math.max((r.value / max) * 100, 4)}%` }}
             />
           </div>
           <div className="w-20 shrink-0 text-xs text-ink-100 text-right tabular">{fmt(r.value)}</div>
