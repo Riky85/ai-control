@@ -61,6 +61,7 @@ export default async function AssetsPage({
     label: type.replace(/_/g, " ").toLowerCase(),
     value,
     color: TYPE_COLORS[i % TYPE_COLORS.length],
+    href: `/assets?type=${type}`,
   }));
 
   const totalCost = assets.reduce((sum, a) => sum + (a.cost?.monthlyCostEstimate ?? 0), 0);
@@ -76,20 +77,20 @@ export default async function AssetsPage({
       </div>
 
       <div className="grid grid-cols-2 gap-5">
-        <div className="rounded-xl bg-accent-soft p-6 flex items-center justify-between">
+        <div className="rounded-xl bg-gradient-to-br from-accent to-accent-dark p-6 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
           <div>
-            <div className="text-xs font-medium text-accent mb-1">Total tracked</div>
-            <div className="font-display text-4xl font-bold text-accent">{assets.length}</div>
+            <div className="text-xs font-medium text-white/90 mb-1">Total tracked</div>
+            <div className="font-display text-4xl font-bold text-white">{assets.length}</div>
           </div>
           <div className="text-right">
-            <div className="text-xs text-accent/80 mb-1">Monthly spend tracked</div>
-            <div className="font-display text-xl font-semibold text-accent">€{totalCost.toLocaleString()}</div>
+            <div className="text-xs text-white/70 mb-1">Monthly spend tracked</div>
+            <div className="font-display text-xl font-semibold text-white">€{totalCost.toLocaleString()}</div>
           </div>
         </div>
         {typeSlices.length > 0 ? (
           <div className="rounded-xl border border-line bg-panel shadow-card p-5">
             <h2 className="text-sm font-medium text-ink-400 mb-3">By type</h2>
-            <DonutChart slices={typeSlices} centerLabel={`${assets.length} total`} />
+            <DonutChart slices={typeSlices} centerLabel="total" />
           </div>
         ) : (
           <div className="rounded-xl border border-alarm/30 bg-alarm/5 p-5 flex items-center">

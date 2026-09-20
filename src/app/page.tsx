@@ -115,21 +115,22 @@ export default async function OverviewPage() {
           brand) affiancato da tre metriche compatte, invece di quattro
           caselle identiche e anonime. */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="col-span-2 rounded-xl bg-accent-soft p-6 flex flex-col justify-between">
+        <Link href="/assets" className="col-span-2 rounded-xl bg-gradient-to-br from-accent to-accent-dark p-6 flex flex-col justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-accent">AI systems in your estate</span>
+            <span className="text-xs font-medium text-white/90">AI systems in your estate</span>
             <div className="flex -space-x-1.5">
               {Array.from(new Set(candidates.map((a) => a.vendor).filter(Boolean) as string[])).slice(0, 5).map((v, i) => (
-                <span key={i} className="h-6 w-6 rounded-full bg-white border-2 border-accent-soft flex items-center justify-center text-accent">
+                <span key={i} className="h-6 w-6 rounded-full bg-white border-2 border-accent flex items-center justify-center text-accent">
                   <VendorIcon vendor={v} size={13} />
                 </span>
               ))}
             </div>
           </div>
-          <div className="font-display text-5xl font-bold text-accent mt-4">{total}</div>
-        </div>
-        <PostureTile value={statusCount.APPROVED ?? 0} label="Approved" dotClass="bg-steady" />
+          <div className="font-display text-5xl font-bold text-white mt-4">{total}</div>
+        </Link>
+        <PostureTile href="/assets?status=APPROVED" value={statusCount.APPROVED ?? 0} label="Approved" dotClass="bg-steady" />
         <PostureTile
+          href="/governance?tab=reviews"
           value={(statusCount.UNREVIEWED ?? 0) + (statusCount.UNAPPROVED ?? 0) + (statusCount.UNKNOWN ?? 0)}
           label="Under review"
           dotClass="bg-signal"
@@ -154,8 +155,9 @@ export default async function OverviewPage() {
                 label: r.label,
                 value: r.value,
                 color: r.label === "Low" ? "#1F9254" : r.label === "Medium" ? "#B7791F" : "#C4433B",
+                href: `/assets?risk=${r.label.toUpperCase()}`,
               }))}
-              centerLabel={`${candidates.length} assessed`}
+              centerLabel="assessed"
             />
           </div>
         )}
@@ -285,14 +287,16 @@ function PostureTile({
   label,
   dotClass,
   tone,
+  href,
 }: {
   value: number;
   label: string;
   dotClass: string;
   tone?: "alarm";
+  href?: string;
 }) {
-  return (
-    <div className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col justify-between">
+  const inner = (
+    <>
       <div className="flex items-center gap-2">
         <span className={`h-2 w-2 rounded-full ${dotClass}`} />
         <span className="text-xs text-ink-400">{label}</span>
@@ -300,6 +304,14 @@ function PostureTile({
       <div className={`tabular font-display text-3xl font-bold mt-3 ${tone === "alarm" ? "text-alarm" : "text-ink-100"}`}>
         {value}
       </div>
-    </div>
+    </>
+  );
+  const className = "rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all";
+  return href ? (
+    <Link href={href} className={className}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={className}>{inner}</div>
   );
 }
