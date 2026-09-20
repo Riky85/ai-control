@@ -93,7 +93,7 @@ async function ReviewsTab() {
       {pending.map((asset) => {
         const risk = asset.riskAssessments[0];
         return (
-          <div key={asset.id} className="rounded-md border border-line bg-panel shadow-card p-4 flex items-center gap-5">
+          <div key={asset.id} className="rounded-xl border border-line bg-panel shadow-card p-4 flex items-center gap-5">
             {risk && (
               <div className="shrink-0 scale-75 -my-3">
                 <RiskGauge score={risk.score} level={risk.level} />
@@ -131,7 +131,7 @@ async function ReviewsTab() {
         );
       })}
       {pending.length === 0 && (
-        <div className="rounded-md border border-line bg-panel shadow-card p-6 text-sm text-ink-400">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-6 text-sm text-ink-400">
           Nothing waiting on review. Every known asset has been approved or rejected.
         </div>
       )}
@@ -149,7 +149,7 @@ async function PoliciesTab() {
       <div>
         <h2 className="text-sm font-medium text-ink-400 mb-3">Active policies</h2>
         {policies.length === 0 && (
-          <div className="rounded-md border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
+          <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
             No policies yet. Add one from the library below, or write a custom one.
           </div>
         )}
@@ -160,7 +160,7 @@ async function PoliciesTab() {
             return (
               <div key={category}>
                 <div className="text-xs text-ink-400 mb-2">{CATEGORY_LABEL[category]}</div>
-                <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+                <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
                   {inCategory.map((p) => (
                     <div key={p.id} className="px-5 py-4 flex items-start justify-between gap-4">
                       <div>
@@ -197,7 +197,7 @@ async function PoliciesTab() {
       {availableTemplates.length > 0 && (
         <div>
           <h2 className="text-sm font-medium text-ink-400 mb-3">Policy library</h2>
-          <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+          <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
             {availableTemplates.map((t) => (
               <div key={t.name} className="px-5 py-4 flex items-start justify-between gap-4">
                 <div>
@@ -223,7 +223,7 @@ async function PoliciesTab() {
 
       <div>
         <h2 className="text-sm font-medium text-ink-400 mb-3">Write a custom policy</h2>
-        <form action={createPolicyAction} className="rounded-md border border-line bg-panel shadow-card p-5 flex flex-col gap-3">
+        <form action={createPolicyAction} className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-ink-400">Name</label>
             <input name="name" required placeholder="e.g. Agents cannot create discounts above 20%" className="bg-ink border border-line rounded px-3 py-2 text-sm text-ink-100" />
@@ -276,7 +276,7 @@ async function AssuranceTab() {
         {withReport.length === 1 ? "" : "s"}.
       </p>
 
-      <div className="rounded-lg border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
+      <div className="rounded-xl border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
         <div className="px-5 py-4">
           <div className="flex items-center gap-2 mb-1">
             <span className="h-1.5 w-1.5 rounded-full bg-steady" />
@@ -308,7 +308,7 @@ async function AssuranceTab() {
             </h2>
             <div className="flex flex-col gap-3">
               {items.map(({ asset, report }) => (
-                <div key={asset.id} className="rounded-md border border-line bg-panel shadow-card p-4">
+                <div key={asset.id} className="rounded-xl border border-line bg-panel shadow-card p-4">
                   <div className="flex items-center justify-between mb-2">
                     <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
                       {asset.name}
@@ -336,7 +336,7 @@ async function AssuranceTab() {
       )}
 
       {withReport.length === 0 && (
-        <div className="rounded-md border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
           No assurance reports yet — they're generated automatically after the first connector sync.
         </div>
       )}

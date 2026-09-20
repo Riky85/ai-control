@@ -53,7 +53,7 @@ export default async function OnboardingPage({
         </div>
       </div>
 
-      <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line">
+      <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
         {STEPS.map((label, i) => {
           const n = i + 1;
           const done = checklistDone[i];
@@ -82,7 +82,7 @@ export default async function OnboardingPage({
       </div>
 
       {step === 1 && (
-        <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
           <h1 className="font-display text-2xl font-semibold text-ink-100">Welcome to Angar</h1>
           <p className="text-sm text-ink-400">
             This walks you through the four things worth setting up before the
@@ -101,7 +101,7 @@ export default async function OnboardingPage({
       )}
 
       {step === 2 && (
-        <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
           <h1 className="font-display text-xl font-semibold text-ink-100">Your organization</h1>
           <p className="text-sm text-ink-400">
             This is what shows up on evidence exports and audit trails.
@@ -147,7 +147,7 @@ export default async function OnboardingPage({
       )}
 
       {step === 3 && (
-        <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
           <h1 className="font-display text-xl font-semibold text-ink-100">Connect a source</h1>
           <p className="text-sm text-ink-400">
             Nothing shows up until a connector actually syncs. GitHub is the
@@ -189,7 +189,7 @@ export default async function OnboardingPage({
       )}
 
       {step === 4 && (
-        <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
           <h1 className="font-display text-xl font-semibold text-ink-100">Add the people who'll own things</h1>
           <p className="text-sm text-ink-400">
             Assets show up unowned until someone is assigned. You don't need
@@ -232,7 +232,7 @@ export default async function OnboardingPage({
       )}
 
       {step === 5 && (
-        <div className="rounded-lg border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
           <h1 className="font-display text-xl font-semibold text-ink-100">Turn on a couple of policies</h1>
           <p className="text-sm text-ink-400">
             These are read as governance intent, not enforced automatically

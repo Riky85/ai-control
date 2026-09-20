@@ -37,20 +37,18 @@ export default async function SavingsPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
-        <div className="px-5 py-4">
-          <div className="text-xs text-ink-400 mb-1">Tracked monthly spend</div>
-          <div className="font-display text-2xl font-semibold text-ink-100">€{totalMonthlySpend.toLocaleString()}</div>
+      <div className="grid grid-cols-4 gap-4">
+        <div className="col-span-2 rounded-xl bg-accent-soft p-6 flex flex-col justify-between">
+          <span className="text-xs font-medium text-accent">Estimated annual opportunity</span>
+          <div className="font-display text-5xl font-bold text-accent mt-4">€{totalAnnualOpportunity.toLocaleString()}</div>
         </div>
-        <div className="px-5 py-4">
-          <div className="text-xs text-ink-400 mb-1">Systems with cost on record</div>
-          <div className="font-display text-2xl font-semibold text-ink-100">{withCost.length} / {assets.length}</div>
+        <div className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col justify-between">
+          <div className="text-xs text-ink-400">Tracked monthly spend</div>
+          <div className="font-display text-3xl font-bold text-ink-100 mt-3">€{totalMonthlySpend.toLocaleString()}</div>
         </div>
-        <div className="px-5 py-4">
-          <div className="text-xs text-ink-400 mb-1">Estimated annual opportunity</div>
-          <div className={`font-display text-2xl font-semibold ${totalAnnualOpportunity > 0 ? "text-steady" : "text-ink-100"}`}>
-            €{totalAnnualOpportunity.toLocaleString()}
-          </div>
+        <div className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col justify-between">
+          <div className="text-xs text-ink-400">Systems with cost on record</div>
+          <div className="font-display text-3xl font-bold text-ink-100 mt-3">{withCost.length} / {assets.length}</div>
         </div>
       </div>
 
@@ -58,7 +56,7 @@ export default async function SavingsPage() {
         <h2 className="text-sm font-medium text-ink-400 mb-3">Opportunities, largest first</h2>
         <div className="flex flex-col gap-3">
           {withOpportunity.map(({ asset, best, monthlySavings, annualSavings }) => (
-            <div key={asset.id} className="rounded-md border border-line bg-panel shadow-card p-5">
+            <div key={asset.id} className="rounded-xl border border-line bg-panel shadow-card p-5">
               <div className="flex items-center justify-between mb-2">
                 <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
                   {asset.name}
@@ -78,7 +76,7 @@ export default async function SavingsPage() {
             </div>
           ))}
           {withOpportunity.length === 0 && (
-            <div className="rounded-md border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
+            <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
               No opportunities yet. Add a monthly cost and at least one alternative on a Passport to see it here.
             </div>
           )}

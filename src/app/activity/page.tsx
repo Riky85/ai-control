@@ -106,7 +106,7 @@ async function EventsTab({ q }: { q?: string }) {
         )}
       </form>
 
-      <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+      <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
         {activities.map((a) => {
           const risk = a.aiAsset.riskAssessments[0];
           return (
@@ -159,7 +159,7 @@ async function EvidenceTab() {
         {withReport.map((asset) => {
           const checks = asset.assuranceReports[0].checks as unknown as CheckRow[];
           return (
-            <div key={asset.id} className="rounded-md border border-line bg-panel shadow-card overflow-hidden">
+            <div key={asset.id} className="rounded-xl border border-line bg-panel shadow-card overflow-hidden">
               <div className="px-5 py-3 border-b border-line flex items-center justify-between">
                 <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
                   {asset.name}
@@ -188,7 +188,7 @@ async function EvidenceTab() {
           );
         })}
         {withReport.length === 0 && (
-          <div className="rounded-md border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
+          <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
             No assurance reports yet — evidence appears automatically after the first connector sync.
           </div>
         )}
@@ -196,7 +196,7 @@ async function EvidenceTab() {
 
       <div>
         <h2 className="text-sm font-medium text-ink-400 mb-3">Inventory history</h2>
-        <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+        <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
           {snapshots.length === 0 && (
             <div className="p-5 text-sm text-ink-400">No snapshots yet. One is recorded automatically the first time a connector syncs.</div>
           )}

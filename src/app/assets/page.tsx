@@ -63,6 +63,9 @@ export default async function AssetsPage({
     color: TYPE_COLORS[i % TYPE_COLORS.length],
   }));
 
+  const totalCost = assets.reduce((sum, a) => sum + (a.cost?.monthlyCostEstimate ?? 0), 0);
+  const highRiskCount = assets.filter((a) => ["HIGH", "CRITICAL"].includes(a.riskAssessments[0]?.level ?? "")).length;
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -70,6 +73,29 @@ export default async function AssetsPage({
         <p className="text-sm text-ink-400 mt-1.5">
           Every application, agent, API or MCP server detected across your connectors.
         </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-5">
+        <div className="rounded-xl bg-accent-soft p-6 flex items-center justify-between">
+          <div>
+            <div className="text-xs font-medium text-accent mb-1">Total tracked</div>
+            <div className="font-display text-4xl font-bold text-accent">{assets.length}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-xs text-accent/80 mb-1">Monthly spend tracked</div>
+            <div className="font-display text-xl font-semibold text-accent">€{totalCost.toLocaleString()}</div>
+          </div>
+        </div>
+        {typeSlices.length > 0 ? (
+          <div className="rounded-xl border border-line bg-panel shadow-card p-5">
+            <h2 className="text-sm font-medium text-ink-400 mb-3">By type</h2>
+            <DonutChart slices={typeSlices} centerLabel={`${assets.length} total`} />
+          </div>
+        ) : (
+          <div className="rounded-xl border border-alarm/30 bg-alarm/5 p-5 flex items-center">
+            <span className="text-sm text-alarm">{highRiskCount} at high or critical risk</span>
+          </div>
+        )}
       </div>
 
       <AssetFilters
@@ -80,14 +106,7 @@ export default async function AssetsPage({
         riskLabels={RISK_LABEL}
       />
 
-      {typeSlices.length > 0 && (
-        <div className="rounded-lg border border-line bg-panel shadow-card p-5">
-          <h2 className="text-sm font-medium text-ink-400 mb-4">By type</h2>
-          <DonutChart slices={typeSlices} centerLabel={`${assets.length} total`} />
-        </div>
-      )}
-
-      <div className="rounded-md border border-line bg-panel shadow-card overflow-hidden">
+      <div className="rounded-xl border border-line bg-panel shadow-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-ink-400 border-b border-line">

@@ -95,14 +95,14 @@ export default async function OverviewPage() {
     : [];
 
   return (
-    <div className="flex flex-col gap-9">
+    <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink-100">Angar</h1>
         <p className="text-sm text-ink-400 mt-1.5">Your AI estate, under control.</p>
       </div>
 
       {!org?.onboardingCompletedAt && (
-        <div className="rounded-lg border border-line bg-panel shadow-card px-5 py-3.5 flex items-center gap-3">
+        <div className="rounded-xl border border-line bg-panel shadow-card px-5 py-3.5 flex items-center gap-3">
           <span className="text-xs font-medium text-white bg-accent rounded-full px-2.5 py-1 shrink-0">Setup</span>
           <p className="text-sm text-ink-100">
             Finish setting up Angar — organization, a real connector, owners, and starting policies.{" "}
@@ -145,7 +145,7 @@ export default async function OverviewPage() {
       )}
 
       {/* Due colonne compatte invece di blocchi impilati a piena larghezza */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-5">
         {riskByLevel.length > 0 && (
           <div className="rounded-xl border border-line bg-panel shadow-card p-5">
             <h2 className="text-sm font-medium text-ink-400 mb-4">Risk distribution</h2>
@@ -193,7 +193,7 @@ export default async function OverviewPage() {
       </div>
 
       {spotlight && (
-        <div className="rounded-lg border border-line bg-panel shadow-card p-6">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-6">
           <div className="flex items-start justify-between mb-4">
             <h2 className="text-sm font-medium text-ink-400">{spotlight.name} — lifecycle</h2>
             <Link href={`/assets/${spotlight.id}`} className="text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1 hover:border-ink-100 transition-colors shrink-0">
@@ -254,7 +254,7 @@ export default async function OverviewPage() {
           <h2 className="text-sm font-medium text-ink-400">Recent activity</h2>
           <Link href="/activity" className="text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1 hover:border-ink-100 transition-colors">View all</Link>
         </div>
-        <div className="rounded-lg border border-line bg-panel shadow-card divide-y divide-line">
+        <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
           {recentActivity.length === 0 && (
             <div className="p-5 text-sm text-ink-400">No activity imported yet.</div>
           )}

@@ -53,7 +53,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
         </p>
       </div>
 
-      <div className="rounded-lg border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
+      <div className="rounded-xl border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
         <div className="px-5 py-4">
           <div className="tabular font-display text-2xl font-semibold text-ink-100">{person.ownedAssets.length}</div>
           <div className="text-xs text-ink-400 mt-0.5">AI assets owned</div>
@@ -74,7 +74,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
 
       <div>
         <h2 className="text-sm font-medium text-ink-400 mb-3">Assets owned</h2>
-        <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+        <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
           {person.ownedAssets.map((a) => (
             <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.02] transition-colors">
               <span className="font-medium text-ink-100">{a.name}</span>
@@ -92,7 +92,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
 
       <div>
         <h2 className="text-sm font-medium text-ink-400 mb-3">Assets used</h2>
-        <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+        <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
           {person.usages.map((u) => (
             <Link key={u.id} href={`/assets/${u.aiAssetId}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.02] transition-colors">
               <span className="font-medium text-ink-100">{u.aiAsset.name}</span>
@@ -108,7 +108,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
       {recentActivity.length > 0 && (
         <div>
           <h2 className="text-sm font-medium text-ink-400 mb-3">Recent activity</h2>
-          <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+          <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
             {recentActivity.map((a) => (
               <Link key={a.id} href={`/activity/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.02] transition-colors">
                 <div className="flex items-center gap-3">

@@ -34,7 +34,7 @@ export default async function DataRegistryPage() {
         </p>
       </div>
 
-      <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+      <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
         {dataAssets.map((d) => (
           <div key={d.id} className="px-5 py-4">
             <div className="flex items-center gap-2">

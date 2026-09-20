@@ -41,29 +41,39 @@ export default async function ProvidersPage() {
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink-100">Providers</h1>
         <p className="text-sm text-ink-400 mt-1.5 max-w-lg">
-          What your AI estate actually depends on, grouped by vendor — so you can answer
-          "how exposed are we to this provider?" at a glance.
+          What your AI estate actually depends on, grouped by vendor.
         </p>
-        {totalMonthlySpend > 0 && (
-          <p className="text-xs text-ink-400 mt-1">
-            €{totalMonthlySpend.toLocaleString()}/mo tracked across providers (manually entered — not every system has a cost on record).
-          </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-5">
+        <div className="rounded-xl bg-accent-soft p-6 flex items-center justify-between">
+          <div>
+            <div className="text-xs font-medium text-accent mb-1">Tracked monthly spend</div>
+            <div className="font-display text-4xl font-bold text-accent">€{totalMonthlySpend.toLocaleString()}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-xs text-accent/80 mb-1">Providers</div>
+            <div className="font-display text-xl font-semibold text-accent">{rows.length}</div>
+          </div>
+        </div>
+        {rows.some((r) => r.hasCostData) ? (
+          <div className="rounded-xl border border-line bg-panel shadow-card p-5">
+            <h2 className="text-sm font-medium text-ink-400 mb-3">Monthly spend by provider</h2>
+            <BarChart
+              rows={rows.filter((r) => r.hasCostData).map((r) => ({ label: r.vendor, value: r.monthlySpend }))}
+              formatValue={(v) => `€${v.toLocaleString()}`}
+            />
+          </div>
+        ) : (
+          <div className="rounded-xl border border-line bg-panel shadow-card p-5 flex items-center">
+            <span className="text-sm text-ink-400">No cost data entered yet — add it from each Passport.</span>
+          </div>
         )}
       </div>
 
-      {rows.some((r) => r.hasCostData) && (
-        <div className="rounded-md border border-line bg-panel shadow-card p-5">
-          <h2 className="text-sm font-medium text-ink-400 mb-4">Monthly spend by provider</h2>
-          <BarChart
-            rows={rows.filter((r) => r.hasCostData).map((r) => ({ label: r.vendor, value: r.monthlySpend }))}
-            formatValue={(v) => `€${v.toLocaleString()}`}
-          />
-        </div>
-      )}
-
       <div className="flex flex-col gap-3">
         {rows.map(({ vendor, list, critical, production, monthlySpend, hasCostData, costedCount }) => (
-          <div key={vendor} className="rounded-md border border-line bg-panel shadow-card p-5">
+          <div key={vendor} className="rounded-xl border border-line bg-panel shadow-card p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-md border border-line bg-ink flex items-center justify-center text-ink-100 shrink-0">
@@ -112,7 +122,7 @@ export default async function ProvidersPage() {
           </div>
         ))}
         {rows.length === 0 && (
-          <div className="rounded-md border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
+          <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
             No AI systems on record yet.
           </div>
         )}

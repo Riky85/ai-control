@@ -17,7 +17,7 @@ export default async function SettingsPage() {
 
       <div>
         <h2 className="text-sm font-medium text-ink-400 mb-3">Organization</h2>
-        <div className="rounded-md border border-line bg-panel shadow-card p-5 text-sm flex flex-col gap-2">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm flex flex-col gap-2">
           <Row label="Name" value={org?.name ?? "—"} />
           <Row label="Country" value={org?.country ?? "—"} />
           <Row label="Created" value={org ? new Date(org.createdAt).toLocaleDateString() : "—"} />
@@ -26,7 +26,7 @@ export default async function SettingsPage() {
 
       <div>
         <h2 className="text-sm font-medium text-ink-400 mb-3">Add a person</h2>
-        <form action={addUserAction} className="rounded-md border border-line bg-panel shadow-card p-5 flex flex-col gap-3 max-w-md">
+        <form action={addUserAction} className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col gap-3 max-w-md">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-ink-400">Email</label>
             <input
@@ -55,7 +55,7 @@ export default async function SettingsPage() {
 
       <div>
         <h2 className="text-sm font-medium text-ink-400 mb-3">Setup wizard</h2>
-        <div className="rounded-md border border-line bg-panel shadow-card p-5 flex items-center justify-between">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-5 flex items-center justify-between">
           <p className="text-sm text-ink-400 max-w-sm">
             {org?.onboardingCompletedAt
               ? `Completed on ${new Date(org.onboardingCompletedAt).toLocaleDateString()}.`

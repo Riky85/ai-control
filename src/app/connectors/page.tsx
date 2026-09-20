@@ -90,7 +90,7 @@ export default async function ConnectorsPage({ searchParams }: { searchParams: {
           const connected = row?.status === "CONNECTED";
 
           return (
-            <div key={provider} className="rounded-lg border border-line bg-panel shadow-card p-4">
+            <div key={provider} className="rounded-xl border border-line bg-panel shadow-card p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-md border border-line bg-ink flex items-center justify-center text-ink-100 shrink-0">

@@ -29,7 +29,7 @@ export default async function ChangesPage() {
         </p>
       </div>
 
-      <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+      <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
         {changes.map((c) => (
           <Link
             key={c.id}

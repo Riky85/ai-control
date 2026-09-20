@@ -35,7 +35,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           {assets.length > 0 && (
             <div>
               <h2 className="text-sm font-medium text-ink-400 mb-3">AI Passports</h2>
-              <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+              <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
                 {assets.map((a) => (
                   <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.015] transition-colors">
                     <span className="font-medium text-ink-100">{a.name}</span>
@@ -48,7 +48,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           {people.length > 0 && (
             <div>
               <h2 className="text-sm font-medium text-ink-400 mb-3">People</h2>
-              <div className="rounded-md border border-line bg-panel shadow-card divide-y divide-line">
+              <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
                 {people.map((p) => (
                   <Link key={p.id} href={`/people/${p.id}`} className="flex items-center px-4 py-3 text-sm hover:bg-black/[0.015] transition-colors">
                     <span className="font-medium text-ink-100">{p.name ?? p.email}</span>
@@ -58,7 +58,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
             </div>
           )}
           {assets.length === 0 && people.length === 0 && (
-            <div className="rounded-md border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
+            <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
               No matches for "{q}".
             </div>
           )}
