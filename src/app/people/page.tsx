@@ -30,7 +30,7 @@ export default async function PeoplePage() {
       <div className="rounded-xl border border-line bg-panel shadow-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-ink-400 border-b border-line">
+            <tr className="text-left text-[10px] font-mono uppercase tracking-wider text-ink-400 border-b border-line">
               <th className="px-4 py-3 font-medium">Person</th>
               <th className="px-4 py-3 font-medium">Department</th>
               <th className="px-4 py-3 font-medium">Owns</th>

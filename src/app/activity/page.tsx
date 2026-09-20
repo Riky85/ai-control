@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
 import StatusDot from "@/components/StatusDot";
+import VendorIcon from "@/components/VendorIcon";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +114,7 @@ async function EventsTab({ q }: { q?: string }) {
             <Link href={`/activity/${a.id}`} key={a.id} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.02] transition-colors">
               <div className="flex items-center gap-3">
                 <span className="tabular text-xs text-ink-400 w-36 shrink-0">{new Date(a.occurredAt).toLocaleString()}</span>
+                <span className="text-ink-400"><VendorIcon vendor={a.aiAsset.vendor ?? ""} size={13} /></span>
                 <span className="font-medium text-ink-100">{a.aiAsset.name}</span>
                 <span className="text-ink-400">{a.eventType}</span>
                 {a.actorRef && <span className="text-ink-400 text-xs">{a.actorRef}</span>}
@@ -168,7 +170,7 @@ async function EvidenceTab() {
               </div>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-ink-400 border-b border-line">
+                  <tr className="text-left text-[10px] font-mono uppercase tracking-wider text-ink-400 border-b border-line">
                     <th className="px-5 py-2 font-medium">Control</th>
                     <th className="px-5 py-2 font-medium w-20">Status</th>
                     <th className="px-5 py-2 font-medium">Evidence</th>
