@@ -5,29 +5,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Tema chiaro ispirato ad Angar: canvas quasi bianco, card bianche,
-        // bordi sottili. Stessi nomi di prima — solo i valori cambiano.
+        // Rivoluzione colore: base fredda e neutra (non più calda/beige),
+        // accento indaco profondo — il registro cromatico usato davvero
+        // dai prodotti di sicurezza enterprise (Vanta) invece di arancio
+        // o verde, che qui restano riservati al solo significato di rischio.
         ink: {
-          DEFAULT: "#F5F5F4", // grigio Angar — neutro, non il beige caldo di prima
-          100: "#1A1A18",     // testo principale, quasi nero
-          400: "#8C8A83",     // testo secondario — grigio pulito
+          DEFAULT: "#F7F7F9",
+          100: "#16161A",
+          400: "#84848C",
         },
-        panel: "#FFFFFF",     // card
-        line: "#EAE8E3",      // bordi, sottili e puliti
-        // Palette Angar: nessun colore di brand acceso — i bottoni/azioni
-        // primarie sono neri (come "Import customers" / "Upgrade" in Angar),
-        // il verde è riservato allo stato positivo (come "Agent is online"),
-        // non è un accento di brand separato.
-        // Arancio "Claude" come colore di brand — richiesto esplicitamente,
-        // usato per azioni primarie, stato attivo, accenti decorativi.
+        panel: "#FFFFFF",
+        line: "#E7E7EC",
         accent: {
-          DEFAULT: "#D97757",
-          dark: "#B85A3E",
-          soft: "#FBEEEA",
+          DEFAULT: "#3B3564",
+          dark: "#292447",
+          soft: "#EEECF6",
         },
-        signal: "#B7791F",    // attenzione / rischio medio
-        steady: "#1F9254",    // approvato / sano / online — verde Angar
-        alarm: "#C4433B",     // rischio alto/critico
+        signal: "#B7791F",    // attenzione / rischio medio — invariato, è un significato universale
+        steady: "#1F9254",    // approvato / sano — invariato
+        alarm: "#C4433B",     // rischio alto/critico — invariato
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],

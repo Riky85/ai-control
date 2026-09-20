@@ -5,7 +5,7 @@ import AssetGraph from "@/components/AssetGraph";
 import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, setAssetCostAction, addAlternativeAction, deleteAlternativeAction } from "@/lib/actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import VendorIcon from "@/components/VendorIcon";
+import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
 
 export const dynamic = "force-dynamic";
 
@@ -59,9 +59,7 @@ export default async function AssetDetailPage({ params }: { params: { id: string
         </div>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-xl bg-accent-soft flex items-center justify-center text-accent shrink-0">
-              <VendorIcon vendor={asset.vendor ?? asset.connector?.provider ?? ""} size={26} />
-            </div>
+            <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} size={56} />
             <div>
               <h1 className="font-display text-[28px] leading-tight font-semibold text-ink-100">{asset.name}</h1>
               <p className="text-sm text-ink-400 mt-0.5">

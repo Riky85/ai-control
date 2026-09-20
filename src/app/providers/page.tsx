@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
-import VendorIcon from "@/components/VendorIcon";
+import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
 import BarChart from "@/components/BarChart";
 
 export const dynamic = "force-dynamic";
@@ -46,10 +46,10 @@ export default async function ProvidersPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-5">
-        <div className="rounded-xl bg-gradient-to-br from-accent to-accent-dark p-6 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
+        <div className="rounded-xl bg-gradient-to-br from-accent to-accent-dark p-4 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
           <div>
             <div className="text-xs font-medium text-white/90 mb-1">Tracked monthly spend</div>
-            <div className="font-display text-4xl font-bold text-white">€{totalMonthlySpend.toLocaleString()}</div>
+            <div className="font-display text-3xl font-bold text-white">€{totalMonthlySpend.toLocaleString()}</div>
           </div>
           <div className="text-right">
             <div className="text-xs text-white/70 mb-1">Providers</div>
@@ -76,9 +76,7 @@ export default async function ProvidersPage() {
           <div key={vendor} className="rounded-xl border border-line bg-panel shadow-card p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-md border border-line bg-ink flex items-center justify-center text-ink-100 shrink-0">
-                  <VendorIcon vendor={vendor} size={17} />
-                </div>
+                <VendorBadge vendor={vendor} size={38} />
                 <span className="font-medium text-sm text-ink-100">{vendor}</span>
               </div>
               <span className="text-xs text-ink-400">

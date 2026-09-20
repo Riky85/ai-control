@@ -1,4 +1,33 @@
 /**
+ * Colore identificativo di ciascun vendor, per lo sfondo del badge
+ * circolare — non inventato: preso dal colore dominante del marchio reale
+ * (il coral di Anthropic, il verde-menta di OpenAI, ecc.), sempre in tinta
+ * pastello tenue per restare nella palette minimale del prodotto.
+ */
+export function vendorTint(vendor: string): { bg: string; fg: string } {
+  const v = vendor.toUpperCase();
+  if (v === "ANTHROPIC") return { bg: "#F3E3DC", fg: "#C15F3C" };
+  if (v === "OPENAI") return { bg: "#E4F5EF", fg: "#0F8A6C" };
+  if (v === "GITHUB") return { bg: "#EDEDEF", fg: "#16161A" };
+  if (v === "MICROSOFT_365" || v === "MICROSOFT") return { bg: "#EEF4FB", fg: "#3B3564" };
+  if (v === "GOOGLE_WORKSPACE" || v === "GOOGLE") return { bg: "#EAF2FE", fg: "#3B3564" };
+  return { bg: "#EEECF6", fg: "#3B3564" };
+}
+
+/** Badge circolare pronto all'uso — icona + sfondo colorato del vendor. */
+export function VendorBadge({ vendor, size = 36 }: { vendor: string; size?: number }) {
+  const { bg, fg } = vendorTint(vendor);
+  return (
+    <span
+      className="rounded-full flex items-center justify-center shrink-0"
+      style={{ width: size, height: size, backgroundColor: bg, color: fg }}
+    >
+      <VendorIcon vendor={vendor} size={Math.round(size * 0.48)} />
+    </span>
+  );
+}
+
+/**
  * Marchi identificativi dei vendor rilevati — ricostruzioni indipendenti
  * fedeli all'aspetto reale (geometria e colori dove il marchio stesso è
  * cromatico, es. Microsoft/Google), non file ufficiali copiati. Uso

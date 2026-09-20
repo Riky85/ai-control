@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
-import VendorIcon from "@/components/VendorIcon";
+import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
 import { syncConnectorAction } from "@/lib/actions";
 import type { Connector, ConnectorProvider } from "@prisma/client";
 
@@ -93,9 +93,7 @@ export default async function ConnectorsPage({ searchParams }: { searchParams: {
             <div key={provider} className="rounded-xl border border-line bg-panel shadow-card p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-md border border-line bg-ink flex items-center justify-center text-ink-100 shrink-0">
-                    <VendorIcon vendor={provider} size={17} />
-                  </div>
+                  <VendorBadge vendor={provider} size={38} />
                   <span className="font-medium text-sm text-ink-100">{info.label}</span>
                   {row ? <Badge>{row.status}</Badge> : <Badge>DISCONNECTED</Badge>}
                 </div>

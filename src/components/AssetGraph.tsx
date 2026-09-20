@@ -68,7 +68,7 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
       })}
 
       <g transform={`translate(${xCenter}, ${centerY - 16})`}>
-        <rect width={NODE_W_CENTER} height={32} rx={7} fill="#D97757" />
+        <rect width={NODE_W_CENTER} height={32} rx={7} fill="#3B3564" />
         <text x={NODE_W_CENTER / 2} y={20} textAnchor="middle" fontSize="12" fontWeight={600} fill="#FFFFFF">
           {truncate(center, 24)}
         </text>
@@ -82,12 +82,12 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
       ))}
 
       {left.length === 0 && (
-        <text x={xLeft} y={centerY} fontSize="11" fill="#8C8A83">
+        <text x={xLeft} y={centerY} fontSize="11" fill="#84848C">
           No known users
         </text>
       )}
       {right.length === 0 && (
-        <text x={xRight} y={centerY} fontSize="11" fill="#8C8A83">
+        <text x={xRight} y={centerY} fontSize="11" fill="#84848C">
           Nothing declared
         </text>
       )}
@@ -108,7 +108,7 @@ function Node({ x, y, node }: { x: number; y: number; node: GraphNode }) {
         {truncate(node.label, 26)}
       </text>
       {node.sublabel && (
-        <text x={10} y={29} fontSize="9.5" fill="#8C8A83">
+        <text x={10} y={29} fontSize="9.5" fill="#84848C">
           {truncate(node.sublabel, 32)}
         </text>
       )}
