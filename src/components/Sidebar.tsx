@@ -53,14 +53,20 @@ function PanelToggleIcon() {
   );
 }
 
-// Lista piatta, come Angar: nessun raggruppamento con etichette, nessuno
-// spazio extra tra "sezioni" — solo una spaziatura uniforme tra voci.
-const NAV_ITEMS = [
+// Due gruppi, non una lista piatta di 10 voci: le 5 cose che rispondono
+// davvero alla domanda del prodotto (cosa abbiamo, da chi dipende, cosa
+// costa, cosa cambia) in evidenza; il resto — supporto/governance — sotto,
+// visivamente più piccolo e silenzioso. Meno cose in vista = più facile
+// da capire al primo sguardo.
+const PRIMARY_ITEMS = [
   { href: "/", label: "Overview", icon: "home" },
   { href: "/assets", label: "AI Passports", icon: "assets" },
   { href: "/providers", label: "Providers", icon: "providers" },
   { href: "/savings", label: "Savings", icon: "savings" },
   { href: "/changes", label: "Changes", icon: "changes" },
+];
+
+const MORE_ITEMS = [
   { href: "/people", label: "People", icon: "people" },
   { href: "/data", label: "Data Exposure", icon: "data" },
   { href: "/governance", label: "Governance", icon: "assurance" },
@@ -158,13 +164,23 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
       )}
 
       <nav className="flex flex-col gap-0.5 overflow-y-auto">
-        {NAV_ITEMS.map((item) => (
+        {PRIMARY_ITEMS.map((item) => (
           <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(pathname === item.href)}>
             <Icon name={item.icon} />
             {!collapsed && item.label}
           </Link>
         ))}
       </nav>
+
+      <div className="mt-4 pt-4 border-t border-line flex flex-col gap-0.5">
+        {!collapsed && <div className="text-[10px] uppercase tracking-wide text-ink-400/70 px-3 mb-1">More</div>}
+        {MORE_ITEMS.map((item) => (
+          <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(pathname === item.href)}>
+            <Icon name={item.icon} />
+            {!collapsed && item.label}
+          </Link>
+        ))}
+      </div>
 
       <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-line">
         <Link href="/settings" title={collapsed ? "Settings" : undefined} className={itemClass(pathname === "/settings")}>
