@@ -38,7 +38,7 @@ export default async function SavingsPage() {
       </div>
 
       <div className="grid grid-cols-4 gap-4">
-        <div className="col-span-2 rounded-xl border border-line bg-panel shadow-card p-4 flex flex-col justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
+        <div className="col-span-2 rounded-xl border border-line bg-panel shadow-card p-4 flex flex-col justify-between">
           <span className="text-[10px] font-mono uppercase tracking-wider text-accent">Estimated annual opportunity</span>
           <div className="font-display text-3xl font-bold text-accent mt-4">€{totalAnnualOpportunity.toLocaleString()}</div>
         </div>

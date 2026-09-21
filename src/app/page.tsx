@@ -80,30 +80,30 @@ export default async function OverviewPage({ searchParams }: { searchParams: { t
         )}
       </div>
 
-      <div className="grid grid-cols-6 divide-x divide-line border border-line rounded-lg overflow-hidden">
-        <div className="px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1">AI systems</div>
+      <div className="flex divide-x divide-line border border-line rounded-lg overflow-hidden">
+        <div className="flex-1 min-w-0 px-4 py-3">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">AI systems</div>
           <div className="text-sm font-semibold text-ink-100">{total}</div>
         </div>
-        <div className="px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1">Providers</div>
+        <div className="flex-1 min-w-0 px-4 py-3">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">Providers</div>
           <div className="text-sm font-semibold text-ink-100">{providerCount}</div>
         </div>
-        <div className="px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1">Approved</div>
+        <div className="flex-1 min-w-0 px-4 py-3">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">Approved</div>
           <div className="text-sm font-semibold text-ink-100">{approvedCount}</div>
         </div>
-        <div className="px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1">Open issues</div>
+        <div className="flex-1 min-w-0 px-4 py-3">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">Open issues</div>
           <div className={`text-sm font-semibold ${attention.length > 0 ? "text-signal" : "text-ink-100"}`}>{attention.length}</div>
         </div>
-        <div className="px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1">First seen</div>
-          <div className="text-sm font-semibold text-ink-100">{firstSeen ? firstSeen.toLocaleDateString() : "—"}</div>
+        <div className="flex-1 min-w-0 px-4 py-3">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">First seen</div>
+          <div className="text-sm font-semibold text-ink-100 truncate">{firstSeen ? firstSeen.toLocaleDateString() : "—"}</div>
         </div>
-        <div className="px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1">Last sync</div>
-          <div className="text-sm font-semibold text-ink-100">{lastScan ? lastScan.toLocaleString() : "—"}</div>
+        <div className="flex-1 min-w-0 px-4 py-3">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">Last sync</div>
+          <div className="text-sm font-semibold text-ink-100 truncate">{lastScan ? lastScan.toLocaleDateString() : "—"}</div>
         </div>
       </div>
 

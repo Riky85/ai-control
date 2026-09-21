@@ -54,10 +54,9 @@ export default async function AssetsPage({
     ? assets.filter((a) => a.riskAssessments[0]?.level === searchParams.risk)
     : assets;
 
-  // Tinte distinte tra loro — non solo sfumature dello stesso indaco, più
-  // facili da distinguere a colpo d'occhio. Niente verde/ambra/rosso: quei
-  // colori restano riservati al significato di rischio.
-  const TYPE_COLORS = ["#3B3564", "#1F7A6C", "#8A5A3B", "#5B6B8C", "#84848C", "#B4708C"];
+  // Famiglia blu/viola coerente — niente marrone o tonalità confuse, e
+  // lontana da verde/rosso/ambra che restano il significato di rischio.
+  const TYPE_COLORS = ["#3B3564", "#4C6EF5", "#7C6FE0", "#5C9EAD", "#A78BFA", "#84848C"];
   const typeCounts = new Map<string, number>();
   for (const a of assets) typeCounts.set(a.type, (typeCounts.get(a.type) ?? 0) + 1);
   const typeSlices = Array.from(typeCounts.entries()).map(([type, value], i) => ({
@@ -80,13 +79,13 @@ export default async function AssetsPage({
       </div>
 
       <div className="grid grid-cols-2 gap-5">
-        <div className="rounded-xl border border-line bg-panel shadow-card p-4 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
+        <div className="rounded-xl border border-line bg-panel shadow-card p-4 flex items-center justify-between">
           <div>
-            <div className="text-xs font-medium text-ink-400 mb-1">Total tracked</div>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Total tracked</div>
             <div className="font-display text-3xl font-bold text-accent">{assets.length}</div>
           </div>
           <div className="text-right">
-            <div className="text-xs text-ink-400 mb-1">Monthly spend tracked</div>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Monthly spend tracked</div>
             <div className="font-display text-xl font-semibold text-accent">€{totalCost.toLocaleString()}</div>
           </div>
         </div>

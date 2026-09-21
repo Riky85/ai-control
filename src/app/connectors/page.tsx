@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
-import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
+import { VendorBadge } from "@/components/VendorIcon";
 import { syncConnectorAction } from "@/lib/actions";
 import type { Connector, ConnectorProvider } from "@prisma/client";
 
@@ -11,8 +11,8 @@ const ORG_ID = "demo-org";
 interface ConnectorInfo {
   label: string;
   implemented: boolean;
-  oneClick: boolean; // true = un vero flusso "Connect", nessuna configurazione manuale lato cliente
-  note: string; // una riga, non un paragrafo
+  oneClick: boolean;
+  note: string;
   envVars: string[];
   steps: string[];
 }
@@ -22,15 +22,15 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
     label: "GitHub",
     implemented: true,
     oneClick: true,
-    note: "Click Connect, pick your GitHub org, done. No passwords, no keys to copy.",
+    note: "Pick your org, done.",
     envVars: [],
     steps: [],
   },
   MICROSOFT_365: {
-    label: "Microsoft 365 / Entra ID",
+    label: "Microsoft 365",
     implemented: true,
     oneClick: false,
-    note: "Needs a one-time admin setup in Microsoft Entra — not a login.",
+    note: "Admin setup required.",
     envVars: ["MS365_TENANT_ID", "MS365_CLIENT_ID", "MS365_CLIENT_SECRET"],
     steps: [
       "Entra ID → App registrations → New registration → copy Client ID and Tenant ID.",
@@ -40,18 +40,18 @@ const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
     ],
   },
   ANTHROPIC: {
-    label: "Anthropic (Claude)",
+    label: "Anthropic",
     implemented: true,
     oneClick: false,
-    note: "Needs a Claude Enterprise/Team Admin API key — not a personal login.",
+    note: "Admin API key required.",
     envVars: ["ANTHROPIC_ADMIN_API_KEY"],
     steps: ["console.anthropic.com → Settings → Admin API keys → generate one.", "Paste it into Railway, then Sync now."],
   },
   OPENAI: {
-    label: "OpenAI (ChatGPT)",
+    label: "OpenAI",
     implemented: true,
     oneClick: false,
-    note: "Needs a ChatGPT Enterprise/Edu Admin API key — not a personal login.",
+    note: "Admin API key required.",
     envVars: ["OPENAI_ADMIN_API_KEY"],
     steps: ["platform.openai.com → Settings → Organization → Admin keys → generate one.", "Paste it into Railway, then Sync now."],
   },
@@ -83,58 +83,43 @@ export default async function ConnectorsPage({ searchParams }: { searchParams: {
         </div>
       )}
 
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-3 gap-4">
         {Object.entries(CONNECTOR_INFO).map(([provider, info]) => {
           const row = byProvider.get(provider as ConnectorProvider);
           const warnings = (row?.lastSyncWarnings as string[] | null) ?? [];
           const connected = row?.status === "CONNECTED";
 
           return (
-            <div key={provider} className="rounded-xl border border-line bg-panel p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <VendorBadge vendor={provider} size={38} />
-                  <span className="font-medium text-sm text-ink-100">{info.label}</span>
+            <div key={provider} className="rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <VendorBadge vendor={provider} size={34} />
+                <div className="min-w-0">
+                  <div className="font-medium text-sm text-ink-100 truncate">{info.label}</div>
                   {row ? <Badge>{row.status}</Badge> : <Badge>DISCONNECTED</Badge>}
-                </div>
-                <div className="flex items-center gap-2">
-                  {info.implemented && connected && (
-                    <form action={syncConnectorAction}>
-                      <input type="hidden" name="provider" value={provider} />
-                      <button type="submit" className="text-xs px-2.5 py-1 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors">
-                        Sync now
-                      </button>
-                    </form>
-                  )}
-                  {info.implemented && info.oneClick && !connected && githubAppReady && (
-                    <a href="/api/connectors/github/install" className="text-xs font-medium px-3 py-1.5 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors">
-                      Connect
-                    </a>
-                  )}
                 </div>
               </div>
 
-              <p className="text-xs text-ink-400 mt-2">{info.note}</p>
+              <p className="text-xs text-ink-400">{info.note}</p>
 
-              {row?.lastSyncedAt && <p className="text-xs text-ink-400 mt-1">Last synced {new Date(row.lastSyncedAt).toLocaleString()}</p>}
-              {row?.lastSyncError && <p className="text-xs text-alarm mt-1">{row.lastSyncError}</p>}
-              {warnings.length > 0 && (
-                <ul className="text-xs text-signal flex flex-col gap-1 mt-1">
-                  {warnings.map((w, i) => (
-                    <li key={i}>· {w}</li>
-                  ))}
-                </ul>
+              {info.implemented && connected && (
+                <form action={syncConnectorAction}>
+                  <input type="hidden" name="provider" value={provider} />
+                  <button type="submit" className="text-xs px-3 py-1.5 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors w-full">
+                    Sync now
+                  </button>
+                </form>
               )}
-
+              {info.implemented && info.oneClick && !connected && githubAppReady && (
+                <a href="/api/connectors/github/install" className="text-xs font-medium text-center px-3 py-1.5 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors">
+                  Connect
+                </a>
+              )}
               {info.implemented && info.oneClick && !githubAppReady && (
-                <p className="text-xs text-signal mt-2">
-                  Not set up on this deployment yet — needs a one-time platform-level GitHub App, done once by whoever runs Angar, not by each customer.
-                </p>
+                <p className="text-xs text-signal">Not set up on this deployment yet.</p>
               )}
-
               {info.implemented && !info.oneClick && !connected && info.steps.length > 0 && (
-                <details className="mt-3 group">
-                  <summary className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors list-none inline-block">
+                <details className="group">
+                  <summary className="cursor-pointer text-xs font-medium text-center px-3 py-1.5 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors list-none">
                     Connect
                   </summary>
                   <div className="mt-3 pt-3 border-t border-line flex flex-col gap-2">
@@ -148,6 +133,19 @@ export default async function ConnectorsPage({ searchParams }: { searchParams: {
                         <li key={i}>{s}</li>
                       ))}
                     </ol>
+                  </div>
+                </details>
+              )}
+
+              {(row?.lastSyncedAt || row?.lastSyncError || warnings.length > 0) && (
+                <details className="text-xs">
+                  <summary className="cursor-pointer text-ink-400 hover:text-ink-100 list-none">Details</summary>
+                  <div className="mt-1.5 flex flex-col gap-1">
+                    {row?.lastSyncedAt && <p className="text-ink-400">Last synced {new Date(row.lastSyncedAt).toLocaleString()}</p>}
+                    {row?.lastSyncError && <p className="text-alarm">{row.lastSyncError}</p>}
+                    {warnings.map((w, i) => (
+                      <p key={i} className="text-signal">· {w}</p>
+                    ))}
                   </div>
                 </details>
               )}

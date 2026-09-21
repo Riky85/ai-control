@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
+import Link from "next/link";
 import { db } from "@/lib/db";
 
 const sans = IBM_Plex_Sans({
@@ -45,9 +46,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </div>
             </form>
             {orgName && (
-              <span className="text-xs text-ink-400 border border-line rounded-md px-3 py-1.5">
+              <Link
+                href="/settings"
+                className="flex items-center gap-2 text-xs text-ink-100 border border-line rounded-md px-3 py-1.5 hover:border-ink-100 transition-colors"
+              >
                 {orgName}
-              </span>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 4l2.5 2.5L7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </Link>
             )}
           </header>
           <main className="flex-1 px-10 py-9">{children}</main>
