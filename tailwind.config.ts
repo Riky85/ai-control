@@ -21,7 +21,7 @@ const config: Config = {
           dark: "#292447",
           soft: "#EEECF6",
         },
-        signal: "#B7791F",    // attenzione / rischio medio — invariato, è un significato universale
+        signal: "#C2650C",    // attenzione / rischio medio — più vivido, meno "senape"
         steady: "#1F9254",    // approvato / sano — invariato
         alarm: "#C4433B",     // rischio alto/critico — invariato
       },
