@@ -54,9 +54,10 @@ export default async function AssetsPage({
     ? assets.filter((a) => a.riskAssessments[0]?.level === searchParams.risk)
     : assets;
 
-  // Tinte proprie per "per tipo" — niente verde/ambra/rosso: quei colori
-  // sono riservati al significato di rischio, non hanno senso qui.
-  const TYPE_COLORS = ["#3B3564", "#7A75A0", "#B4B0D0", "#16161A", "#84848C", "#C7C5D8"];
+  // Tinte distinte tra loro — non solo sfumature dello stesso indaco, più
+  // facili da distinguere a colpo d'occhio. Niente verde/ambra/rosso: quei
+  // colori restano riservati al significato di rischio.
+  const TYPE_COLORS = ["#3B3564", "#1F7A6C", "#8A5A3B", "#5B6B8C", "#84848C", "#B4708C"];
   const typeCounts = new Map<string, number>();
   for (const a of assets) typeCounts.set(a.type, (typeCounts.get(a.type) ?? 0) + 1);
   const typeSlices = Array.from(typeCounts.entries()).map(([type, value], i) => ({

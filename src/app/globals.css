@@ -15,17 +15,6 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Tocco di dinamismo diffuso: ogni card con l'ombra standard reagisce
-   leggermente al passaggio del mouse, invece di restare completamente
-   statica — coerente sia per le card cliccabili sia per quelle che non
-   lo sono (un lift minimo non promette un click che non c'è). */
-.shadow-card {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-.shadow-card:hover {
-  box-shadow: 0 4px 14px 0 rgba(20, 20, 18, 0.08);
-}
-
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;

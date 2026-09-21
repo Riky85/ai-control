@@ -90,7 +90,7 @@ export default async function ConnectorsPage({ searchParams }: { searchParams: {
           const connected = row?.status === "CONNECTED";
 
           return (
-            <div key={provider} className="rounded-xl border border-line bg-panel shadow-card p-4">
+            <div key={provider} className="rounded-xl border border-line bg-panel p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <VendorBadge vendor={provider} size={38} />
@@ -128,17 +128,16 @@ export default async function ConnectorsPage({ searchParams }: { searchParams: {
 
               {info.implemented && info.oneClick && !githubAppReady && (
                 <p className="text-xs text-signal mt-2">
-                  Not set up on this deployment yet — needs a one-time platform-level GitHub App (GITHUB_APP_ID / GITHUB_APP_PRIVATE_KEY / GITHUB_APP_SLUG), done once by whoever runs Angar, not by each customer.
+                  Not set up on this deployment yet — needs a one-time platform-level GitHub App, done once by whoever runs Angar, not by each customer.
                 </p>
               )}
 
               {info.implemented && !info.oneClick && !connected && info.steps.length > 0 && (
-                <details className="mt-3 pt-3 border-t border-line group">
-                  <summary className="cursor-pointer text-xs text-ink-100 font-medium list-none flex items-center gap-1.5">
-                    <span className="group-open:rotate-90 transition-transform inline-block">▸</span>
-                    Setup steps
+                <details className="mt-3 group">
+                  <summary className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors list-none inline-block">
+                    Connect
                   </summary>
-                  <div className="mt-2 flex flex-col gap-2">
+                  <div className="mt-3 pt-3 border-t border-line flex flex-col gap-2">
                     <div className="flex flex-wrap gap-1.5">
                       {info.envVars.map((v) => (
                         <code key={v} className="text-[11px] bg-ink border border-line rounded px-1.5 py-0.5 text-ink-100">{v}</code>
