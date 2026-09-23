@@ -1,4 +1,4 @@
-import VendorIcon from "@/components/VendorIcon";
+import VendorIcon, { resolveBrand } from "@/components/VendorIcon";
 
 // Primitivi condivisi da AssetGraph (dettaglio passaporto) ed EstateGraph
 // (Home), così i due grafi hanno esattamente lo stesso aspetto.
@@ -88,12 +88,13 @@ export function Node({
   const fill = emphasis ? (alarm ? G.alarmSoft : G.accentSoft) : "#FFFFFF";
   const stroke = alarm ? G.alarm : emphasis ? G.accent : G.line;
   const textColor = emphasis ? (alarm ? G.alarm : G.accent) : alarm ? G.alarm : G.text;
-  const showBrand = vendor !== undefined && (kind === "provider" || kind === "system");
+  const externalBrand = kind === "external" && resolveBrand(label) ? label : null;
+  const showBrand = (vendor !== undefined && (kind === "provider" || kind === "system")) || externalBrand !== null;
   const body = (
     <g transform={`translate(${x}, ${y - h / 2})`}>
       <rect width={w} height={h} rx={12} fill={fill} stroke={stroke} strokeWidth={emphasis ? 1.6 : 1.2} />
       <g transform="translate(12, 12)">
-        {showBrand ? <VendorIcon vendor={vendor ?? ""} name={name} size={16} /> : <KindGlyph kind={kind} color={alarm ? G.alarm : G.muted} />}
+        {showBrand ? <VendorIcon vendor={externalBrand ?? vendor ?? ""} name={name} size={16} /> : <KindGlyph kind={kind} color={alarm ? G.alarm : G.muted} />}
       </g>
       <text x={36} y={sublabel ? 17 : 24} fontSize="12" fontWeight={emphasis ? 600 : 500} fill={textColor}>
         {cut(label, Math.floor((w - 44) / 6.6))}
