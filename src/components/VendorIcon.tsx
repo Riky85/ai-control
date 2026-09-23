@@ -12,7 +12,7 @@ const PRODUCT_RULES: [RegExp, string][] = [
   [/chatgpt|\bgpt|openai|codex|dall.?e|sora/i, "openai"],
   [/gemini|bard/i, "gemini"],
   [/github copilot|copilot.*github/i, "githubcopilot"],
-  [/copilot/i, "copilot"],
+  [/^copilot\b|microsoft copilot|m365 copilot|copilot studio/i, "copilot"],
   [/cursor/i, "cursor"],
   [/windsurf|codeium/i, "windsurf"],
   [/mistral|le chat/i, "mistral"],
