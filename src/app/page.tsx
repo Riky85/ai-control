@@ -80,30 +80,26 @@ export default async function OverviewPage({ searchParams }: { searchParams: { t
         )}
       </div>
 
-      <div className="flex divide-x divide-line border border-line rounded-lg overflow-hidden">
-        <div className="flex-1 min-w-0 px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">AI systems</div>
-          <div className="text-sm font-semibold text-ink-100">{total}</div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-xl border border-line bg-panel p-6">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-2">AI systems</div>
+          <div className="font-display text-3xl font-bold text-ink-100">{total}</div>
+          <div className="text-xs text-ink-400 mt-1">{approvedCount} approved</div>
         </div>
-        <div className="flex-1 min-w-0 px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">Providers</div>
-          <div className="text-sm font-semibold text-ink-100">{providerCount}</div>
+        <div className="rounded-xl border border-line bg-panel p-6">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-2">Providers</div>
+          <div className="font-display text-3xl font-bold text-ink-100">{providerCount}</div>
+          <div className="text-xs text-ink-400 mt-1 truncate">{providerRows.map(([v]) => v).slice(0, 3).join(", ")}</div>
         </div>
-        <div className="flex-1 min-w-0 px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">Approved</div>
-          <div className="text-sm font-semibold text-ink-100">{approvedCount}</div>
+        <div className="rounded-xl border border-line bg-panel p-6">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-2">Open issues</div>
+          <div className={`font-display text-3xl font-bold ${attention.length > 0 ? "text-signal" : "text-ink-100"}`}>{attention.length}</div>
+          <div className="text-xs text-ink-400 mt-1">{attention.length > 0 ? "Waiting on review" : "Nothing pending"}</div>
         </div>
-        <div className="flex-1 min-w-0 px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">Open issues</div>
-          <div className={`text-sm font-semibold ${attention.length > 0 ? "text-signal" : "text-ink-100"}`}>{attention.length}</div>
-        </div>
-        <div className="flex-1 min-w-0 px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">First seen</div>
-          <div className="text-sm font-semibold text-ink-100 truncate">{firstSeen ? firstSeen.toLocaleDateString() : "—"}</div>
-        </div>
-        <div className="flex-1 min-w-0 px-4 py-3">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1 truncate">Last sync</div>
-          <div className="text-sm font-semibold text-ink-100 truncate">{lastScan ? lastScan.toLocaleDateString() : "—"}</div>
+        <div className="rounded-xl border border-line bg-panel p-6">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-2">Last sync</div>
+          <div className="font-display text-3xl font-bold text-ink-100">{lastScan ? lastScan.toLocaleDateString() : "—"}</div>
+          <div className="text-xs text-ink-400 mt-1">First seen {firstSeen ? firstSeen.toLocaleDateString() : "—"}</div>
         </div>
       </div>
 
