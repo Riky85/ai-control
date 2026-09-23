@@ -71,40 +71,39 @@ export default async function ProvidersPage() {
         )}
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-3 gap-4">
         {rows.map(({ vendor, list, critical, production, monthlySpend, hasCostData, costedCount }) => (
-          <div key={vendor} className="rounded-xl border border-line bg-panel shadow-card p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <VendorBadge vendor={vendor} size={38} />
-                <span className="font-medium text-sm text-ink-100">{vendor}</span>
+          <div key={vendor} className="rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <VendorBadge vendor={vendor} size={34} />
+              <div className="min-w-0">
+                <div className="font-medium text-sm text-ink-100 truncate">{vendor}</div>
+                <div className="text-xs text-ink-400">{list.length} system{list.length === 1 ? "" : "s"}</div>
               </div>
-              <span className="text-xs text-ink-400">
-                {list.length} system{list.length === 1 ? "" : "s"}
-              </span>
             </div>
-            <div className="grid grid-cols-4 gap-4 text-xs text-ink-400 mb-3">
-              <span>
-                <span className={`font-medium ${critical.length > 0 ? "text-alarm" : "text-ink-100"}`}>{critical.length}</span> critical
-              </span>
-              <span>
-                <span className="font-medium text-ink-100">{production.length}</span> in production
-              </span>
-              <span>
-                <span className="font-medium text-ink-100">{list.length}</span> total
-              </span>
-              <span>
+
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className={`font-medium ${critical.length > 0 ? "text-alarm" : "text-ink-100"}`}>{critical.length}</span>
+                <span className="text-ink-400"> critical</span>
+              </div>
+              <div>
+                <span className="font-medium text-ink-100">{production.length}</span>
+                <span className="text-ink-400"> in prod</span>
+              </div>
+              <div className="col-span-2">
                 {hasCostData ? (
                   <>
-                    <span className="font-medium text-ink-100">€{monthlySpend.toLocaleString()}</span>/mo
-                    {costedCount < list.length && <span className="block text-[10px]">({costedCount}/{list.length} costed)</span>}
+                    <span className="font-medium text-ink-100">€{monthlySpend.toLocaleString()}</span>
+                    <span className="text-ink-400">/mo{costedCount < list.length ? ` (${costedCount}/${list.length} costed)` : ""}</span>
                   </>
                 ) : (
                   <span className="text-ink-400">No cost data</span>
                 )}
-              </span>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2 pt-3 border-t border-line">
+
+            <div className="flex flex-wrap gap-1.5 pt-3 border-t border-line">
               {list.map((a) => (
                 <Link
                   key={a.id}
@@ -120,7 +119,7 @@ export default async function ProvidersPage() {
           </div>
         ))}
         {rows.length === 0 && (
-          <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
+          <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400 col-span-3">
             No AI systems on record yet.
           </div>
         )}
