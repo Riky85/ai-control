@@ -19,7 +19,7 @@ export default function BarChart({ rows, formatValue }: { rows: BarChartRow[]; f
           <div className="w-28 shrink-0 text-xs text-ink-400 truncate">{r.label}</div>
           <div className="flex-1 h-5 bg-ink rounded-full overflow-hidden">
             <div
-              className="h-full bg-ink-100 rounded-full"
+              className="h-full bg-accent rounded-full"
               style={{ width: `${Math.max((r.value / max) * 100, 4)}%` }}
             />
           </div>

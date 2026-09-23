@@ -5,31 +5,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Tema scuro definitivo, come nel riferimento condiviso: base quasi
-        // nera, card leggermente più chiare per separazione, accento
-        // ciano/blu — non più un tema chiaro con un accento scuro.
+        // Stile OneTrust: contenuto bianco, sidebar nera (colori espliciti in
+        // Sidebar.tsx), accento blu-viola, verde/ambra/rosso solo per stato.
         ink: {
-          DEFAULT: "#0A0B0E",
-          100: "#F2F3F5",
-          400: "#8B8E97",
+          DEFAULT: "#F6F6F8",
+          100: "#141418",
+          400: "#6E6E78",
         },
-        panel: "#15171C",
-        line: "#262930",
+        panel: "#FFFFFF",
+        line: "#E6E6EB",
         accent: {
-          DEFAULT: "#4C9EFF",
-          dark: "#3A82DB",
-          soft: "#173049",
+          DEFAULT: "#3D3FD9",
+          dark: "#2E30B8",
+          soft: "#ECECFC",
         },
-        signal: "#E8A93B",    // attenzione / rischio medio — chiaro abbastanza da leggersi su scuro
-        steady: "#34C77B",    // approvato / sano
-        alarm: "#F0655A",     // rischio alto/critico
+        signal: "#C2650C",
+        steady: "#1F9254",
+        alarm: "#C4433B",
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
         body: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
       },
       boxShadow: {
-        card: "0 1px 2px 0 rgba(0,0,0,0.24)",
+        card: "0 1px 2px 0 rgba(20,20,24,0.04)",
       },
     },
   },

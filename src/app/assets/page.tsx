@@ -128,7 +128,7 @@ export default async function AssetsPage({
               const risk = asset.riskAssessments[0];
               const assurance = asset.assuranceReports[0];
               return (
-                <tr key={asset.id} className="hover:bg-white/[0.04]">
+                <tr key={asset.id} className="hover:bg-black/[0.025]">
                   <td className="px-4 py-3">
                     <Link href={`/assets/${asset.id}`} className="hover:underline font-medium text-ink-100">
                       {asset.name}

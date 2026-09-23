@@ -108,25 +108,25 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
   function itemClass(active: boolean) {
     return `relative flex items-center gap-2.5 text-sm transition-colors ${
       collapsed ? "justify-center px-0 py-2.5 rounded-md" : "px-3 py-2 rounded-md"
-    } ${active ? "text-ink-100 bg-white/[0.06] font-medium" : "text-ink-400 hover:text-ink-100 hover:bg-white/[0.05]"}`;
+    } ${active ? "text-white bg-white/[0.06] font-medium" : "text-[#8C8C96] hover:text-white hover:bg-white/[0.05]"}`;
   }
 
   return (
     <aside
-      className={`shrink-0 bg-ink h-full pb-6 flex flex-col transition-[width] duration-150 ${
+      className={`shrink-0 bg-[#0B0B0D] h-full pb-6 flex flex-col transition-[width] duration-150 ${
         collapsed ? "w-[64px] px-3 pt-3" : "w-60 px-4 pt-3"
       } ${ready ? "" : "invisible"}`}
     >
       {!collapsed && (
         <div className="flex items-center mb-5 gap-2 px-3">
-          <span className="text-ink-100 shrink-0">
+          <span className="text-white shrink-0">
             <Logo size={16} />
           </span>
-          <span className="font-semibold text-[15px] tracking-tight text-ink-100">Angar</span>
+          <span className="font-semibold text-[15px] tracking-tight text-white">Angar</span>
           <button
             onClick={toggle}
             aria-label="Collapse sidebar"
-            className="ml-auto h-7 w-7 flex items-center justify-center rounded text-ink-400 hover:text-ink-100 hover:bg-white/[0.08] transition-colors"
+            className="ml-auto h-7 w-7 flex items-center justify-center rounded text-[#8C8C96] hover:text-white hover:bg-white/[0.08] transition-colors"
           >
             <PanelToggleIcon />
           </button>
@@ -138,10 +138,10 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
           aria-label="Expand sidebar"
           className="group relative h-8 w-8 mx-auto mb-4 flex items-center justify-center"
         >
-          <span className="text-ink-100 transition-opacity group-hover:opacity-0">
+          <span className="text-white transition-opacity group-hover:opacity-0">
             <Logo size={16} />
           </span>
-          <span className="absolute inset-0 flex items-center justify-center text-ink-400 opacity-0 group-hover:opacity-100 group-hover:text-ink-100 transition-opacity rounded hover:bg-white/[0.08]">
+          <span className="absolute inset-0 flex items-center justify-center text-[#8C8C96] opacity-0 group-hover:opacity-100 group-hover:text-white transition-opacity rounded hover:bg-white/[0.08]">
             <PanelToggleIcon />
           </span>
         </button>
@@ -156,8 +156,8 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         ))}
       </nav>
 
-      <div className="mt-4 pt-4 border-t border-line flex flex-col gap-0.5">
-        {!collapsed && <div className="text-[10px] uppercase tracking-wide text-ink-400/70 px-3 mb-1">More</div>}
+      <div className="mt-4 pt-4 border-t border-white/10 flex flex-col gap-0.5">
+        {!collapsed && <div className="text-[10px] uppercase tracking-wide text-white/35 px-3 mb-1">More</div>}
         {MORE_ITEMS.map((item) => (
           <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(pathname === item.href)}>
             <Icon name={item.icon} />
@@ -166,7 +166,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         ))}
       </div>
 
-      <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-line">
+      <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-white/10">
         <Link href="/settings" title={collapsed ? "Settings" : undefined} className={itemClass(pathname === "/settings")}>
           <Icon name="settings" />
           {!collapsed && "Settings"}
@@ -176,15 +176,15 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
       {orgName && (
         <Link
           href="/settings"
-          className={`mt-4 pt-3 border-t border-line flex items-center gap-2.5 hover:bg-white/[0.05] transition-colors rounded-md ${collapsed ? "justify-center px-0 py-1" : "px-3 py-1"}`}
+          className={`mt-4 pt-3 border-t border-white/10 flex items-center gap-2.5 hover:bg-white/[0.05] transition-colors rounded-md ${collapsed ? "justify-center px-0 py-1" : "px-3 py-1"}`}
         >
-          <div className="h-6 w-6 rounded-full bg-white/[0.08] flex items-center justify-center text-[11px] text-ink-400 shrink-0">
+          <div className="h-6 w-6 rounded-full bg-white/[0.08] flex items-center justify-center text-[11px] text-[#8C8C96] shrink-0">
             {orgName.charAt(0).toUpperCase()}
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="text-xs text-ink-100 truncate">{orgName}</div>
-              <div className="text-[10px] text-ink-400">Settings</div>
+              <div className="text-xs text-white truncate">{orgName}</div>
+              <div className="text-[10px] text-[#8C8C96]">Settings</div>
             </div>
           )}
         </Link>

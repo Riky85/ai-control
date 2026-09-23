@@ -11,6 +11,9 @@ import { db } from "@/lib/db";
 import { runConnectorSync } from "@/lib/connectors/sync";
 import { assessAssetRisk } from "@/lib/risk-engine";
 import { runAssuranceChecks } from "@/lib/assurance-engine";
+import { encryptJson } from "@/lib/crypto";
+import { adminGet as anthropicGet } from "@/lib/connectors/anthropic";
+import { adminGet as openaiGet } from "@/lib/connectors/openai";
 import type { ConnectorProvider, AiAssetStatus, EuAiActTier } from "@prisma/client";
 
 const ORG_ID = "demo-org"; // MVP: single-tenant demo; sostituire con auth reale
@@ -53,6 +56,55 @@ export async function syncConnectorAction(formData: FormData) {
   revalidatePath("/governance");
   revalidatePath("/changes");
   revalidatePath("/");
+}
+
+
+// Connect con API key incollata nell'app: 1) la chiave viene provata subito
+// contro il provider (una chiamata di sola lettura), 2) solo se funziona la
+// salviamo cifrata, 3) parte la prima sincronizzazione. Niente Railway,
+// niente variabili d'ambiente per il cliente.
+const KEY_TESTS: Partial<Record<ConnectorProvider, (key: string) => Promise<unknown>>> = {
+  ANTHROPIC: (key) => anthropicGet("/organizations/users?limit=1", key),
+  OPENAI: (key) => openaiGet("/organization/users?limit=1", key),
+};
+
+export async function connectWithApiKeyAction(formData: FormData) {
+  const provider = formData.get("provider") as ConnectorProvider;
+  const apiKey = String(formData.get("apiKey") ?? "").trim();
+  const test = KEY_TESTS[provider];
+  if (!test || !apiKey) redirect(`/connectors?error=${encodeURIComponent("Paste an admin API key first.")}&provider=${provider}`);
+
+  let failure: string | null = null;
+  try {
+    await test!(apiKey);
+  } catch {
+    failure = "That key didn't work — check it's an Admin API key (not a normal API key) and try again.";
+  }
+  if (failure) redirect(`/connectors?error=${encodeURIComponent(failure)}&provider=${provider}`);
+
+  let credentials: string;
+  try {
+    credentials = encryptJson({ apiKey });
+  } catch (err) {
+    redirect(`/connectors?error=${encodeURIComponent((err as Error).message)}&provider=${provider}`);
+  }
+  await db.connector.upsert({
+    where: { organizationId_provider: { organizationId: ORG_ID, provider } },
+    update: { credentialsEncrypted: credentials!, status: "CONNECTED", lastSyncError: null },
+    create: { organizationId: ORG_ID, provider, credentialsEncrypted: credentials!, status: "CONNECTED", scopes: [] },
+  });
+  await runConnectorSync(ORG_ID, provider);
+  revalidatePath("/", "layout");
+  redirect(`/connectors?connected=${provider.toLowerCase()}`);
+}
+
+export async function disconnectConnectorAction(formData: FormData) {
+  const provider = formData.get("provider") as ConnectorProvider;
+  await db.connector.updateMany({
+    where: { organizationId: ORG_ID, provider },
+    data: { credentialsEncrypted: null, status: "DISCONNECTED", lastSyncError: null, lastSyncWarnings: [] },
+  });
+  revalidatePath("/connectors");
 }
 
 export async function setAssetOwnerAction(formData: FormData) {

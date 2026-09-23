@@ -1,153 +1,125 @@
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import { VendorBadge } from "@/components/VendorIcon";
-import { syncConnectorAction } from "@/lib/actions";
+import { syncConnectorAction, connectWithApiKeyAction, disconnectConnectorAction } from "@/lib/actions";
 import type { Connector, ConnectorProvider } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 const ORG_ID = "demo-org";
 
-interface ConnectorInfo {
-  label: string;
-  implemented: boolean;
-  oneClick: boolean;
-  note: string;
-  envVars: string[];
-  steps: string[];
-}
+type Method = "apiKey" | "signIn" | "soon";
 
-const CONNECTOR_INFO: Record<string, ConnectorInfo> = {
-  GITHUB: {
-    label: "GitHub",
-    implemented: true,
-    oneClick: true,
-    note: "Pick your org, done.",
-    envVars: [],
-    steps: [],
+const PROVIDERS: { provider: ConnectorProvider; label: string; method: Method; what: string; keyUrl?: string; keyHint?: string }[] = [
+  {
+    provider: "ANTHROPIC",
+    label: "Anthropic (Claude)",
+    method: "apiKey",
+    what: "Finds your Claude workspace and who uses it.",
+    keyUrl: "https://console.anthropic.com/settings/admin-keys",
+    keyHint: "sk-ant-admin…",
   },
-  MICROSOFT_365: {
-    label: "Microsoft 365",
-    implemented: true,
-    oneClick: false,
-    note: "Admin setup required.",
-    envVars: ["MS365_TENANT_ID", "MS365_CLIENT_ID", "MS365_CLIENT_SECRET"],
-    steps: [
-      "Entra ID → App registrations → New registration → copy Client ID and Tenant ID.",
-      "API permissions → Microsoft Graph → Application: Application.Read.All, AuditLog.Read.All, Directory.Read.All → Grant admin consent.",
-      "Certificates & secrets → New client secret → copy the value.",
-      "Paste all 3 into Railway, then Sync now.",
-    ],
+  {
+    provider: "OPENAI",
+    label: "OpenAI (ChatGPT)",
+    method: "apiKey",
+    what: "Finds your ChatGPT / API organization and its members.",
+    keyUrl: "https://platform.openai.com/settings/organization/admin-keys",
+    keyHint: "sk-admin-…",
   },
-  ANTHROPIC: {
-    label: "Anthropic",
-    implemented: true,
-    oneClick: false,
-    note: "Admin API key required.",
-    envVars: ["ANTHROPIC_ADMIN_API_KEY"],
-    steps: ["console.anthropic.com → Settings → Admin API keys → generate one.", "Paste it into Railway, then Sync now."],
-  },
-  OPENAI: {
-    label: "OpenAI",
-    implemented: true,
-    oneClick: false,
-    note: "Admin API key required.",
-    envVars: ["OPENAI_ADMIN_API_KEY"],
-    steps: ["platform.openai.com → Settings → Organization → Admin keys → generate one.", "Paste it into Railway, then Sync now."],
-  },
-  GOOGLE_WORKSPACE: {
-    label: "Google Workspace",
-    implemented: false,
-    oneClick: false,
-    note: "Not built yet.",
-    envVars: [],
-    steps: [],
-  },
-};
+  { provider: "GITHUB", label: "GitHub", method: "signIn", what: "Scans your repos for OpenAI, Anthropic, LangChain and other AI SDKs." },
+  { provider: "MICROSOFT_365", label: "Microsoft 365", method: "soon", what: "Copilot and AI apps approved in Entra ID." },
+  { provider: "GOOGLE_WORKSPACE", label: "Google Workspace", method: "soon", what: "Gemini and AI apps in your Google domain." },
+];
 
-export default async function ConnectorsPage({ searchParams }: { searchParams: { connected?: string } }) {
-  const connectors = await db.connector.findMany({ where: { organizationId: ORG_ID } });
-  const byProvider = new Map<ConnectorProvider, Connector>(connectors.map((c) => [c.provider, c]));
-  const githubAppReady = Boolean(process.env.GITHUB_APP_SLUG);
+export default async function ConnectorsPage({ searchParams }: { searchParams: { connected?: string; error?: string; provider?: string } }) {
+  const rows = await db.connector.findMany({ where: { organizationId: ORG_ID } });
+  const byProvider = new Map<ConnectorProvider, Connector>(rows.map((c) => [c.provider, c]));
+  const githubReady = Boolean(process.env.GITHUB_APP_SLUG);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink-100">Connections</h1>
-        <p className="text-sm text-ink-400 mt-1.5">Each one is a separate company — no single login covers all of them.</p>
+        <p className="text-sm text-ink-400 mt-1">Connect a provider once — Angar then discovers your AI systems automatically.</p>
       </div>
 
-      {searchParams.connected === "github" && (
-        <div className="rounded-xl border border-steady/40 bg-steady/5 px-4 py-3 text-sm text-steady">
-          GitHub connected. Press Sync now below to pull in your data.
-        </div>
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          ["1", "Pick a provider", "Start with the AI your company already pays for."],
+          ["2", "Paste a key or sign in", "Read-only access. Keys are encrypted at rest."],
+          ["3", "See your AI estate", "Systems, users and changes appear in AI Passports."],
+        ].map(([n, t, d]) => (
+          <div key={n} className="flex gap-3">
+            <span className="h-6 w-6 rounded-full bg-accent text-white text-xs font-semibold flex items-center justify-center shrink-0">{n}</span>
+            <div>
+              <div className="text-sm font-medium text-ink-100">{t}</div>
+              <div className="text-xs text-ink-400">{d}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {searchParams.connected && (
+        <div className="rounded-lg bg-steady/10 px-4 py-3 text-sm text-steady">Connected — first sync done. Your systems are in AI Passports.</div>
       )}
+      {searchParams.error && <div className="rounded-lg bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
       <div className="grid grid-cols-3 gap-4">
-        {Object.entries(CONNECTOR_INFO).map(([provider, info]) => {
-          const row = byProvider.get(provider as ConnectorProvider);
-          const warnings = (row?.lastSyncWarnings as string[] | null) ?? [];
-          const connected = row?.status === "CONNECTED";
-
+        {PROVIDERS.map((p) => {
+          const row = byProvider.get(p.provider);
+          const connected = row?.status === "CONNECTED" && (p.method !== "apiKey" || Boolean(row.credentialsEncrypted));
           return (
-            <div key={provider} className="rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
+            <div key={p.provider} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <VendorBadge vendor={provider} size={34} />
-                <div className="min-w-0">
-                  <div className="font-medium text-sm text-ink-100 truncate">{info.label}</div>
-                  {row ? <Badge>{row.status}</Badge> : <Badge>DISCONNECTED</Badge>}
+                <VendorBadge vendor={p.provider} size={36} />
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm text-ink-100">{p.label}</div>
+                  <div className="text-xs text-ink-400">{p.what}</div>
                 </div>
               </div>
 
-              <p className="text-xs text-ink-400">{info.note}</p>
-
-              {info.implemented && connected && (
-                <form action={syncConnectorAction}>
-                  <input type="hidden" name="provider" value={provider} />
-                  <button type="submit" className="text-xs px-3 py-1.5 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors w-full">
-                    Sync now
-                  </button>
+              {connected ? (
+                <div className="flex flex-col gap-2 mt-auto">
+                  <div className="flex items-center justify-between text-xs">
+                    <Badge>CONNECTED</Badge>
+                    {row?.lastSyncedAt && <span className="text-ink-400">Synced {new Date(row.lastSyncedAt).toLocaleDateString()}</span>}
+                  </div>
+                  <div className="flex gap-2">
+                    <form action={syncConnectorAction} className="flex-1">
+                      <input type="hidden" name="provider" value={p.provider} />
+                      <button className="w-full text-xs font-medium px-3 py-2 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors">Sync now</button>
+                    </form>
+                    <form action={disconnectConnectorAction}>
+                      <input type="hidden" name="provider" value={p.provider} />
+                      <button className="text-xs px-3 py-2 rounded-md text-ink-400 hover:text-alarm transition-colors">Disconnect</button>
+                    </form>
+                  </div>
+                </div>
+              ) : p.method === "apiKey" ? (
+                <form action={connectWithApiKeyAction} className="flex flex-col gap-2 mt-auto">
+                  <input type="hidden" name="provider" value={p.provider} />
+                  <input
+                    name="apiKey"
+                    type="password"
+                    autoComplete="off"
+                    placeholder={`Admin API key (${p.keyHint})`}
+                    className="w-full border border-line rounded-md px-3 py-2 text-sm text-ink-100 placeholder:text-ink-400 bg-panel"
+                  />
+                  <button className="w-full text-xs font-medium px-3 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors">Connect</button>
+                  <a href={p.keyUrl} target="_blank" rel="noreferrer" className="text-xs text-ink-400 hover:text-ink-100 underline">
+                    Where do I get an admin key?
+                  </a>
+                  {searchParams.error && searchParams.provider === p.provider && <p className="text-xs text-alarm">{searchParams.error}</p>}
                 </form>
-              )}
-              {info.implemented && info.oneClick && !connected && githubAppReady && (
-                <a href="/api/connectors/github/install" className="text-xs font-medium text-center px-3 py-1.5 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors">
-                  Connect
+              ) : p.method === "signIn" && githubReady ? (
+                <a href="/api/connectors/github/install" className="mt-auto text-center text-xs font-medium px-3 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors">
+                  Sign in with GitHub
                 </a>
-              )}
-              {info.implemented && info.oneClick && !githubAppReady && (
-                <p className="text-xs text-signal">Not set up on this deployment yet.</p>
-              )}
-              {info.implemented && !info.oneClick && !connected && info.steps.length > 0 && (
-                <details className="group">
-                  <summary className="cursor-pointer text-xs font-medium text-center px-3 py-1.5 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors list-none">
-                    Connect
-                  </summary>
-                  <div className="mt-3 pt-3 border-t border-line flex flex-col gap-2">
-                    <div className="flex flex-wrap gap-1.5">
-                      {info.envVars.map((v) => (
-                        <code key={v} className="text-[11px] bg-ink border border-line rounded px-1.5 py-0.5 text-ink-100">{v}</code>
-                      ))}
-                    </div>
-                    <ol className="text-xs text-ink-100 flex flex-col gap-1 list-decimal list-inside">
-                      {info.steps.map((s, i) => (
-                        <li key={i}>{s}</li>
-                      ))}
-                    </ol>
-                  </div>
-                </details>
-              )}
-
-              {(row?.lastSyncedAt || row?.lastSyncError || warnings.length > 0) && (
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-ink-400 hover:text-ink-100 list-none">Details</summary>
-                  <div className="mt-1.5 flex flex-col gap-1">
-                    {row?.lastSyncedAt && <p className="text-ink-400">Last synced {new Date(row.lastSyncedAt).toLocaleString()}</p>}
-                    {row?.lastSyncError && <p className="text-alarm">{row.lastSyncError}</p>}
-                    {warnings.map((w, i) => (
-                      <p key={i} className="text-signal">· {w}</p>
-                    ))}
-                  </div>
-                </details>
+              ) : (
+                <div className="mt-auto text-center text-xs text-ink-400 border border-dashed border-line rounded-md px-3 py-2">
+                  {p.method === "signIn" ? "Available once GitHub sign-in is enabled" : "Coming soon"}
+                </div>
               )}
             </div>
           );

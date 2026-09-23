@@ -27,7 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className={sans.variable}>
-      <body className={`flex h-screen overflow-hidden bg-ink text-ink-100 font-body`}>
+      <body className={`flex h-screen overflow-hidden bg-[#0B0B0D] text-ink-100 font-body`}>
         <Sidebar orgName={orgName} />
         <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto">
           <header className="h-14 border-b border-line flex items-center justify-between px-10 shrink-0 sticky top-0 bg-panel z-10">

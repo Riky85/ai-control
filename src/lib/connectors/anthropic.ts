@@ -26,12 +26,15 @@
  */
 
 import type { Connector, ConnectorSyncResult, ObservedAsset } from "./types";
+import { decryptJson } from "@/lib/crypto";
 
 const ADMIN_API_BASE = "https://api.anthropic.com/v1";
 const ASSET_EXTERNAL_ID = "claude:organization";
 
-async function adminGet(path: string) {
-  const apiKey = process.env.ANTHROPIC_ADMIN_API_KEY;
+// La chiave arriva dalla UI (salvata cifrata sul connettore); la env var
+// resta solo come fallback. Passata come parametro, mai in stato di modulo,
+// così due organizzazioni che sincronizzano insieme non si scambiano chiavi.
+export async function adminGet(path: string, apiKey: string | undefined) {
   if (!apiKey) {
     throw new Error("Anthropic connector not configured: missing ANTHROPIC_ADMIN_API_KEY");
   }
@@ -50,7 +53,8 @@ async function adminGet(path: string) {
 export const anthropicConnector: Connector = {
   provider: "ANTHROPIC",
 
-  async sync(_connectorRow): Promise<ConnectorSyncResult> {
+  async sync(connectorRow): Promise<ConnectorSyncResult> {
+    const apiKey = decryptJson<{ apiKey: string }>(connectorRow.credentialsEncrypted)?.apiKey ?? process.env.ANTHROPIC_ADMIN_API_KEY;
     const warnings: string[] = [];
 
     const asset: ObservedAsset = {
@@ -68,7 +72,7 @@ export const anthropicConnector: Connector = {
       let pageAfter: string | undefined;
       do {
         const query = pageAfter ? `?after_id=${encodeURIComponent(pageAfter)}&limit=100` : "?limit=100";
-        const page = await adminGet(`/organizations/users${query}`);
+        const page = await adminGet(`/organizations/users${query}`, apiKey);
         for (const member of page.data ?? []) {
           if (!member.email) continue;
           asset.users!.push({ email: member.email, externalRef: member.id, name: member.name });

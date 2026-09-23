@@ -22,12 +22,15 @@
  */
 
 import type { Connector, ConnectorSyncResult, ObservedAsset } from "./types";
+import { decryptJson } from "@/lib/crypto";
 
 const API_BASE = "https://api.openai.com/v1";
 const ASSET_EXTERNAL_ID = "chatgpt:organization";
 
-async function adminGet(path: string) {
-  const apiKey = process.env.OPENAI_ADMIN_API_KEY;
+// La chiave arriva dalla UI (salvata cifrata sul connettore); la env var
+// resta solo come fallback. Passata come parametro, mai in stato di modulo,
+// così due organizzazioni che sincronizzano insieme non si scambiano chiavi.
+export async function adminGet(path: string, apiKey: string | undefined) {
   if (!apiKey) {
     throw new Error("OpenAI connector not configured: missing OPENAI_ADMIN_API_KEY");
   }
@@ -43,7 +46,8 @@ async function adminGet(path: string) {
 export const openaiConnector: Connector = {
   provider: "OPENAI",
 
-  async sync(_connectorRow): Promise<ConnectorSyncResult> {
+  async sync(connectorRow): Promise<ConnectorSyncResult> {
+    const apiKey = decryptJson<{ apiKey: string }>(connectorRow.credentialsEncrypted)?.apiKey ?? process.env.OPENAI_ADMIN_API_KEY;
     const warnings: string[] = [];
 
     const asset: ObservedAsset = {
@@ -60,7 +64,7 @@ export const openaiConnector: Connector = {
       let after: string | undefined;
       do {
         const query = after ? `?after=${encodeURIComponent(after)}&limit=100` : "?limit=100";
-        const page = await adminGet(`/organization/users${query}`);
+        const page = await adminGet(`/organization/users${query}`, apiKey);
         for (const member of page.data ?? []) {
           if (!member.email) continue;
           asset.users!.push({ email: member.email, externalRef: member.id, name: member.name });
@@ -78,7 +82,7 @@ export const openaiConnector: Connector = {
     // Audit log dell'organizzazione -> AiAssetActivity. Endpoint soggetto a
     // disponibilità per piano; trattato come best-effort.
     try {
-      const log = await adminGet("/organization/audit_logs?limit=100");
+      const log = await adminGet("/organization/audit_logs?limit=100", apiKey);
       for (const event of log.data ?? []) {
         asset.activities!.push({
           eventType: event.type ?? "unknown",
