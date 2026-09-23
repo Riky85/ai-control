@@ -37,6 +37,12 @@ const VENDOR_RULES: [RegExp, string][] = [
   [/hugging/i, "huggingface"],
   [/deepseek/i, "deepseek"],
   [/perplexity/i, "perplexity"],
+  [/groq/i, "groq"],
+  [/cohere/i, "cohere"],
+  [/\bxai\b|x\.ai|grok/i, "xai"],
+  [/together/i, "together"],
+  [/openrouter/i, "openrouter"],
+  [/gemini/i, "gemini"],
 ];
 
 export function resolveBrand(vendor?: string | null, name?: string | null): string | null {

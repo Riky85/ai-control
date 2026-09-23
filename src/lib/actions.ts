@@ -14,6 +14,7 @@ import { runAssuranceChecks } from "@/lib/assurance-engine";
 import { encryptJson } from "@/lib/crypto";
 import { adminGet as anthropicGet } from "@/lib/connectors/anthropic";
 import { adminGet as openaiGet } from "@/lib/connectors/openai";
+import { isAdminKey, testApiKey } from "@/lib/connectors/api-key-providers";
 import type { ConnectorProvider, AiAssetStatus, EuAiActTier } from "@prisma/client";
 
 const ORG_ID = "demo-org"; // MVP: single-tenant demo; sostituire con auth reale
@@ -71,31 +72,130 @@ const KEY_TESTS: Partial<Record<ConnectorProvider, (key: string) => Promise<unkn
 export async function connectWithApiKeyAction(formData: FormData) {
   const provider = formData.get("provider") as ConnectorProvider;
   const apiKey = String(formData.get("apiKey") ?? "").trim();
-  const test = KEY_TESTS[provider];
-  if (!test || !apiKey) redirect(`/connectors?error=${encodeURIComponent("Paste an admin API key first.")}&provider=${provider}`);
+  const back = (msg: string) => redirect(`/connectors?error=${encodeURIComponent(msg)}&provider=${provider}#${provider}`);
+  if (!apiKey) back("Paste a key first.");
 
+  // Chiave Admin (Anthropic/OpenAI) → connettore completo con utenti;
+  // chiave normale → verifica tramite elenco modelli. Entrambe valide.
+  const admin = isAdminKey(provider, apiKey);
   let failure: string | null = null;
-  try {
-    await test!(apiKey);
-  } catch {
-    failure = "That key didn't work — check it's an Admin API key (not a normal API key) and try again.";
+  if (admin) {
+    try {
+      await KEY_TESTS[provider]!(apiKey);
+    } catch (err) {
+      failure = `Admin key rejected: ${(err as Error).message.slice(0, 200)}`;
+    }
+  } else {
+    const test = await testApiKey(provider, apiKey);
+    if (!test.ok) failure = test.error;
   }
-  if (failure) redirect(`/connectors?error=${encodeURIComponent(failure)}&provider=${provider}`);
+  if (failure) back(failure);
 
-  let credentials: string;
+  let credentials = "";
   try {
-    credentials = encryptJson({ apiKey });
+    credentials = encryptJson({ apiKey, mode: admin ? "admin" : "standard" });
   } catch (err) {
-    redirect(`/connectors?error=${encodeURIComponent((err as Error).message)}&provider=${provider}`);
+    back((err as Error).message);
   }
   await db.connector.upsert({
     where: { organizationId_provider: { organizationId: ORG_ID, provider } },
-    update: { credentialsEncrypted: credentials!, status: "CONNECTED", lastSyncError: null },
-    create: { organizationId: ORG_ID, provider, credentialsEncrypted: credentials!, status: "CONNECTED", scopes: [] },
+    update: { credentialsEncrypted: credentials, status: "CONNECTED", lastSyncError: null },
+    create: { organizationId: ORG_ID, provider, credentialsEncrypted: credentials, status: "CONNECTED", scopes: [] },
   });
-  await runConnectorSync(ORG_ID, provider);
+  const result = await runConnectorSync(ORG_ID, provider);
   revalidatePath("/", "layout");
-  redirect(`/connectors?connected=${provider.toLowerCase()}`);
+  if (!result.ok) back(`Key saved, but the first sync failed: ${result.error.slice(0, 200)}`);
+  redirect(`/connectors?connected=${provider}`);
+}
+
+// Crea (o aggiorna) un sistema AI senza connettore — aggiunta manuale e
+// import CSV — e calcola subito rischio e assurance come dopo un sync.
+async function upsertManualAsset(input: { name: string; vendor?: string; type?: string; model?: string; ownerEmail?: string; department?: string; monthlyCost?: number }) {
+  const types = ["AI_APPLICATION", "AI_FEATURE", "AI_API", "AI_AGENT", "MCP_SERVER", "AI_DEV_TOOL"];
+  const type = (types.includes((input.type ?? "").toUpperCase()) ? input.type!.toUpperCase() : "AI_APPLICATION") as any;
+  const owner = input.ownerEmail
+    ? await db.user.upsert({
+        where: { organizationId_email: { organizationId: ORG_ID, email: input.ownerEmail.toLowerCase() } },
+        update: {},
+        create: { organizationId: ORG_ID, email: input.ownerEmail.toLowerCase() },
+      })
+    : null;
+  const existing = await db.aiAsset.findFirst({ where: { organizationId: ORG_ID, connectorId: null, name: input.name } });
+  const data = {
+    type,
+    vendor: input.vendor || null,
+    model: input.model || null,
+    department: input.department || null,
+    ...(owner ? { ownerId: owner.id } : {}),
+    lastSeenAt: new Date(),
+  };
+  const asset = existing
+    ? await db.aiAsset.update({ where: { id: existing.id }, data })
+    : await db.aiAsset.create({ data: { ...data, organizationId: ORG_ID, name: input.name, status: "UNREVIEWED", firstSeenAt: new Date() } });
+  if (input.monthlyCost != null && !Number.isNaN(input.monthlyCost)) {
+    await db.aiSystemCost.upsert({
+      where: { aiAssetId: asset.id },
+      update: { monthlyCostEstimate: input.monthlyCost, basis: "manual" },
+      create: { aiAssetId: asset.id, monthlyCostEstimate: input.monthlyCost, basis: "manual", confidence: "MEDIUM" },
+    });
+  }
+  const full = await db.aiAsset.findUniqueOrThrow({
+    where: { id: asset.id },
+    include: { connectedSystems: true, dataAccess: { include: { dataAsset: true } }, activities: { orderBy: { occurredAt: "desc" }, take: 50 } },
+  });
+  const risk = assessAssetRisk(full);
+  await db.riskAssessment.create({ data: { aiAssetId: asset.id, level: risk.level, score: risk.score, reasons: risk.reasons, mitigations: risk.mitigations } });
+  await recomputeAssuranceFor(asset.id);
+  return asset;
+}
+
+export async function addManualAssetAction(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) redirect(`/connectors?error=${encodeURIComponent("Give the AI system a name.")}#manual`);
+  const cost = String(formData.get("monthlyCost") ?? "").trim();
+  const asset = await upsertManualAsset({
+    name,
+    vendor: String(formData.get("vendor") ?? "").trim(),
+    type: String(formData.get("type") ?? ""),
+    model: String(formData.get("model") ?? "").trim(),
+    ownerEmail: String(formData.get("ownerEmail") ?? "").trim(),
+    monthlyCost: cost ? Number(cost) : undefined,
+  });
+  revalidatePath("/", "layout");
+  redirect(`/assets/${asset.id}`);
+}
+
+export async function importCsvAction(formData: FormData) {
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) redirect(`/connectors?error=${encodeURIComponent("Choose a CSV file first.")}#import`);
+  const text = await file!.text();
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  const split = (l: string) => l.split(/[,;](?=(?:[^"]*"[^"]*")*[^"]*$)/).map((v) => v.trim().replace(/^"|"$/g, ""));
+  const header = split(lines[0] ?? "").map((h) => h.toLowerCase().replace(/[^a-z]/g, ""));
+  const col = (row: string[], ...names: string[]) => {
+    const i = header.findIndex((h) => names.includes(h));
+    return i >= 0 ? row[i] : undefined;
+  };
+  if (!header.includes("name")) redirect(`/connectors?error=${encodeURIComponent("The CSV needs at least a 'name' column.")}#import`);
+  let count = 0;
+  for (const line of lines.slice(1)) {
+    const row = split(line);
+    const name = col(row, "name");
+    if (!name) continue;
+    const cost = col(row, "monthlycost", "cost", "costmonth");
+    await upsertManualAsset({
+      name,
+      vendor: col(row, "vendor", "provider"),
+      type: col(row, "type"),
+      model: col(row, "model"),
+      ownerEmail: col(row, "owner", "owneremail", "email"),
+      department: col(row, "department", "team"),
+      monthlyCost: cost ? Number(cost.replace(/[^0-9.]/g, "")) : undefined,
+    });
+    count++;
+  }
+  revalidatePath("/", "layout");
+  redirect(`/connectors?imported=${count}#import`);
 }
 
 export async function disconnectConnectorAction(formData: FormData) {

@@ -5,6 +5,8 @@ import { githubConnector } from "./github";
 import { anthropicConnector } from "./anthropic";
 import { openaiConnector } from "./openai";
 import { recordInventorySnapshot } from "@/lib/evidence";
+import { apiKeyConnector, API_KEY_PROVIDERS } from "./api-key-providers";
+import { decryptJson } from "@/lib/crypto";
 import type { Connector } from "./types";
 import type { ConnectorProvider } from "@prisma/client";
 
@@ -16,7 +18,17 @@ const REGISTRY: Record<string, Connector> = {
 };
 
 export async function runConnectorSync(organizationId: string, provider: ConnectorProvider) {
-  const connectorImpl = REGISTRY[provider];
+  // Anthropic/OpenAI: connettore completo (utenti) solo con chiave Admin;
+  // con una chiave normale, e per tutti gli altri provider di modelli,
+  // il connettore generico a chiave API.
+  const existing = await db.connector.findUnique({ where: { organizationId_provider: { organizationId, provider } } });
+  const mode = decryptJson<{ mode?: string }>(existing?.credentialsEncrypted)?.mode;
+  const connectorImpl =
+    (provider === "ANTHROPIC" || provider === "OPENAI") && mode === "admin"
+      ? REGISTRY[provider]
+      : API_KEY_PROVIDERS[provider] && mode
+        ? apiKeyConnector(provider)
+        : REGISTRY[provider];
   if (!connectorImpl) {
     throw new Error(`Connector ${provider} is not implemented yet in this scaffold.`);
   }

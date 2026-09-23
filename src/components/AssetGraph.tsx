@@ -19,7 +19,7 @@ export interface AssetGraphProps {
 }
 
 const W = 760;
-const ROW = 52;
+const ROW = 46;
 const COL = 220;
 
 export default function AssetGraph({ center, centerVendor, left, right }: AssetGraphProps) {

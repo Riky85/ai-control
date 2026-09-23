@@ -1,130 +1,203 @@
 import { db } from "@/lib/db";
-import Badge from "@/components/Badge";
 import { VendorBadge } from "@/components/VendorIcon";
-import { syncConnectorAction, connectWithApiKeyAction, disconnectConnectorAction } from "@/lib/actions";
+import { PageHeader } from "@/components/ui";
+import { syncConnectorAction, connectWithApiKeyAction, disconnectConnectorAction, addManualAssetAction, importCsvAction } from "@/lib/actions";
+import { decryptJson } from "@/lib/crypto";
 import type { Connector, ConnectorProvider } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
-
 const ORG_ID = "demo-org";
 
-type Method = "apiKey" | "signIn" | "soon";
-
-const PROVIDERS: { provider: ConnectorProvider; label: string; method: Method; what: string; keyUrl?: string; keyHint?: string }[] = [
-  {
-    provider: "ANTHROPIC",
-    label: "Anthropic (Claude)",
-    method: "apiKey",
-    what: "Finds your Claude workspace and who uses it.",
-    keyUrl: "https://console.anthropic.com/settings/admin-keys",
-    keyHint: "sk-ant-admin…",
-  },
-  {
-    provider: "OPENAI",
-    label: "OpenAI (ChatGPT)",
-    method: "apiKey",
-    what: "Finds your ChatGPT / API organization and its members.",
-    keyUrl: "https://platform.openai.com/settings/organization/admin-keys",
-    keyHint: "sk-admin-…",
-  },
-  { provider: "GITHUB", label: "GitHub", method: "signIn", what: "Scans your repos for OpenAI, Anthropic, LangChain and other AI SDKs." },
-  { provider: "MICROSOFT_365", label: "Microsoft 365", method: "soon", what: "Copilot and AI apps approved in Entra ID." },
-  { provider: "GOOGLE_WORKSPACE", label: "Google Workspace", method: "soon", what: "Gemini and AI apps in your Google domain." },
+const AI_PROVIDERS: { provider: ConnectorProvider; label: string; keyUrl: string; hint: string }[] = [
+  { provider: "ANTHROPIC", label: "Anthropic (Claude)", keyUrl: "https://console.anthropic.com/settings/keys", hint: "sk-ant-…" },
+  { provider: "OPENAI", label: "OpenAI (ChatGPT)", keyUrl: "https://platform.openai.com/api-keys", hint: "sk-…" },
+  { provider: "GOOGLE_GEMINI", label: "Google Gemini", keyUrl: "https://aistudio.google.com/app/apikey", hint: "AIza…" },
+  { provider: "MISTRAL", label: "Mistral AI", keyUrl: "https://console.mistral.ai/api-keys", hint: "API key" },
+  { provider: "XAI", label: "xAI (Grok)", keyUrl: "https://console.x.ai", hint: "xai-…" },
+  { provider: "DEEPSEEK", label: "DeepSeek", keyUrl: "https://platform.deepseek.com/api_keys", hint: "sk-…" },
+  { provider: "GROQ", label: "Groq", keyUrl: "https://console.groq.com/keys", hint: "gsk_…" },
+  { provider: "COHERE", label: "Cohere", keyUrl: "https://dashboard.cohere.com/api-keys", hint: "API key" },
+  { provider: "TOGETHER", label: "Together AI", keyUrl: "https://api.together.ai/settings/api-keys", hint: "API key" },
+  { provider: "OPENROUTER", label: "OpenRouter", keyUrl: "https://openrouter.ai/settings/keys", hint: "sk-or-…" },
+  { provider: "HUGGINGFACE", label: "Hugging Face", keyUrl: "https://huggingface.co/settings/tokens", hint: "hf_…" },
 ];
 
-export default async function ConnectorsPage({ searchParams }: { searchParams: { connected?: string; error?: string; provider?: string } }) {
+const COMING_SOON: { group: string; items: { label: string; vendor: string }[] }[] = [
+  {
+    group: "Workplace",
+    items: [
+      { label: "Microsoft 365 / Copilot", vendor: "Microsoft" },
+      { label: "Google Workspace", vendor: "Google" },
+      { label: "Slack", vendor: "Slack" },
+      { label: "Salesforce", vendor: "Salesforce" },
+      { label: "Notion", vendor: "Notion" },
+      { label: "Okta", vendor: "Okta" },
+    ],
+  },
+  {
+    group: "Cloud AI",
+    items: [
+      { label: "AWS Bedrock", vendor: "Bedrock" },
+      { label: "Azure OpenAI", vendor: "Azure" },
+      { label: "Google Vertex AI", vendor: "Google" },
+    ],
+  },
+];
+
+const card = "rounded-xl border border-line bg-panel p-4 flex flex-col gap-3";
+const btnPrimary = "btn btn-primary";
+const btnSecondary = "btn btn-secondary";
+const input = "w-full border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-accent";
+
+export default async function ConnectorsPage({
+  searchParams,
+}: {
+  searchParams: { connected?: string; error?: string; provider?: string; imported?: string };
+}) {
   const rows = await db.connector.findMany({ where: { organizationId: ORG_ID } });
   const byProvider = new Map<ConnectorProvider, Connector>(rows.map((c) => [c.provider, c]));
   const githubReady = Boolean(process.env.GITHUB_APP_SLUG);
+  const github = byProvider.get("GITHUB");
+  const connectedCount = rows.filter((r) => r.status === "CONNECTED" && r.credentialsEncrypted).length;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">Connections</h1>
-        <p className="text-sm text-ink-400 mt-1">Connect a provider once — Angar then discovers your AI systems automatically.</p>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          ["1", "Pick a provider", "Start with the AI your company already pays for."],
-          ["2", "Paste a key or sign in", "Read-only access. Keys are encrypted at rest."],
-          ["3", "See your AI estate", "Systems, users and changes appear in AI Passports."],
-        ].map(([n, t, d]) => (
-          <div key={n} className="flex gap-3">
-            <span className="h-6 w-6 rounded-full bg-accent text-white text-xs font-semibold flex items-center justify-center shrink-0">{n}</span>
-            <div>
-              <div className="text-sm font-medium text-ink-100">{t}</div>
-              <div className="text-xs text-ink-400">{d}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        title="Connections"
+        subtitle="Connect where your AI lives. Paste a key, sign in, or import a list — Angar builds your AI Passports from it."
+        action={<span className="text-sm text-ink-400">{connectedCount} connected</span>}
+      />
 
       {searchParams.connected && (
-        <div className="rounded-lg bg-steady/10 px-4 py-3 text-sm text-steady">Connected — first sync done. Your systems are in AI Passports.</div>
+        <div className="rounded-xl bg-accent-soft px-4 py-3 text-sm text-ink-100">
+          <b>Connected.</b> First sync done — your systems are now in <a href="/assets" className="underline">AI Passports</a>.
+        </div>
       )}
-      {searchParams.error && <div className="rounded-lg bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
+      {searchParams.imported && (
+        <div className="rounded-xl bg-accent-soft px-4 py-3 text-sm text-ink-100">
+          <b>{searchParams.imported} AI systems imported.</b> See them in <a href="/assets" className="underline">AI Passports</a>.
+        </div>
+      )}
+      {searchParams.error && !searchParams.provider && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
-      <div className="grid grid-cols-3 gap-4">
-        {PROVIDERS.map((p) => {
+      <Section title="AI providers" subtitle="A normal API key is enough. Admin keys (Anthropic, OpenAI) also bring in users.">
+        {AI_PROVIDERS.map((p) => {
           const row = byProvider.get(p.provider);
-          const connected = row?.status === "CONNECTED" && (p.method !== "apiKey" || Boolean(row.credentialsEncrypted));
+          const connected = row?.status === "CONNECTED" && Boolean(row.credentialsEncrypted);
+          const mode = decryptJson<{ mode?: string }>(row?.credentialsEncrypted)?.mode;
+          const error = searchParams.provider === p.provider ? searchParams.error : undefined;
           return (
-            <div key={p.provider} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
+            <div key={p.provider} id={p.provider} className={card}>
               <div className="flex items-center gap-3">
-                <VendorBadge vendor={p.provider} size={36} />
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-sm text-ink-100">{p.label}</div>
-                  <div className="text-xs text-ink-400">{p.what}</div>
+                <VendorBadge vendor={p.provider} name={p.label} size={36} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-ink-100 truncate">{p.label}</div>
+                  <div className="text-xs text-ink-400">
+                    {connected ? (
+                      <span className="text-accent font-medium">● Connected{mode === "admin" ? " · admin" : ""}</span>
+                    ) : row?.status === "ERROR" ? (
+                      <span className="text-alarm">● Needs attention</span>
+                    ) : (
+                      "Not connected"
+                    )}
+                  </div>
                 </div>
               </div>
-
               {connected ? (
-                <div className="flex flex-col gap-2 mt-auto">
-                  <div className="flex items-center justify-between text-xs">
-                    <Badge>CONNECTED</Badge>
-                    {row?.lastSyncedAt && <span className="text-ink-400">Synced {new Date(row.lastSyncedAt).toLocaleDateString()}</span>}
-                  </div>
-                  <div className="flex gap-2">
-                    <form action={syncConnectorAction} className="flex-1">
-                      <input type="hidden" name="provider" value={p.provider} />
-                      <button className="w-full text-xs font-medium px-3 py-2 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors">Sync now</button>
-                    </form>
-                    <form action={disconnectConnectorAction}>
-                      <input type="hidden" name="provider" value={p.provider} />
-                      <button className="text-xs px-3 py-2 rounded-md text-ink-400 hover:text-alarm transition-colors">Disconnect</button>
-                    </form>
-                  </div>
+                <div className="flex gap-2 mt-auto">
+                  <form action={syncConnectorAction} className="flex-1">
+                    <input type="hidden" name="provider" value={p.provider} />
+                    <button className={`${btnSecondary} w-full`}>Sync now</button>
+                  </form>
+                  <form action={disconnectConnectorAction}>
+                    <input type="hidden" name="provider" value={p.provider} />
+                    <button className="text-sm px-3 py-2 rounded-lg text-ink-400 hover:text-alarm transition-colors">Disconnect</button>
+                  </form>
                 </div>
-              ) : p.method === "apiKey" ? (
-                <form action={connectWithApiKeyAction} className="flex flex-col gap-2 mt-auto">
-                  <input type="hidden" name="provider" value={p.provider} />
-                  <input
-                    name="apiKey"
-                    type="password"
-                    autoComplete="off"
-                    placeholder={`Admin API key (${p.keyHint})`}
-                    className="w-full border border-line rounded-md px-3 py-2 text-sm text-ink-100 placeholder:text-ink-400 bg-panel"
-                  />
-                  <button className="w-full text-xs font-medium px-3 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors">Connect</button>
-                  <a href={p.keyUrl} target="_blank" rel="noreferrer" className="text-xs text-ink-400 hover:text-ink-100 underline">
-                    Where do I get an admin key?
-                  </a>
-                  {searchParams.error && searchParams.provider === p.provider && <p className="text-xs text-alarm">{searchParams.error}</p>}
-                </form>
-              ) : p.method === "signIn" && githubReady ? (
-                <a href="/api/connectors/github/install" className="mt-auto text-center text-xs font-medium px-3 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors">
-                  Sign in with GitHub
-                </a>
               ) : (
-                <div className="mt-auto text-center text-xs text-ink-400 border border-dashed border-line rounded-md px-3 py-2">
-                  {p.method === "signIn" ? "Available once GitHub sign-in is enabled" : "Coming soon"}
-                </div>
+                <details className="group mt-auto" open={Boolean(error)}>
+                  <summary className={`${btnPrimary} list-none text-center cursor-pointer group-open:hidden`}>Connect</summary>
+                  <form action={connectWithApiKeyAction} className="flex flex-col gap-2">
+                    <input type="hidden" name="provider" value={p.provider} />
+                    <input name="apiKey" type="password" autoComplete="off" required placeholder={`Paste API key (${p.hint})`} className={input} />
+                    <button className={btnPrimary}>Connect</button>
+                    <a href={p.keyUrl} target="_blank" rel="noreferrer" className="text-xs text-ink-400 hover:text-ink-100 underline">
+                      Get a key from {p.label.split(" ")[0]} →
+                    </a>
+                    {error && <p className="text-xs text-alarm">{error}</p>}
+                  </form>
+                </details>
               )}
             </div>
           );
         })}
-      </div>
+      </Section>
+
+      <Section title="Code" subtitle="Scans repositories for AI SDKs (OpenAI, Anthropic, LangChain…).">
+        <div className={card}>
+          <div className="flex items-center gap-3">
+            <VendorBadge vendor="GitHub" size={36} />
+            <div className="flex-1">
+              <div className="text-sm font-medium text-ink-100">GitHub</div>
+              <div className="text-xs text-ink-400">{github?.status === "CONNECTED" ? <span className="text-accent font-medium">● Connected</span> : "Not connected"}</div>
+            </div>
+          </div>
+          {githubReady ? (
+            <a href="/api/connectors/github/install" className={`${btnPrimary} text-center mt-auto`}>
+              Sign in with GitHub
+            </a>
+          ) : (
+            <p className="text-xs text-ink-400 mt-auto">Sign-in needs a one-time platform setup (GitHub App). Until then, use Import below.</p>
+          )}
+        </div>
+      </Section>
+
+      <Section title="Import" subtitle="Works for any AI — including tools without an API. One row per AI system.">
+        <div id="import" className={`${card} col-span-2`}>
+          <div className="text-sm font-medium text-ink-100">Upload a spreadsheet (CSV)</div>
+          <p className="text-xs text-ink-400">
+            Columns: <code>name</code> (required), <code>vendor</code>, <code>type</code>, <code>model</code>, <code>owner_email</code>, <code>department</code>, <code>monthly_cost</code>. Export it from Excel or Google Sheets as CSV.
+          </p>
+          <form action={importCsvAction} className="flex items-center gap-2 mt-auto">
+            <input name="file" type="file" accept=".csv,text/csv" required className="flex-1 text-sm text-ink-400 file:mr-3 file:rounded-lg file:border file:border-line file:bg-panel file:px-3 file:py-2 file:text-sm file:text-ink-100" />
+            <a href="/api/csv-template" className={btnSecondary}>Template</a>
+            <button className={btnPrimary}>Import</button>
+          </form>
+        </div>
+        <div id="manual" className={card}>
+          <div className="text-sm font-medium text-ink-100">Add one manually</div>
+          <form action={addManualAssetAction} className="flex flex-col gap-2">
+            <input name="name" required placeholder="Name, e.g. Support chatbot" className={input} />
+            <div className="grid grid-cols-2 gap-2">
+              <input name="vendor" placeholder="Vendor" className={input} />
+              <input name="monthlyCost" type="number" step="0.01" placeholder="€ / month" className={input} />
+            </div>
+            <button className={btnPrimary}>Add AI system</button>
+          </form>
+        </div>
+      </Section>
+
+      {COMING_SOON.map((g) => (
+        <Section key={g.group} title={g.group} subtitle="Coming soon — needs an admin sign-in flow we haven't built yet. Use Import meanwhile.">
+          {g.items.map((i) => (
+            <div key={i.label} className="rounded-xl border border-dashed border-line p-4 flex items-center gap-3">
+              <VendorBadge vendor={i.vendor} name={i.label} size={32} />
+              <span className="text-sm text-ink-400 flex-1">{i.label}</span>
+              <span className="text-[11px] text-ink-400 border border-line rounded-full px-2 py-0.5">Soon</span>
+            </div>
+          ))}
+        </Section>
+      ))}
     </div>
+  );
+}
+
+function Section({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h2 className="text-base font-semibold text-ink-100">{title}</h2>
+      <p className="text-sm text-ink-400 mb-3">{subtitle}</p>
+      <div className="grid grid-cols-3 gap-4">{children}</div>
+    </section>
   );
 }

@@ -27,15 +27,15 @@ export default async function PeoplePage() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-line bg-panel shadow-card overflow-hidden">
+      <div className="rounded-xl border border-line bg-panel overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-[10px] font-mono uppercase tracking-wider text-ink-400 border-b border-line">
-              <th className="px-4 py-3 font-medium">Person</th>
-              <th className="px-4 py-3 font-medium">Department</th>
-              <th className="px-4 py-3 font-medium">Owns</th>
-              <th className="px-4 py-3 font-medium">Uses</th>
-              <th className="px-4 py-3 font-medium">Status</th>
+            <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
+              <th className="px-5 py-2.5 font-medium">Person</th>
+              <th className="px-5 py-2.5 font-medium">Department</th>
+              <th className="px-5 py-2.5 font-medium">Owns</th>
+              <th className="px-5 py-2.5 font-medium">Uses</th>
+              <th className="px-5 py-2.5 font-medium">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -45,16 +45,16 @@ export default async function PeoplePage() {
               ).length;
               return (
                 <tr key={u.id} className="hover:bg-black/[0.025]">
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3">
                     <Link href={`/people/${u.id}`} className="font-medium text-ink-100 hover:underline">
                       {u.name ?? u.email}
                     </Link>
                     <div className="text-xs text-ink-400">{u.email}</div>
                   </td>
-                  <td className="px-4 py-3 text-ink-400">{u.department ?? "—"}</td>
-                  <td className="px-4 py-3 tabular text-ink-100">{u._count.ownedAssets}</td>
-                  <td className="px-4 py-3 tabular text-ink-400">{u._count.usages}</td>
-                  <td className="px-4 py-3 text-xs">
+                  <td className="px-5 py-3 text-ink-400">{u.department ?? "—"}</td>
+                  <td className="px-5 py-3 tabular text-ink-100">{u._count.ownedAssets}</td>
+                  <td className="px-5 py-3 tabular text-ink-400">{u._count.usages}</td>
+                  <td className="px-5 py-3 text-xs">
                     {highRiskOwned > 0 ? (
                       <span className="text-alarm">Attention</span>
                     ) : (

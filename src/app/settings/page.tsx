@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const ORG_ID = "demo-org";
 const input = "w-full border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400";
-const button = "text-xs font-medium px-3 py-2 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors";
+const button = "btn btn-secondary btn-sm";
 
 export default async function SettingsPage() {
   const [org, users, connectors] = await Promise.all([
@@ -44,7 +44,7 @@ export default async function SettingsPage() {
               <input name="email" type="email" required placeholder="Email" className={input} />
               <input name="name" placeholder="Name" className={input} />
               <input name="department" placeholder="Department" className={input} />
-              <button className="text-xs font-medium px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors">Add</button>
+              <button className="btn btn-primary btn-sm">Add</button>
             </form>
           </Panel>
 

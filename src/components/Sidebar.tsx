@@ -71,26 +71,37 @@ const MORE_ITEMS = [
   { href: "/data", label: "Data Exposure", icon: "data" },
   { href: "/governance", label: "Governance", icon: "assurance" },
   { href: "/activity", label: "Activity", icon: "activity" },
-  { href: "/connectors", label: "Connections", icon: "connectors" },
 ];
 
-const STORAGE_KEY = "ai-control:sidebar-collapsed";
+// Chiave nuova: chi aveva la sidebar chiusa con la versione precedente la
+// ritrova aperta (default richiesto), poi la sua scelta viene ricordata.
+const STORAGE_KEY = "angar:sidebar-collapsed-v2";
 
-// Sidebar stile Angar: sfondo appena grigiastro (contro il bianco pieno del
-// contenuto), lista piatta senza sezioni, Settings separato in fondo da una
-// riga sottile — non un gruppo tra tanti.
+// Sidebar in stile Claude Console: nome del prodotto in serif, selettore
+// organizzazione, ricerca con scorciatoia, voci principali, gruppo "More"
+// richiudibile, utente in fondo. Aperta di default.
 export default function Sidebar({ orgName }: { orgName?: string }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(true);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     try {
       setCollapsed(window.localStorage.getItem(STORAGE_KEY) === "1");
     } catch {
-      // localStorage non disponibile: resta espansa.
+      // localStorage non disponibile: resta aperta.
     }
     setReady(true);
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCollapsed(false);
+        setTimeout(() => document.getElementById("sidebar-search")?.focus(), 50);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   function toggle() {
@@ -105,90 +116,129 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
     });
   }
 
-  function itemClass(active: boolean) {
-    return `relative flex items-center gap-2.5 text-sm transition-colors ${
-      collapsed ? "justify-center px-0 py-2.5 rounded-md" : "px-3 py-2 rounded-md"
-    } ${active ? "text-white bg-white/[0.06] font-medium" : "text-[#8C8C96] hover:text-white hover:bg-white/[0.05]"}`;
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  function itemClass(active: boolean, sub = false) {
+    return `flex items-center gap-3 text-[15px] transition-colors rounded-lg ${
+      collapsed ? "justify-center px-0 py-2.5" : sub ? "pl-11 pr-3 py-1.5" : "px-3 py-2"
+    } ${active ? "text-white bg-white/[0.09] font-medium" : "text-[#C8C6C1] hover:text-white hover:bg-white/[0.05]"}`;
   }
 
   return (
     <aside
-      className={`shrink-0 bg-[#0B0B0D] h-full pb-6 flex flex-col transition-[width] duration-150 ${
-        collapsed ? "w-[64px] px-3 pt-3" : "w-60 px-4 pt-3"
+      className={`shrink-0 bg-[#1A1918] border-r border-white/[0.08] h-full py-3 flex flex-col transition-[width] duration-150 ${
+        collapsed ? "w-[68px] px-2.5" : "w-64 px-3"
       } ${ready ? "" : "invisible"}`}
     >
-      {!collapsed && (
-        <div className="flex items-center mb-5 gap-2 px-3">
-          <span className="text-white shrink-0">
+      <div className={`flex items-center mb-4 ${collapsed ? "justify-center" : "px-2"}`}>
+        {!collapsed && (
+          <Link href="/" className="flex items-center gap-2 text-white">
             <Logo size={16} />
-          </span>
-          <span className="font-semibold text-[15px] tracking-tight text-white">Angar</span>
-          <button
-            onClick={toggle}
-            aria-label="Collapse sidebar"
-            className="ml-auto h-7 w-7 flex items-center justify-center rounded text-[#8C8C96] hover:text-white hover:bg-white/[0.08] transition-colors"
-          >
-            <PanelToggleIcon />
-          </button>
-        </div>
-      )}
-      {collapsed && (
+            <span className="font-serif text-[20px] leading-none tracking-tight">Angar</span>
+          </Link>
+        )}
         <button
           onClick={toggle}
-          aria-label="Expand sidebar"
-          className="group relative h-8 w-8 mx-auto mb-4 flex items-center justify-center"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className={`h-8 w-8 flex items-center justify-center rounded-lg text-[#A3A19C] hover:text-white hover:bg-white/[0.08] transition-colors ${collapsed ? "" : "ml-auto"}`}
         >
-          <span className="text-white transition-opacity group-hover:opacity-0">
-            <Logo size={16} />
-          </span>
-          <span className="absolute inset-0 flex items-center justify-center text-[#8C8C96] opacity-0 group-hover:opacity-100 group-hover:text-white transition-opacity rounded hover:bg-white/[0.08]">
-            <PanelToggleIcon />
-          </span>
+          <PanelToggleIcon />
         </button>
-      )}
-
-      <nav className="flex flex-col gap-0.5 overflow-y-auto">
-        {PRIMARY_ITEMS.map((item) => (
-          <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(pathname === item.href)}>
-            <Icon name={item.icon} />
-            {!collapsed && item.label}
-          </Link>
-        ))}
-      </nav>
-
-      <div className="mt-4 pt-4 border-t border-white/10 flex flex-col gap-0.5">
-        {!collapsed && <div className="text-[10px] uppercase tracking-wide text-white/35 px-3 mb-1">More</div>}
-        {MORE_ITEMS.map((item) => (
-          <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(pathname === item.href)}>
-            <Icon name={item.icon} />
-            {!collapsed && item.label}
-          </Link>
-        ))}
       </div>
 
-      <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-white/10">
-        <Link href="/settings" title={collapsed ? "Settings" : undefined} className={itemClass(pathname === "/settings")}>
+      {!collapsed && (
+        <>
+          <Link
+            href="/settings"
+            className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg border border-white/[0.12] bg-white/[0.03] text-[15px] text-white hover:bg-white/[0.06] transition-colors"
+          >
+            <span className="h-4 w-4 rounded bg-accent shrink-0" />
+            <span className="flex-1 truncate">{orgName ?? "Organization"}</span>
+            <Chevron />
+          </Link>
+          <form action="/search" method="GET" className="mb-4">
+            <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/[0.12] text-[#A3A19C] focus-within:border-white/30">
+              <svg width="15" height="15" viewBox="0 0 14 14" fill="none" className="shrink-0">
+                <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.3" />
+                <path d="M9.2 9.2L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+              <input
+                id="sidebar-search"
+                name="q"
+                placeholder="Search AI systems…"
+                className="flex-1 min-w-0 bg-transparent text-sm text-white placeholder:text-[#8A8884] outline-none"
+              />
+              <kbd className="text-[10px] text-[#A3A19C] border border-white/[0.15] rounded px-1 shrink-0">Ctrl K</kbd>
+            </label>
+          </form>
+        </>
+      )}
+
+      <nav className="flex flex-col gap-0.5 overflow-y-auto flex-1 min-h-0">
+        {PRIMARY_ITEMS.map((item) => (
+          <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href))}>
+            <Icon name={item.icon} />
+            {!collapsed && item.label}
+          </Link>
+        ))}
+
+        {collapsed ? (
+          <div className="my-2 border-t border-white/[0.08]" />
+        ) : (
+          <button
+            onClick={() => setMoreOpen((v) => !v)}
+            className="mt-3 flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] text-[#C8C6C1] hover:text-white hover:bg-white/[0.05] transition-colors"
+          >
+            <Icon name="evidence" />
+            <span className="flex-1 text-left">More</span>
+            <span className={`transition-transform ${moreOpen ? "" : "-rotate-90"}`}>
+              <Chevron />
+            </span>
+          </button>
+        )}
+        {(collapsed || moreOpen) &&
+          MORE_ITEMS.map((item) => (
+            <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href), !collapsed)}>
+              {collapsed && <Icon name={item.icon} />}
+              {!collapsed && item.label}
+            </Link>
+          ))}
+      </nav>
+
+      <div className="mt-3 pt-3 border-t border-white/[0.08] flex flex-col gap-0.5">
+        <Link href="/connectors" title={collapsed ? "Connections" : undefined} className={itemClass(isActive("/connectors"))}>
+          <Icon name="connectors" />
+          {!collapsed && "Connections"}
+        </Link>
+        <Link href="/settings" title={collapsed ? "Settings" : undefined} className={itemClass(isActive("/settings"))}>
           <Icon name="settings" />
           {!collapsed && "Settings"}
         </Link>
+        {orgName && (
+          <Link
+            href="/settings"
+            className={`mt-2 flex items-center gap-3 rounded-lg hover:bg-white/[0.05] transition-colors ${collapsed ? "justify-center py-1.5" : "px-2 py-2"}`}
+          >
+            <span className="h-9 w-9 rounded-lg bg-white/[0.08] flex items-center justify-center text-sm text-white shrink-0">
+              {orgName.charAt(0).toUpperCase()}
+            </span>
+            {!collapsed && (
+              <span className="flex-1 min-w-0">
+                <span className="block text-sm font-medium text-white truncate">Admin</span>
+                <span className="block text-xs text-[#A3A19C] truncate">{orgName}</span>
+              </span>
+            )}
+            {!collapsed && <Chevron />}
+          </Link>
+        )}
       </div>
-
-      {orgName && (
-        <Link
-          href="/settings"
-          className={`mt-4 pt-3 border-t border-white/10 flex items-center gap-2.5 hover:bg-white/[0.05] transition-colors rounded-md ${collapsed ? "justify-center px-0 py-1" : "px-3 py-1"}`}
-        >
-          <div className="h-6 w-6 rounded-full bg-white/[0.08] flex items-center justify-center text-[11px] text-[#8C8C96] shrink-0">
-            {orgName.charAt(0).toUpperCase()}
-          </div>
-          {!collapsed && (
-            <div className="min-w-0">
-              <div className="text-xs text-white truncate">{orgName}</div>
-              <div className="text-[10px] text-[#8C8C96]">Settings</div>
-            </div>
-          )}
-        </Link>
-      )}
     </aside>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="shrink-0 text-[#A3A19C]">
+      <path d="M2.5 4l2.5 2.5L7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }

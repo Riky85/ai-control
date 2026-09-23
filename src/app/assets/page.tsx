@@ -81,7 +81,7 @@ export default async function AssetsPage({
         title="AI Passports"
         subtitle="A living technical record for every AI system in your estate."
         action={
-          <Link href="/connectors" className="text-xs font-medium px-3 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors">
+          <Link href="/connectors" className="btn btn-primary btn-sm">
             + Discover more
           </Link>
         }
@@ -111,18 +111,18 @@ export default async function AssetsPage({
         riskLabels={RISK_LABEL}
       />
 
-      <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
+      <div className="rounded-xl border border-line bg-panel overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
-              <th className="px-4 py-3 font-medium">System</th>
-              <th className="px-4 py-3 font-medium">Type</th>
-              <th className="px-4 py-3 font-medium">Owner</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Risk</th>
-              <th className="px-4 py-3 font-medium">Assurance</th>
-              <th className="px-4 py-3 font-medium">Cost/mo</th>
-              <th className="px-4 py-3 font-medium">Last seen</th>
+              <th className="px-5 py-2.5 font-medium">System</th>
+              <th className="px-5 py-2.5 font-medium">Type</th>
+              <th className="px-5 py-2.5 font-medium">Owner</th>
+              <th className="px-5 py-2.5 font-medium">Status</th>
+              <th className="px-5 py-2.5 font-medium">Risk</th>
+              <th className="px-5 py-2.5 font-medium">Assurance</th>
+              <th className="px-5 py-2.5 font-medium">Cost/mo</th>
+              <th className="px-5 py-2.5 font-medium">Last seen</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -131,7 +131,7 @@ export default async function AssetsPage({
               const assurance = asset.assuranceReports[0];
               return (
                 <tr key={asset.id} className="hover:bg-black/[0.02] transition-colors">
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3">
                     <Link href={`/assets/${asset.id}`} className="flex items-center gap-3 group">
                       <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={32} />
                       <span>
@@ -140,15 +140,15 @@ export default async function AssetsPage({
                       </span>
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-ink-400">{asset.type.replace(/_/g, " ").toLowerCase()}</td>
-                  <td className="px-4 py-3 text-ink-400">
+                  <td className="px-5 py-3 text-ink-400">{asset.type.replace(/_/g, " ").toLowerCase()}</td>
+                  <td className="px-5 py-3 text-ink-400">
                     {asset.owner?.name ?? <span className="text-signal">No owner</span>}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3">
                     <Badge>{asset.status}</Badge>
                   </td>
-                  <td className="px-4 py-3">{risk ? <Badge>{risk.level}</Badge> : "—"}</td>
-                  <td className="px-4 py-3 text-xs">
+                  <td className="px-5 py-3">{risk ? <Badge>{risk.level}</Badge> : "—"}</td>
+                  <td className="px-5 py-3 text-xs">
                     {assurance ? (
                       <span className="flex items-center gap-2">
                         <span className="w-16 h-1.5 bg-ink rounded-full overflow-hidden">
@@ -165,10 +165,10 @@ export default async function AssetsPage({
                       "—"
                     )}
                   </td>
-                  <td className="px-4 py-3 text-ink-400 text-xs tabular">
+                  <td className="px-5 py-3 text-ink-400 text-xs tabular">
                     {asset.cost?.monthlyCostEstimate != null ? `€${asset.cost.monthlyCostEstimate.toLocaleString()}` : "—"}
                   </td>
-                  <td className="px-4 py-3 text-ink-400 text-xs tabular">
+                  <td className="px-5 py-3 text-ink-400 text-xs tabular">
                     {asset.lastSeenAt ? new Date(asset.lastSeenAt).toLocaleDateString() : "Never"}
                   </td>
                 </tr>

@@ -18,6 +18,15 @@ enum ConnectorProvider {
   ANTHROPIC
   OPENAI
   GOOGLE_WORKSPACE // predisposto, non attivo in MVP1
+  GOOGLE_GEMINI
+  MISTRAL
+  GROQ
+  COHERE
+  DEEPSEEK
+  XAI
+  TOGETHER
+  OPENROUTER
+  HUGGINGFACE
 }
 
 enum ConnectorStatus {

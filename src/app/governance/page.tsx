@@ -115,14 +115,14 @@ async function ReviewsTab() {
               <form action={setAssetStatusAction}>
                 <input type="hidden" name="assetId" value={asset.id} />
                 <input type="hidden" name="status" value="APPROVED" />
-                <button type="submit" className="text-xs px-3 py-1.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors">
+                <button type="submit" className="btn btn-secondary btn-sm">
                   Approve
                 </button>
               </form>
               <form action={setAssetStatusAction}>
                 <input type="hidden" name="assetId" value={asset.id} />
                 <input type="hidden" name="status" value="UNAPPROVED" />
-                <button type="submit" className="text-xs px-3 py-1.5 rounded border border-line text-ink-400 hover:text-alarm hover:border-alarm transition-colors">
+                <button type="submit" className="btn btn-secondary btn-sm">
                   Reject
                 </button>
               </form>
@@ -211,7 +211,7 @@ async function PoliciesTab() {
                   <input type="hidden" name="name" value={t.name} />
                   <input type="hidden" name="description" value={t.description} />
                   <input type="hidden" name="category" value={t.category} />
-                  <button type="submit" className="text-xs px-2.5 py-1 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors">
+                  <button type="submit" className="btn btn-secondary btn-sm">
                     Add
                   </button>
                 </form>
@@ -226,16 +226,16 @@ async function PoliciesTab() {
         <form action={createPolicyAction} className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-ink-400">Name</label>
-            <input name="name" required placeholder="e.g. Agents cannot create discounts above 20%" className="bg-ink border border-line rounded px-3 py-2 text-sm text-ink-100" />
+            <input name="name" required placeholder="e.g. Agents cannot create discounts above 20%" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-ink-400">Description</label>
-            <textarea name="description" required rows={2} className="bg-ink border border-line rounded px-3 py-2 text-sm text-ink-100" />
+            <textarea name="description" required rows={2} className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
           </div>
           <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col gap-1 flex-1">
               <label className="text-xs text-ink-400">Category</label>
-              <select name="category" className="bg-ink border border-line rounded px-3 py-2 text-sm text-ink-100">
+              <select name="category" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel">
                 <option value="data_access">Data access</option>
                 <option value="approval">Approval</option>
                 <option value="environment">Environment</option>
@@ -243,7 +243,7 @@ async function PoliciesTab() {
                 <option value="other">Other</option>
               </select>
             </div>
-            <button type="submit" className="text-sm px-4 py-2 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors">
+            <button type="submit" className="btn btn-secondary">
               Add policy
             </button>
           </div>

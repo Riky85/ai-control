@@ -34,45 +34,57 @@ export default function AssetFilters({
 
   return (
     <div className="flex items-center gap-3">
-      <select
+      <label className="relative inline-flex items-center border border-line rounded-lg bg-panel hover:border-ink-400 transition-colors text-sm">
+        <span className="pl-3 text-ink-400">Type</span>
+        <select
         value={searchParams.get("type") ?? ""}
         onChange={(e) => setParam("type", e.target.value)}
-        className="bg-panel border border-line rounded-lg px-3 py-2 text-sm text-ink-100 hover:border-ink-400 transition-colors cursor-pointer"
+        className="appearance-none bg-transparent pl-1.5 pr-8 py-2 font-medium text-ink-100 cursor-pointer outline-none"
       >
-        <option value="">All types</option>
+        <option value="">All</option>
         {typeOptions.map((t) => (
           <option key={t} value={t}>
             {t.replace(/_/g, " ").toLowerCase()}
           </option>
         ))}
       </select>
-      <select
+        <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="absolute right-2.5 pointer-events-none text-ink-400"><path d="M2.5 4l2.5 2.5L7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+      </label>
+      <label className="relative inline-flex items-center border border-line rounded-lg bg-panel hover:border-ink-400 transition-colors text-sm">
+        <span className="pl-3 text-ink-400">Status</span>
+        <select
         value={searchParams.get("status") ?? ""}
         onChange={(e) => setParam("status", e.target.value)}
-        className="bg-panel border border-line rounded-lg px-3 py-2 text-sm text-ink-100 hover:border-ink-400 transition-colors cursor-pointer"
+        className="appearance-none bg-transparent pl-1.5 pr-8 py-2 font-medium text-ink-100 cursor-pointer outline-none"
       >
-        <option value="">All statuses</option>
+        <option value="">All</option>
         {statusOptions.map((s) => (
           <option key={s} value={s}>
             {statusLabels[s]}
           </option>
         ))}
       </select>
-      <select
+        <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="absolute right-2.5 pointer-events-none text-ink-400"><path d="M2.5 4l2.5 2.5L7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+      </label>
+      <label className="relative inline-flex items-center border border-line rounded-lg bg-panel hover:border-ink-400 transition-colors text-sm">
+        <span className="pl-3 text-ink-400">Risk</span>
+        <select
         value={searchParams.get("risk") ?? ""}
         onChange={(e) => setParam("risk", e.target.value)}
-        className="bg-panel border border-line rounded-lg px-3 py-2 text-sm text-ink-100 hover:border-ink-400 transition-colors cursor-pointer"
+        className="appearance-none bg-transparent pl-1.5 pr-8 py-2 font-medium text-ink-100 cursor-pointer outline-none"
       >
-        <option value="">All risk levels</option>
+        <option value="">All</option>
         {riskOptions.map((r) => (
           <option key={r} value={r}>
             {riskLabels[r]}
           </option>
         ))}
       </select>
+        <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="absolute right-2.5 pointer-events-none text-ink-400"><path d="M2.5 4l2.5 2.5L7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+      </label>
       {hasFilters && (
-        <button onClick={() => router.push("/assets")} className="text-xs text-ink-400 hover:text-ink-100">
-          Clear
+        <button onClick={() => router.push("/assets")} className="btn btn-secondary btn-sm">
+          ↺ Reset
         </button>
       )}
     </div>

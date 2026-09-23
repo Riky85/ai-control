@@ -17,12 +17,14 @@ export function StatCard({
   const color = tone === "signal" ? "text-signal" : tone === "alarm" ? "text-alarm" : tone === "accent" ? "text-accent" : "text-ink-100";
   const inner = (
     <>
-      <div className="text-xs text-ink-400">{label}</div>
-      <div className={`font-display text-2xl font-semibold mt-1 tabular ${color}`}>{value}</div>
-      {hint && <div className="text-xs text-ink-400 mt-0.5 truncate">{hint}</div>}
+      <div className="text-sm text-ink-400">{label}</div>
+      <div>
+        <div className={`font-display text-[30px] leading-none tracking-tight tabular ${color}`}>{value}</div>
+        {hint && <div className="text-xs text-ink-400 mt-1.5 truncate">{hint}</div>}
+      </div>
     </>
   );
-  const cls = "rounded-xl border border-line bg-panel p-4 animate-rise";
+  const cls = "rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-4 animate-rise";
   return href ? (
     <Link href={href} className={cls}>
       {inner}
@@ -50,8 +52,8 @@ export function Panel({
     <div className={`rounded-xl border border-line bg-panel p-5 animate-rise ${className}`}>
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h2 className="text-sm font-semibold text-ink-100">{title}</h2>
-          {subtitle && <p className="text-xs text-ink-400 mt-0.5">{subtitle}</p>}
+          <h2 className="text-base font-semibold text-ink-100">{title}</h2>
+          {subtitle && <p className="text-sm text-ink-400 mt-0.5">{subtitle}</p>}
         </div>
         {action}
       </div>
@@ -64,7 +66,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
   return (
     <div className="flex items-end justify-between gap-4">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">{title}</h1>
+        <h1 className="font-display text-[28px] font-semibold tracking-tight text-ink-100">{title}</h1>
         {subtitle && <p className="text-sm text-ink-400 mt-1">{subtitle}</p>}
       </div>
       {action}

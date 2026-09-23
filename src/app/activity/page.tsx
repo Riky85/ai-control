@@ -97,7 +97,7 @@ async function EventsTab({ q }: { q?: string }) {
           placeholder="Search events, actors, assets…"
           className="bg-panel border border-line rounded-md px-3 py-1.5 text-sm text-ink-100 w-72"
         />
-        <button type="submit" className="text-sm px-3 py-1.5 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors">
+        <button type="submit" className="btn btn-secondary">
           Search
         </button>
         {query && (
@@ -161,7 +161,7 @@ async function EvidenceTab() {
         {withReport.map((asset) => {
           const checks = asset.assuranceReports[0].checks as unknown as CheckRow[];
           return (
-            <div key={asset.id} className="rounded-xl border border-line bg-panel shadow-card overflow-hidden">
+            <div key={asset.id} className="rounded-xl border border-line bg-panel overflow-hidden">
               <div className="px-5 py-3 border-b border-line flex items-center justify-between">
                 <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
                   {asset.name}
@@ -170,18 +170,18 @@ async function EvidenceTab() {
               </div>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-[10px] font-mono uppercase tracking-wider text-ink-400 border-b border-line">
-                    <th className="px-5 py-2 font-medium">Control</th>
-                    <th className="px-5 py-2 font-medium w-20">Status</th>
-                    <th className="px-5 py-2 font-medium">Evidence</th>
+                  <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
+                    <th className="px-5 py-2.5 font-medium">Control</th>
+                    <th className="px-5 py-2.5 font-medium w-20">Status</th>
+                    <th className="px-5 py-2.5 font-medium">Evidence</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
                   {checks.map((c) => (
                     <tr key={c.key}>
-                      <td className="px-5 py-2 text-ink-100">{c.label}</td>
-                      <td className="px-5 py-2"><StatusDot status={c.status} /></td>
-                      <td className="px-5 py-2 text-ink-400">{c.detail}</td>
+                      <td className="px-5 py-3 text-ink-100">{c.label}</td>
+                      <td className="px-5 py-3"><StatusDot status={c.status} /></td>
+                      <td className="px-5 py-3 text-ink-400">{c.detail}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -13,7 +13,7 @@ export interface EstateSystem {
 }
 
 const W = 900;
-const ROW = 52;
+const ROW = 46;
 const COL = 230;
 
 export default function EstateGraph({ systems }: { systems: EstateSystem[] }) {

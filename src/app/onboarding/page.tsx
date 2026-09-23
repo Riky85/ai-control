@@ -93,7 +93,7 @@ export default async function OnboardingPage({
           </p>
           <Link
             href="/onboarding?step=2"
-            className="self-start text-sm px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
+            className="btn btn-primary self-start"
           >
             Get started
           </Link>
@@ -113,7 +113,7 @@ export default async function OnboardingPage({
                 name="name"
                 defaultValue={org?.name}
                 required
-                className="bg-ink border border-line rounded px-3 py-2 text-sm text-ink-100"
+                className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -122,12 +122,12 @@ export default async function OnboardingPage({
                 name="country"
                 defaultValue={org?.country ?? ""}
                 placeholder="e.g. Italy"
-                className="bg-ink border border-line rounded px-3 py-2 text-sm text-ink-100"
+                className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel"
               />
             </div>
             <button
               type="submit"
-              className="self-start text-sm px-4 py-2 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors"
+              className="btn btn-secondary self-start"
             >
               Save
             </button>
@@ -138,7 +138,7 @@ export default async function OnboardingPage({
             </Link>
             <Link
               href="/onboarding?step=3"
-              className="text-sm px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
+              className="btn btn-primary"
             >
               Continue
             </Link>
@@ -180,7 +180,7 @@ export default async function OnboardingPage({
             </Link>
             <Link
               href="/onboarding?step=4"
-              className="text-sm px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
+              className="btn btn-primary"
             >
               I'll do this later — continue
             </Link>
@@ -198,13 +198,13 @@ export default async function OnboardingPage({
           <form action={addUserAction} className="flex gap-2 items-end flex-wrap">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-ink-400">Email</label>
-              <input name="email" type="email" required className="bg-ink border border-line rounded px-3 py-2 text-sm text-ink-100 w-56" />
+              <input name="email" type="email" required className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel w-56" />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs text-ink-400">Name</label>
-              <input name="name" className="bg-ink border border-line rounded px-3 py-2 text-sm text-ink-100 w-40" />
+              <input name="name" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel w-40" />
             </div>
-            <button type="submit" className="text-sm px-3 py-2 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors">
+            <button type="submit" className="btn btn-secondary">
               Add
             </button>
           </form>
@@ -223,7 +223,7 @@ export default async function OnboardingPage({
             </Link>
             <Link
               href="/onboarding?step=5"
-              className="text-sm px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
+              className="btn btn-primary"
             >
               Continue
             </Link>
@@ -256,7 +256,7 @@ export default async function OnboardingPage({
                       <input type="hidden" name="name" value={t.name} />
                       <input type="hidden" name="description" value={t.description} />
                       <input type="hidden" name="category" value={t.category} />
-                      <button type="submit" className="text-xs px-2.5 py-1 rounded-md border border-line text-ink-100 hover:border-ink-100 transition-colors">
+                      <button type="submit" className="btn btn-secondary btn-sm">
                         Add
                       </button>
                     </form>
@@ -272,7 +272,7 @@ export default async function OnboardingPage({
             <form action={completeOnboardingAction}>
               <button
                 type="submit"
-                className="text-sm px-4 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors"
+                className="btn btn-primary"
               >
                 Finish setup
               </button>

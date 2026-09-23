@@ -46,11 +46,11 @@ export default async function OverviewPage() {
   return (
     <div className="flex flex-col gap-6">
       {!org?.onboardingCompletedAt && (
-        <div className="rounded-lg border border-line bg-panel px-4 py-3 flex items-center gap-3">
-          <span className="text-xs font-medium text-steady bg-steady/10 rounded px-2 py-0.5 shrink-0">Setup</span>
+        <div className="rounded-xl bg-accent-soft px-4 py-3 flex items-center gap-3">
+          <span className="text-xs font-medium text-white bg-accent rounded-full px-2.5 py-0.5 shrink-0">Setup</span>
           <p className="text-sm text-ink-100">
             Connect your first provider to discover your AI automatically.{" "}
-            <Link href="/connectors" className="underline">Go to Connections</Link>
+            <Link href="/connectors" className="font-medium text-accent-dark underline">Go to Connections</Link>
           </p>
         </div>
       )}
@@ -85,6 +85,7 @@ export default async function OverviewPage() {
 
       <Panel title="AI estate map" subtitle="Which provider powers each system, and which data it touches">
         {assets.length > 0 ? (
+          <div className="max-w-4xl mx-auto">
           <EstateGraph
             systems={assets.map((a) => ({
               id: a.id,
@@ -94,26 +95,27 @@ export default async function OverviewPage() {
               data: a.dataAccess.map((d) => ({ name: d.dataAsset.name, sensitive: SENSITIVE.includes(d.dataAsset.sensitivity) })),
             }))}
           />
+          </div>
         ) : (
           <Empty />
         )}
       </Panel>
 
-      <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
+      <div className="rounded-xl border border-line bg-panel overflow-hidden">
         <div className="px-5 py-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-ink-100">AI systems</h2>
-          <Link href="/assets" className="text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1 hover:border-ink-100 transition-colors">
+          <Link href="/assets" className="btn btn-secondary btn-sm">
             View all
           </Link>
         </div>
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-ink-400 bg-ink border-y border-line">
-              <th className="px-5 py-2 font-medium">System</th>
-              <th className="px-5 py-2 font-medium">Provider</th>
-              <th className="px-5 py-2 font-medium">Owner</th>
-              <th className="px-5 py-2 font-medium">Cost / mo</th>
-              <th className="px-5 py-2 font-medium">Risk</th>
+            <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
+              <th className="px-5 py-2.5 font-medium">System</th>
+              <th className="px-5 py-2.5 font-medium">Provider</th>
+              <th className="px-5 py-2.5 font-medium">Owner</th>
+              <th className="px-5 py-2.5 font-medium">Cost / mo</th>
+              <th className="px-5 py-2.5 font-medium">Risk</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">

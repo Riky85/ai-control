@@ -6,6 +6,7 @@ import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, s
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
+import { StatCard } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +65,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           <div className="flex items-center gap-4">
             <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={56} />
             <div>
-              <h1 className="font-display text-[28px] leading-tight font-semibold text-ink-100">{asset.name}</h1>
+              <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{asset.name}</h1>
               <p className="text-sm text-ink-400 mt-0.5">
                 {asset.vendor ?? "Vendor unknown"} · {asset.type.replace(/_/g, " ").toLowerCase()}
               </p>
@@ -86,36 +87,32 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         </div>
       </div>
 
-      <div className="grid grid-cols-3 divide-x divide-line border border-line rounded-lg overflow-hidden">
-        <div className="px-5 py-4">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1">Current cost</div>
-          {asset.cost?.monthlyCostEstimate != null ? (
-            <div className="text-sm font-semibold text-accent">€{asset.cost.monthlyCostEstimate.toLocaleString()}/mo</div>
-          ) : (
-            <div className="text-sm text-ink-400">Not entered</div>
-          )}
-        </div>
-        <div className="px-5 py-4">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1">Annualized</div>
-          <div className="text-sm font-semibold text-ink-100">
-            {asset.cost?.monthlyCostEstimate != null ? `€${(asset.cost.monthlyCostEstimate * 12).toLocaleString()}` : "—"}
-          </div>
-        </div>
-        <div className="px-5 py-4">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1">Dependencies</div>
-          <div className="text-sm font-semibold text-ink-100">{asset.connectedSystems.length + asset.dataAccess.length}</div>
-        </div>
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard
+          label="Current cost"
+          value={asset.cost?.monthlyCostEstimate != null ? `€${asset.cost.monthlyCostEstimate.toLocaleString()}` : "—"}
+          hint={asset.cost?.monthlyCostEstimate != null ? "per month" : "Not entered yet"}
+          tone="accent"
+        />
+        <StatCard label="Annualized" value={asset.cost?.monthlyCostEstimate != null ? `€${(asset.cost.monthlyCostEstimate * 12).toLocaleString()}` : "—"} />
+        <StatCard label="Dependencies" value={String(asset.connectedSystems.length + asset.dataAccess.length)} hint="Systems and data it touches" />
+        <StatCard
+          label="Assurance"
+          value={assurance ? `${assurance.score}%` : "—"}
+          hint={assurance ? ASSURANCE_LABEL[assurance.level] : "Not assessed"}
+          tone={assurance ? (assurance.level === "ASSURED" ? undefined : assurance.level === "NEEDS_REVIEW" ? "signal" : "alarm") : undefined}
+        />
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        <section className="col-span-2">
+        <section className="col-span-2 rounded-xl border border-line bg-panel p-5">
           <div className="flex gap-1 border-b border-line mb-4">
             {TABS.map((t) => (
               <Link
                 key={t.key}
                 href={`/assets/${asset.id}?tab=${t.key}`}
                 className={`text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
-                  tab === t.key ? "border-steady text-ink-100 font-medium" : "border-transparent text-ink-400 hover:text-ink-100"
+                  tab === t.key ? "border-accent text-ink-100 font-medium" : "border-transparent text-ink-400 hover:text-ink-100"
                 }`}
               >
                 {t.label}
@@ -240,27 +237,27 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 </div>
               )}
               <details>
-                <summary className="cursor-pointer text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1.5 inline-block hover:border-ink-100 transition-colors list-none">
+                <summary className="btn btn-secondary btn-sm cursor-pointer inline-block list-none">
                   + Add an alternative
                 </summary>
                 <form action={addAlternativeAction} className="mt-3 flex flex-col gap-2 text-sm">
                   <input type="hidden" name="assetId" value={asset.id} />
                   <div className="grid grid-cols-2 gap-2">
-                    <input name="provider" placeholder="Provider (e.g. OpenAI)" className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100" />
-                    <input name="model" placeholder="Model (e.g. GPT-5)" className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100" />
+                    <input name="provider" placeholder="Provider (e.g. OpenAI)" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
+                    <input name="model" placeholder="Model (e.g. GPT-5)" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <input name="estimatedMonthlyCost" type="number" step="0.01" placeholder="Est. €/mo" className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100" />
-                    <select name="qualityConfidence" defaultValue="" className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100">
+                    <input name="estimatedMonthlyCost" type="number" step="0.01" placeholder="Est. €/mo" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
+                    <select name="qualityConfidence" defaultValue="" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel">
                       <option value="">Quality?</option>
                       <option value="LOW">Low quality confidence</option>
                       <option value="MEDIUM">Medium quality confidence</option>
                       <option value="HIGH">High quality confidence</option>
                     </select>
-                    <input name="migrationEffortDays" placeholder="Migration days, e.g. 3-5" className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100" />
+                    <input name="migrationEffortDays" placeholder="Migration days, e.g. 3-5" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
                   </div>
-                  <textarea name="reasoning" placeholder="Why this could work (optional)" rows={2} className="bg-ink border border-line rounded px-2 py-1.5 text-xs text-ink-100" />
-                  <button type="submit" className="text-xs px-2.5 py-1.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors self-start">
+                  <textarea name="reasoning" placeholder="Why this could work (optional)" rows={2} className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
+                  <button type="submit" className="btn btn-secondary btn-sm self-start">
                     Add alternative
                   </button>
                 </form>
@@ -270,17 +267,18 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         </section>
 
         <aside className="rounded-xl border border-line bg-panel p-5 text-sm h-fit flex flex-col gap-4">
+          <h2 className="text-base font-semibold text-ink-100">Manage</h2>
           <form action={setAssetOwnerAction} className="flex flex-col gap-1">
             <input type="hidden" name="assetId" value={asset.id} />
             <label className="text-xs text-ink-400">Owner</label>
             <div className="flex gap-2">
-              <select name="ownerId" defaultValue={asset.ownerId ?? ""} className="flex-1 bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100">
+              <select name="ownerId" defaultValue={asset.ownerId ?? ""} className="flex-1 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel">
                 <option value="">No owner on record</option>
                 {orgUsers.map((u) => (
                   <option key={u.id} value={u.id}>{u.name ?? u.email}</option>
                 ))}
               </select>
-              <button type="submit" className="text-xs px-2.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors">
+              <button type="submit" className="btn btn-secondary btn-sm">
                 Save
               </button>
             </div>
@@ -311,13 +309,13 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             <input type="hidden" name="assetId" value={asset.id} />
             <label className="text-xs text-ink-400">EU AI Act classification</label>
             <div className="flex gap-2">
-              <select name="tier" defaultValue={asset.euAiActTier} className="flex-1 bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100">
+              <select name="tier" defaultValue={asset.euAiActTier} className="flex-1 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel">
                 <option value="UNCLASSIFIED">Not classified yet</option>
                 <option value="MINIMAL_RISK">Minimal risk</option>
                 <option value="LIMITED_RISK">Limited risk</option>
                 <option value="HIGH_RISK">High risk (Annex III)</option>
               </select>
-              <button type="submit" className="text-xs px-2.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors">
+              <button type="submit" className="btn btn-secondary btn-sm">
                 Save
               </button>
             </div>
@@ -333,15 +331,15 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 name="monthlyCostEstimate"
                 defaultValue={asset.cost?.monthlyCostEstimate ?? ""}
                 placeholder="€ / month"
-                className="flex-1 bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100"
+                className="flex-1 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel"
               />
-              <select name="confidence" defaultValue={asset.cost?.confidence ?? "MEDIUM"} className="bg-ink border border-line rounded px-2 py-1.5 text-sm text-ink-100">
+              <select name="confidence" defaultValue={asset.cost?.confidence ?? "MEDIUM"} className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel">
                 <option value="LOW">Low confidence</option>
                 <option value="MEDIUM">Medium confidence</option>
                 <option value="HIGH">High confidence</option>
               </select>
             </div>
-            <button type="submit" className="text-xs px-2.5 py-1.5 rounded border border-line text-ink-100 hover:border-accent hover:text-accent transition-colors mt-1 self-start">
+            <button type="submit" className="btn btn-secondary btn-sm mt-1 self-start">
               Save cost
             </button>
           </form>

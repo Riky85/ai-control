@@ -6,8 +6,8 @@ export const G = {
   line: "#E6E6EB",
   text: "#141418",
   muted: "#6E6E78",
-  accent: "#3D3FD9",
-  accentSoft: "#ECECFC",
+  accent: "#D97757",
+  accentSoft: "#FBF0EB",
   alarm: "#C4433B",
   alarmSoft: "#FDF1F0",
   edge: "#C9C9D6",
@@ -83,7 +83,7 @@ export function Node({
   emphasis?: boolean;
   href?: string;
 }) {
-  const h = 40;
+  const h = 36;
   const alarm = tone === "alarm";
   const fill = emphasis ? (alarm ? G.alarmSoft : G.accentSoft) : "#FFFFFF";
   const stroke = alarm ? G.alarm : emphasis ? G.accent : G.line;

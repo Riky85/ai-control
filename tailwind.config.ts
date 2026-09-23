@@ -15,9 +15,9 @@ const config: Config = {
         panel: "#FFFFFF",
         line: "#E6E6EB",
         accent: {
-          DEFAULT: "#3D3FD9",
-          dark: "#2E30B8",
-          soft: "#ECECFC",
+          DEFAULT: "#D97757",
+          dark: "#C15F3C",
+          soft: "#FBF0EB",
         },
         signal: "#C2650C",
         steady: "#1F9254",
@@ -25,6 +25,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
+        serif: ["var(--font-serif)", "ui-serif", "Georgia"],
         body: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
       },
       boxShadow: {

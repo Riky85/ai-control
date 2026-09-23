@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans } from "next/font/google";
+import { Hanken_Grotesk, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
-import Link from "next/link";
 import { db } from "@/lib/db";
 
-const sans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-sans",
-});
+// Il font della Claude Console (Anthropic Sans/Serif) è proprietario: uso le
+// alternative libere più vicine — grotesk per il testo, serif per il nome.
+const sans = Hanken_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans" });
+const serif = Source_Serif_4({ subsets: ["latin"], weight: ["500"], variable: "--font-serif" });
 
 export const metadata: Metadata = {
   title: "Angar",
@@ -26,36 +24,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="en" className={sans.variable}>
-      <body className={`flex h-screen overflow-hidden bg-[#0B0B0D] text-ink-100 font-body`}>
+    <html lang="en" className={`${sans.variable} ${serif.variable}`}>
+      <body className={`flex h-screen overflow-hidden bg-[#1A1918] text-ink-100 font-body`}>
         <Sidebar orgName={orgName} />
         <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto">
-          <header className="h-14 border-b border-line flex items-center justify-between px-10 shrink-0 sticky top-0 bg-panel z-10">
-            <form action="/search" method="GET" className="w-72">
-              <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-line bg-ink">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-ink-400 shrink-0">
-                  <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.3" />
-                  <path d="M9.2 9.2L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-                </svg>
-                <input
-                  name="q"
-                  placeholder="Search AI systems..."
-                  className="flex-1 bg-transparent text-xs text-ink-100 placeholder:text-ink-400 outline-none min-w-0"
-                />
-                <kbd className="text-[10px] text-ink-400 border border-line rounded px-1 shrink-0">/</kbd>
-              </div>
-            </form>
-            {orgName && (
-              <Link
-                href="/settings"
-                className="flex items-center gap-2 text-xs text-ink-100 border border-line rounded-md px-3 py-1.5 hover:border-ink-100 transition-colors"
-              >
-                {orgName}
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 4l2.5 2.5L7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </Link>
-            )}
-          </header>
-          <main className="flex-1 px-10 py-9">{children}</main>
+          <main className="flex-1 w-full max-w-[1400px] mx-auto px-10 py-8">{children}</main>
         </div>
       </body>
     </html>
