@@ -1,8 +1,8 @@
 /**
- * Grafo dell'asset — sostituisce la vecchia lista testuale indentata con
- * un vero grafo a nodi: chi lo usa a sinistra, l'asset al centro, cosa
- * tocca (sistemi, asset collegati, dati) a destra. Costruito solo dai
- * dati reali già presenti nel dettaglio asset — nessun nodo inventato.
+ * Grafo dell'asset — stile "dependency graph" a catena orizzontale come
+ * nel riferimento condiviso: caselle collegate da linee dritte invece di
+ * curve, chi lo usa a sinistra, l'asset al centro, cosa tocca a destra.
+ * Costruito solo dai dati reali già presenti nel dettaglio asset.
  */
 export interface GraphNode {
   label: string;
@@ -16,10 +16,7 @@ export interface AssetGraphProps {
   right: GraphNode[];
 }
 
-const NODE_H = 38; // fissa per tutti i nodi laterali, con o senza sublabel,
-// cosi' l'etichetta secondaria va su una seconda riga e non puo' mai
-// sovrapporsi al testo principale (bug osservato con label lunghe tipo
-// "repo:production-api (production)").
+const NODE_H = 38;
 const ROW_H = 50;
 const NODE_W_SIDE = 176;
 const NODE_W_CENTER = 176;
@@ -40,30 +37,25 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
     return start + i * ROW_H;
   };
 
+  // Linee dritte a gomito (orizzontale poi verticale) invece delle curve —
+  // più vicine allo stile "flow chart tecnico" del riferimento.
+  const elbow = (x1: number, y1: number, x2: number, y2: number) => {
+    const midX = (x1 + x2) / 2;
+    return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
+  };
+
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
       {left.map((_, i) => {
         const y = colY(i, left.length);
         return (
-          <path
-            key={`l-${i}`}
-            d={`M ${xLeft + NODE_W_SIDE} ${y} C ${xCenter - 30} ${y}, ${xCenter - 30} ${centerY}, ${xCenter} ${centerY}`}
-            fill="none"
-            stroke="#E7E7EC"
-            strokeWidth={1.5}
-          />
+          <path key={`l-${i}`} d={elbow(xLeft + NODE_W_SIDE, y, xCenter, centerY)} fill="none" stroke="#E7E7EC" strokeWidth={1.5} />
         );
       })}
       {right.map((_, i) => {
         const y = colY(i, right.length);
         return (
-          <path
-            key={`r-${i}`}
-            d={`M ${xCenter + NODE_W_CENTER} ${centerY} C ${xRight - 30} ${centerY}, ${xRight - 30} ${y}, ${xRight} ${y}`}
-            fill="none"
-            stroke="#E7E7EC"
-            strokeWidth={1.5}
-          />
+          <path key={`r-${i}`} d={elbow(xCenter + NODE_W_CENTER, centerY, xRight, y)} fill="none" stroke="#E7E7EC" strokeWidth={1.5} />
         );
       })}
 

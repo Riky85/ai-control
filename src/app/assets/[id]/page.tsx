@@ -152,11 +152,9 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 </div>
               )}
 
-              <details className="pt-3 border-t border-line">
-                <summary className="cursor-pointer text-xs font-medium text-ink-100 border border-line rounded-md px-2.5 py-1.5 inline-block hover:border-ink-100 transition-colors list-none">
-                  View relationship graph
-                </summary>
-                <div className="mt-4">
+              <div className="pt-3 border-t border-line">
+                <h3 className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-3">Dependency graph</h3>
+                <div>
                   <AssetGraph
                     center={asset.name}
                     left={asset.usages.slice(0, 6).map((u) => ({ label: u.user?.name ?? u.externalUserRef ?? "Unknown user" }))}
@@ -175,7 +173,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                     ]}
                   />
                 </div>
-              </details>
+              </div>
             </div>
           )}
 
