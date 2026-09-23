@@ -1,7 +1,10 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
-import VendorIcon from "@/components/VendorIcon";
+import { VendorBadge } from "@/components/VendorIcon";
+import BarChart from "@/components/BarChart";
+import { StatCard, Panel, PageHeader } from "@/components/ui";
+import { CHART_COLORS } from "@/lib/chart-colors";
 import AssetFilters from "@/components/AssetFilters";
 import DonutChart from "@/components/DonutChart";
 import type { AiAssetType, AiAssetStatus } from "@prisma/client";
@@ -54,51 +57,50 @@ export default async function AssetsPage({
     ? assets.filter((a) => a.riskAssessments[0]?.level === searchParams.risk)
     : assets;
 
-  // Famiglia blu/viola coerente — niente marrone o tonalità confuse, e
-  // lontana da verde/rosso/ambra che restano il significato di rischio.
-  const TYPE_COLORS = ["#3B3564", "#4C6EF5", "#7C6FE0", "#5C9EAD", "#A78BFA", "#84848C"];
   const typeCounts = new Map<string, number>();
   for (const a of assets) typeCounts.set(a.type, (typeCounts.get(a.type) ?? 0) + 1);
   const typeSlices = Array.from(typeCounts.entries()).map(([type, value], i) => ({
     label: type.replace(/_/g, " ").toLowerCase(),
     value,
-    color: TYPE_COLORS[i % TYPE_COLORS.length],
+    color: CHART_COLORS[i % CHART_COLORS.length],
     href: `/assets?type=${type}`,
   }));
+  const providerCounts = new Map<string, number>();
+  for (const a of assets) providerCounts.set(a.vendor ?? "Unknown", (providerCounts.get(a.vendor ?? "Unknown") ?? 0) + 1);
+  const providerRows = Array.from(providerCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, value]) => ({ label, value }));
 
   const totalCost = assets.reduce((sum, a) => sum + (a.cost?.monthlyCostEstimate ?? 0), 0);
   const highRiskCount = assets.filter((a) => ["HIGH", "CRITICAL"].includes(a.riskAssessments[0]?.level ?? "")).length;
+  const noOwner = assets.filter((a) => !a.ownerId).length;
 
   return (
-    <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">AI Passports</h1>
-        <p className="text-sm text-ink-400 mt-1.5">
-          Every application, agent, API or MCP server detected across your connectors.
-        </p>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="AI Passports"
+        subtitle="A living technical record for every AI system in your estate."
+        action={
+          <Link href="/connectors" className="text-xs font-medium px-3 py-2 rounded-md bg-accent text-white hover:bg-accent-dark transition-colors">
+            + Discover more
+          </Link>
+        }
+      />
+
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard label="AI systems" value={String(assets.length)} tone="accent" />
+        <StatCard label="Monthly spend" value={totalCost > 0 ? `€${totalCost.toLocaleString()}` : "—"} hint="Manually entered" href="/savings" />
+        <StatCard label="High risk" value={String(highRiskCount)} tone={highRiskCount > 0 ? "alarm" : undefined} href="/assets?risk=HIGH" />
+        <StatCard label="Without owner" value={String(noOwner)} tone={noOwner > 0 ? "signal" : undefined} />
       </div>
 
-      <div className="grid grid-cols-2 gap-5">
-        <div className="rounded-xl border border-line bg-panel shadow-card p-4 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Total tracked</div>
-            <div className="font-display text-3xl font-bold text-accent">{assets.length}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Monthly spend tracked</div>
-            <div className="font-display text-xl font-semibold text-accent">€{totalCost.toLocaleString()}</div>
-          </div>
-        </div>
-        {typeSlices.length > 0 ? (
-          <div className="rounded-xl border border-line bg-panel shadow-card p-5">
-            <h2 className="text-sm font-medium text-ink-400 mb-3">By type</h2>
-            <DonutChart slices={typeSlices} centerLabel="total" />
-          </div>
-        ) : (
-          <div className="rounded-xl border border-alarm/30 bg-alarm/5 p-5 flex items-center">
-            <span className="text-sm text-alarm">{highRiskCount} at high or critical risk</span>
-          </div>
-        )}
+      <div className="grid grid-cols-2 gap-4">
+        <Panel title="By type" subtitle="What kind of AI you run">
+          {typeSlices.length > 0 ? <DonutChart slices={typeSlices} centerLabel="systems" /> : <p className="text-sm text-ink-400">No data yet.</p>}
+        </Panel>
+        <Panel title="By provider" subtitle="How many systems depend on each vendor">
+          {providerRows.length > 0 ? <BarChart rows={providerRows} /> : <p className="text-sm text-ink-400">No data yet.</p>}
+        </Panel>
       </div>
 
       <AssetFilters
@@ -109,11 +111,11 @@ export default async function AssetsPage({
         riskLabels={RISK_LABEL}
       />
 
-      <div className="rounded-xl border border-line bg-panel shadow-card overflow-hidden">
+      <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-[10px] font-mono uppercase tracking-wider text-ink-400 border-b border-line">
-              <th className="px-4 py-3 font-medium">Asset</th>
+            <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
+              <th className="px-4 py-3 font-medium">System</th>
               <th className="px-4 py-3 font-medium">Type</th>
               <th className="px-4 py-3 font-medium">Owner</th>
               <th className="px-4 py-3 font-medium">Status</th>
@@ -128,15 +130,15 @@ export default async function AssetsPage({
               const risk = asset.riskAssessments[0];
               const assurance = asset.assuranceReports[0];
               return (
-                <tr key={asset.id} className="hover:bg-black/[0.025]">
+                <tr key={asset.id} className="hover:bg-black/[0.02] transition-colors">
                   <td className="px-4 py-3">
-                    <Link href={`/assets/${asset.id}`} className="hover:underline font-medium text-ink-100">
-                      {asset.name}
+                    <Link href={`/assets/${asset.id}`} className="flex items-center gap-3 group">
+                      <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={32} />
+                      <span>
+                        <span className="block font-medium text-ink-100 group-hover:underline">{asset.name}</span>
+                        <span className="block text-xs text-ink-400">{asset.vendor ?? "Vendor unknown"}</span>
+                      </span>
                     </Link>
-                    <div className="flex items-center gap-1.5 text-xs text-ink-400">
-                      <span className="text-ink-400/80"><VendorIcon vendor={asset.vendor ?? asset.connector?.provider ?? ""} size={12} /></span>
-                      {asset.vendor ?? "Vendor unknown"}
-                    </div>
                   </td>
                   <td className="px-4 py-3 text-ink-400">{asset.type.replace(/_/g, " ").toLowerCase()}</td>
                   <td className="px-4 py-3 text-ink-400">
@@ -148,16 +150,16 @@ export default async function AssetsPage({
                   <td className="px-4 py-3">{risk ? <Badge>{risk.level}</Badge> : "—"}</td>
                   <td className="px-4 py-3 text-xs">
                     {assurance ? (
-                      <span
-                        className={
-                          assurance.level === "ASSURED"
-                            ? "text-steady"
-                            : assurance.level === "NEEDS_REVIEW"
-                              ? "text-signal"
-                              : "text-alarm"
-                        }
-                      >
-                        {assurance.score}%
+                      <span className="flex items-center gap-2">
+                        <span className="w-16 h-1.5 bg-ink rounded-full overflow-hidden">
+                          <span
+                            className={`block h-full rounded-full animate-grow ${
+                              assurance.level === "ASSURED" ? "bg-steady" : assurance.level === "NEEDS_REVIEW" ? "bg-signal" : "bg-alarm"
+                            }`}
+                            style={{ width: `${assurance.score}%` }}
+                          />
+                        </span>
+                        <span className="text-ink-400 tabular">{assurance.score}%</span>
                       </span>
                     ) : (
                       "—"
@@ -167,7 +169,7 @@ export default async function AssetsPage({
                     {asset.cost?.monthlyCostEstimate != null ? `€${asset.cost.monthlyCostEstimate.toLocaleString()}` : "—"}
                   </td>
                   <td className="px-4 py-3 text-ink-400 text-xs tabular">
-                    {asset.lastSeenAt ? new Date(asset.lastSeenAt).toLocaleString() : "Never"}
+                    {asset.lastSeenAt ? new Date(asset.lastSeenAt).toLocaleDateString() : "Never"}
                   </td>
                 </tr>
               );

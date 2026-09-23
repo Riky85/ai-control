@@ -37,7 +37,7 @@ export default function AssetFilters({
       <select
         value={searchParams.get("type") ?? ""}
         onChange={(e) => setParam("type", e.target.value)}
-        className="bg-panel border border-line rounded px-2.5 py-1.5 text-xs text-ink-100"
+        className="bg-panel border border-line rounded-lg px-3 py-2 text-sm text-ink-100 hover:border-ink-400 transition-colors cursor-pointer"
       >
         <option value="">All types</option>
         {typeOptions.map((t) => (
@@ -49,7 +49,7 @@ export default function AssetFilters({
       <select
         value={searchParams.get("status") ?? ""}
         onChange={(e) => setParam("status", e.target.value)}
-        className="bg-panel border border-line rounded px-2.5 py-1.5 text-xs text-ink-100"
+        className="bg-panel border border-line rounded-lg px-3 py-2 text-sm text-ink-100 hover:border-ink-400 transition-colors cursor-pointer"
       >
         <option value="">All statuses</option>
         {statusOptions.map((s) => (
@@ -61,7 +61,7 @@ export default function AssetFilters({
       <select
         value={searchParams.get("risk") ?? ""}
         onChange={(e) => setParam("risk", e.target.value)}
-        className="bg-panel border border-line rounded px-2.5 py-1.5 text-xs text-ink-100"
+        className="bg-panel border border-line rounded-lg px-3 py-2 text-sm text-ink-100 hover:border-ink-400 transition-colors cursor-pointer"
       >
         <option value="">All risk levels</option>
         {riskOptions.map((r) => (

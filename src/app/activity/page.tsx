@@ -114,7 +114,7 @@ async function EventsTab({ q }: { q?: string }) {
             <Link href={`/activity/${a.id}`} key={a.id} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.025] transition-colors">
               <div className="flex items-center gap-3">
                 <span className="tabular text-xs text-ink-400 w-36 shrink-0">{new Date(a.occurredAt).toLocaleString()}</span>
-                <span className="text-ink-400"><VendorIcon vendor={a.aiAsset.vendor ?? ""} size={13} /></span>
+                <span className="text-ink-400"><VendorIcon vendor={a.aiAsset.vendor ?? ""} name={a.aiAsset.name} size={16} /></span>
                 <span className="font-medium text-ink-100">{a.aiAsset.name}</span>
                 <span className="text-ink-400">{a.eventType}</span>
                 {a.actorRef && <span className="text-ink-400 text-xs">{a.actorRef}</span>}

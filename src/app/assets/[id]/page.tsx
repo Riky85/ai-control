@@ -62,7 +62,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         </div>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} size={56} />
+            <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={56} />
             <div>
               <h1 className="font-display text-[28px] leading-tight font-semibold text-ink-100">{asset.name}</h1>
               <p className="text-sm text-ink-400 mt-0.5">
@@ -157,17 +157,20 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 <div>
                   <AssetGraph
                     center={asset.name}
-                    left={asset.usages.slice(0, 6).map((u) => ({ label: u.user?.name ?? u.externalUserRef ?? "Unknown user" }))}
+                    centerVendor={asset.vendor}
+                    left={asset.usages.slice(0, 6).map((u) => ({ label: u.user?.name ?? u.externalUserRef ?? "Unknown user", sublabel: u.user?.department ?? undefined, kind: "user" as const }))}
                     right={[
                       ...asset.connectedSystems.map((s) => ({
                         label: s.system,
                         sublabel: s.detail ?? undefined,
+                        kind: "external" as const,
                         tone: (s.detail?.match(/prod/i) ? "alarm" : "default") as "default" | "alarm",
                       })),
-                      ...asset.relationsFrom.map((r) => ({ label: r.targetAsset.name, sublabel: r.relationType })),
+                      ...asset.relationsFrom.map((r) => ({ label: r.targetAsset.name, sublabel: r.relationType, kind: "system" as const })),
                       ...asset.dataAccess.map((d) => ({
                         label: d.dataAsset.name,
-                        sublabel: d.dataAsset.sensitivity,
+                        sublabel: d.dataAsset.sensitivity.replace(/_/g, " ").toLowerCase(),
+                        kind: "data" as const,
                         tone: (["PII", "FINANCIAL", "SOURCE_CODE"].includes(d.dataAsset.sensitivity) ? "alarm" : "default") as "default" | "alarm",
                       })),
                     ]}

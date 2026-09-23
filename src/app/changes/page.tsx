@@ -41,7 +41,7 @@ export default async function ChangesPage() {
               <span className="tabular text-xs text-ink-400 w-36 shrink-0">
                 {new Date(c.detectedAt).toLocaleString()}
               </span>
-              <span className="text-ink-400"><VendorIcon vendor={c.aiAsset.vendor ?? ""} size={13} /></span>
+              <span className="text-ink-400"><VendorIcon vendor={c.aiAsset.vendor ?? ""} name={c.aiAsset.name} size={16} /></span>
               <span className="font-medium text-ink-100">{c.aiAsset.name}</span>
               <span className="text-xs text-ink-400">{FIELD_LABEL[c.field] ?? c.field}</span>
             </div>

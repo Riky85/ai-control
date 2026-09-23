@@ -25,7 +25,7 @@ export default function DonutChart({ slices, centerLabel }: { slices: DonutSlice
 
   return (
     <div className="flex items-center gap-7">
-      <div className="relative shrink-0">
+      <div className="relative shrink-0 animate-rise">
         <svg width="112" height="112" viewBox="0 0 100 100" className="-rotate-90">
           <circle cx="50" cy="50" r={radius} fill="none" stroke="#E6E6EB" strokeWidth={stroke} />
           {slices.map((s, i) => {

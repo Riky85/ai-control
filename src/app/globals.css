@@ -21,3 +21,24 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Dinamismo discreto: i blocchi entrano con una leggera salita, i grafici
+   si disegnano, i collegamenti dei grafi "scorrono". Tutto disattivato da
+   prefers-reduced-motion (regola sopra). */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-rise { animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.grid > .animate-rise:nth-child(2) { animation-delay: 0.05s; }
+.grid > .animate-rise:nth-child(3) { animation-delay: 0.1s; }
+.grid > .animate-rise:nth-child(4) { animation-delay: 0.15s; }
+
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.animate-grow { transform-origin: left; animation: grow 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@keyframes draw { from { stroke-dashoffset: var(--len); } }
+.animate-draw { animation: draw 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@keyframes flow { to { stroke-dashoffset: -16; } }
+.edge-flow { stroke-dasharray: 4 4; animation: flow 1.2s linear infinite; }
