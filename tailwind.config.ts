@@ -5,32 +5,31 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Rivoluzione colore: base fredda e neutra (non più calda/beige),
-        // accento indaco profondo — il registro cromatico usato davvero
-        // dai prodotti di sicurezza enterprise (Vanta) invece di arancio
-        // o verde, che qui restano riservati al solo significato di rischio.
+        // Tema scuro definitivo, come nel riferimento condiviso: base quasi
+        // nera, card leggermente più chiare per separazione, accento
+        // ciano/blu — non più un tema chiaro con un accento scuro.
         ink: {
-          DEFAULT: "#F7F7F9",
-          100: "#16161A",
-          400: "#84848C",
+          DEFAULT: "#0A0B0E",
+          100: "#F2F3F5",
+          400: "#8B8E97",
         },
-        panel: "#FFFFFF",
-        line: "#E7E7EC",
+        panel: "#15171C",
+        line: "#262930",
         accent: {
-          DEFAULT: "#3B3564",
-          dark: "#292447",
-          soft: "#EEECF6",
+          DEFAULT: "#4C9EFF",
+          dark: "#3A82DB",
+          soft: "#173049",
         },
-        signal: "#C2650C",    // attenzione / rischio medio — più vivido, meno "senape"
-        steady: "#1F9254",    // approvato / sano — invariato
-        alarm: "#C4433B",     // rischio alto/critico — invariato
+        signal: "#E8A93B",    // attenzione / rischio medio — chiaro abbastanza da leggersi su scuro
+        steady: "#34C77B",    // approvato / sano
+        alarm: "#F0655A",     // rischio alto/critico
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
         body: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
       },
       boxShadow: {
-        card: "0 1px 1px 0 rgba(20,20,18,0.03)",
+        card: "0 1px 2px 0 rgba(0,0,0,0.24)",
       },
     },
   },

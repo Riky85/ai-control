@@ -111,7 +111,7 @@ async function EventsTab({ q }: { q?: string }) {
         {activities.map((a) => {
           const risk = a.aiAsset.riskAssessments[0];
           return (
-            <Link href={`/activity/${a.id}`} key={a.id} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.02] transition-colors">
+            <Link href={`/activity/${a.id}`} key={a.id} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-white/[0.04] transition-colors">
               <div className="flex items-center gap-3">
                 <span className="tabular text-xs text-ink-400 w-36 shrink-0">{new Date(a.occurredAt).toLocaleString()}</span>
                 <span className="text-ink-400"><VendorIcon vendor={a.aiAsset.vendor ?? ""} size={13} /></span>

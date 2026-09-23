@@ -35,7 +35,7 @@ export default async function ChangesPage() {
           <Link
             key={c.id}
             href={`/assets/${c.aiAssetId}`}
-            className="flex items-center justify-between px-5 py-3.5 text-sm hover:bg-black/[0.015] transition-colors"
+            className="flex items-center justify-between px-5 py-3.5 text-sm hover:bg-white/[0.03] transition-colors"
           >
             <div className="flex items-center gap-3">
               <span className="tabular text-xs text-ink-400 w-36 shrink-0">

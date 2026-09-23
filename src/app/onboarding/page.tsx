@@ -63,7 +63,7 @@ export default async function OnboardingPage({
               key={label}
               href={`/onboarding?step=${n}`}
               className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
-                active ? "bg-black/[0.04]" : "hover:bg-black/[0.02]"
+                active ? "bg-white/[0.05]" : "hover:bg-white/[0.04]"
               }`}
             >
               <span

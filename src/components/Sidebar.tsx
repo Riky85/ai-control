@@ -108,7 +108,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
   function itemClass(active: boolean) {
     return `relative flex items-center gap-2.5 text-sm transition-colors ${
       collapsed ? "justify-center px-0 py-2.5 rounded-md" : "px-3 py-2 rounded-md"
-    } ${active ? "text-ink-100 bg-black/[0.045] font-medium" : "text-ink-400 hover:text-ink-100 hover:bg-black/[0.03]"}`;
+    } ${active ? "text-ink-100 bg-white/[0.06] font-medium" : "text-ink-400 hover:text-ink-100 hover:bg-white/[0.05]"}`;
   }
 
   return (
@@ -126,7 +126,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
           <button
             onClick={toggle}
             aria-label="Collapse sidebar"
-            className="ml-auto h-7 w-7 flex items-center justify-center rounded text-ink-400 hover:text-ink-100 hover:bg-black/[0.05] transition-colors"
+            className="ml-auto h-7 w-7 flex items-center justify-center rounded text-ink-400 hover:text-ink-100 hover:bg-white/[0.08] transition-colors"
           >
             <PanelToggleIcon />
           </button>
@@ -141,7 +141,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
           <span className="text-ink-100 transition-opacity group-hover:opacity-0">
             <Logo size={16} />
           </span>
-          <span className="absolute inset-0 flex items-center justify-center text-ink-400 opacity-0 group-hover:opacity-100 group-hover:text-ink-100 transition-opacity rounded hover:bg-black/[0.05]">
+          <span className="absolute inset-0 flex items-center justify-center text-ink-400 opacity-0 group-hover:opacity-100 group-hover:text-ink-100 transition-opacity rounded hover:bg-white/[0.08]">
             <PanelToggleIcon />
           </span>
         </button>
@@ -176,9 +176,9 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
       {orgName && (
         <Link
           href="/settings"
-          className={`mt-4 pt-3 border-t border-line flex items-center gap-2.5 hover:bg-black/[0.03] transition-colors rounded-md ${collapsed ? "justify-center px-0 py-1" : "px-3 py-1"}`}
+          className={`mt-4 pt-3 border-t border-line flex items-center gap-2.5 hover:bg-white/[0.05] transition-colors rounded-md ${collapsed ? "justify-center px-0 py-1" : "px-3 py-1"}`}
         >
-          <div className="h-6 w-6 rounded-full bg-black/[0.06] flex items-center justify-center text-[11px] text-ink-400 shrink-0">
+          <div className="h-6 w-6 rounded-full bg-white/[0.08] flex items-center justify-center text-[11px] text-ink-400 shrink-0">
             {orgName.charAt(0).toUpperCase()}
           </div>
           {!collapsed && (

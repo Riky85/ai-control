@@ -14,9 +14,29 @@ export function vendorTint(vendor: string): { bg: string; fg: string } {
   return { bg: "#EEECF6", fg: "#3B3564" };
 }
 
-/** Badge circolare pronto all'uso — icona + sfondo colorato del vendor. */
+/** Badge pronto all'uso — icona + sfondo colorato del vendor. Per i brand
+ * con un vero "app icon" a tinta piena (Anthropic, OpenAI) uso un quadrato
+ * arrotondato con simbolo bianco dentro, come appare davvero ovunque
+ * (favicon, app iOS/macOS) — non un cerchio con tinta tenue generica. */
 export function VendorBadge({ vendor, size = 36 }: { vendor: string; size?: number }) {
+  const v = vendor.toUpperCase();
   const { bg, fg } = vendorTint(vendor);
+
+  if (v.includes("ANTHROPIC")) {
+    return (
+      <span className="rounded-[28%] flex items-center justify-center shrink-0 text-white" style={{ width: size, height: size, backgroundColor: "#D97757" }}>
+        <VendorIcon vendor={vendor} size={Math.round(size * 0.5)} />
+      </span>
+    );
+  }
+  if (v.includes("OPENAI")) {
+    return (
+      <span className="rounded-[28%] flex items-center justify-center shrink-0 text-white border border-line" style={{ width: size, height: size, backgroundColor: "#20232B" }}>
+        <VendorIcon vendor={vendor} size={Math.round(size * 0.52)} />
+      </span>
+    );
+  }
+
   return (
     <span
       className="rounded-full flex items-center justify-center shrink-0"

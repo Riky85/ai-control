@@ -49,18 +49,18 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
       {left.map((_, i) => {
         const y = colY(i, left.length);
         return (
-          <path key={`l-${i}`} d={elbow(xLeft + NODE_W_SIDE, y, xCenter, centerY)} fill="none" stroke="#E7E7EC" strokeWidth={1.5} />
+          <path key={`l-${i}`} d={elbow(xLeft + NODE_W_SIDE, y, xCenter, centerY)} fill="none" stroke="#262930" strokeWidth={1.5} />
         );
       })}
       {right.map((_, i) => {
         const y = colY(i, right.length);
         return (
-          <path key={`r-${i}`} d={elbow(xCenter + NODE_W_CENTER, centerY, xRight, y)} fill="none" stroke="#E7E7EC" strokeWidth={1.5} />
+          <path key={`r-${i}`} d={elbow(xCenter + NODE_W_CENTER, centerY, xRight, y)} fill="none" stroke="#262930" strokeWidth={1.5} />
         );
       })}
 
       <g transform={`translate(${xCenter}, ${centerY - 16})`}>
-        <rect width={NODE_W_CENTER} height={32} rx={7} fill="#3B3564" />
+        <rect width={NODE_W_CENTER} height={32} rx={7} fill="#4C9EFF" />
         <text x={NODE_W_CENTER / 2} y={20} textAnchor="middle" fontSize="12" fontWeight={600} fill="#FFFFFF">
           {truncate(center, 24)}
         </text>
@@ -74,12 +74,12 @@ export default function AssetGraph({ center, left, right }: AssetGraphProps) {
       ))}
 
       {left.length === 0 && (
-        <text x={xLeft} y={centerY} fontSize="11" fill="#84848C">
+        <text x={xLeft} y={centerY} fontSize="11" fill="#8B8E97">
           No known users
         </text>
       )}
       {right.length === 0 && (
-        <text x={xRight} y={centerY} fontSize="11" fill="#84848C">
+        <text x={xRight} y={centerY} fontSize="11" fill="#8B8E97">
           Nothing declared
         </text>
       )}
@@ -92,15 +92,15 @@ function truncate(s: string, max: number) {
 }
 
 function Node({ x, y, node }: { x: number; y: number; node: GraphNode }) {
-  const stroke = node.tone === "alarm" ? "#C4433B" : "#E7E7EC";
+  const stroke = node.tone === "alarm" ? "#F0655A" : "#262930";
   return (
     <g transform={`translate(${x}, ${y})`}>
-      <rect width={NODE_W_SIDE} height={NODE_H} rx={6} fill="#FFFFFF" stroke={stroke} strokeWidth={1.3} />
-      <text x={10} y={node.sublabel ? 16 : 23} fontSize="11.5" fontWeight={500} fill="#16161A">
+      <rect width={NODE_W_SIDE} height={NODE_H} rx={6} fill="#15171C" stroke={stroke} strokeWidth={1.3} />
+      <text x={10} y={node.sublabel ? 16 : 23} fontSize="11.5" fontWeight={500} fill="#F2F3F5">
         {truncate(node.label, 26)}
       </text>
       {node.sublabel && (
-        <text x={10} y={29} fontSize="9.5" fill="#84848C">
+        <text x={10} y={29} fontSize="9.5" fill="#8B8E97">
           {truncate(node.sublabel, 32)}
         </text>
       )}
