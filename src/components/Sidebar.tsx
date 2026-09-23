@@ -140,7 +140,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         </button>
       ) : (
         <div className="flex items-center mb-4 px-2">
-          <Link href="/" className="font-brand text-[22px] leading-none tracking-tight text-white">
+          <Link href="/" className="font-brand text-[18px] leading-none tracking-tight text-white">
             Angar
           </Link>
           <button

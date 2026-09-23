@@ -3,6 +3,7 @@ import { VendorBadge } from "@/components/VendorIcon";
 import { PageHeader } from "@/components/ui";
 import { syncConnectorAction, connectWithApiKeyAction, disconnectConnectorAction, addManualAssetAction, importCsvAction } from "@/lib/actions";
 import { decryptJson } from "@/lib/crypto";
+import CsvDropzone from "@/components/CsvDropzone";
 import type { Connector, ConnectorProvider } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -158,10 +159,15 @@ export default async function ConnectorsPage({
           <p className="text-xs text-ink-400">
             Columns: <code>name</code> (required), <code>vendor</code>, <code>type</code>, <code>model</code>, <code>owner_email</code>, <code>department</code>, <code>monthly_cost</code>. Export it from Excel or Google Sheets as CSV.
           </p>
-          <form action={importCsvAction} className="flex items-center gap-2 mt-auto">
-            <input name="file" type="file" accept=".csv,text/csv" required className="flex-1 text-sm text-ink-400 file:mr-3 file:rounded-lg file:border file:border-line file:bg-panel file:px-3 file:py-2 file:text-sm file:text-ink-100" />
-            <a href="/api/csv-template" className={btnSecondary}>Template</a>
-            <button className={btnSecondary}>Import</button>
+          <form action={importCsvAction} className="flex flex-col gap-3 mt-auto">
+            <CsvDropzone />
+            <div className="flex items-center justify-between">
+              <a href="/api/csv-template" className="inline-flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-100 transition-colors">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v7M4 6.5L7 9.5l3-3M2.5 11.5h9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                Download template
+              </a>
+              <button className={btnPrimary}>Import CSV</button>
+            </div>
           </form>
         </div>
         <div id="manual" className={card}>
@@ -172,7 +178,7 @@ export default async function ConnectorsPage({
               <input name="vendor" placeholder="Vendor" className={input} />
               <input name="monthlyCost" type="number" step="0.01" placeholder="€ / month" className={input} />
             </div>
-            <button className={btnSecondary}>Add AI system</button>
+            <button className={`${btnSecondary} w-full`}>+ Add AI system</button>
           </form>
         </div>
       </Section>

@@ -85,9 +85,12 @@ export function Node({
 }) {
   const h = 36;
   const alarm = tone === "alarm";
-  const fill = emphasis ? (alarm ? G.alarmSoft : G.accentSoft) : "#FFFFFF";
+  // Riempimento sempre bianco: il significato sta solo nel bordo (arancio =
+  // sistema AI, rosso = rischio/dato sensibile), niente campiture colorate
+  // che si scontrano tra arancio e rosso.
+  const fill = "#FFFFFF";
   const stroke = alarm ? G.alarm : emphasis ? G.accent : G.line;
-  const textColor = emphasis ? (alarm ? G.alarm : G.accent) : alarm ? G.alarm : G.text;
+  const textColor = G.text;
   const externalBrand = kind === "external" && resolveBrand(label) ? label : null;
   const showBrand = (vendor !== undefined && (kind === "provider" || kind === "system")) || externalBrand !== null;
   const body = (
