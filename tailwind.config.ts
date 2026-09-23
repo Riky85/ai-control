@@ -15,10 +15,10 @@ const config: Config = {
         panel: "#FFFFFF",
         line: "#E6E6EB",
         accent: {
-          // Segnaposto: arancio vivo stile Exein, da sostituire col codice esatto del brand.
-          DEFAULT: "#FF6A13",
-          dark: "#E0550A",
-          soft: "#FFF0E6",
+          // Arancio Exein (#FF7323).
+          DEFAULT: "#FF7323",
+          dark: "#E85E10",
+          soft: "#FFF1E8",
         },
         signal: "#C2650C",
         steady: "#1F9254",
