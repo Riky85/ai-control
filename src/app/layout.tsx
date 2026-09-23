@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Source_Serif_4 } from "next/font/google";
+import { Hanken_Grotesk, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import { db } from "@/lib/db";
 
-// Il font della Claude Console (Anthropic Sans/Serif) è proprietario: uso le
-// alternative libere più vicine — grotesk per il testo, serif per il nome.
+// Testo in Hanken Grotesk; il nome "Angar" in Space Grotesk, distinto dal
+// serif della Claude Console.
 const sans = Hanken_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans" });
-const serif = Source_Serif_4({ subsets: ["latin"], weight: ["500"], variable: "--font-serif" });
+const brand = Space_Grotesk({ subsets: ["latin"], weight: ["600"], variable: "--font-brand" });
 
 export const metadata: Metadata = {
   title: "Angar",
@@ -24,7 +24,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable}`}>
+    <html lang="en" className={`${sans.variable} ${brand.variable}`}>
       <body className={`flex h-screen overflow-hidden bg-[#1A1918] text-ink-100 font-body`}>
         <Sidebar orgName={orgName} />
         <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto">

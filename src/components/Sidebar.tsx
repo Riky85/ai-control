@@ -129,21 +129,29 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         collapsed ? "w-[68px] px-2.5" : "w-64 px-3"
       } ${ready ? "" : "invisible"}`}
     >
-      <div className={`flex items-center mb-4 ${collapsed ? "justify-center" : "px-2"}`}>
-        {!collapsed && (
-          <Link href="/" className="flex items-center gap-2 text-white">
-            <Logo size={16} />
-            <span className="font-serif text-[20px] leading-none tracking-tight">Angar</span>
-          </Link>
-        )}
-        <button
-          onClick={toggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className={`h-8 w-8 flex items-center justify-center rounded-lg text-[#A3A19C] hover:text-white hover:bg-white/[0.08] transition-colors ${collapsed ? "" : "ml-auto"}`}
-        >
-          <PanelToggleIcon />
+      {collapsed ? (
+        <button onClick={toggle} aria-label="Expand sidebar" className="group relative h-9 w-9 mx-auto mb-4 flex items-center justify-center rounded-lg hover:bg-white/[0.08] transition-colors">
+          <span className="text-white transition-opacity group-hover:opacity-0">
+            <Logo size={18} />
+          </span>
+          <span className="absolute inset-0 flex items-center justify-center text-[#A3A19C] opacity-0 group-hover:opacity-100 group-hover:text-white transition-opacity">
+            <PanelToggleIcon />
+          </span>
         </button>
-      </div>
+      ) : (
+        <div className="flex items-center mb-4 px-2">
+          <Link href="/" className="font-brand text-[22px] leading-none tracking-tight text-white">
+            Angar
+          </Link>
+          <button
+            onClick={toggle}
+            aria-label="Collapse sidebar"
+            className="ml-auto h-8 w-8 flex items-center justify-center rounded-lg text-[#A3A19C] hover:text-white hover:bg-white/[0.08] transition-colors"
+          >
+            <PanelToggleIcon />
+          </button>
+        </div>
+      )}
 
       {!collapsed && (
         <>

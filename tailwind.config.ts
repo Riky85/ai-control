@@ -15,9 +15,10 @@ const config: Config = {
         panel: "#FFFFFF",
         line: "#E6E6EB",
         accent: {
-          DEFAULT: "#D97757",
-          dark: "#C15F3C",
-          soft: "#FBF0EB",
+          // Segnaposto: arancio vivo stile Exein, da sostituire col codice esatto del brand.
+          DEFAULT: "#FF6A13",
+          dark: "#E0550A",
+          soft: "#FFF0E6",
         },
         signal: "#C2650C",
         steady: "#1F9254",
@@ -25,7 +26,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
-        serif: ["var(--font-serif)", "ui-serif", "Georgia"],
+        brand: ["var(--font-brand)", "ui-sans-serif", "system-ui"],
         body: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
       },
       boxShadow: {
