@@ -47,8 +47,8 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
           <span className="mx-1.5">/</span>
           {person.name ?? person.email}
         </div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">{person.name ?? person.email}</h1>
-        <p className="text-sm text-ink-400 mt-1.5">
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{person.name ?? person.email}</h1>
+        <p className="text-sm text-ink-400 mt-1">
           {person.email}{person.department && ` · ${person.department}`}
         </p>
       </div>

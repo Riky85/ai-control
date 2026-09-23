@@ -29,8 +29,8 @@ export default async function SavingsPage() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">Savings</h1>
-        <p className="text-sm text-ink-400 mt-1.5 max-w-lg">
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Savings</h1>
+        <p className="text-sm text-ink-400 mt-1 max-w-lg">
           Arithmetic on the numbers you've entered — current cost minus the cheapest alternative
           you've recorded. Nothing here is a model recommendation; add costs and alternatives on
           each Passport to populate this.

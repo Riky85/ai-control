@@ -21,8 +21,8 @@ export default async function PeoplePage() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">People</h1>
-        <p className="text-sm text-ink-400 mt-1.5">
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">People</h1>
+        <p className="text-sm text-ink-400 mt-1">
           Everyone connectors have observed using or owning an AI asset.
         </p>
       </div>

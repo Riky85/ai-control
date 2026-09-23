@@ -92,7 +92,6 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           label="Current cost"
           value={asset.cost?.monthlyCostEstimate != null ? `€${asset.cost.monthlyCostEstimate.toLocaleString()}` : "—"}
           hint={asset.cost?.monthlyCostEstimate != null ? "per month" : "Not entered yet"}
-          tone="accent"
         />
         <StatCard label="Annualized" value={asset.cost?.monthlyCostEstimate != null ? `€${(asset.cost.monthlyCostEstimate * 12).toLocaleString()}` : "—"} />
         <StatCard label="Dependencies" value={String(asset.connectedSystems.length + asset.dataAccess.length)} hint="Systems and data it touches" />

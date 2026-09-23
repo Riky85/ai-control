@@ -28,6 +28,15 @@ export default async function OverviewPage() {
   });
 
   const risk = (a: (typeof assets)[number]) => a.riskAssessments[0]?.level;
+  const attention = assets
+    .filter((a) => a.status !== "APPROVED" || ["HIGH", "CRITICAL"].includes(risk(a) ?? ""))
+    .slice(0, 5);
+  const changes = await db.assetChange.findMany({
+    where: { aiAsset: { organizationId: ORG_ID } },
+    include: { aiAsset: true },
+    orderBy: { detectedAt: "desc" },
+    take: 5,
+  });
   const highRisk = assets.filter((a) => ["HIGH", "CRITICAL"].includes(risk(a) ?? ""));
   const providers = new Set(assets.map((a) => a.vendor).filter(Boolean));
   const monthlySpend = assets.reduce((s, a) => s + (a.cost?.monthlyCostEstimate ?? 0), 0);
@@ -46,11 +55,11 @@ export default async function OverviewPage() {
   return (
     <div className="flex flex-col gap-6">
       {!org?.onboardingCompletedAt && (
-        <div className="rounded-xl bg-accent-soft px-4 py-3 flex items-center gap-3">
-          <span className="text-xs font-medium text-white bg-accent rounded-full px-2.5 py-0.5 shrink-0">Setup</span>
+        <div className="rounded-xl border border-line bg-ink px-4 py-3 flex items-center gap-3">
+          <span className="text-xs font-medium text-accent-dark bg-accent-soft rounded-full px-2.5 py-0.5 shrink-0">Setup</span>
           <p className="text-sm text-ink-100">
             Connect your first provider to discover your AI automatically.{" "}
-            <Link href="/connectors" className="font-medium text-accent-dark underline">Go to Connections</Link>
+            <Link href="/connectors" className="font-medium underline">Go to Connections</Link>
           </p>
         </div>
       )}
@@ -68,7 +77,7 @@ export default async function OverviewPage() {
       />
 
       <div className="grid grid-cols-4 gap-4">
-        <StatCard label="AI systems" value={String(assets.length)} href="/assets" tone="accent" />
+        <StatCard label="AI systems" value={String(assets.length)} href="/assets" />
         <StatCard label="Providers" value={String(providers.size)} href="/providers" />
         <StatCard label="Monthly spend" value={monthlySpend > 0 ? `€${monthlySpend.toLocaleString()}` : "—"} href="/savings" />
         <StatCard label="Need review" value={String(inReview)} href="/governance?tab=reviews" tone={inReview > 0 ? "signal" : undefined} />
@@ -101,45 +110,45 @@ export default async function OverviewPage() {
         )}
       </Panel>
 
-      <div className="rounded-xl border border-line bg-panel overflow-hidden">
-        <div className="px-5 py-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-ink-100">AI systems</h2>
-          <Link href="/assets" className="btn btn-secondary btn-sm">
-            View all
-          </Link>
-        </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
-              <th className="px-5 py-2.5 font-medium">System</th>
-              <th className="px-5 py-2.5 font-medium">Provider</th>
-              <th className="px-5 py-2.5 font-medium">Owner</th>
-              <th className="px-5 py-2.5 font-medium">Cost / mo</th>
-              <th className="px-5 py-2.5 font-medium">Risk</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
-            {assets.slice(0, 8).map((a) => (
-              <tr key={a.id}>
-                <td className="px-5 py-3">
-                  <Link href={`/assets/${a.id}`} className="flex items-center gap-3 font-medium text-ink-100 hover:underline">
-                    <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={28} />
-                    {a.name}
-                  </Link>
-                </td>
-                <td className="px-5 py-3">
-                  <span className="flex items-center gap-2 text-ink-400">
-                    <VendorIcon vendor={a.vendor ?? ""} size={16} />
-                    {a.vendor ?? "Unknown"}
-                  </span>
-                </td>
-                <td className="px-5 py-3 text-ink-400">{a.owner?.name ?? "—"}</td>
-                <td className="px-5 py-3 text-ink-100 tabular">{a.cost?.monthlyCostEstimate != null ? `€${a.cost.monthlyCostEstimate.toLocaleString()}` : "—"}</td>
-                <td className="px-5 py-3">{risk(a) ? <Badge>{risk(a)!}</Badge> : "—"}</td>
-              </tr>
+      <div className="grid grid-cols-2 gap-4">
+        <Panel
+          title="Needs attention"
+          subtitle="Not approved yet, or at high risk"
+          action={<Link href="/governance?tab=reviews" className="btn btn-secondary btn-sm">Review</Link>}
+        >
+          <div className="divide-y divide-line -mx-5 border-t border-line">
+            {attention.map((a) => (
+              <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-black/[0.02] transition-colors">
+                <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={28} />
+                <span className="flex-1 min-w-0 text-sm font-medium text-ink-100 truncate">{a.name}</span>
+                {risk(a) && <Badge>{risk(a)!}</Badge>}
+                <Badge>{a.status}</Badge>
+              </Link>
             ))}
-          </tbody>
-        </table>
+            {attention.length === 0 && <p className="px-5 py-4 text-sm text-ink-400">Nothing needs attention.</p>}
+          </div>
+        </Panel>
+        <Panel
+          title="Recent changes"
+          subtitle="Model, vendor and status changes detected"
+          action={<Link href="/changes" className="btn btn-secondary btn-sm">All changes</Link>}
+        >
+          <div className="divide-y divide-line -mx-5 border-t border-line">
+            {changes.map((ch) => (
+              <Link key={ch.id} href={`/assets/${ch.aiAssetId}`} className="flex items-center gap-3 px-5 py-3 hover:bg-black/[0.02] transition-colors">
+                <VendorBadge vendor={ch.aiAsset.vendor ?? ""} name={ch.aiAsset.name} size={28} />
+                <span className="flex-1 min-w-0">
+                  <span className="block text-sm font-medium text-ink-100 truncate">{ch.aiAsset.name}</span>
+                  <span className="block text-xs text-ink-400 truncate">
+                    {ch.field}: {ch.oldValue ?? "—"} → <span className="text-ink-100">{ch.newValue ?? "—"}</span>
+                  </span>
+                </span>
+                <span className="text-xs text-ink-400 shrink-0">{new Date(ch.detectedAt).toLocaleDateString()}</span>
+              </Link>
+            ))}
+            {changes.length === 0 && <p className="px-5 py-4 text-sm text-ink-400">No changes detected yet.</p>}
+          </div>
+        </Panel>
       </div>
     </div>
   );

@@ -37,8 +37,8 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
           <span className="mx-1.5">/</span>
           {activity.eventType}
         </div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">{activity.eventType}</h1>
-        <p className="text-sm text-ink-400 mt-1.5">
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{activity.eventType}</h1>
+        <p className="text-sm text-ink-400 mt-1">
           {new Date(activity.occurredAt).toLocaleString()} · {SOURCE_LABEL[activity.source] ?? activity.source}
         </p>
       </div>

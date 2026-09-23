@@ -43,7 +43,7 @@ export default async function OnboardingPage({
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-8">
       <div>
-        <h1 className="font-display text-xl font-semibold text-ink-100">Get Angar set up</h1>
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Get Angar set up</h1>
         <p className="text-sm text-ink-400 mt-1">{checklistDone.filter(Boolean).length} of {STEPS.length} done</p>
         <div className="h-1 bg-line rounded-full mt-3 overflow-hidden">
           <div
@@ -83,7 +83,7 @@ export default async function OnboardingPage({
 
       {step === 1 && (
         <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-2xl font-semibold text-ink-100">Welcome to Angar</h1>
+          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Welcome to Angar</h1>
           <p className="text-sm text-ink-400">
             This walks you through the four things worth setting up before the
             inventory means anything: your organization's name, a real
@@ -102,7 +102,7 @@ export default async function OnboardingPage({
 
       {step === 2 && (
         <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-xl font-semibold text-ink-100">Your organization</h1>
+          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Your organization</h1>
           <p className="text-sm text-ink-400">
             This is what shows up on evidence exports and audit trails.
           </p>
@@ -148,7 +148,7 @@ export default async function OnboardingPage({
 
       {step === 3 && (
         <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-xl font-semibold text-ink-100">Connect a source</h1>
+          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Connect a source</h1>
           <p className="text-sm text-ink-400">
             Nothing shows up until a connector actually syncs. GitHub is the
             one you can realistically test on yourself — it needs a free
@@ -190,7 +190,7 @@ export default async function OnboardingPage({
 
       {step === 4 && (
         <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-xl font-semibold text-ink-100">Add the people who'll own things</h1>
+          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Add the people who'll own things</h1>
           <p className="text-sm text-ink-400">
             Assets show up unowned until someone is assigned. You don't need
             everyone yet — just the people likely to own what gets found first.
@@ -233,7 +233,7 @@ export default async function OnboardingPage({
 
       {step === 5 && (
         <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-xl font-semibold text-ink-100">Turn on a couple of policies</h1>
+          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Turn on a couple of policies</h1>
           <p className="text-sm text-ink-400">
             These are read as governance intent, not enforced automatically
             yet — but they're what the Approvals queue and asset detail pages

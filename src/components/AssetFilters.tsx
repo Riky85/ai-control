@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 /**
  * Filtri con applicazione immediata al cambio — niente bottone "Filter"
@@ -30,10 +31,25 @@ export default function AssetFilters({
     router.push(`/assets?${params.toString()}`);
   }
 
-  const hasFilters = searchParams.get("type") || searchParams.get("status") || searchParams.get("risk");
+  const [q, setQ] = useState(searchParams.get("q") ?? "");
+  const hasFilters = searchParams.get("type") || searchParams.get("status") || searchParams.get("risk") || searchParams.get("q");
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 flex-wrap">
+      <label className="flex items-center gap-2 w-72 border border-line rounded-lg bg-panel px-3 py-2 focus-within:border-ink-400 transition-colors">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-ink-400 shrink-0">
+          <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.3" />
+          <path d="M9.2 9.2L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        </svg>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && setParam("q", q.trim())}
+          onBlur={() => q.trim() !== (searchParams.get("q") ?? "") && setParam("q", q.trim())}
+          placeholder="Find AI system by name"
+          className="flex-1 min-w-0 bg-transparent text-sm text-ink-100 placeholder:text-ink-400 outline-none"
+        />
+      </label>
       <label className="relative inline-flex items-center border border-line rounded-lg bg-panel hover:border-ink-400 transition-colors text-sm">
         <span className="pl-3 text-ink-400">Type</span>
         <select
@@ -83,7 +99,7 @@ export default function AssetFilters({
         <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="absolute right-2.5 pointer-events-none text-ink-400"><path d="M2.5 4l2.5 2.5L7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
       </label>
       {hasFilters && (
-        <button onClick={() => router.push("/assets")} className="btn btn-secondary btn-sm">
+        <button onClick={() => { setQ(""); router.push("/assets"); }} className="btn btn-secondary btn-sm">
           ↺ Reset
         </button>
       )}

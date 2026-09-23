@@ -69,12 +69,12 @@ export default async function ConnectorsPage({
       />
 
       {searchParams.connected && (
-        <div className="rounded-xl bg-accent-soft px-4 py-3 text-sm text-ink-100">
+        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
           <b>Connected.</b> First sync done — your systems are now in <a href="/assets" className="underline">AI Passports</a>.
         </div>
       )}
       {searchParams.imported && (
-        <div className="rounded-xl bg-accent-soft px-4 py-3 text-sm text-ink-100">
+        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
           <b>{searchParams.imported} AI systems imported.</b> See them in <a href="/assets" className="underline">AI Passports</a>.
         </div>
       )}
@@ -94,7 +94,7 @@ export default async function ConnectorsPage({
                   <div className="text-sm font-medium text-ink-100 truncate">{p.label}</div>
                   <div className="text-xs text-ink-400">
                     {connected ? (
-                      <span className="text-accent font-medium">● Connected{mode === "admin" ? " · admin" : ""}</span>
+                      <span className="text-ink-100"><span className="text-steady">●</span> Connected{mode === "admin" ? " · admin" : ""}</span>
                     ) : row?.status === "ERROR" ? (
                       <span className="text-alarm">● Needs attention</span>
                     ) : (
@@ -116,7 +116,7 @@ export default async function ConnectorsPage({
                 </div>
               ) : (
                 <details className="group mt-auto" open={Boolean(error)}>
-                  <summary className={`${btnPrimary} list-none text-center cursor-pointer group-open:hidden`}>Connect</summary>
+                  <summary className={`${btnSecondary} w-full list-none cursor-pointer group-open:hidden`}>Connect</summary>
                   <form action={connectWithApiKeyAction} className="flex flex-col gap-2">
                     <input type="hidden" name="provider" value={p.provider} />
                     <input name="apiKey" type="password" autoComplete="off" required placeholder={`Paste API key (${p.hint})`} className={input} />
@@ -139,11 +139,11 @@ export default async function ConnectorsPage({
             <VendorBadge vendor="GitHub" size={36} />
             <div className="flex-1">
               <div className="text-sm font-medium text-ink-100">GitHub</div>
-              <div className="text-xs text-ink-400">{github?.status === "CONNECTED" ? <span className="text-accent font-medium">● Connected</span> : "Not connected"}</div>
+              <div className="text-xs text-ink-400">{github?.status === "CONNECTED" ? <span className="text-ink-100"><span className="text-steady">●</span> Connected</span> : "Not connected"}</div>
             </div>
           </div>
           {githubReady ? (
-            <a href="/api/connectors/github/install" className={`${btnPrimary} text-center mt-auto`}>
+            <a href="/api/connectors/github/install" className={`${btnSecondary} mt-auto`}>
               Sign in with GitHub
             </a>
           ) : (
@@ -161,7 +161,7 @@ export default async function ConnectorsPage({
           <form action={importCsvAction} className="flex items-center gap-2 mt-auto">
             <input name="file" type="file" accept=".csv,text/csv" required className="flex-1 text-sm text-ink-400 file:mr-3 file:rounded-lg file:border file:border-line file:bg-panel file:px-3 file:py-2 file:text-sm file:text-ink-100" />
             <a href="/api/csv-template" className={btnSecondary}>Template</a>
-            <button className={btnPrimary}>Import</button>
+            <button className={btnSecondary}>Import</button>
           </form>
         </div>
         <div id="manual" className={card}>
@@ -172,7 +172,7 @@ export default async function ConnectorsPage({
               <input name="vendor" placeholder="Vendor" className={input} />
               <input name="monthlyCost" type="number" step="0.01" placeholder="€ / month" className={input} />
             </div>
-            <button className={btnPrimary}>Add AI system</button>
+            <button className={btnSecondary}>Add AI system</button>
           </form>
         </div>
       </Section>

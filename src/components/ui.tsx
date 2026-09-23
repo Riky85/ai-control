@@ -19,7 +19,7 @@ export function StatCard({
     <>
       <div className="text-sm text-ink-400">{label}</div>
       <div>
-        <div className={`font-display text-[30px] leading-none tracking-tight tabular ${color}`}>{value}</div>
+        <div className={`font-display text-[30px] leading-none font-semibold tracking-tight tabular ${color}`}>{value}</div>
         {hint && <div className="text-xs text-ink-400 mt-1.5 truncate">{hint}</div>}
       </div>
     </>
@@ -66,7 +66,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
   return (
     <div className="flex items-end justify-between gap-4">
       <div>
-        <h1 className="font-display text-[28px] font-semibold tracking-tight text-ink-100">{title}</h1>
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{title}</h1>
         {subtitle && <p className="text-sm text-ink-400 mt-1">{subtitle}</p>}
       </div>
       {action}

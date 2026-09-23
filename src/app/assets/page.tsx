@@ -2,11 +2,8 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
 import { VendorBadge } from "@/components/VendorIcon";
-import BarChart from "@/components/BarChart";
-import { StatCard, Panel, PageHeader } from "@/components/ui";
-import { CHART_COLORS } from "@/lib/chart-colors";
+import { PageHeader } from "@/components/ui";
 import AssetFilters from "@/components/AssetFilters";
-import DonutChart from "@/components/DonutChart";
 import type { AiAssetType, AiAssetStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +31,7 @@ const RISK_LABEL: Record<string, string> = { LOW: "Low", MEDIUM: "Medium", HIGH:
 export default async function AssetsPage({
   searchParams,
 }: {
-  searchParams: { type?: string; status?: string; risk?: string };
+  searchParams: { type?: string; status?: string; risk?: string; q?: string };
 }) {
   const assets = await db.aiAsset.findMany({
     where: {
@@ -42,6 +39,7 @@ export default async function AssetsPage({
       deletedAt: null,
       ...(searchParams.type ? { type: searchParams.type as AiAssetType } : {}),
       ...(searchParams.status ? { status: searchParams.status as AiAssetStatus } : {}),
+      ...(searchParams.q ? { name: { contains: searchParams.q, mode: "insensitive" as const } } : {}),
     },
     include: {
       owner: true,
@@ -57,52 +55,19 @@ export default async function AssetsPage({
     ? assets.filter((a) => a.riskAssessments[0]?.level === searchParams.risk)
     : assets;
 
-  const typeCounts = new Map<string, number>();
-  for (const a of assets) typeCounts.set(a.type, (typeCounts.get(a.type) ?? 0) + 1);
-  const typeSlices = Array.from(typeCounts.entries()).map(([type, value], i) => ({
-    label: type.replace(/_/g, " ").toLowerCase(),
-    value,
-    color: CHART_COLORS[i % CHART_COLORS.length],
-    href: `/assets?type=${type}`,
-  }));
-  const providerCounts = new Map<string, number>();
-  for (const a of assets) providerCounts.set(a.vendor ?? "Unknown", (providerCounts.get(a.vendor ?? "Unknown") ?? 0) + 1);
-  const providerRows = Array.from(providerCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .map(([label, value]) => ({ label, value }));
-
-  const totalCost = assets.reduce((sum, a) => sum + (a.cost?.monthlyCostEstimate ?? 0), 0);
-  const highRiskCount = assets.filter((a) => ["HIGH", "CRITICAL"].includes(a.riskAssessments[0]?.level ?? "")).length;
-  const noOwner = assets.filter((a) => !a.ownerId).length;
-
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="AI Passports"
-        subtitle="A living technical record for every AI system in your estate."
+        subtitle="Every AI system in your company — open one to see its living technical record."
         action={
-          <Link href="/connectors" className="btn btn-primary btn-sm">
-            + Discover more
+          <Link href="/connectors" className="btn btn-secondary">
+            + Add AI systems
           </Link>
         }
       />
 
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard label="AI systems" value={String(assets.length)} tone="accent" />
-        <StatCard label="Monthly spend" value={totalCost > 0 ? `€${totalCost.toLocaleString()}` : "—"} hint="Manually entered" href="/savings" />
-        <StatCard label="High risk" value={String(highRiskCount)} tone={highRiskCount > 0 ? "alarm" : undefined} href="/assets?risk=HIGH" />
-        <StatCard label="Without owner" value={String(noOwner)} tone={noOwner > 0 ? "signal" : undefined} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Panel title="By type" subtitle="What kind of AI you run">
-          {typeSlices.length > 0 ? <DonutChart slices={typeSlices} centerLabel="systems" /> : <p className="text-sm text-ink-400">No data yet.</p>}
-        </Panel>
-        <Panel title="By provider" subtitle="How many systems depend on each vendor">
-          {providerRows.length > 0 ? <BarChart rows={providerRows} /> : <p className="text-sm text-ink-400">No data yet.</p>}
-        </Panel>
-      </div>
-
+      <div className="flex items-center justify-between gap-4">
       <AssetFilters
         typeOptions={TYPE_OPTIONS}
         statusOptions={STATUS_OPTIONS}
@@ -110,6 +75,10 @@ export default async function AssetsPage({
         riskOptions={RISK_OPTIONS}
         riskLabels={RISK_LABEL}
       />
+        <span className="text-sm text-ink-400 shrink-0">
+          {filtered.length} of {assets.length} systems
+        </span>
+      </div>
 
       <div className="rounded-xl border border-line bg-panel overflow-hidden">
         <table className="w-full text-sm">

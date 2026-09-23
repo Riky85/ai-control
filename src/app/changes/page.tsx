@@ -23,8 +23,8 @@ export default async function ChangesPage() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink-100">Changes</h1>
-        <p className="text-sm text-ink-400 mt-1.5 max-w-lg">
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Changes</h1>
+        <p className="text-sm text-ink-400 mt-1 max-w-lg">
           Material changes detected between syncs — a straight before/after comparison,
           not a guess. This is what makes a Passport living instead of a snapshot.
         </p>
