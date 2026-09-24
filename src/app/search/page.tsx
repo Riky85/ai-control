@@ -1,10 +1,10 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
 
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
   const q = searchParams.q?.trim() ?? "";
@@ -12,12 +12,12 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
   const [assets, people] = q
     ? await Promise.all([
         db.aiAsset.findMany({
-          where: { organizationId: ORG_ID, deletedAt: null, name: { contains: q, mode: "insensitive" } },
+          where: { organizationId: currentOrgId(), deletedAt: null, name: { contains: q, mode: "insensitive" } },
           include: { riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 } },
           take: 20,
         }),
         db.user.findMany({
-          where: { organizationId: ORG_ID, name: { contains: q, mode: "insensitive" } },
+          where: { organizationId: currentOrgId(), name: { contains: q, mode: "insensitive" } },
           take: 10,
         }),
       ])

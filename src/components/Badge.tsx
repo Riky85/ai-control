@@ -1,55 +1,59 @@
-const COLOR: Record<string, string> = {
-  LOW: "text-steady",
-  MEDIUM: "text-signal",
-  HIGH: "text-alarm",
-  CRITICAL: "text-alarm",
-  APPROVED: "text-steady",
-  UNREVIEWED: "text-signal",
-  UNAPPROVED: "text-alarm",
-  UNKNOWN: "text-ink-400",
-  CONNECTED: "text-steady",
-  ERROR: "text-alarm",
-  SYNCING: "text-signal",
-  DISCONNECTED: "text-ink-400",
+/**
+ * Pillola di stato unica per tutta la piattaforma (stessa grafica di
+ * "Needs attention"): testo + sfondo tenue del colore semantico.
+ * verde = ok · ambra = attenzione · rosso = rischio/errore · grigio = neutro.
+ */
+type Tone = "ok" | "warn" | "bad" | "neutral";
+
+const STATES: Record<string, [string, Tone]> = {
+  LOW: ["Low", "ok"],
+  MEDIUM: ["Medium", "warn"],
+  HIGH: ["High", "bad"],
+  CRITICAL: ["Critical", "bad"],
+  APPROVED: ["Approved", "ok"],
+  UNREVIEWED: ["Unreviewed", "warn"],
+  UNAPPROVED: ["Not approved", "bad"],
+  UNKNOWN: ["Unknown", "neutral"],
+  ASSURED: ["Assured", "ok"],
+  NEEDS_REVIEW: ["Needs review", "warn"],
+  RESTRICTED: ["Restricted", "bad"],
+  BLOCKED: ["Blocked", "bad"],
+  PASSED: ["Passed", "ok"],
+  WARNING: ["Warning", "warn"],
+  FAILED: ["Failed", "bad"],
+  CONNECTED: ["Connected", "ok"],
+  SYNC_FAILED: ["Last sync failed", "warn"],
+  ERROR: ["Error", "bad"],
+  SYNCING: ["Syncing", "warn"],
+  DISCONNECTED: ["Not connected", "neutral"],
+  ACTIVE: ["Active", "ok"],
+  INVITED: ["Invited", "neutral"],
+  EXPIRED: ["Expired", "neutral"],
+  REVOKED: ["Revoked", "neutral"],
+  CURRENT: ["Current", "neutral"],
+  TRIALING: ["Trial", "neutral"],
+  PAST_DUE: ["Payment overdue", "bad"],
+  CANCELED: ["Canceled", "neutral"],
+  ADMIN_KEY: ["Admin key", "neutral"],
+  EARLY_ACCESS: ["Early access", "neutral"],
+  ATTENTION: ["Attention", "bad"],
+  GOOD: ["Good", "ok"],
+  ADDED: ["Added", "ok"],
+  ENCRYPTED: ["Encrypted", "ok"],
+  NOT_CONFIGURED: ["Not configured", "bad"],
+  READ_ONLY: ["Read-only", "neutral"],
+  NOT_ENABLED: ["Not enabled yet", "neutral"],
 };
 
-const LABEL: Record<string, string> = {
-  LOW: "Low",
-  MEDIUM: "Medium",
-  HIGH: "High",
-  CRITICAL: "Critical",
-  APPROVED: "Approved",
-  UNREVIEWED: "Unreviewed",
-  UNAPPROVED: "Not approved",
-  UNKNOWN: "Unknown",
-  CONNECTED: "Connected",
-  ERROR: "Error",
-  SYNCING: "Syncing",
-  DISCONNECTED: "Disconnected",
-};
-
-// Pillola con sfondo tenue coerente col colore semantico — non solo testo:
-// ha un padding proprio, quindi non si "incolla" mai a un elemento vicino
-// anche se il contenitore che la ospita dimentica uno spazio tra elementi.
-const BG: Record<string, string> = {
-  LOW: "bg-steady/10",
-  MEDIUM: "bg-signal/10",
-  HIGH: "bg-alarm/10",
-  CRITICAL: "bg-alarm/10",
-  APPROVED: "bg-steady/10",
-  UNREVIEWED: "bg-signal/10",
-  UNAPPROVED: "bg-alarm/10",
-  UNKNOWN: "bg-ink-400/10",
-  CONNECTED: "bg-steady/10",
-  ERROR: "bg-alarm/10",
-  SYNCING: "bg-signal/10",
-  DISCONNECTED: "bg-ink-400/10",
+const TONE: Record<Tone, string> = {
+  ok: "text-steady bg-steady/10",
+  warn: "text-signal bg-signal/10",
+  bad: "text-alarm bg-alarm/10",
+  neutral: "text-ink-400 bg-ink-400/10",
 };
 
 export default function Badge({ children }: { children: string }) {
-  return (
-    <span className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full ${COLOR[children] ?? "text-ink-400"} ${BG[children] ?? "bg-ink-400/10"}`}>
-      {LABEL[children] ?? children}
-    </span>
-  );
+  const key = children.toUpperCase().replace(/[\s-]+/g, "_");
+  const [label, tone] = STATES[key] ?? [children, "neutral" as Tone];
+  return <span className={`inline-flex whitespace-nowrap text-xs font-medium px-2 py-0.5 rounded-full ${TONE[tone]}`}>{label}</span>;
 }

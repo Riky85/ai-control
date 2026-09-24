@@ -1,7 +1,8 @@
 "use server";
 
+import { currentOrgId, ORG_COOKIE } from "@/lib/org";
 import { randomBytes } from "node:crypto";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { MemberRole, Plan } from "@prisma/client";
@@ -9,11 +10,10 @@ import { db } from "@/lib/db";
 import { planById, withinLimit, PLANS, EDGE } from "@/lib/plans";
 import { stripeEnabled, stripePost } from "@/lib/stripe";
 
-const ORG_ID = "demo-org";
 const ROLES: MemberRole[] = ["OWNER", "ADMIN", "EDITOR", "VIEWER"];
 
 async function org() {
-  return db.organization.findUniqueOrThrow({ where: { id: ORG_ID } });
+  return db.organization.findUniqueOrThrow({ where: { id: currentOrgId() } });
 }
 
 function origin() {
@@ -29,14 +29,14 @@ export async function inviteMemberAction(formData: FormData) {
   if (!email.includes("@")) redirect(`/workspace?error=${encodeURIComponent("Enter a valid email.")}`);
 
   const o = await org();
-  const count = await db.workspaceMember.count({ where: { organizationId: ORG_ID } });
+  const count = await db.workspaceMember.count({ where: { organizationId: currentOrgId() } });
   if (!withinLimit(planById(o.plan).limits.members, count)) {
     redirect(`/workspace?error=${encodeURIComponent(`Your ${planById(o.plan).name} plan includes ${planById(o.plan).limits.members} members. Upgrade to add more.`)}`);
   }
   await db.workspaceMember.upsert({
-    where: { organizationId_email: { organizationId: ORG_ID, email } },
+    where: { organizationId_email: { organizationId: currentOrgId(), email } },
     update: { role, name: name ?? undefined },
-    create: { organizationId: ORG_ID, email, name, role },
+    create: { organizationId: currentOrgId(), email, name, role },
   });
   revalidatePath("/workspace");
   redirect("/workspace?invited=1");
@@ -49,7 +49,7 @@ export async function setMemberRoleAction(formData: FormData) {
   // Deve restare almeno un Owner.
   const member = await db.workspaceMember.findUnique({ where: { id } });
   if (member?.role === "OWNER" && role !== "OWNER") {
-    const owners = await db.workspaceMember.count({ where: { organizationId: ORG_ID, role: "OWNER" } });
+    const owners = await db.workspaceMember.count({ where: { organizationId: currentOrgId(), role: "OWNER" } });
     if (owners <= 1) redirect(`/workspace?error=${encodeURIComponent("A workspace needs at least one owner.")}`);
   }
   await db.workspaceMember.update({ where: { id }, data: { role } });
@@ -60,10 +60,10 @@ export async function removeMemberAction(formData: FormData) {
   const id = String(formData.get("memberId"));
   const member = await db.workspaceMember.findUnique({ where: { id } });
   if (member?.role === "OWNER") {
-    const owners = await db.workspaceMember.count({ where: { organizationId: ORG_ID, role: "OWNER" } });
+    const owners = await db.workspaceMember.count({ where: { organizationId: currentOrgId(), role: "OWNER" } });
     if (owners <= 1) redirect(`/workspace?error=${encodeURIComponent("You can't remove the last owner.")}`);
   }
-  await db.workspaceMember.deleteMany({ where: { id, organizationId: ORG_ID } });
+  await db.workspaceMember.deleteMany({ where: { id, organizationId: currentOrgId() } });
   revalidatePath("/workspace");
 }
 
@@ -72,13 +72,13 @@ export async function createShareLinkAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim() || "AI estate overview";
   const days = Number(formData.get("expiresInDays") ?? 0);
   const o = await org();
-  const active = await db.shareLink.count({ where: { organizationId: ORG_ID, revokedAt: null } });
+  const active = await db.shareLink.count({ where: { organizationId: currentOrgId(), revokedAt: null } });
   if (!withinLimit(planById(o.plan).limits.sharedDashboards, active)) {
     redirect(`/workspace?tab=sharing&error=${encodeURIComponent(`Your ${planById(o.plan).name} plan includes ${planById(o.plan).limits.sharedDashboards} shared dashboard. Upgrade for unlimited.`)}`);
   }
   await db.shareLink.create({
     data: {
-      organizationId: ORG_ID,
+      organizationId: currentOrgId(),
       token: randomBytes(18).toString("base64url"),
       name,
       expiresAt: days > 0 ? new Date(Date.now() + days * 86400_000) : null,
@@ -89,7 +89,7 @@ export async function createShareLinkAction(formData: FormData) {
 }
 
 export async function revokeShareLinkAction(formData: FormData) {
-  await db.shareLink.updateMany({ where: { id: String(formData.get("linkId")), organizationId: ORG_ID }, data: { revokedAt: new Date() } });
+  await db.shareLink.updateMany({ where: { id: String(formData.get("linkId")), organizationId: currentOrgId() }, data: { revokedAt: new Date() } });
   revalidatePath("/workspace");
 }
 
@@ -164,4 +164,35 @@ export async function startEdgeCheckoutAction(formData: FormData) {
     redirect(`/billing?error=${encodeURIComponent((err as Error).message)}#edge`);
   }
   redirect(url);
+}
+
+// ── Workspace multipli ──────────────────────────────────────────────────
+export async function switchWorkspaceAction(formData: FormData) {
+  const id = String(formData.get("orgId"));
+  const exists = await db.organization.findUnique({ where: { id } });
+  if (exists) cookies().set(ORG_COOKIE, id, { path: "/", httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 365 });
+  revalidatePath("/", "layout");
+  redirect("/");
+}
+
+export async function createWorkspaceAction(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) redirect(`/workspace?tab=workspaces&error=${encodeURIComponent("Give the workspace a name.")}`);
+  const current = await org();
+  const limit = planById(current.plan).limits.workspaces;
+  const count = await db.organization.count();
+  if (!withinLimit(limit, count)) {
+    redirect(`/workspace?tab=workspaces&error=${encodeURIComponent(`The ${planById(current.plan).name} plan includes ${limit} workspace${limit === 1 ? "" : "s"}. Upgrade to create more.`)}`);
+  }
+  // Il nuovo workspace eredita il piano di quello corrente.
+  const created = await db.organization.create({ data: { name, plan: current.plan, planStatus: current.planStatus } });
+  cookies().set(ORG_COOKIE, created.id, { path: "/", httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 365 });
+  revalidatePath("/", "layout");
+  redirect("/connectors");
+}
+
+export async function renameWorkspaceAction(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (name) await db.organization.update({ where: { id: String(formData.get("orgId")) }, data: { name } });
+  revalidatePath("/", "layout");
 }

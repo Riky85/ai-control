@@ -1,8 +1,10 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
+import { PageHeader } from "@/components/ui";
+import ExportMenu from "@/components/ExportMenu";
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
 
 const SENSITIVITY_LABEL: Record<string, string> = {
   PUBLIC: "Public",
@@ -17,7 +19,7 @@ const SENSITIVE_TIERS = ["PII", "FINANCIAL", "SOURCE_CODE", "CONFIDENTIAL"];
 
 export default async function DataRegistryPage() {
   const dataAssets = await db.dataAsset.findMany({
-    where: { organizationId: ORG_ID },
+    where: { organizationId: currentOrgId() },
     orderBy: { name: "asc" },
     include: {
       accessedBy: { include: { aiAsset: true } },
@@ -26,13 +28,11 @@ export default async function DataRegistryPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Data Exposure</h1>
-        <p className="text-sm text-ink-400 mt-1 max-w-lg">
-          Every category of data your AI assets have been observed touching,
-          and which assets reach each one.
-        </p>
-      </div>
+      <PageHeader
+        title="Data Exposure"
+        subtitle={"Every category of data your AI assets have been observed touching, and which assets reach each one."}
+        action={<ExportMenu />}
+      />
 
       <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
         {dataAssets.map((d) => (

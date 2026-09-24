@@ -51,3 +51,14 @@ body {
   .btn-secondary { @apply border border-line bg-panel text-ink-100 hover:bg-black/[0.04]; }
   .btn-sm { @apply text-xs px-2.5 py-1.5; }
 }
+
+/* Export PDF: la stampa nasconde sidebar, pulsanti e widget, e toglie i
+   limiti di altezza così la pagina esce intera. */
+@media print {
+  @page { margin: 14mm; }
+  aside, .print\:hidden, [data-no-print] { display: none !important; }
+  body { background: #fff !important; height: auto !important; overflow: visible !important; display: block !important; }
+  body > div, main { overflow: visible !important; height: auto !important; max-width: none !important; padding: 0 !important; }
+  .animate-rise, .animate-grow { animation: none !important; }
+  tr, .rounded-xl { break-inside: avoid; }
+}

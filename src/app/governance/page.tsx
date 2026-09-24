@@ -1,4 +1,7 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
+import { PageHeader } from "@/components/ui";
+import ExportMenu from "@/components/ExportMenu";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
 import StatusDot from "@/components/StatusDot";
@@ -14,7 +17,6 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
 const CATEGORY_LABEL: Record<string, string> = {
   data_access: "Data access",
   approval: "Approval",
@@ -27,12 +29,6 @@ const LEVEL_LABEL: Record<string, string> = {
   NEEDS_REVIEW: "Needs review",
   RESTRICTED: "Restricted",
   BLOCKED: "Blocked",
-};
-const LEVEL_COLOR: Record<string, string> = {
-  ASSURED: "text-steady",
-  NEEDS_REVIEW: "text-signal",
-  RESTRICTED: "text-alarm",
-  BLOCKED: "text-alarm",
 };
 
 interface CheckRow {
@@ -53,12 +49,11 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Governance</h1>
-        <p className="text-sm text-ink-400 mt-1 max-w-lg">
-          Reviews, policies and assurance — the secondary layer that keeps the estate accountable.
-        </p>
-      </div>
+      <PageHeader
+        title="Governance"
+        subtitle={"Reviews, policies and assurance — the secondary layer that keeps the estate accountable."}
+        action={<ExportMenu dataset="assets" />}
+      />
 
       <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit">
         {TABS.map((t) => (
@@ -83,7 +78,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
 
 async function ReviewsTab() {
   const pending = await db.aiAsset.findMany({
-    where: { organizationId: ORG_ID, deletedAt: null, status: { in: ["UNKNOWN", "UNAPPROVED", "UNREVIEWED"] } },
+    where: { organizationId: currentOrgId(), deletedAt: null, status: { in: ["UNKNOWN", "UNAPPROVED", "UNREVIEWED"] } },
     include: { owner: true, riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 } },
     orderBy: [{ status: "asc" }, { firstSeenAt: "desc" }],
   });
@@ -140,7 +135,7 @@ async function ReviewsTab() {
 }
 
 async function PoliciesTab() {
-  const policies = await db.policy.findMany({ where: { organizationId: ORG_ID }, orderBy: { createdAt: "desc" } });
+  const policies = await db.policy.findMany({ where: { organizationId: currentOrgId() }, orderBy: { createdAt: "desc" } });
   const activeNames = new Set(policies.map((p) => p.name));
   const availableTemplates = POLICY_LIBRARY.filter((t) => !activeNames.has(t.name));
 
@@ -255,7 +250,7 @@ async function PoliciesTab() {
 
 async function AssuranceTab() {
   const assets = await db.aiAsset.findMany({
-    where: { organizationId: ORG_ID, deletedAt: null },
+    where: { organizationId: currentOrgId(), deletedAt: null },
     include: { assuranceReports: { orderBy: { createdAt: "desc" }, take: 1 } },
   });
   const withReport = assets.map((a) => ({ asset: a, report: a.assuranceReports[0] })).filter((x) => x.report);
@@ -313,8 +308,9 @@ async function AssuranceTab() {
                     <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
                       {asset.name}
                     </Link>
-                    <span className={`text-xs font-medium ${LEVEL_COLOR[report!.level]}`}>
-                      {LEVEL_LABEL[report!.level]} · {report!.score}%
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs text-ink-400 tabular">{report!.score}%</span>
+                      <Badge>{report!.level}</Badge>
                     </span>
                   </div>
                   <ul className="text-xs flex flex-col gap-1.5">

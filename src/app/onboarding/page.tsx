@@ -1,4 +1,6 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
+import Badge from "@/components/Badge";
 import Link from "next/link";
 import VendorIcon from "@/components/VendorIcon";
 import {
@@ -11,7 +13,6 @@ import { POLICY_LIBRARY } from "@/lib/policy-library";
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
 const STEPS = ["Welcome", "Organization", "Connect a source", "Add people", "Turn on policies"];
 
 export default async function OnboardingPage({
@@ -22,10 +23,10 @@ export default async function OnboardingPage({
   const step = Math.min(Math.max(parseInt(searchParams.step ?? "1", 10) || 1, 1), STEPS.length);
 
   const [org, people, activePolicies, connectedCount] = await Promise.all([
-    db.organization.findUnique({ where: { id: ORG_ID } }),
-    db.user.findMany({ where: { organizationId: ORG_ID }, orderBy: { name: "asc" } }),
-    db.policy.findMany({ where: { organizationId: ORG_ID } }),
-    db.connector.count({ where: { organizationId: ORG_ID, status: "CONNECTED" } }),
+    db.organization.findUnique({ where: { id: currentOrgId() } }),
+    db.user.findMany({ where: { organizationId: currentOrgId() }, orderBy: { name: "asc" } }),
+    db.policy.findMany({ where: { organizationId: currentOrgId() } }),
+    db.connector.count({ where: { organizationId: currentOrgId(), status: "CONNECTED" } }),
   ]);
   const activeNames = new Set(activePolicies.map((p) => p.name));
 
@@ -250,7 +251,7 @@ export default async function OnboardingPage({
                     <div className="text-xs text-ink-400">{t.description}</div>
                   </div>
                   {added ? (
-                    <span className="text-xs text-steady shrink-0">Added</span>
+                    <span className="shrink-0"><Badge>ADDED</Badge></span>
                   ) : (
                     <form action={addPolicyFromLibraryAction} className="shrink-0">
                       <input type="hidden" name="name" value={t.name} />

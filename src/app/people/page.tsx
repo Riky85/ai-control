@@ -1,13 +1,16 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
+import Badge from "@/components/Badge";
+import { PageHeader } from "@/components/ui";
+import ExportMenu from "@/components/ExportMenu";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
 
 export default async function PeoplePage() {
   const users = await db.user.findMany({
-    where: { organizationId: ORG_ID },
+    where: { organizationId: currentOrgId() },
     orderBy: { name: "asc" },
     include: {
       _count: { select: { ownedAssets: true, usages: true } },
@@ -20,12 +23,11 @@ export default async function PeoplePage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">People</h1>
-        <p className="text-sm text-ink-400 mt-1">
-          Everyone connectors have observed using or owning an AI asset.
-        </p>
-      </div>
+      <PageHeader
+        title="People"
+        subtitle={"Everyone connectors have observed using or owning an AI asset."}
+        action={<ExportMenu dataset="people" />}
+      />
 
       <div className="rounded-xl border border-line bg-panel overflow-hidden">
         <table className="w-full text-sm">
@@ -55,11 +57,7 @@ export default async function PeoplePage() {
                   <td className="px-5 py-3 tabular text-ink-100">{u._count.ownedAssets}</td>
                   <td className="px-5 py-3 tabular text-ink-400">{u._count.usages}</td>
                   <td className="px-5 py-3 text-xs">
-                    {highRiskOwned > 0 ? (
-                      <span className="text-alarm">Attention</span>
-                    ) : (
-                      <span className="text-steady">Good</span>
-                    )}
+                    <Badge>{highRiskOwned > 0 ? "ATTENTION" : "GOOD"}</Badge>
                   </td>
                 </tr>
               );

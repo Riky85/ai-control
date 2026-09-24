@@ -1,15 +1,17 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
+import { PageHeader, StatCard, Panel } from "@/components/ui";
+import ExportMenu from "@/components/ExportMenu";
 import Link from "next/link";
 import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
 import BarChart from "@/components/BarChart";
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
 
 export default async function ProvidersPage() {
   const assets = await db.aiAsset.findMany({
-    where: { organizationId: ORG_ID, deletedAt: null },
+    where: { organizationId: currentOrgId(), deletedAt: null },
     include: {
       connectedSystems: true,
       riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -38,37 +40,22 @@ export default async function ProvidersPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Providers</h1>
-        <p className="text-sm text-ink-400 mt-1 max-w-lg">
-          What your AI estate actually depends on, grouped by vendor.
-        </p>
-      </div>
+      <PageHeader
+        title="Providers"
+        subtitle={"What your AI estate actually depends on, grouped by vendor."}
+        action={<ExportMenu dataset="providers" />}
+      />
 
-      <div className="grid grid-cols-2 gap-5">
-        <div className="rounded-xl border border-line bg-panel shadow-card p-4 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Tracked monthly spend</div>
-            <div className="font-display text-3xl font-bold text-accent">€{totalMonthlySpend.toLocaleString()}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-1.5">Providers</div>
-            <div className="font-display text-xl font-semibold text-accent">{rows.length}</div>
-          </div>
-        </div>
-        {rows.some((r) => r.hasCostData) ? (
-          <div className="rounded-xl border border-line bg-panel shadow-card p-5">
-            <h2 className="text-sm font-medium text-ink-400 mb-3">Monthly spend by provider</h2>
-            <BarChart
-              rows={rows.filter((r) => r.hasCostData).map((r) => ({ label: r.vendor, value: r.monthlySpend }))}
-              formatValue={(v) => `€${v.toLocaleString()}`}
-            />
-          </div>
-        ) : (
-          <div className="rounded-xl border border-line bg-panel shadow-card p-5 flex items-center">
-            <span className="text-sm text-ink-400">No cost data entered yet — add it from each Passport.</span>
-          </div>
-        )}
+      <div className="grid grid-cols-3 gap-4">
+        <StatCard label="Providers" value={String(rows.length)} hint={rows.slice(0, 3).map((r) => r.vendor).join(", ")} />
+        <StatCard label="Tracked monthly spend" value={`€${totalMonthlySpend.toLocaleString()}`} hint="Manually entered on Passports" />
+        <Panel title="Spend by provider">
+          {rows.some((r) => r.hasCostData) ? (
+            <BarChart rows={rows.filter((r) => r.hasCostData).map((r) => ({ label: r.vendor, value: r.monthlySpend }))} formatValue={(v) => `€${v.toLocaleString()}`} />
+          ) : (
+            <p className="text-sm text-ink-400">No cost data yet — add it from each Passport.</p>
+          )}
+        </Panel>
       </div>
 
       <div className="grid grid-cols-3 gap-4">

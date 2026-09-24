@@ -1,13 +1,14 @@
+import { currentOrgId } from "@/lib/org";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { PageHeader, Panel } from "@/components/ui";
 import { planById } from "@/lib/plans";
 import CopyField from "@/components/CopyField";
-import { inviteMemberAction, setMemberRoleAction, removeMemberAction, createShareLinkAction, revokeShareLinkAction } from "@/lib/workspace-actions";
+import { inviteMemberAction, setMemberRoleAction, removeMemberAction, createShareLinkAction, revokeShareLinkAction, switchWorkspaceAction, createWorkspaceAction, renameWorkspaceAction } from "@/lib/workspace-actions";
+import Badge from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
-const ORG_ID = "demo-org";
 const input = "border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400";
 const ROLE_HELP: Record<string, string> = {
   OWNER: "Everything, including billing",
@@ -17,11 +18,12 @@ const ROLE_HELP: Record<string, string> = {
 };
 
 export default async function WorkspacePage({ searchParams }: { searchParams: { tab?: string; error?: string; invited?: string; shared?: string } }) {
-  const tab = searchParams.tab === "sharing" ? "sharing" : "members";
-  const [org, members, links] = await Promise.all([
-    db.organization.findUniqueOrThrow({ where: { id: ORG_ID } }),
-    db.workspaceMember.findMany({ where: { organizationId: ORG_ID }, orderBy: [{ role: "asc" }, { invitedAt: "asc" }] }),
-    db.shareLink.findMany({ where: { organizationId: ORG_ID }, orderBy: { createdAt: "desc" } }),
+  const tab = searchParams.tab === "sharing" ? "sharing" : searchParams.tab === "workspaces" ? "workspaces" : "members";
+  const [org, members, links, allWorkspaces] = await Promise.all([
+    db.organization.findUniqueOrThrow({ where: { id: currentOrgId() } }),
+    db.workspaceMember.findMany({ where: { organizationId: currentOrgId() }, orderBy: [{ role: "asc" }, { invitedAt: "asc" }] }),
+    db.shareLink.findMany({ where: { organizationId: currentOrgId() }, orderBy: { createdAt: "desc" } }),
+    db.organization.findMany({ orderBy: { createdAt: "asc" }, include: { _count: { select: { aiAssets: true, members: true } } } }),
   ]);
   const plan = planById(org.plan);
   const h = headers();
@@ -40,6 +42,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
         {[
           ["members", `Members ${members.length}`],
           ["sharing", `Shared dashboards ${activeLinks.length}`],
+          ["workspaces", `Workspaces ${allWorkspaces.length}`],
         ].map(([k, label]) => (
           <Link key={k} href={`/workspace?tab=${k}`} className={`text-sm px-3.5 py-1.5 rounded-md transition-colors ${tab === k ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"}`}>
             {label}
@@ -51,7 +54,65 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
       {searchParams.invited && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Member added.</div>}
       {searchParams.shared && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Link created — copy it below and send it to whoever needs to see the dashboard.</div>}
 
-      {tab === "members" ? (
+      {tab === "workspaces" ? (
+        <div className="grid grid-cols-3 gap-4 items-start">
+          <div className="col-span-2 rounded-xl border border-line bg-panel overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
+                  <th className="px-5 py-2.5 font-medium">Workspace</th>
+                  <th className="px-5 py-2.5 font-medium">AI systems</th>
+                  <th className="px-5 py-2.5 font-medium">Members</th>
+                  <th className="px-5 py-2.5 font-medium">Plan</th>
+                  <th className="px-5 py-2.5 font-medium" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {allWorkspaces.map((w) => (
+                  <tr key={w.id}>
+                    <td className="px-5 py-3">
+                      <form action={renameWorkspaceAction} className="flex items-center gap-2">
+                        <input type="hidden" name="orgId" value={w.id} />
+                        <input name="name" defaultValue={w.name} className={`${input} py-1.5 w-56`} />
+                        <button className="btn btn-secondary btn-sm">Rename</button>
+                      </form>
+                    </td>
+                    <td className="px-5 py-3 text-ink-100 tabular">{w._count.aiAssets}</td>
+                    <td className="px-5 py-3 text-ink-100 tabular">{w._count.members}</td>
+                    <td className="px-5 py-3 text-ink-100">{planById(w.plan).name}</td>
+                    <td className="px-5 py-3 text-right">
+                      {w.id === org.id ? (
+                        <Badge>CURRENT</Badge>
+                      ) : (
+                        <form action={switchWorkspaceAction}>
+                          <input type="hidden" name="orgId" value={w.id} />
+                          <button className="btn btn-secondary btn-sm">Open</button>
+                        </form>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Panel
+            title="Create a workspace"
+            subtitle={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on the ${plan.name} plan — e.g. one per company, plant or client`}
+          >
+            {plan.limits.workspaces === null || allWorkspaces.length < plan.limits.workspaces ? (
+              <form action={createWorkspaceAction} className="flex flex-col gap-2">
+                <input name="name" required placeholder="Workspace name" className={input} />
+                <button className="btn btn-primary">Create workspace</button>
+              </form>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <p className="text-sm text-ink-400">Your plan's workspace limit is reached.</p>
+                <Link href="/billing" className="btn btn-secondary">See plans</Link>
+              </div>
+            )}
+          </Panel>
+        </div>
+      ) : tab === "members" ? (
         <div className="grid grid-cols-3 gap-4 items-start">
           <div className="col-span-2 rounded-xl border border-line bg-panel overflow-hidden">
             <table className="w-full text-sm">
@@ -88,7 +149,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                         <button className="btn btn-secondary btn-sm">Save</button>
                       </form>
                     </td>
-                    <td className="px-5 py-3 text-ink-400">{m.status === "active" ? "Active" : "Invited"}</td>
+                    <td className="px-5 py-3"><Badge>{m.status === "active" ? "ACTIVE" : "INVITED"}</Badge></td>
                     <td className="px-5 py-3 text-right">
                       <form action={removeMemberAction}>
                         <input type="hidden" name="memberId" value={m.id} />

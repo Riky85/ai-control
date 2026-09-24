@@ -1,20 +1,21 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import { PageHeader, Panel } from "@/components/ui";
+import Badge from "@/components/Badge";
 import { PLANS, planById, EDGE } from "@/lib/plans";
 import { stripeEnabled } from "@/lib/stripe";
 import { startCheckoutAction, openBillingPortalAction, startEdgeCheckoutAction } from "@/lib/workspace-actions";
 
 export const dynamic = "force-dynamic";
-const ORG_ID = "demo-org";
 const ORDER = ["STARTER", "GROWTH", "ENTERPRISE"];
 
 export default async function BillingPage({ searchParams }: { searchParams: { checkout?: string; error?: string } }) {
   const [org, aiSystems, connections, members, sharedDashboards] = await Promise.all([
-    db.organization.findUniqueOrThrow({ where: { id: ORG_ID } }),
-    db.aiAsset.count({ where: { organizationId: ORG_ID, deletedAt: null } }),
-    db.connector.count({ where: { organizationId: ORG_ID, status: "CONNECTED", credentialsEncrypted: { not: null } } }),
-    db.workspaceMember.count({ where: { organizationId: ORG_ID } }),
-    db.shareLink.count({ where: { organizationId: ORG_ID, revokedAt: null } }),
+    db.organization.findUniqueOrThrow({ where: { id: currentOrgId() } }),
+    db.aiAsset.count({ where: { organizationId: currentOrgId(), deletedAt: null } }),
+    db.connector.count({ where: { organizationId: currentOrgId(), status: "CONNECTED", credentialsEncrypted: { not: null } } }),
+    db.workspaceMember.count({ where: { organizationId: currentOrgId() } }),
+    db.shareLink.count({ where: { organizationId: currentOrgId(), revokedAt: null } }),
   ]);
   const current = planById(org.plan);
   const payments = stripeEnabled();
@@ -56,7 +57,12 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
       )}
 
       <div className="grid grid-cols-3 gap-4">
-        <Panel title={`${current.name} plan`} subtitle={statusLabel(org.planStatus, org.currentPeriodEnd)} className="col-span-3">
+        <Panel
+          title={`${current.name} plan`}
+          subtitle={org.currentPeriodEnd ? `Renews ${org.currentPeriodEnd.toLocaleDateString()}` : undefined}
+          action={<Badge>{org.planStatus}</Badge>}
+          className="col-span-3"
+        >
           <div className="grid grid-cols-4 gap-6">
             {usage.map(([label, used, limit]) => {
               const pct = limit === null ? 0 : Math.min(100, Math.round((used / limit) * 100));
@@ -141,7 +147,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-semibold text-ink-100">{EDGE.name}</h2>
-              <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Early access</span>
+              <Badge>EARLY_ACCESS</Badge>
             </div>
             <p className="text-sm text-ink-400 mt-1">{EDGE.tagline}</p>
             <ul className="flex flex-col gap-2 text-sm text-ink-100 mt-4">
@@ -184,11 +190,6 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
       <p className="text-xs text-ink-400">Prices exclude VAT. Payments are processed securely by Stripe — Angar never sees your card details.</p>
     </div>
   );
-}
-
-function statusLabel(status: string, periodEnd: Date | null) {
-  const s = { active: "Active", trialing: "Trial", past_due: "Payment overdue", canceled: "Canceled", unpaid: "Unpaid" }[status] ?? status;
-  return periodEnd ? `${s} · renews ${periodEnd.toLocaleDateString()}` : s;
 }
 
 // Illustrazione del dispositivo: un piccolo box con led di stato.

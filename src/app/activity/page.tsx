@@ -1,12 +1,14 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
 import StatusDot from "@/components/StatusDot";
-import VendorIcon from "@/components/VendorIcon";
+import ExportMenu from "@/components/ExportMenu";
+import { Table, td, PageHeader } from "@/components/ui";
+import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
 
 const SOURCE_LABEL: Record<string, string> = {
   MICROSOFT_365: "Microsoft 365",
@@ -40,12 +42,11 @@ export default async function ActivityPage({ searchParams }: { searchParams: { q
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Activity</h1>
-        <p className="text-sm text-ink-400 mt-1">
-          What every connector observed, and the evidence trail behind every control.
-        </p>
-      </div>
+      <PageHeader
+        title="Activity"
+        subtitle={"What every connector observed, and the evidence trail behind every control."}
+        action={<ExportMenu dataset="activity" />}
+      />
 
       <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit">
         {TABS.map((t) => (
@@ -70,7 +71,7 @@ async function EventsTab({ q }: { q?: string }) {
   const query = q?.trim();
   const activities = await db.aiAssetActivity.findMany({
     where: {
-      aiAsset: { organizationId: ORG_ID },
+      aiAsset: { organizationId: currentOrgId() },
       ...(query
         ? {
             OR: [
@@ -95,7 +96,7 @@ async function EventsTab({ q }: { q?: string }) {
           name="q"
           defaultValue={query}
           placeholder="Search events, actors, assets…"
-          className="bg-panel border border-line rounded-md px-3 py-1.5 text-sm text-ink-100 w-72"
+          className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel w-72 placeholder:text-ink-400"
         />
         <button type="submit" className="btn btn-secondary">
           Search
@@ -107,31 +108,29 @@ async function EventsTab({ q }: { q?: string }) {
         )}
       </form>
 
-      <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
+      <Table
+        columns={["System", "Event", "Actor", "Risk", "Source", "When"]}
+        empty={activities.length === 0 && (query ? "No events match your search." : "No activity imported yet. Sync a connector to populate this.")}
+      >
         {activities.map((a) => {
           const risk = a.aiAsset.riskAssessments[0];
           return (
-            <Link href={`/activity/${a.id}`} key={a.id} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.025] transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="tabular text-xs text-ink-400 w-36 shrink-0">{new Date(a.occurredAt).toLocaleString()}</span>
-                <span className="text-ink-400"><VendorIcon vendor={a.aiAsset.vendor ?? ""} name={a.aiAsset.name} size={16} /></span>
-                <span className="font-medium text-ink-100">{a.aiAsset.name}</span>
-                <span className="text-ink-400">{a.eventType}</span>
-                {a.actorRef && <span className="text-ink-400 text-xs">{a.actorRef}</span>}
-              </div>
-              <div className="flex items-center gap-3">
-                {risk && <Badge>{risk.level}</Badge>}
-                <span className="text-xs text-ink-400">{SOURCE_LABEL[a.source] ?? a.source}</span>
-              </div>
-            </Link>
+            <tr key={a.id}>
+              <td className={td}>
+                <Link href={`/activity/${a.id}`} className="flex items-center gap-3 group">
+                  <VendorBadge vendor={a.aiAsset.vendor ?? ""} name={a.aiAsset.name} size={32} />
+                  <span className="font-medium text-ink-100 group-hover:underline">{a.aiAsset.name}</span>
+                </Link>
+              </td>
+              <td className={`${td} text-ink-100`}>{a.eventType}</td>
+              <td className={`${td} text-ink-400`}>{a.actorRef ?? "—"}</td>
+              <td className={td}>{risk ? <Badge>{risk.level}</Badge> : <span className="text-ink-400">—</span>}</td>
+              <td className={`${td} text-ink-400`}>{SOURCE_LABEL[a.source] ?? a.source}</td>
+              <td className={`${td} text-ink-400 tabular`}>{new Date(a.occurredAt).toLocaleString()}</td>
+            </tr>
           );
         })}
-        {activities.length === 0 && (
-          <div className="px-4 py-6 text-sm text-ink-400">
-            {query ? "No events match your search." : "No activity imported yet. Sync a connector to populate this."}
-          </div>
-        )}
-      </div>
+      </Table>
     </div>
   );
 }
@@ -139,12 +138,12 @@ async function EventsTab({ q }: { q?: string }) {
 async function EvidenceTab() {
   const [assets, snapshots] = await Promise.all([
     db.aiAsset.findMany({
-      where: { organizationId: ORG_ID, deletedAt: null },
+      where: { organizationId: currentOrgId(), deletedAt: null },
       include: { assuranceReports: { orderBy: { createdAt: "desc" }, take: 1 } },
       orderBy: { name: "asc" },
     }),
     db.evidence.findMany({
-      where: { organizationId: ORG_ID, type: "inventory_snapshot" },
+      where: { organizationId: currentOrgId(), type: "inventory_snapshot" },
       orderBy: { createdAt: "desc" },
       take: 20,
     }),

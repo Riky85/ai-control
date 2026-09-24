@@ -10,7 +10,7 @@ export interface PlanDef {
   name: string;
   price: number | null; // €/mese, null = su richiesta
   tagline: string;
-  limits: { aiSystems: number | null; connections: number | null; members: number | null; sharedDashboards: number | null };
+  limits: { aiSystems: number | null; connections: number | null; members: number | null; sharedDashboards: number | null; workspaces: number | null };
   features: string[];
   stripePriceEnv?: string;
 }
@@ -21,8 +21,8 @@ export const PLANS: PlanDef[] = [
     name: "Starter",
     price: 49,
     tagline: "See what AI your company uses.",
-    limits: { aiSystems: 25, connections: 3, members: 3, sharedDashboards: 1 },
-    features: ["Up to 25 AI systems", "3 connections", "3 workspace members", "AI Passports & estate map", "CSV import", "1 shared dashboard"],
+    limits: { aiSystems: 25, connections: 3, members: 3, sharedDashboards: 1, workspaces: 1 },
+    features: ["Up to 25 AI systems", "3 connections", "3 workspace members", "1 workspace", "AI Passports & estate map", "CSV import", "1 shared dashboard"],
     stripePriceEnv: "STRIPE_PRICE_STARTER",
   },
   {
@@ -30,8 +30,8 @@ export const PLANS: PlanDef[] = [
     name: "Growth",
     price: 199,
     tagline: "Understand costs, changes and alternatives.",
-    limits: { aiSystems: 250, connections: null, members: 15, sharedDashboards: null },
-    features: ["Up to 250 AI systems", "Unlimited connections", "15 workspace members", "Savings & alternatives", "Change history", "Unlimited shared dashboards"],
+    limits: { aiSystems: 250, connections: null, members: 15, sharedDashboards: null, workspaces: 3 },
+    features: ["Up to 250 AI systems", "Unlimited connections", "15 workspace members", "Up to 3 workspaces", "Savings & alternatives", "Change history", "Unlimited shared dashboards"],
     stripePriceEnv: "STRIPE_PRICE_GROWTH",
   },
   {
@@ -39,8 +39,8 @@ export const PLANS: PlanDef[] = [
     name: "Enterprise",
     price: null,
     tagline: "For large AI estates and regulated teams.",
-    limits: { aiSystems: null, connections: null, members: null, sharedDashboards: null },
-    features: ["Unlimited AI systems", "Unlimited members", "Governance & evidence exports", "Priority support", "Custom contract & invoicing", "SSO (on the roadmap)"],
+    limits: { aiSystems: null, connections: null, members: null, sharedDashboards: null, workspaces: null },
+    features: ["Unlimited AI systems", "Unlimited members & workspaces", "Governance & evidence exports", "Priority support", "Custom contract & invoicing", "SSO (on the roadmap)"],
   },
 ];
 

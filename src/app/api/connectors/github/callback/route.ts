@@ -1,3 +1,4 @@
+import { currentOrgId } from "@/lib/org";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
@@ -8,7 +9,7 @@ import { db } from "@/lib/db";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const installationId = searchParams.get("installation_id");
-  const organizationId = searchParams.get("state") || "demo-org";
+  const organizationId = searchParams.get("state") || currentOrgId();
 
   if (!installationId) {
     return NextResponse.redirect(`${origin}/connectors?error=missing_installation_id`);

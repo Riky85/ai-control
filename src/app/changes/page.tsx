@@ -1,64 +1,54 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import VendorIcon from "@/components/VendorIcon";
+import Badge from "@/components/Badge";
+import ExportMenu from "@/components/ExportMenu";
+import { VendorBadge } from "@/components/VendorIcon";
+import { PageHeader, Table, td } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
-
-const FIELD_LABEL: Record<string, string> = {
-  model: "Model",
-  vendor: "Vendor",
-  status: "Status",
-};
+const FIELD_LABEL: Record<string, string> = { model: "Model", vendor: "Vendor", status: "Status" };
+const STATUS_KEYS = ["APPROVED", "UNREVIEWED", "UNAPPROVED", "UNKNOWN"];
 
 export default async function ChangesPage() {
   const changes = await db.assetChange.findMany({
-    where: { aiAsset: { organizationId: ORG_ID } },
+    where: { aiAsset: { organizationId: currentOrgId() } },
     include: { aiAsset: true },
     orderBy: { detectedAt: "desc" },
-    take: 50,
+    take: 200,
   });
 
-  return (
-    <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Changes</h1>
-        <p className="text-sm text-ink-400 mt-1 max-w-lg">
-          Material changes detected between syncs — a straight before/after comparison,
-          not a guess. This is what makes a Passport living instead of a snapshot.
-        </p>
-      </div>
+  // I valori di stato si mostrano come pillole, gli altri come testo.
+  const value = (field: string, v: string | null, strong = false) =>
+    v == null ? <span className="text-ink-400">—</span> : field === "status" && STATUS_KEYS.includes(v) ? <Badge>{v}</Badge> : <span className={strong ? "font-medium text-ink-100" : "text-ink-400"}>{v}</span>;
 
-      <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Changes"
+        subtitle="What changed between syncs — model, vendor and status, before and after."
+        action={<ExportMenu dataset="changes" />}
+      />
+      <Table columns={["System", "Change", "Before", "After", "Detected"]} empty={changes.length === 0 && "No changes detected yet — they appear the moment a synced value differs from what was on record."}>
         {changes.map((c) => (
-          <Link
-            key={c.id}
-            href={`/assets/${c.aiAssetId}`}
-            className="flex items-center justify-between px-5 py-3.5 text-sm hover:bg-black/[0.02] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="tabular text-xs text-ink-400 w-36 shrink-0">
-                {new Date(c.detectedAt).toLocaleString()}
-              </span>
-              <span className="text-ink-400"><VendorIcon vendor={c.aiAsset.vendor ?? ""} name={c.aiAsset.name} size={16} /></span>
-              <span className="font-medium text-ink-100">{c.aiAsset.name}</span>
-              <span className="text-xs text-ink-400">{FIELD_LABEL[c.field] ?? c.field}</span>
-            </div>
-            <div className="text-xs">
-              <span className="text-ink-400">{c.oldValue ?? "—"}</span>
-              <span className="mx-1.5 text-ink-400">→</span>
-              <span className="text-ink-100 font-medium">{c.newValue ?? "—"}</span>
-            </div>
-          </Link>
+          <tr key={c.id}>
+            <td className={td}>
+              <Link href={`/assets/${c.aiAssetId}`} className="flex items-center gap-3 group">
+                <VendorBadge vendor={c.aiAsset.vendor ?? ""} name={c.aiAsset.name} size={32} />
+                <span>
+                  <span className="block font-medium text-ink-100 group-hover:underline">{c.aiAsset.name}</span>
+                  <span className="block text-xs text-ink-400">{c.aiAsset.vendor ?? "Vendor unknown"}</span>
+                </span>
+              </Link>
+            </td>
+            <td className={`${td} text-ink-100`}>{FIELD_LABEL[c.field] ?? c.field}</td>
+            <td className={td}>{value(c.field, c.oldValue)}</td>
+            <td className={td}>{value(c.field, c.newValue, true)}</td>
+            <td className={`${td} text-ink-400 tabular`}>{new Date(c.detectedAt).toLocaleString()}</td>
+          </tr>
         ))}
-        {changes.length === 0 && (
-          <div className="px-5 py-6 text-sm text-ink-400">
-            No changes detected yet — they show up here the moment a synced value (model, vendor,
-            status) differs from what was on record before.
-          </div>
-        )}
-      </div>
+      </Table>
     </div>
   );
 }

@@ -1,5 +1,7 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import { VendorBadge } from "@/components/VendorIcon";
+import Badge from "@/components/Badge";
 import { PageHeader } from "@/components/ui";
 import { syncConnectorAction, connectWithApiKeyAction, disconnectConnectorAction, addManualAssetAction, importCsvAction } from "@/lib/actions";
 import { decryptJson } from "@/lib/crypto";
@@ -7,7 +9,6 @@ import CsvDropzone from "@/components/CsvDropzone";
 import type { Connector, ConnectorProvider } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
-const ORG_ID = "demo-org";
 
 const AI_PROVIDERS: { provider: ConnectorProvider; label: string; keyUrl: string; hint: string }[] = [
   { provider: "ANTHROPIC", label: "Anthropic (Claude)", keyUrl: "https://console.anthropic.com/settings/keys", hint: "sk-ant-…" },
@@ -55,7 +56,7 @@ export default async function ConnectorsPage({
 }: {
   searchParams: { connected?: string; error?: string; provider?: string; imported?: string };
 }) {
-  const rows = await db.connector.findMany({ where: { organizationId: ORG_ID } });
+  const rows = await db.connector.findMany({ where: { organizationId: currentOrgId() } });
   const byProvider = new Map<ConnectorProvider, Connector>(rows.map((c) => [c.provider, c]));
   const githubReady = Boolean(process.env.GITHUB_APP_SLUG);
   const github = byProvider.get("GITHUB");
@@ -84,7 +85,7 @@ export default async function ConnectorsPage({
       <Section title="AI providers" subtitle="A normal API key is enough. Admin keys (Anthropic, OpenAI) also bring in users.">
         {AI_PROVIDERS.map((p) => {
           const row = byProvider.get(p.provider);
-          const connected = row?.status === "CONNECTED" && Boolean(row.credentialsEncrypted);
+          const connected = row?.status === "CONNECTED" || (Boolean(row?.credentialsEncrypted) && row?.status !== "DISCONNECTED");
           const mode = decryptJson<{ mode?: string }>(row?.credentialsEncrypted)?.mode;
           const error = searchParams.provider === p.provider ? searchParams.error : undefined;
           return (
@@ -93,14 +94,10 @@ export default async function ConnectorsPage({
                 <VendorBadge vendor={p.provider} name={p.label} size={36} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-ink-100 truncate">{p.label}</div>
-                  <div className="text-xs text-ink-400">
-                    {connected ? (
-                      <span className="text-ink-100"><span className="text-steady">●</span> Connected{mode === "admin" ? " · admin" : ""}</span>
-                    ) : row?.status === "ERROR" ? (
-                      <span className="text-alarm">● Needs attention</span>
-                    ) : (
-                      "Not connected"
-                    )}
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    <Badge>{connected ? "CONNECTED" : "DISCONNECTED"}</Badge>
+                    {connected && row?.status === "ERROR" && <Badge>SYNC_FAILED</Badge>}
+                    {connected && mode === "admin" && <Badge>ADMIN_KEY</Badge>}
                   </div>
                 </div>
               </div>
@@ -140,7 +137,7 @@ export default async function ConnectorsPage({
             <VendorBadge vendor="GitHub" size={36} />
             <div className="flex-1">
               <div className="text-sm font-medium text-ink-100">GitHub</div>
-              <div className="text-xs text-ink-400">{github?.status === "CONNECTED" ? <span className="text-ink-100"><span className="text-steady">●</span> Connected</span> : "Not connected"}</div>
+              <div className="mt-1"><Badge>{github?.status === "CONNECTED" ? "CONNECTED" : "DISCONNECTED"}</Badge></div>
             </div>
           </div>
           {githubReady ? (

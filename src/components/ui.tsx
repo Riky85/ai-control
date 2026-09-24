@@ -77,3 +77,40 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
     </div>
   );
 }
+
+/**
+ * Tabella standard della piattaforma — stessa grafica di AI Passports ovunque:
+ * contenitore bordato, intestazione grigia, righe divise, prima colonna con logo.
+ */
+export function Table({ columns, children, empty }: { columns: (string | { label: string; className?: string })[]; children: React.ReactNode; empty?: string | false }) {
+  return (
+    <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
+            {columns.map((c, i) => {
+              const col = typeof c === "string" ? { label: c } : c;
+              return (
+                <th key={i} className={`px-5 py-2.5 font-medium ${col.className ?? ""}`}>
+                  {col.label}
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-line">
+          {children}
+          {empty && (
+            <tr>
+              <td colSpan={columns.length} className="px-5 py-8 text-center text-sm text-ink-400">
+                {empty}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export const td = "px-5 py-3";

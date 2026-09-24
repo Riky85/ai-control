@@ -1,3 +1,4 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import Link from "next/link";
@@ -6,18 +7,18 @@ import DonutChart from "@/components/DonutChart";
 import BarChart from "@/components/BarChart";
 import EstateGraph from "@/components/EstateGraph";
 import { StatCard, Panel, PageHeader } from "@/components/ui";
+import ExportMenu from "@/components/ExportMenu";
 import { RISK_CHART_COLORS } from "@/lib/chart-colors";
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
 const SENSITIVE = ["PII", "FINANCIAL", "SOURCE_CODE"];
 const STATUS_LABEL: Record<string, string> = { APPROVED: "Approved", UNREVIEWED: "In review", UNAPPROVED: "Rejected", UNKNOWN: "Not started" };
 
 export default async function OverviewPage() {
-  const org = await db.organization.findUnique({ where: { id: ORG_ID } });
+  const org = await db.organization.findUnique({ where: { id: currentOrgId() } });
   const assets = await db.aiAsset.findMany({
-    where: { organizationId: ORG_ID, deletedAt: null },
+    where: { organizationId: currentOrgId(), deletedAt: null },
     include: {
       owner: true,
       cost: true,
@@ -32,7 +33,7 @@ export default async function OverviewPage() {
     .filter((a) => a.status !== "APPROVED" || ["HIGH", "CRITICAL"].includes(risk(a) ?? ""))
     .slice(0, 5);
   const changes = await db.assetChange.findMany({
-    where: { aiAsset: { organizationId: ORG_ID } },
+    where: { aiAsset: { organizationId: currentOrgId() } },
     include: { aiAsset: true },
     orderBy: { detectedAt: "desc" },
     take: 5,
@@ -68,11 +69,14 @@ export default async function OverviewPage() {
         title="Overview"
         subtitle={`${org?.name ?? ""} — your AI estate at a glance.`}
         action={
-          highRisk.length > 0 ? (
-            <Link href="/assets?risk=HIGH" className="text-xs font-medium text-alarm bg-alarm/10 rounded-full px-3 py-1.5 hover:bg-alarm/15 transition-colors">
-              {highRisk.length} at high risk →
-            </Link>
-          ) : undefined
+          <div className="flex items-center gap-2">
+            {highRisk.length > 0 && (
+              <Link href="/assets?risk=HIGH" className="text-xs font-medium text-alarm bg-alarm/10 rounded-full px-3 py-1.5 hover:bg-alarm/15 transition-colors">
+                {highRisk.length} at high risk →
+              </Link>
+            )}
+            <ExportMenu dataset="assets" />
+          </div>
         }
       />
 

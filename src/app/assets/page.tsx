@@ -1,14 +1,15 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
 import { VendorBadge } from "@/components/VendorIcon";
 import { PageHeader } from "@/components/ui";
+import ExportMenu from "@/components/ExportMenu";
 import AssetFilters from "@/components/AssetFilters";
 import type { AiAssetType, AiAssetStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
 
 const TYPE_OPTIONS: AiAssetType[] = [
   "AI_APPLICATION",
@@ -35,7 +36,7 @@ export default async function AssetsPage({
 }) {
   const assets = await db.aiAsset.findMany({
     where: {
-      organizationId: ORG_ID,
+      organizationId: currentOrgId(),
       deletedAt: null,
       ...(searchParams.type ? { type: searchParams.type as AiAssetType } : {}),
       ...(searchParams.status ? { status: searchParams.status as AiAssetStatus } : {}),
@@ -61,9 +62,12 @@ export default async function AssetsPage({
         title="AI Passports"
         subtitle="Every AI system in your company — open one to see its living technical record."
         action={
-          <Link href="/connectors" className="btn btn-secondary">
-            + Add AI systems
-          </Link>
+          <div className="flex gap-2">
+            <ExportMenu dataset="assets" />
+            <Link href="/connectors" className="btn btn-secondary">
+              + Add AI systems
+            </Link>
+          </div>
         }
       />
 

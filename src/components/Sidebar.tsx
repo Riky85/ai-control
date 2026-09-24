@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Logo from "./Logo";
+import WorkspaceSwitcher, { type WorkspaceOption } from "./WorkspaceSwitcher";
 
 // Icone minimali, un solo stroke-width, coerenti tra loro — niente set di
 // icone eterogeneo preso da librerie diverse.
@@ -80,7 +81,15 @@ const STORAGE_KEY = "angar:sidebar-collapsed-v2";
 // Sidebar in stile Claude Console: nome del prodotto in serif, selettore
 // organizzazione, ricerca con scorciatoia, voci principali, gruppo "More"
 // richiudibile, utente in fondo. Aperta di default.
-export default function Sidebar({ orgName }: { orgName?: string }) {
+export interface SidebarWorkspaceProps {
+  current: WorkspaceOption | null;
+  workspaces: WorkspaceOption[];
+  canCreate: boolean;
+  planName: string;
+  limit: number | null;
+}
+
+export default function Sidebar({ orgName, workspace }: { orgName?: string; workspace?: SidebarWorkspaceProps }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [moreOpen, setMoreOpen] = useState(true);
@@ -158,14 +167,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
 
       {!collapsed && (
         <>
-          <Link
-            href="/settings"
-            className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg border border-white/[0.12] bg-white/[0.03] text-[15px] text-white hover:bg-white/[0.06] transition-colors"
-          >
-            <span className="h-4 w-4 rounded bg-accent shrink-0" />
-            <span className="flex-1 truncate">{orgName ?? "Organization"}</span>
-            <Chevron />
-          </Link>
+          {workspace && <WorkspaceSwitcher {...workspace} />}
           <form action="/search" method="GET" className="mb-4">
             <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/[0.12] text-[#A3A19C] focus-within:border-white/30">
               <svg width="15" height="15" viewBox="0 0 14 14" fill="none" className="shrink-0">
@@ -219,6 +221,10 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         <Link href="/connectors" title={collapsed ? "Connections" : undefined} className={itemClass(isActive("/connectors"))}>
           <Icon name="connectors" />
           {!collapsed && "Connections"}
+        </Link>
+        <Link href="/docs" title={collapsed ? "Documentation" : undefined} className={itemClass(isActive("/docs"))}>
+          <Icon name="evidence" />
+          {!collapsed && "Documentation"}
         </Link>
         <Link href="/workspace" title={collapsed ? "Workspace" : undefined} className={itemClass(isActive("/workspace"))}>
           <Icon name="people" />

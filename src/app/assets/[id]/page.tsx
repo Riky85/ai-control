@@ -1,3 +1,4 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
@@ -7,6 +8,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
 import { StatCard } from "@/components/ui";
+import ExportMenu from "@/components/ExportMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +47,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         alternatives: { orderBy: { createdAt: "desc" } },
       },
     }),
-    db.user.findMany({ where: { organizationId: "demo-org" }, orderBy: { name: "asc" } }),
+    db.user.findMany({ where: { organizationId: currentOrgId() }, orderBy: { name: "asc" } }),
   ]);
 
   if (!asset) notFound();
@@ -74,15 +76,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           <div className="flex items-center gap-3 pt-1 text-xs">
             <Badge>{asset.status}</Badge>
             {risk && <Badge>{risk.level}</Badge>}
-            {assurance && (
-              <span
-                className={
-                  assurance.level === "ASSURED" ? "text-steady font-medium" : assurance.level === "NEEDS_REVIEW" ? "text-signal font-medium" : "text-alarm font-medium"
-                }
-              >
-                {ASSURANCE_LABEL[assurance.level]} · {assurance.score}%
-              </span>
-            )}
+            {assurance && <Badge>{assurance.level}</Badge>}
+            <ExportMenu dataset={`passport-${asset.id}`} />
           </div>
         </div>
       </div>

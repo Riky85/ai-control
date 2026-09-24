@@ -1,5 +1,6 @@
 "use server";
 
+import { currentOrgId } from "@/lib/org";
 /**
  * Server actions — la UI chiama queste invece di fare fetch verso le API
  * route. Ogni azione tocca solo il database (mai un LLM) e poi invalida
@@ -17,7 +18,6 @@ import { adminGet as openaiGet } from "@/lib/connectors/openai";
 import { isAdminKey, testApiKey } from "@/lib/connectors/api-key-providers";
 import type { ConnectorProvider, AiAssetStatus, EuAiActTier } from "@prisma/client";
 
-const ORG_ID = "demo-org"; // MVP: single-tenant demo; sostituire con auth reale
 
 // Ricalcola risk + assurance per un singolo asset dopo una modifica manuale
 // (owner, stato, classificazione) — le stesse funzioni deterministiche usate
@@ -50,7 +50,7 @@ async function recomputeAssuranceFor(assetId: string) {
 
 export async function syncConnectorAction(formData: FormData) {
   const provider = formData.get("provider") as ConnectorProvider;
-  await runConnectorSync(ORG_ID, provider);
+  await runConnectorSync(currentOrgId(), provider);
   revalidatePath("/connectors");
   revalidatePath("/assets");
   revalidatePath("/activity");
@@ -98,11 +98,11 @@ export async function connectWithApiKeyAction(formData: FormData) {
     back((err as Error).message);
   }
   await db.connector.upsert({
-    where: { organizationId_provider: { organizationId: ORG_ID, provider } },
+    where: { organizationId_provider: { organizationId: currentOrgId(), provider } },
     update: { credentialsEncrypted: credentials, status: "CONNECTED", lastSyncError: null },
-    create: { organizationId: ORG_ID, provider, credentialsEncrypted: credentials, status: "CONNECTED", scopes: [] },
+    create: { organizationId: currentOrgId(), provider, credentialsEncrypted: credentials, status: "CONNECTED", scopes: [] },
   });
-  const result = await runConnectorSync(ORG_ID, provider);
+  const result = await runConnectorSync(currentOrgId(), provider);
   revalidatePath("/", "layout");
   if (!result.ok) back(`Key saved, but the first sync failed: ${result.error.slice(0, 200)}`);
   redirect(`/connectors?connected=${provider}`);
@@ -115,12 +115,12 @@ async function upsertManualAsset(input: { name: string; vendor?: string; type?: 
   const type = (types.includes((input.type ?? "").toUpperCase()) ? input.type!.toUpperCase() : "AI_APPLICATION") as any;
   const owner = input.ownerEmail
     ? await db.user.upsert({
-        where: { organizationId_email: { organizationId: ORG_ID, email: input.ownerEmail.toLowerCase() } },
+        where: { organizationId_email: { organizationId: currentOrgId(), email: input.ownerEmail.toLowerCase() } },
         update: {},
-        create: { organizationId: ORG_ID, email: input.ownerEmail.toLowerCase() },
+        create: { organizationId: currentOrgId(), email: input.ownerEmail.toLowerCase() },
       })
     : null;
-  const existing = await db.aiAsset.findFirst({ where: { organizationId: ORG_ID, connectorId: null, name: input.name } });
+  const existing = await db.aiAsset.findFirst({ where: { organizationId: currentOrgId(), connectorId: null, name: input.name } });
   const data = {
     type,
     vendor: input.vendor || null,
@@ -131,7 +131,7 @@ async function upsertManualAsset(input: { name: string; vendor?: string; type?: 
   };
   const asset = existing
     ? await db.aiAsset.update({ where: { id: existing.id }, data })
-    : await db.aiAsset.create({ data: { ...data, organizationId: ORG_ID, name: input.name, status: "UNREVIEWED", firstSeenAt: new Date() } });
+    : await db.aiAsset.create({ data: { ...data, organizationId: currentOrgId(), name: input.name, status: "UNREVIEWED", firstSeenAt: new Date() } });
   if (input.monthlyCost != null && !Number.isNaN(input.monthlyCost)) {
     await db.aiSystemCost.upsert({
       where: { aiAssetId: asset.id },
@@ -201,7 +201,7 @@ export async function importCsvAction(formData: FormData) {
 export async function disconnectConnectorAction(formData: FormData) {
   const provider = formData.get("provider") as ConnectorProvider;
   await db.connector.updateMany({
-    where: { organizationId: ORG_ID, provider },
+    where: { organizationId: currentOrgId(), provider },
     data: { credentialsEncrypted: null, status: "DISCONNECTED", lastSyncError: null, lastSyncWarnings: [] },
   });
   revalidatePath("/connectors");
@@ -313,13 +313,13 @@ export async function createPolicyAction(formData: FormData) {
   const description = (formData.get("description") as string)?.trim();
   const category = (formData.get("category") as string) || "other";
   if (!name || !description) return;
-  const existing = await db.policy.findFirst({ where: { organizationId: ORG_ID, name } });
+  const existing = await db.policy.findFirst({ where: { organizationId: currentOrgId(), name } });
   if (existing) {
     revalidatePath("/governance");
     return; // already exists under this name — never create a duplicate
   }
   await db.policy.create({
-    data: { organizationId: ORG_ID, name, description, category },
+    data: { organizationId: currentOrgId(), name, description, category },
   });
   revalidatePath("/governance");
 }
@@ -328,13 +328,13 @@ export async function addPolicyFromLibraryAction(formData: FormData) {
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
   const category = formData.get("category") as string;
-  const existing = await db.policy.findFirst({ where: { organizationId: ORG_ID, name } });
+  const existing = await db.policy.findFirst({ where: { organizationId: currentOrgId(), name } });
   if (existing) {
     revalidatePath("/governance");
     return; // already added — clicking "Add" again is a no-op, not a duplicate
   }
   await db.policy.create({
-    data: { organizationId: ORG_ID, name, description, category },
+    data: { organizationId: currentOrgId(), name, description, category },
   });
   revalidatePath("/governance");
 }
@@ -361,9 +361,9 @@ export async function addUserAction(formData: FormData) {
   const department = (formData.get("department") as string)?.trim();
   if (!email) return;
   await db.user.upsert({
-    where: { organizationId_email: { organizationId: ORG_ID, email } },
+    where: { organizationId_email: { organizationId: currentOrgId(), email } },
     update: { name: name || undefined, department: department || undefined },
-    create: { organizationId: ORG_ID, email, name: name || undefined, department: department || undefined },
+    create: { organizationId: currentOrgId(), email, name: name || undefined, department: department || undefined },
   });
   revalidatePath("/people");
   revalidatePath("/settings");
@@ -375,7 +375,7 @@ export async function updateOrganizationAction(formData: FormData) {
   const country = (formData.get("country") as string)?.trim();
   if (!name) return;
   await db.organization.update({
-    where: { id: ORG_ID },
+    where: { id: currentOrgId() },
     data: { name, country: country || null },
   });
   revalidatePath("/settings");
@@ -385,7 +385,7 @@ export async function updateOrganizationAction(formData: FormData) {
 
 export async function completeOnboardingAction() {
   await db.organization.update({
-    where: { id: ORG_ID },
+    where: { id: currentOrgId() },
     data: { onboardingCompletedAt: new Date() },
   });
   revalidatePath("/");
@@ -395,7 +395,7 @@ export async function completeOnboardingAction() {
 
 export async function restartOnboardingAction() {
   await db.organization.update({
-    where: { id: ORG_ID },
+    where: { id: currentOrgId() },
     data: { onboardingCompletedAt: null },
   });
   revalidatePath("/settings");

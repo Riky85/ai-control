@@ -1,4 +1,6 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
+import Badge from "@/components/Badge";
 import Link from "next/link";
 import { addUserAction, restartOnboardingAction } from "@/lib/actions";
 import { Panel, PageHeader } from "@/components/ui";
@@ -6,15 +8,14 @@ import { VendorBadge } from "@/components/VendorIcon";
 
 export const dynamic = "force-dynamic";
 
-const ORG_ID = "demo-org";
 const input = "w-full border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400";
 const button = "btn btn-secondary btn-sm";
 
 export default async function SettingsPage() {
   const [org, users, connectors] = await Promise.all([
-    db.organization.findUnique({ where: { id: ORG_ID } }),
-    db.user.findMany({ where: { organizationId: ORG_ID }, orderBy: { name: "asc" } }),
-    db.connector.findMany({ where: { organizationId: ORG_ID, status: "CONNECTED" } }),
+    db.organization.findUnique({ where: { id: currentOrgId() } }),
+    db.user.findMany({ where: { organizationId: currentOrgId() }, orderBy: { name: "asc" } }),
+    db.connector.findMany({ where: { organizationId: currentOrgId(), status: "CONNECTED" } }),
   ]);
   const encryptionOn = Boolean(process.env.CREDENTIALS_SECRET);
 
@@ -76,9 +77,9 @@ export default async function SettingsPage() {
 
           <Panel title="Security">
             <dl className="text-sm flex flex-col gap-2.5">
-              <Row label="Connector keys" value={encryptionOn ? "Encrypted (AES-256)" : "Encryption not configured"} tone={encryptionOn ? "ok" : "bad"} />
-              <Row label="Access" value="Read-only" />
-              <Row label="Sign-in" value="Not enabled yet" />
+              <Row label="Connector keys" badge={encryptionOn ? "ENCRYPTED" : "NOT_CONFIGURED"} />
+              <Row label="Access" badge="READ_ONLY" />
+              <Row label="Sign-in" badge="NOT_ENABLED" />
             </dl>
           </Panel>
 
@@ -93,11 +94,11 @@ export default async function SettingsPage() {
   );
 }
 
-function Row({ label, value, tone }: { label: string; value: string; tone?: "ok" | "bad" }) {
+function Row({ label, value, badge }: { label: string; value?: string; badge?: string }) {
   return (
-    <div className="flex justify-between gap-3">
+    <div className="flex items-center justify-between gap-3">
       <dt className="text-ink-400">{label}</dt>
-      <dd className={tone === "ok" ? "text-steady" : tone === "bad" ? "text-alarm" : "text-ink-100"}>{value}</dd>
+      <dd className="text-ink-100">{badge ? <Badge>{badge}</Badge> : value}</dd>
     </div>
   );
 }
