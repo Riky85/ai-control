@@ -7,7 +7,8 @@ import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, s
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
-import { StatCard, Tabs } from "@/components/ui";
+import { StatCard, Tabs, Panel, Table, td } from "@/components/ui";
+import StatusDot from "@/components/StatusDot";
 import ExportMenu from "@/components/ExportMenu";
 
 export const dynamic = "force-dynamic";
@@ -98,234 +99,242 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <section className="col-span-2 rounded-xl border border-line bg-panel p-5">
-          <div className="mb-5">
-            <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/assets/${asset.id}?tab=${t.key}` }))} />
-          </div>
+      <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/assets/${asset.id}?tab=${t.key}` }))} />
 
+      <div className="grid grid-cols-3 gap-4 items-start">
+        <div className="col-span-2 flex flex-col gap-4">
           {tab === "overview" && (
-            <div className="flex flex-col gap-4 text-sm">
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-                <Row label="Department" value={asset.department ?? "—"} />
-                <Row label="Model" value={asset.model ?? "—"} />
-                <Row label="Source" value={asset.connector?.provider ?? "Manual"} />
-                <Row label="Last seen" value={asset.lastSeenAt ? new Date(asset.lastSeenAt).toLocaleDateString() : "—"} />
-              </div>
-
-              {(asset.connectedSystems.length > 0 || asset.dataAccess.length > 0) && (
-                <div className="flex flex-wrap gap-2 pt-3 border-t border-line">
-                  {asset.connectedSystems.map((s) => (
-                    <span key={s.id} className="px-2 py-1 rounded border border-line text-xs text-ink-400">
-                      {s.system}{s.detail && ` — ${s.detail}`}
-                    </span>
-                  ))}
-                  {asset.dataAccess.map((d) => (
-                    <span
-                      key={d.id}
-                      className={`px-2 py-1 rounded border text-xs ${
-                        ["PII", "FINANCIAL", "SOURCE_CODE"].includes(d.dataAsset.sensitivity) ? "border-alarm/40 text-alarm" : "border-line text-ink-400"
-                      }`}
-                    >
-                      {d.dataAsset.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className="pt-3 border-t border-line">
-                <h3 className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mb-3">Dependency graph</h3>
-                <div>
-                  <AssetGraph
-                    center={asset.name}
-                    centerVendor={asset.vendor}
-                    left={asset.usages.slice(0, 6).map((u) => ({ label: u.user?.name ?? u.externalUserRef ?? "Unknown user", sublabel: u.user?.department ?? undefined, kind: "user" as const }))}
-                    right={[
-                      ...asset.connectedSystems.map((s) => ({
-                        label: s.system,
-                        sublabel: s.detail ?? undefined,
-                        kind: "external" as const,
-                        tone: (s.detail?.match(/prod/i) ? "alarm" : "default") as "default" | "alarm",
-                      })),
-                      ...asset.relationsFrom.map((r) => ({ label: r.targetAsset.name, sublabel: r.relationType, kind: "system" as const })),
-                      ...asset.dataAccess.map((d) => ({
-                        label: d.dataAsset.name,
-                        sublabel: d.dataAsset.sensitivity.replace(/_/g, " ").toLowerCase(),
-                        kind: "data" as const,
-                        tone: (["PII", "FINANCIAL", "SOURCE_CODE"].includes(d.dataAsset.sensitivity) ? "alarm" : "default") as "default" | "alarm",
-                      })),
-                    ]}
-                  />
-                </div>
-              </div>
-            </div>
+            <>
+              <Panel title="Details">
+                <dl className="grid grid-cols-3 gap-x-6 gap-y-5">
+                  <Field label="Model" value={asset.model} />
+                  <Field label="Provider" value={asset.vendor} />
+                  <Field label="Type" value={asset.type.replace(/_/g, " ").toLowerCase()} />
+                  <Field label="Owner" value={asset.owner?.name ?? asset.owner?.email} empty="No owner yet" />
+                  <Field label="Department" value={asset.department} />
+                  <Field label="EU AI Act" value={EU_LABEL[asset.euAiActTier]} />
+                  <Field label="Discovered by" value={asset.connector ? asset.connector.provider.replace(/_/g, " ").toLowerCase() : "Added manually"} />
+                  <Field label="First seen" value={new Date(asset.firstSeenAt).toLocaleDateString()} />
+                  <Field label="Last seen" value={asset.lastSeenAt ? new Date(asset.lastSeenAt).toLocaleDateString() : null} />
+                </dl>
+              </Panel>
+              <Panel title="Dependency graph" subtitle="Who uses it, and which systems and data it depends on">
+                <AssetGraph
+                  center={asset.name}
+                  centerVendor={asset.vendor}
+                  left={asset.usages.slice(0, 6).map((u) => ({ label: u.user?.name ?? u.externalUserRef ?? "Unknown user", sublabel: u.user?.department ?? undefined, kind: "user" as const }))}
+                  right={[
+                    ...asset.connectedSystems.map((s) => ({
+                      label: s.system,
+                      sublabel: s.detail ?? undefined,
+                      kind: "external" as const,
+                      tone: (s.detail?.match(/prod/i) ? "alarm" : "default") as "default" | "alarm",
+                    })),
+                    ...asset.relationsFrom.map((r) => ({ label: r.targetAsset.name, sublabel: r.relationType, kind: "system" as const })),
+                    ...asset.dataAccess.map((d) => ({
+                      label: d.dataAsset.name,
+                      sublabel: d.dataAsset.sensitivity.replace(/_/g, " ").toLowerCase(),
+                      kind: "data" as const,
+                      tone: (SENSITIVE.includes(d.dataAsset.sensitivity) ? "alarm" : "default") as "default" | "alarm",
+                    })),
+                  ]}
+                />
+              </Panel>
+            </>
           )}
 
-          {tab === "risk" && risk && (
-            <div className="flex flex-col gap-4">
-              <div className="flex gap-6">
-                <RiskGauge score={risk.score} level={risk.level} />
-                <div className="flex-1">
-                  <ul className="text-sm text-ink-100 flex flex-col gap-1">
-                    {(risk.reasons as string[]).map((r, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="text-ink-400">·</span>
-                        {r}
-                      </li>
-                    ))}
-                  </ul>
-                  {assurance && (
-                    <p className="text-xs text-ink-400 mt-3">
-                      Assurance: {assurance.passedCount} passed, {assurance.warningCount} need attention, {assurance.failedCount} failed.{" "}
-                      <Link href="/activity?tab=evidence" className="underline hover:text-ink-100">Full evidence</Link>
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {tab === "activity" && (
-            <div className="divide-y divide-line text-sm">
-              {asset.activities.map((a) => (
-                <div key={a.id} className="flex items-center justify-between py-2.5">
-                  <div className="text-ink-400">
-                    <span className="tabular text-xs mr-2">{new Date(a.occurredAt).toLocaleString()}</span>
-                    {a.eventType} {a.actorRef && `— ${a.actorRef}`}
-                  </div>
-                  <span className="text-xs text-ink-400">{a.source}</span>
-                </div>
-              ))}
-              {asset.activities.length === 0 && <div className="py-2 text-ink-400">No activity recorded yet.</div>}
-            </div>
-          )}
-
-          {tab === "alternatives" && (
-            <div>
-              {asset.alternatives.length > 0 && (
-                <div className="flex flex-col gap-2 mb-4">
-                  {asset.alternatives.map((alt) => (
-                    <div key={alt.id} className="flex items-center justify-between text-sm border-b border-line pb-2 last:border-0">
+          {tab === "risk" && (
+            <>
+              <Panel title="Risk" subtitle="Computed by rules from what Angar knows about this system">
+                {risk ? (
+                  <div className="flex gap-8 items-start">
+                    <div className="shrink-0">
+                      <RiskGauge score={risk.score} level={risk.level} />
+                    </div>
+                    <div className="flex-1 grid grid-cols-2 gap-6">
                       <div>
-                        <span className="text-ink-100 font-medium">{alt.provider} · {alt.model}</span>
-                        {alt.estimatedMonthlyCost != null && <span className="text-ink-400 text-xs ml-2">€{alt.estimatedMonthlyCost.toLocaleString()}/mo</span>}
-                        {alt.migrationEffortDays && <span className="text-ink-400 text-xs ml-2">· {alt.migrationEffortDays} days to migrate</span>}
+                        <h3 className="text-sm font-medium text-ink-100 mb-2">Why</h3>
+                        <ul className="flex flex-col gap-2 text-sm text-ink-400">
+                          {(risk.reasons as string[]).map((r, i) => (
+                            <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-alarm shrink-0" />{r}</li>
+                          ))}
+                          {(risk.reasons as string[]).length === 0 && <li>No risk factors found.</li>}
+                        </ul>
                       </div>
-                      <form action={deleteAlternativeAction}>
-                        <input type="hidden" name="alternativeId" value={alt.id} />
-                        <input type="hidden" name="assetId" value={asset.id} />
-                        <button type="submit" className="text-xs text-ink-400 hover:text-alarm transition-colors">Remove</button>
-                      </form>
+                      <div>
+                        <h3 className="text-sm font-medium text-ink-100 mb-2">What would lower it</h3>
+                        <ul className="flex flex-col gap-2 text-sm text-ink-400">
+                          {((risk.mitigations as string[] | null) ?? []).map((m, i) => (
+                            <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-steady shrink-0" />{m}</li>
+                          ))}
+                          {((risk.mitigations as string[] | null) ?? []).length === 0 && <li>Nothing to suggest.</li>}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-ink-400">Not assessed yet — it's computed after the next sync.</p>
+                )}
+              </Panel>
+              <Panel
+                title="Assurance checks"
+                subtitle={assurance ? `${assurance.passedCount} passed · ${assurance.warningCount} need attention · ${assurance.failedCount} failed` : "Not assessed yet"}
+                action={<Link href="/activity?tab=evidence" className="btn btn-secondary btn-sm">Full evidence</Link>}
+              >
+                <div className="divide-y divide-line -mx-5 border-t border-line">
+                  {((assurance?.checks as unknown as { key: string; label: string; status: "PASSED" | "WARNING" | "FAILED"; detail: string }[] | undefined) ?? []).map((ch) => (
+                    <div key={ch.key} className="flex items-start gap-3 px-5 py-3">
+                      <span className="mt-0.5"><StatusDot status={ch.status} /></span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-ink-100">{ch.label}</div>
+                        <div className="text-xs text-ink-400 mt-0.5">{ch.detail}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
-              )}
-              <details>
-                <summary className="btn btn-secondary btn-sm cursor-pointer inline-block list-none">
-                  + Add an alternative
-                </summary>
-                <form action={addAlternativeAction} className="mt-3 flex flex-col gap-2 text-sm">
-                  <input type="hidden" name="assetId" value={asset.id} />
-                  <div className="grid grid-cols-2 gap-2">
-                    <input name="provider" placeholder="Provider (e.g. OpenAI)" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
-                    <input name="model" placeholder="Model (e.g. GPT-5)" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <input name="estimatedMonthlyCost" type="number" step="0.01" placeholder="Est. €/mo" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
-                    <select name="qualityConfidence" defaultValue="" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel">
-                      <option value="">Quality?</option>
-                      <option value="LOW">Low quality confidence</option>
-                      <option value="MEDIUM">Medium quality confidence</option>
-                      <option value="HIGH">High quality confidence</option>
-                    </select>
-                    <input name="migrationEffortDays" placeholder="Migration days, e.g. 3-5" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
-                  </div>
-                  <textarea name="reasoning" placeholder="Why this could work (optional)" rows={2} className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
-                  <button type="submit" className="btn btn-secondary btn-sm self-start">
-                    Add alternative
-                  </button>
-                </form>
-              </details>
-            </div>
+              </Panel>
+            </>
           )}
-        </section>
 
-        <aside className="rounded-xl border border-line bg-panel p-5 text-sm h-fit flex flex-col gap-4">
+          {tab === "activity" && (
+            <Table columns={["When", "Event", "By", "Source"]} empty={asset.activities.length === 0 ? "No activity recorded yet." : false}>
+              {asset.activities.map((a) => (
+                <tr key={a.id}>
+                  <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{new Date(a.occurredAt).toLocaleString()}</td>
+                  <td className={`${td} text-ink-100`}>{a.eventType.replace(/[._]/g, " ")}</td>
+                  <td className={`${td} text-ink-400`}>{a.actorRef ?? "—"}</td>
+                  <td className={`${td} text-ink-400`}>{a.source.replace(/_/g, " ").toLowerCase()}</td>
+                </tr>
+              ))}
+            </Table>
+          )}
+
+          {tab === "alternatives" && (
+            <>
+              <Table
+                columns={["Alternative", "Est. cost / mo", "Saving / mo", "Quality", "Migration", { label: "", className: "w-16" }]}
+                empty={asset.alternatives.length === 0 ? "No alternatives recorded yet — add one you've evaluated below." : false}
+              >
+                {asset.alternatives.map((alt) => {
+                  const current = asset.cost?.monthlyCostEstimate;
+                  const saving = current != null && alt.estimatedMonthlyCost != null ? current - alt.estimatedMonthlyCost : null;
+                  return (
+                    <tr key={alt.id}>
+                      <td className={td}>
+                        <span className="flex items-center gap-3">
+                          <VendorBadge vendor={alt.provider} name={alt.model} size={28} />
+                          <span>
+                            <span className="block font-medium text-ink-100">{alt.model}</span>
+                            <span className="block text-xs text-ink-400">{alt.provider}</span>
+                          </span>
+                        </span>
+                      </td>
+                      <td className={`${td} tabular`}>{alt.estimatedMonthlyCost != null ? `€${alt.estimatedMonthlyCost.toLocaleString()}` : "—"}</td>
+                      <td className={`${td} tabular font-medium ${saving == null ? "text-ink-400" : saving > 0 ? "text-steady" : "text-alarm"}`}>
+                        {saving == null ? "—" : `${saving > 0 ? "−" : "+"}€${Math.abs(saving).toLocaleString()}`}
+                      </td>
+                      <td className={`${td} text-ink-100`}>{alt.qualityConfidence ? alt.qualityConfidence.charAt(0) + alt.qualityConfidence.slice(1).toLowerCase() : "—"}</td>
+                      <td className={`${td} text-ink-400`}>{alt.migrationEffortDays ? `${alt.migrationEffortDays} days` : "—"}</td>
+                      <td className={`${td} text-right`}>
+                        <form action={deleteAlternativeAction}>
+                          <input type="hidden" name="alternativeId" value={alt.id} />
+                          <input type="hidden" name="assetId" value={asset.id} />
+                          <button type="submit" className="text-sm text-ink-400 hover:text-alarm transition-colors">Remove</button>
+                        </form>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </Table>
+              <Panel title="Add an alternative" subtitle={asset.cost?.monthlyCostEstimate != null ? `Compared with the current €${asset.cost.monthlyCostEstimate.toLocaleString()}/month` : "Enter this system's current cost in Manage to see savings"}>
+                <form action={addAlternativeAction} className="grid grid-cols-6 gap-3">
+                  <input type="hidden" name="assetId" value={asset.id} />
+                  <input name="provider" required placeholder="Provider, e.g. OpenAI" className={`${INPUT} col-span-2`} />
+                  <input name="model" required placeholder="Model, e.g. GPT-5" className={`${INPUT} col-span-2`} />
+                  <input name="estimatedMonthlyCost" type="number" step="0.01" placeholder="€ / month" className={`${INPUT} col-span-2`} />
+                  <select name="qualityConfidence" defaultValue="" className={`${INPUT} col-span-2`}>
+                    <option value="">Quality confidence</option>
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                  </select>
+                  <input name="migrationEffortDays" placeholder="Migration days, e.g. 3-5" className={`${INPUT} col-span-2`} />
+                  <input name="reasoning" placeholder="Why it could work (optional)" className={`${INPUT} col-span-2`} />
+                  <div className="col-span-6 flex justify-end">
+                    <button type="submit" className="btn btn-primary">Add alternative</button>
+                  </div>
+                </form>
+              </Panel>
+            </>
+          )}
+        </div>
+
+        <aside className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-5">
           <h2 className="text-base font-semibold text-ink-100">Manage</h2>
-          <form action={setAssetOwnerAction} className="flex flex-col gap-1">
-            <input type="hidden" name="assetId" value={asset.id} />
-            <label className="text-xs text-ink-400">Owner</label>
-            <div className="flex gap-2">
-              <select name="ownerId" defaultValue={asset.ownerId ?? ""} className="flex-1 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel">
-                <option value="">No owner on record</option>
-                {orgUsers.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name ?? u.email}</option>
-                ))}
-              </select>
-              <button type="submit" className="btn btn-secondary btn-sm">
-                Save
-              </button>
-            </div>
-          </form>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-ink-400">Status</span>
-            <div className="flex gap-2">
-              {(["APPROVED", "UNAPPROVED", "UNREVIEWED"] as const).map((s) => (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-ink-400">Status</span>
+            <div className="grid grid-cols-3 gap-1 bg-ink rounded-lg p-1">
+              {(["APPROVED", "UNREVIEWED", "UNAPPROVED"] as const).map((s) => (
                 <form key={s} action={setAssetStatusAction}>
                   <input type="hidden" name="assetId" value={asset.id} />
                   <input type="hidden" name="status" value={s} />
                   <button
                     type="submit"
                     disabled={asset.status === s}
-                    className={`text-xs px-2.5 py-1 rounded border transition-colors ${
-                      asset.status === s ? "border-accent text-accent cursor-default" : "border-line text-ink-400 hover:text-ink-100 hover:border-ink-400"
+                    className={`w-full text-sm py-1.5 rounded-md transition-colors ${
+                      asset.status === s ? "bg-panel text-ink-100 font-medium shadow-card cursor-default" : "text-ink-400 hover:text-ink-100"
                     }`}
                   >
-                    {s === "APPROVED" ? "Approve" : s === "UNAPPROVED" ? "Reject" : "Unreviewed"}
+                    {s === "APPROVED" ? "Approved" : s === "UNAPPROVED" ? "Rejected" : "In review"}
                   </button>
                 </form>
               ))}
             </div>
           </div>
 
-          <form action={setAssetEuAiActTierAction} className="flex flex-col gap-1">
+          <form action={setAssetOwnerAction} className="flex flex-col gap-2">
             <input type="hidden" name="assetId" value={asset.id} />
-            <label className="text-xs text-ink-400">EU AI Act classification</label>
+            <label className="text-sm text-ink-400" htmlFor="ownerId">Owner</label>
             <div className="flex gap-2">
-              <select name="tier" defaultValue={asset.euAiActTier} className="flex-1 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel">
-                <option value="UNCLASSIFIED">Not classified yet</option>
-                <option value="MINIMAL_RISK">Minimal risk</option>
-                <option value="LIMITED_RISK">Limited risk</option>
-                <option value="HIGH_RISK">High risk (Annex III)</option>
+              <select id="ownerId" name="ownerId" defaultValue={asset.ownerId ?? ""} className={`${INPUT} flex-1 min-w-0`}>
+                <option value="">No owner yet</option>
+                {orgUsers.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name ?? u.email}</option>
+                ))}
               </select>
-              <button type="submit" className="btn btn-secondary btn-sm">
-                Save
-              </button>
+              <button type="submit" className="btn btn-secondary">Save</button>
             </div>
           </form>
 
-          <form action={setAssetCostAction} className="flex flex-col gap-1 pt-4 border-t border-line">
+          <form action={setAssetEuAiActTierAction} className="flex flex-col gap-2">
             <input type="hidden" name="assetId" value={asset.id} />
-            <label className="text-xs text-ink-400">Monthly cost (manual entry)</label>
+            <label className="text-sm text-ink-400" htmlFor="tier">EU AI Act</label>
             <div className="flex gap-2">
-              <input
-                type="number"
-                step="0.01"
-                name="monthlyCostEstimate"
-                defaultValue={asset.cost?.monthlyCostEstimate ?? ""}
-                placeholder="€ / month"
-                className="flex-1 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel"
-              />
-              <select name="confidence" defaultValue={asset.cost?.confidence ?? "MEDIUM"} className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel">
-                <option value="LOW">Low confidence</option>
-                <option value="MEDIUM">Medium confidence</option>
-                <option value="HIGH">High confidence</option>
+              <select id="tier" name="tier" defaultValue={asset.euAiActTier} className={`${INPUT} flex-1 min-w-0`}>
+                {Object.entries(EU_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+              <button type="submit" className="btn btn-secondary">Save</button>
+            </div>
+          </form>
+
+          <form action={setAssetCostAction} className="flex flex-col gap-2 pt-5 border-t border-line">
+            <input type="hidden" name="assetId" value={asset.id} />
+            <label className="text-sm text-ink-400" htmlFor="cost">Monthly cost</label>
+            <div className="flex gap-2">
+              <div className="relative flex-1 min-w-0">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">€</span>
+                <input id="cost" type="number" step="0.01" name="monthlyCostEstimate" defaultValue={asset.cost?.monthlyCostEstimate ?? ""} placeholder="0" className={`${INPUT} w-full pl-7`} />
+              </div>
+              <select name="confidence" defaultValue={asset.cost?.confidence ?? "MEDIUM"} className={INPUT}>
+                <option value="LOW">Rough</option>
+                <option value="MEDIUM">Estimate</option>
+                <option value="HIGH">Exact</option>
               </select>
             </div>
-            <button type="submit" className="btn btn-secondary btn-sm mt-1 self-start">
-              Save cost
-            </button>
+            <button type="submit" className="btn btn-secondary w-full">Save cost</button>
           </form>
         </aside>
       </div>
@@ -333,11 +342,20 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+const INPUT = "border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400";
+const SENSITIVE = ["PII", "FINANCIAL", "SOURCE_CODE"];
+const EU_LABEL: Record<string, string> = {
+  UNCLASSIFIED: "Not classified yet",
+  MINIMAL_RISK: "Minimal risk",
+  LIMITED_RISK: "Limited risk",
+  HIGH_RISK: "High risk (Annex III)",
+};
+
+function Field({ label, value, empty = "—" }: { label: string; value?: string | null; empty?: string }) {
   return (
-    <div className="flex justify-between gap-2">
-      <dt className="text-ink-400">{label}</dt>
-      <dd className="text-ink-100 text-right truncate">{value}</dd>
+    <div className="min-w-0">
+      <dt className="text-xs text-ink-400">{label}</dt>
+      <dd className={`text-sm mt-1 truncate ${value ? "text-ink-100" : "text-ink-400"}`}>{value || empty}</dd>
     </div>
   );
 }

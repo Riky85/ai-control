@@ -71,8 +71,9 @@ export default async function OverviewPage() {
         action={
           <div className="flex items-center gap-2">
             {highRisk.length > 0 && (
-              <Link href="/assets?risk=HIGH" className="text-xs font-medium text-alarm bg-alarm/10 rounded-full px-3 py-1.5 hover:bg-alarm/15 transition-colors">
-                {highRisk.length} at high risk →
+              <Link href="/assets?risk=HIGH" className="btn btn-secondary">
+                <span className="h-2 w-2 rounded-full bg-alarm" />
+                {highRisk.length} at high risk
               </Link>
             )}
             <ExportMenu dataset="assets" />
