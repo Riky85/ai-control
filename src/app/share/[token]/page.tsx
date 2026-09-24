@@ -44,7 +44,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
   const statusRows = (["UNKNOWN", "UNREVIEWED", "APPROVED", "UNAPPROVED"] as const).map((s) => ({ label: STATUS_LABEL[s], value: assets.filter((a) => a.status === s).length }));
 
   return (
-    <div className="flex flex-col gap-6 px-10 py-8">
+    <div className="flex flex-col gap-6 px-10 py-8 max-w-[1400px] mx-auto">
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="text-xs text-ink-400 mb-1">

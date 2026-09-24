@@ -27,7 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     return (
       <html lang="en" className={`${sans.variable} ${brand.variable}`}>
         <body className="min-h-screen bg-panel text-ink-100 font-body">
-          <main className="w-full max-w-[1400px] mx-auto">{children}</main>
+          <main className="w-full">{children}</main>
         </body>
       </html>
     );
