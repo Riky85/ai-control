@@ -16,7 +16,7 @@ const W = 900;
 const ROW = 46;
 const COL = 230;
 
-export default function EstateGraph({ systems }: { systems: EstateSystem[] }) {
+export default function EstateGraph({ systems, linkNodes = true }: { systems: EstateSystem[]; linkNodes?: boolean }) {
   const providers = Array.from(new Set(systems.map((s) => s.vendor ?? "Unknown vendor")));
   const dataMap = new Map<string, boolean>();
   systems.forEach((s) => s.data.forEach((d) => dataMap.set(d.name, (dataMap.get(d.name) ?? false) || d.sensitive)));
@@ -60,7 +60,7 @@ export default function EstateGraph({ systems }: { systems: EstateSystem[] }) {
             name={s.name}
             emphasis
             tone={s.risky ? "alarm" : "default"}
-            href={`/assets/${s.id}`}
+            href={linkNodes ? `/assets/${s.id}` : undefined}
           />
         ))}
         {data.map(([name, sensitive], i) => (

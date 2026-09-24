@@ -116,6 +116,9 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
     });
   }
 
+  // Le dashboard condivise (/share/…) sono pubbliche: niente navigazione dell'app.
+  if (pathname.startsWith("/share")) return null;
+
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   function itemClass(active: boolean, sub = false) {
     return `flex items-center gap-3 text-[15px] transition-colors rounded-lg ${
@@ -216,6 +219,14 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         <Link href="/connectors" title={collapsed ? "Connections" : undefined} className={itemClass(isActive("/connectors"))}>
           <Icon name="connectors" />
           {!collapsed && "Connections"}
+        </Link>
+        <Link href="/workspace" title={collapsed ? "Workspace" : undefined} className={itemClass(isActive("/workspace"))}>
+          <Icon name="people" />
+          {!collapsed && "Workspace"}
+        </Link>
+        <Link href="/billing" title={collapsed ? "Plan & billing" : undefined} className={itemClass(isActive("/billing"))}>
+          <Icon name="savings" />
+          {!collapsed && "Plan & billing"}
         </Link>
         <Link href="/settings" title={collapsed ? "Settings" : undefined} className={itemClass(isActive("/settings"))}>
           <Icon name="settings" />

@@ -106,6 +106,15 @@ model Organization {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  // Abbonamento — aggiornato dal webhook Stripe quando i pagamenti sono attivi.
+  plan                 Plan      @default(STARTER)
+  planStatus           String    @default("trialing")
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodEnd     DateTime?
+
+  members    WorkspaceMember[]
+  shareLinks ShareLink[]
   users      User[]
   connectors Connector[]
   aiAssets   AiAsset[]
@@ -368,4 +377,48 @@ model Evidence {
   createdAt      DateTime     @default(now())
 
   @@index([organizationId, type])
+}
+
+
+enum Plan {
+  STARTER
+  GROWTH
+  ENTERPRISE
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+// Chi usa Angar (diverso da User, che sono le persone dell'azienda scoperte
+// dai connettori e proprietarie dei sistemi AI).
+model WorkspaceMember {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  name           String?
+  role           MemberRole   @default(VIEWER)
+  status         String       @default("invited") // invited | active
+  invitedAt      DateTime     @default(now())
+
+  @@unique([organizationId, email])
+}
+
+// Link di sola lettura a una dashboard, condivisibile fuori da Angar.
+model ShareLink {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  token          String       @unique
+  name           String
+  dashboard      String       @default("overview")
+  createdAt      DateTime     @default(now())
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  viewCount      Int          @default(0)
+  lastViewedAt   DateTime?
 }
