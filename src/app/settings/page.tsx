@@ -79,7 +79,8 @@ export default async function SettingsPage() {
             <dl className="text-sm flex flex-col gap-2.5">
               <Row label="Connector keys" badge={encryptionOn ? "ENCRYPTED" : "NOT_CONFIGURED"} />
               <Row label="Access" badge="READ_ONLY" />
-              <Row label="Sign-in" badge="NOT_ENABLED" />
+              <Row label="Sign-in" badge="PASSWORD_AUTH" />
+              <Row label="Audit log" badge="AUDIT_ON" />
             </dl>
           </Panel>
 

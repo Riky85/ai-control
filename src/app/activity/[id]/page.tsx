@@ -1,3 +1,4 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import Link from "next/link";
@@ -14,8 +15,8 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 export default async function ActivityDetailPage({ params }: { params: { id: string } }) {
-  const activity = await db.aiAssetActivity.findUnique({
-    where: { id: params.id },
+  const activity = await db.aiAssetActivity.findFirst({
+    where: { id: params.id, aiAsset: { organizationId: currentOrgId() } },
     include: {
       aiAsset: {
         include: {

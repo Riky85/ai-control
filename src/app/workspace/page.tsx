@@ -2,7 +2,7 @@ import { currentOrgId } from "@/lib/org";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { PageHeader, Panel } from "@/components/ui";
+import { PageHeader, Panel, Tabs, Table } from "@/components/ui";
 import { planById } from "@/lib/plans";
 import CopyField from "@/components/CopyField";
 import { inviteMemberAction, setMemberRoleAction, removeMemberAction, createShareLinkAction, revokeShareLinkAction, switchWorkspaceAction, createWorkspaceAction, renameWorkspaceAction } from "@/lib/workspace-actions";
@@ -38,17 +38,14 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
         action={<Link href="/billing" className="btn btn-secondary">{plan.name} plan</Link>}
       />
 
-      <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit">
-        {[
-          ["members", `Members ${members.length}`],
-          ["sharing", `Shared dashboards ${activeLinks.length}`],
-          ["workspaces", `Workspaces ${allWorkspaces.length}`],
-        ].map(([k, label]) => (
-          <Link key={k} href={`/workspace?tab=${k}`} className={`text-sm px-3.5 py-1.5 rounded-md transition-colors ${tab === k ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"}`}>
-            {label}
-          </Link>
-        ))}
-      </div>
+      <Tabs
+        active={tab}
+        items={[
+          { key: "members", label: "Members", count: members.length, href: "/workspace?tab=members" },
+          { key: "sharing", label: "Shared dashboards", count: activeLinks.length, href: "/workspace?tab=sharing" },
+          { key: "workspaces", label: "Workspaces", count: allWorkspaces.length, href: "/workspace?tab=workspaces" },
+        ]}
+      />
 
       {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
       {searchParams.invited && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Member added.</div>}
@@ -56,18 +53,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
 
       {tab === "workspaces" ? (
         <div className="grid grid-cols-3 gap-4 items-start">
-          <div className="col-span-2 rounded-xl border border-line bg-panel overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
-                  <th className="px-5 py-2.5 font-medium">Workspace</th>
-                  <th className="px-5 py-2.5 font-medium">AI systems</th>
-                  <th className="px-5 py-2.5 font-medium">Members</th>
-                  <th className="px-5 py-2.5 font-medium">Plan</th>
-                  <th className="px-5 py-2.5 font-medium" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
+          <Table columns={["Workspace", "AI systems", "Members", "Plan", ""]}>
                 {allWorkspaces.map((w) => (
                   <tr key={w.id}>
                     <td className="px-5 py-3">
@@ -92,9 +78,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </Table>
           <Panel
             title="Create a workspace"
             subtitle={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on the ${plan.name} plan — e.g. one per company, plant or client`}
@@ -114,17 +98,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
         </div>
       ) : tab === "members" ? (
         <div className="grid grid-cols-3 gap-4 items-start">
-          <div className="col-span-2 rounded-xl border border-line bg-panel overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
-                  <th className="px-5 py-2.5 font-medium">Member</th>
-                  <th className="px-5 py-2.5 font-medium">Role</th>
-                  <th className="px-5 py-2.5 font-medium">Status</th>
-                  <th className="px-5 py-2.5 font-medium" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
+          <Table columns={["Member", "Role", "Status", ""]}>
                 {members.map((m) => (
                   <tr key={m.id}>
                     <td className="px-5 py-3">
@@ -160,12 +134,10 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                 ))}
                 {members.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-5 py-6 text-sm text-ink-400 text-center">No members yet — invite yourself first as Owner.</td>
+                    <td colSpan={4} className="px-5 py-3 text-sm text-ink-400 text-center">No members yet — invite yourself first as Owner.</td>
                   </tr>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </Table>
 
           <div className="flex flex-col gap-4">
             <Panel title="Invite a member" subtitle={`${members.length} of ${plan.limits.members ?? "unlimited"} on the ${plan.name} plan`}>
@@ -181,8 +153,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
               </form>
             </Panel>
             <p className="text-xs text-ink-400 px-1">
-              Sign-in isn't enabled yet: members are recorded with their role and get access as soon as login ships. Invitation emails aren't sent yet.
-            </p>
+              Invited people sign up with the same email and join this workspace with their role. Invitation emails aren't sent automatically yet — share the sign-up link yourself.</p>
           </div>
         </div>
       ) : (

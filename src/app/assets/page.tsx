@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
 import { VendorBadge } from "@/components/VendorIcon";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, Table } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import AssetFilters from "@/components/AssetFilters";
 import type { AiAssetType, AiAssetStatus } from "@prisma/client";
@@ -84,21 +84,7 @@ export default async function AssetsPage({
         </span>
       </div>
 
-      <div className="rounded-xl border border-line bg-panel overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
-              <th className="px-5 py-2.5 font-medium">System</th>
-              <th className="px-5 py-2.5 font-medium">Type</th>
-              <th className="px-5 py-2.5 font-medium">Owner</th>
-              <th className="px-5 py-2.5 font-medium">Status</th>
-              <th className="px-5 py-2.5 font-medium">Risk</th>
-              <th className="px-5 py-2.5 font-medium">Assurance</th>
-              <th className="px-5 py-2.5 font-medium">Cost/mo</th>
-              <th className="px-5 py-2.5 font-medium">Last seen</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
+      <Table columns={["System", "Type", "Owner", "Status", "Risk", "Assurance", "Cost/mo", "Last seen"]}>
             {filtered.map((asset) => {
               const risk = asset.riskAssessments[0];
               const assurance = asset.assuranceReports[0];
@@ -149,16 +135,14 @@ export default async function AssetsPage({
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-sm text-ink-400">
+                <td colSpan={8} className="px-5 py-3 text-sm text-ink-400">
                   {assets.length === 0
                     ? "No assets yet. Connect Microsoft 365 or GitHub to start discovery."
                     : "No assets match this filter."}
                 </td>
               </tr>
             )}
-          </tbody>
-        </table>
-      </div>
+          </Table>
     </div>
   );
 }

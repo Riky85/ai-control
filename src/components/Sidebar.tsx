@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { signOutAction } from "@/lib/auth-actions";
 import Logo from "./Logo";
 import WorkspaceSwitcher, { type WorkspaceOption } from "./WorkspaceSwitcher";
 
@@ -67,6 +68,16 @@ const PRIMARY_ITEMS = [
   { href: "/changes", label: "Changes", icon: "changes" },
 ];
 
+// Voci meno frequenti: nel menu a tendina del blocco utente, così la
+// sidebar aperta non ha bisogno di scroll.
+const MENU_ITEMS = [
+  { href: "/workspace", label: "Workspace", icon: "people" },
+  { href: "/billing", label: "Plan & billing", icon: "savings" },
+  { href: "/settings", label: "Settings", icon: "settings" },
+  { href: "/audit", label: "Audit log", icon: "activity" },
+  { href: "/docs", label: "Documentation", icon: "evidence" },
+];
+
 const MORE_ITEMS = [
   { href: "/people", label: "People", icon: "people" },
   { href: "/data", label: "Data Exposure", icon: "data" },
@@ -89,10 +100,12 @@ export interface SidebarWorkspaceProps {
   limit: number | null;
 }
 
-export default function Sidebar({ orgName, workspace }: { orgName?: string; workspace?: SidebarWorkspaceProps }) {
+export default function Sidebar({ orgName, workspace, userName, userEmail }: { orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [moreOpen, setMoreOpen] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -109,8 +122,15 @@ export default function Sidebar({ orgName, workspace }: { orgName?: string; work
         setTimeout(() => document.getElementById("sidebar-search")?.focus(), 50);
       }
     };
+    const onClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("mousedown", onClick);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("mousedown", onClick);
+    };
   }, []);
 
   function toggle() {
@@ -222,39 +242,42 @@ export default function Sidebar({ orgName, workspace }: { orgName?: string; work
           <Icon name="connectors" />
           {!collapsed && "Connections"}
         </Link>
-        <Link href="/docs" title={collapsed ? "Documentation" : undefined} className={itemClass(isActive("/docs"))}>
-          <Icon name="evidence" />
-          {!collapsed && "Documentation"}
-        </Link>
-        <Link href="/workspace" title={collapsed ? "Workspace" : undefined} className={itemClass(isActive("/workspace"))}>
-          <Icon name="people" />
-          {!collapsed && "Workspace"}
-        </Link>
-        <Link href="/billing" title={collapsed ? "Plan & billing" : undefined} className={itemClass(isActive("/billing"))}>
-          <Icon name="savings" />
-          {!collapsed && "Plan & billing"}
-        </Link>
-        <Link href="/settings" title={collapsed ? "Settings" : undefined} className={itemClass(isActive("/settings"))}>
-          <Icon name="settings" />
-          {!collapsed && "Settings"}
-        </Link>
-        {orgName && (
-          <Link
-            href="/settings"
-            className={`mt-2 flex items-center gap-3 rounded-lg hover:bg-white/[0.05] transition-colors ${collapsed ? "justify-center py-1.5" : "px-2 py-2"}`}
+        <div ref={menuRef} className="relative mt-2">
+          {menuOpen && (
+            <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#232220] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
+              {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-[#A3A19C] truncate border-b border-white/[0.08] mb-1">{userEmail}</div>}
+              {MENU_ITEMS.map((item) => (
+                <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive(item.href) ? "text-white bg-white/[0.09]" : "text-[#C8C6C1] hover:text-white hover:bg-white/[0.06]"}`}>
+                  <Icon name={item.icon} />
+                  {item.label}
+                </Link>
+              ))}
+              <div className="my-1 border-t border-white/[0.08]" />
+              <form action={signOutAction}>
+                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#C8C6C1] hover:text-white hover:bg-white/[0.06] transition-colors">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0"><path d="M6 3H3.5v10H6M10.5 5.5 13 8l-2.5 2.5M13 8H6.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  Sign out
+                </button>
+              </form>
+            </div>
+          )}
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            className={`w-full flex items-center gap-3 rounded-lg hover:bg-white/[0.05] transition-colors ${menuOpen ? "bg-white/[0.05]" : ""} ${collapsed ? "justify-center py-1.5" : "px-2 py-2"}`}
           >
             <span className="h-9 w-9 rounded-lg bg-white/[0.08] flex items-center justify-center text-sm text-white shrink-0">
-              {orgName.charAt(0).toUpperCase()}
+              {(userName ?? orgName ?? "A").charAt(0).toUpperCase()}
             </span>
             {!collapsed && (
-              <span className="flex-1 min-w-0">
-                <span className="block text-sm font-medium text-white truncate">Admin</span>
+              <span className="flex-1 min-w-0 text-left">
+                <span className="block text-sm font-medium text-white truncate">{userName ?? "Account"}</span>
                 <span className="block text-xs text-[#A3A19C] truncate">{orgName}</span>
               </span>
             )}
-            {!collapsed && <Chevron />}
-          </Link>
-        )}
+            {!collapsed && <span className={`transition-transform ${menuOpen ? "rotate-180" : ""}`}><Chevron /></span>}
+          </button>
+        </div>
       </div>
     </aside>
   );

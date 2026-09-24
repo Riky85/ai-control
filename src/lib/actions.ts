@@ -1,6 +1,33 @@
 "use server";
 
 import { currentOrgId } from "@/lib/org";
+import { requireRole } from "@/lib/auth";
+import { audit } from "@/lib/audit";
+import type { MemberRole } from "@prisma/client";
+
+// Ogni azione di scrittura: ruolo minimo verificato nel database, e gli ID
+// che arrivano dal modulo devono appartenere al workspace corrente —
+// altrimenti un'azienda potrebbe modificare i dati di un'altra.
+async function guard(min: MemberRole, action: string, formData?: FormData, back = "/") {
+  const s = await requireRole(min, back);
+  const assetId = formData?.get("assetId");
+  if (assetId) {
+    const ok = await db.aiAsset.count({ where: { id: String(assetId), organizationId: s.orgId } });
+    if (!ok) redirect(`${back}?error=${encodeURIComponent("That AI system isn't in this workspace.")}`);
+  }
+  const policyId = formData?.get("policyId");
+  if (policyId) {
+    const ok = await db.policy.count({ where: { id: String(policyId), organizationId: s.orgId } });
+    if (!ok) redirect(`${back}?error=${encodeURIComponent("That policy isn't in this workspace.")}`);
+  }
+  const alternativeId = formData?.get("alternativeId");
+  if (alternativeId) {
+    const ok = await db.modelAlternative.count({ where: { id: String(alternativeId), aiAsset: { organizationId: s.orgId } } });
+    if (!ok) redirect(`${back}?error=${encodeURIComponent("That alternative isn't in this workspace.")}`);
+  }
+  await audit(action, String(assetId ?? policyId ?? alternativeId ?? formData?.get("provider") ?? "") || undefined);
+  return s;
+}
 /**
  * Server actions — la UI chiama queste invece di fare fetch verso le API
  * route. Ogni azione tocca solo il database (mai un LLM) e poi invalida
@@ -49,6 +76,7 @@ async function recomputeAssuranceFor(assetId: string) {
 }
 
 export async function syncConnectorAction(formData: FormData) {
+  await guard("EDITOR", "connector.sync", formData, "/connectors");
   const provider = formData.get("provider") as ConnectorProvider;
   await runConnectorSync(currentOrgId(), provider);
   revalidatePath("/connectors");
@@ -70,6 +98,7 @@ const KEY_TESTS: Partial<Record<ConnectorProvider, (key: string) => Promise<unkn
 };
 
 export async function connectWithApiKeyAction(formData: FormData) {
+  await guard("ADMIN", "connector.connect", formData, "/connectors");
   const provider = formData.get("provider") as ConnectorProvider;
   const apiKey = String(formData.get("apiKey") ?? "").trim();
   const back = (msg: string) => redirect(`/connectors?error=${encodeURIComponent(msg)}&provider=${provider}#${provider}`);
@@ -150,6 +179,7 @@ async function upsertManualAsset(input: { name: string; vendor?: string; type?: 
 }
 
 export async function addManualAssetAction(formData: FormData) {
+  await guard("EDITOR", "asset.create_manual", formData, "/connectors");
   const name = String(formData.get("name") ?? "").trim();
   if (!name) redirect(`/connectors?error=${encodeURIComponent("Give the AI system a name.")}#manual`);
   const cost = String(formData.get("monthlyCost") ?? "").trim();
@@ -166,6 +196,7 @@ export async function addManualAssetAction(formData: FormData) {
 }
 
 export async function importCsvAction(formData: FormData) {
+  await guard("EDITOR", "asset.import_csv", formData, "/connectors");
   const file = formData.get("file") as File | null;
   if (!file || file.size === 0) redirect(`/connectors?error=${encodeURIComponent("Choose a CSV file first.")}#import`);
   const text = await file!.text();
@@ -199,6 +230,7 @@ export async function importCsvAction(formData: FormData) {
 }
 
 export async function disconnectConnectorAction(formData: FormData) {
+  await guard("ADMIN", "connector.disconnect", formData, "/connectors");
   const provider = formData.get("provider") as ConnectorProvider;
   await db.connector.updateMany({
     where: { organizationId: currentOrgId(), provider },
@@ -208,6 +240,7 @@ export async function disconnectConnectorAction(formData: FormData) {
 }
 
 export async function setAssetOwnerAction(formData: FormData) {
+  await guard("EDITOR", "asset.set_owner", formData, "/assets");
   const assetId = formData.get("assetId") as string;
   const ownerId = formData.get("ownerId") as string;
   await db.aiAsset.update({
@@ -223,6 +256,7 @@ export async function setAssetOwnerAction(formData: FormData) {
 }
 
 export async function setAssetStatusAction(formData: FormData) {
+  await guard("EDITOR", "asset.set_status", formData, "/assets");
   const assetId = formData.get("assetId") as string;
   const status = formData.get("status") as AiAssetStatus;
   const before = await db.aiAsset.findUnique({ where: { id: assetId }, select: { status: true } });
@@ -244,6 +278,7 @@ export async function setAssetStatusAction(formData: FormData) {
 }
 
 export async function setAssetEuAiActTierAction(formData: FormData) {
+  await guard("EDITOR", "asset.set_eu_ai_act", formData, "/assets");
   const assetId = formData.get("assetId") as string;
   const tier = formData.get("tier") as EuAiActTier;
   await db.aiAsset.update({
@@ -261,6 +296,7 @@ export async function setAssetEuAiActTierAction(formData: FormData) {
 // dichiara quanto ne è sicuro. "basis" resta sempre "manual" finché non
 // esiste un vero connettore di billing.
 export async function setAssetCostAction(formData: FormData) {
+  await guard("EDITOR", "asset.set_cost", formData, "/assets");
   const assetId = formData.get("assetId") as string;
   const monthlyRaw = formData.get("monthlyCostEstimate") as string;
   const confidence = formData.get("confidence") as string;
@@ -280,6 +316,7 @@ export async function setAssetCostAction(formData: FormData) {
 // Alternativa registrata a mano — mai generata da un modello, mai un
 // punteggio nascosto. L'utente dice cosa ha confrontato e perché.
 export async function addAlternativeAction(formData: FormData) {
+  await guard("EDITOR", "asset.add_alternative", formData, "/assets");
   const assetId = formData.get("assetId") as string;
   const provider = (formData.get("provider") as string)?.trim();
   const model = (formData.get("model") as string)?.trim();
@@ -301,6 +338,7 @@ export async function addAlternativeAction(formData: FormData) {
 }
 
 export async function deleteAlternativeAction(formData: FormData) {
+  await guard("EDITOR", "asset.delete_alternative", formData, "/assets");
   const id = formData.get("alternativeId") as string;
   const assetId = formData.get("assetId") as string;
   await db.modelAlternative.delete({ where: { id } });
@@ -309,6 +347,7 @@ export async function deleteAlternativeAction(formData: FormData) {
 }
 
 export async function createPolicyAction(formData: FormData) {
+  await guard("ADMIN", "policy.create", formData, "/governance");
   const name = (formData.get("name") as string)?.trim();
   const description = (formData.get("description") as string)?.trim();
   const category = (formData.get("category") as string) || "other";
@@ -325,6 +364,7 @@ export async function createPolicyAction(formData: FormData) {
 }
 
 export async function addPolicyFromLibraryAction(formData: FormData) {
+  await guard("ADMIN", "policy.add_from_library", formData, "/governance");
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
   const category = formData.get("category") as string;
@@ -340,6 +380,7 @@ export async function addPolicyFromLibraryAction(formData: FormData) {
 }
 
 export async function togglePolicyAction(formData: FormData) {
+  await guard("ADMIN", "policy.toggle", formData, "/governance");
   const policyId = formData.get("policyId") as string;
   const enabled = formData.get("enabled") === "true";
   await db.policy.update({
@@ -350,12 +391,14 @@ export async function togglePolicyAction(formData: FormData) {
 }
 
 export async function deletePolicyAction(formData: FormData) {
+  await guard("ADMIN", "policy.delete", formData, "/governance");
   const policyId = formData.get("policyId") as string;
   await db.policy.delete({ where: { id: policyId } });
   revalidatePath("/governance");
 }
 
 export async function addUserAction(formData: FormData) {
+  await guard("EDITOR", "people.add", formData, "/settings");
   const email = (formData.get("email") as string)?.trim();
   const name = (formData.get("name") as string)?.trim();
   const department = (formData.get("department") as string)?.trim();
@@ -371,6 +414,7 @@ export async function addUserAction(formData: FormData) {
 }
 
 export async function updateOrganizationAction(formData: FormData) {
+  await guard("ADMIN", "organization.update", formData, "/settings");
   const name = (formData.get("name") as string)?.trim();
   const country = (formData.get("country") as string)?.trim();
   if (!name) return;
@@ -384,6 +428,7 @@ export async function updateOrganizationAction(formData: FormData) {
 }
 
 export async function completeOnboardingAction() {
+  await guard("ADMIN", "onboarding.complete", undefined, "/");
   await db.organization.update({
     where: { id: currentOrgId() },
     data: { onboardingCompletedAt: new Date() },
@@ -394,6 +439,7 @@ export async function completeOnboardingAction() {
 }
 
 export async function restartOnboardingAction() {
+  await guard("ADMIN", "onboarding.restart", undefined, "/");
   await db.organization.update({
     where: { id: currentOrgId() },
     data: { onboardingCompletedAt: null },

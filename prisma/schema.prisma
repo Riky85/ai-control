@@ -117,6 +117,7 @@ model Organization {
   stripeEdgeSubscriptionId String?
 
   members    WorkspaceMember[]
+  auditLogs  AuditLog[]
   shareLinks ShareLink[]
   users      User[]
   connectors Connector[]
@@ -424,4 +425,32 @@ model ShareLink {
   revokedAt      DateTime?
   viewCount      Int          @default(0)
   lastViewedAt   DateTime?
+}
+
+// Account di accesso ad Angar (email + password). L'appartenenza ai
+// workspace e il ruolo stanno in WorkspaceMember (collegati per email).
+model Account {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  passwordHash String
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+// Registro di audit: chi ha fatto cosa, quando, da dove. Solo in aggiunta.
+model AuditLog {
+  id             String        @id @default(cuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorEmail     String?
+  action         String
+  target         String?
+  meta           Json?
+  ip             String?
+  createdAt      DateTime      @default(now())
+
+  @@index([organizationId, createdAt])
 }

@@ -1,6 +1,6 @@
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, Tabs } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
@@ -55,19 +55,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
         action={<ExportMenu dataset="assets" />}
       />
 
-      <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit">
-        {TABS.map((t) => (
-          <Link
-            key={t.key}
-            href={`/governance?tab=${t.key}`}
-            className={`text-sm px-3.5 py-1.5 rounded-md transition-colors ${
-              tab === t.key ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"
-            }`}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </div>
+      <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/governance?tab=${t.key}` }))} />
 
       {tab === "reviews" && <ReviewsTab />}
       {tab === "policies" && <PoliciesTab />}

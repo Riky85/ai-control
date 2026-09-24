@@ -7,7 +7,7 @@ import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, s
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
-import { StatCard } from "@/components/ui";
+import { StatCard, Tabs } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 
 export const dynamic = "force-dynamic";
@@ -30,8 +30,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "overview";
 
   const [asset, orgUsers] = await Promise.all([
-    db.aiAsset.findUnique({
-      where: { id: params.id },
+    db.aiAsset.findFirst({
+      where: { id: params.id, organizationId: currentOrgId() },
       include: {
         owner: true,
         connector: true,
@@ -100,18 +100,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
 
       <div className="grid grid-cols-3 gap-6">
         <section className="col-span-2 rounded-xl border border-line bg-panel p-5">
-          <div className="flex gap-1 border-b border-line mb-4">
-            {TABS.map((t) => (
-              <Link
-                key={t.key}
-                href={`/assets/${asset.id}?tab=${t.key}`}
-                className={`text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
-                  tab === t.key ? "border-accent text-ink-100 font-medium" : "border-transparent text-ink-400 hover:text-ink-100"
-                }`}
-              >
-                {t.label}
-              </Link>
-            ))}
+          <div className="mb-5">
+            <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/assets/${asset.id}?tab=${t.key}` }))} />
           </div>
 
           {tab === "overview" && (

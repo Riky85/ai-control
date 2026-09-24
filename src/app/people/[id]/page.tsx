@@ -1,3 +1,4 @@
+import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import Link from "next/link";
@@ -6,8 +7,8 @@ import { notFound } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 export default async function PersonDetailPage({ params }: { params: { id: string } }) {
-  const person = await db.user.findUnique({
-    where: { id: params.id },
+  const person = await db.user.findFirst({
+    where: { id: params.id, organizationId: currentOrgId() },
     include: {
       ownedAssets: {
         where: { deletedAt: null },

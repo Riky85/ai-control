@@ -114,3 +114,26 @@ export function Table({ columns, children, empty }: { columns: (string | { label
 }
 
 export const td = "px-5 py-3";
+
+/**
+ * Schede standard della piattaforma — stesso stile ovunque (Passaporto,
+ * Governance, Activity, Workspace): pillola neutra, attiva bianca con ombra.
+ */
+export function Tabs({ items, active }: { items: { key: string; label: string; href: string; count?: number }[]; active: string }) {
+  return (
+    <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit">
+      {items.map((t) => (
+        <Link
+          key={t.key}
+          href={t.href}
+          className={`text-sm px-3.5 py-1.5 rounded-md transition-colors ${
+            active === t.key ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"
+          }`}
+        >
+          {t.label}
+          {t.count !== undefined && <span className="ml-1.5 text-ink-400 tabular">{t.count}</span>}
+        </Link>
+      ))}
+    </div>
+  );
+}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Badge from "@/components/Badge";
 import StatusDot from "@/components/StatusDot";
 import ExportMenu from "@/components/ExportMenu";
-import { Table, td, PageHeader } from "@/components/ui";
+import { Table, td, PageHeader, Tabs } from "@/components/ui";
 import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
 
 export const dynamic = "force-dynamic";
@@ -48,19 +48,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: { q
         action={<ExportMenu dataset="activity" />}
       />
 
-      <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit">
-        {TABS.map((t) => (
-          <Link
-            key={t.key}
-            href={`/activity?tab=${t.key}`}
-            className={`text-sm px-3.5 py-1.5 rounded-md transition-colors ${
-              tab === t.key ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"
-            }`}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </div>
+      <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/activity?tab=${t.key}` }))} />
 
       {tab === "events" ? <EventsTab q={searchParams.q} /> : <EvidenceTab />}
     </div>
@@ -167,15 +155,7 @@ async function EvidenceTab() {
                 </Link>
                 <span className="text-xs text-ink-400">{checks.length} controls</span>
               </div>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
-                    <th className="px-5 py-2.5 font-medium">Control</th>
-                    <th className="px-5 py-2.5 font-medium w-20">Status</th>
-                    <th className="px-5 py-2.5 font-medium">Evidence</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
+              <Table columns={["Control", { label: "Status", className: "w-20" }, "Evidence"]}>
                   {checks.map((c) => (
                     <tr key={c.key}>
                       <td className="px-5 py-3 text-ink-100">{c.label}</td>
@@ -183,8 +163,7 @@ async function EvidenceTab() {
                       <td className="px-5 py-3 text-ink-400">{c.detail}</td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                </Table>
             </div>
           );
         })}

@@ -3,7 +3,7 @@ import Badge from "@/components/Badge";
 import DonutChart from "@/components/DonutChart";
 import BarChart from "@/components/BarChart";
 import EstateGraph from "@/components/EstateGraph";
-import { StatCard, Panel } from "@/components/ui";
+import { StatCard, Panel, Table } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import { RISK_CHART_COLORS } from "@/lib/chart-colors";
 
@@ -44,7 +44,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
   const statusRows = (["UNKNOWN", "UNREVIEWED", "APPROVED", "UNAPPROVED"] as const).map((s) => ({ label: STATUS_LABEL[s], value: assets.filter((a) => a.status === s).length }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 px-10 py-8">
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="text-xs text-ink-400 mb-1">
@@ -86,18 +86,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
         </div>
       </Panel>
 
-      <div className="rounded-xl border border-line bg-panel overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
-              <th className="px-5 py-2.5 font-medium">System</th>
-              <th className="px-5 py-2.5 font-medium">Provider</th>
-              <th className="px-5 py-2.5 font-medium">Status</th>
-              <th className="px-5 py-2.5 font-medium">Risk</th>
-              <th className="px-5 py-2.5 font-medium">Cost / mo</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
+      <Table columns={["System", "Provider", "Status", "Risk", "Cost / mo"]}>
             {assets.map((a) => (
               <tr key={a.id}>
                 <td className="px-5 py-3">
@@ -112,9 +101,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
                 <td className="px-5 py-3 tabular text-ink-100">{a.cost?.monthlyCostEstimate != null ? `€${a.cost.monthlyCostEstimate.toLocaleString()}` : "—"}</td>
               </tr>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </Table>
       <p className="text-xs text-ink-400 text-center">Read-only snapshot shared from Angar. Data is live at the moment you open the link.</p>
     </div>
   );

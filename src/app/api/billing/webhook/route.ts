@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { verifyStripeSignature } from "@/lib/stripe";
 import { PLANS } from "@/lib/plans";
 import type { Plan } from "@prisma/client";
+import { audit } from "@/lib/audit";
 
 // Stripe → Angar: aggiorna piano e stato dell'abbonamento. Richiede
 // STRIPE_WEBHOOK_SECRET; senza firma valida la richiesta viene rifiutata.
@@ -64,5 +65,6 @@ export async function POST(req: Request) {
     }
   }
 
+  await audit(`billing.${event.type}`, obj.id, { status: obj.status, plan: obj.metadata?.plan, kind: obj.metadata?.kind }, { orgId: obj.metadata?.organizationId ?? null, actorEmail: "stripe" });
   return new Response("ok");
 }

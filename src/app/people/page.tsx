@@ -1,7 +1,7 @@
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, Table } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import Link from "next/link";
 
@@ -29,18 +29,7 @@ export default async function PeoplePage() {
         action={<ExportMenu dataset="people" />}
       />
 
-      <div className="rounded-xl border border-line bg-panel overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
-              <th className="px-5 py-2.5 font-medium">Person</th>
-              <th className="px-5 py-2.5 font-medium">Department</th>
-              <th className="px-5 py-2.5 font-medium">Owns</th>
-              <th className="px-5 py-2.5 font-medium">Uses</th>
-              <th className="px-5 py-2.5 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
+      <Table columns={["Person", "Department", "Owns", "Uses", "Status"]}>
             {users.map((u) => {
               const highRiskOwned = u.ownedAssets.filter((a) =>
                 ["HIGH", "CRITICAL"].includes(a.riskAssessments[0]?.level ?? "")
@@ -64,14 +53,12 @@ export default async function PeoplePage() {
             })}
             {users.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-sm text-ink-400">
+                <td colSpan={5} className="px-5 py-3 text-sm text-ink-400">
                   No people on record yet. They appear automatically once a connector syncs, or add one from Settings.
                 </td>
               </tr>
             )}
-          </tbody>
-        </table>
-      </div>
+          </Table>
     </div>
   );
 }

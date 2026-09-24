@@ -1,4 +1,5 @@
-import { currentOrgId } from "@/lib/org";
+import { currentSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Hanken_Grotesk, Space_Grotesk } from "next/font/google";
 import "./globals.css";
@@ -19,28 +20,38 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  let orgName: string | undefined;
-  let workspace: SidebarWorkspaceProps | undefined;
-  try {
-    const org = await db.organization.findUnique({ where: { id: currentOrgId() } });
-    orgName = org?.name;
-    const all = await db.organization.findMany({ select: { id: true, name: true }, orderBy: { createdAt: "asc" } });
-    const plan = planById(org?.plan ?? "STARTER");
-    workspace = {
-      current: org ? { id: org.id, name: org.name } : null,
-      workspaces: all,
-      canCreate: plan.limits.workspaces === null || all.length < plan.limits.workspaces,
-      planName: plan.name,
-      limit: plan.limits.workspaces,
-    };
-  } catch {
-    // il layout non deve mai bloccarsi per questo — nessun nome, nessun footer
+  const session = currentSession();
+
+  // Senza sessione (login, registrazione, dashboard condivise): pagina piena, niente sidebar.
+  if (!session) {
+    return (
+      <html lang="en" className={`${sans.variable} ${brand.variable}`}>
+        <body className="min-h-screen bg-panel text-ink-100 font-body">
+          <main className="w-full max-w-[1400px] mx-auto">{children}</main>
+        </body>
+      </html>
+    );
   }
+
+  // Il ruolo nel token potrebbe essere vecchio: l'appartenenza al workspace si verifica sempre nel database.
+  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: session.orgId, email: session.email } } });
+  if (!member) redirect("/api/auth/signout?reason=" + encodeURIComponent("You no longer have access to that workspace."));
+
+  const org = await db.organization.findUnique({ where: { id: session.orgId } });
+  const memberships = await db.workspaceMember.findMany({ where: { email: session.email }, include: { organization: { select: { id: true, name: true } } }, orderBy: { invitedAt: "asc" } });
+  const plan = planById(org?.plan ?? "STARTER");
+  const workspace: SidebarWorkspaceProps = {
+    current: org ? { id: org.id, name: org.name } : null,
+    workspaces: memberships.map((m) => m.organization),
+    canCreate: plan.limits.workspaces === null || memberships.length < plan.limits.workspaces,
+    planName: plan.name,
+    limit: plan.limits.workspaces,
+  };
 
   return (
     <html lang="en" className={`${sans.variable} ${brand.variable}`}>
       <body className={`flex h-screen overflow-hidden bg-[#1A1918] text-ink-100 font-body`}>
-        <Sidebar orgName={orgName} workspace={workspace} />
+        <Sidebar orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} />
         <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto">
           <main className="flex-1 w-full max-w-[1400px] mx-auto px-10 py-8">{children}</main>
           <AskDocs docs={DOCS.map(({ slug, title, section, summary }) => ({ slug, title, section, summary }))} />
