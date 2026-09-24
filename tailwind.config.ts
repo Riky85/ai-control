@@ -20,7 +20,7 @@ const config: Config = {
           dark: "#E85E10",
           soft: "#FFF1E8",
         },
-        signal: "#C2650C",
+        signal: "#B08500",  // ambra: attenzione — distinto dall'arancio di brand
         steady: "#1F9254",
         alarm: "#C4433B",
       },

@@ -112,6 +112,9 @@ model Organization {
   stripeCustomerId     String?
   stripeSubscriptionId String?
   currentPeriodEnd     DateTime?
+  // Angar Edge: dispositivi fisici in abbonamento (abbonamento Stripe separato).
+  edgeDevices              Int     @default(0)
+  stripeEdgeSubscriptionId String?
 
   members    WorkspaceMember[]
   shareLinks ShareLink[]

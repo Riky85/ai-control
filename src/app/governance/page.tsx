@@ -296,7 +296,7 @@ async function AssuranceTab() {
             <span className="h-1.5 w-1.5 rounded-full bg-alarm" />
             <span className="text-[10px] font-mono uppercase tracking-wider text-ink-400">Failed</span>
           </div>
-          <div className={`tabular font-display text-2xl font-semibold ${totalFailed > 0 ? "text-alarm" : "text-ink-100"}`}>{totalFailed}</div>
+          <div className={`tabular font-display text-2xl font-semibold text-ink-100`}>{totalFailed}</div>
         </div>
       </div>
 

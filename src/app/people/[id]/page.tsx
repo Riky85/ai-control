@@ -59,7 +59,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
           <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mt-1">AI assets owned</div>
         </div>
         <div className="px-5 py-4">
-          <div className={`tabular font-display text-2xl font-semibold ${highRiskOwned > 0 ? "text-alarm" : "text-ink-100"}`}>
+          <div className={`tabular font-display text-2xl font-semibold text-ink-100`}>
             {highRiskOwned}
           </div>
           <div className="text-[10px] font-mono uppercase tracking-wider text-ink-400 mt-1">High risk owned</div>

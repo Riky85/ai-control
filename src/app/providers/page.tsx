@@ -84,7 +84,7 @@ export default async function ProvidersPage() {
 
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span className={`font-medium ${critical.length > 0 ? "text-alarm" : "text-ink-100"}`}>{critical.length}</span>
+                <span className={`font-medium text-ink-100`}>{critical.length}</span>
                 <span className="text-ink-400"> critical</span>
               </div>
               <div>

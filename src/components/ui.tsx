@@ -14,10 +14,14 @@ export function StatCard({
   href?: string;
   tone?: "signal" | "alarm" | "accent";
 }) {
-  const color = tone === "signal" ? "text-signal" : tone === "alarm" ? "text-alarm" : tone === "accent" ? "text-accent" : "text-ink-100";
+  const color = "text-ink-100";
+  const dot = tone === "signal" ? "bg-signal" : tone === "alarm" ? "bg-alarm" : null;
   const inner = (
     <>
-      <div className="text-sm text-ink-400">{label}</div>
+      <div className="text-sm text-ink-400 flex items-center gap-1.5">
+        {dot && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />}
+        {label}
+      </div>
       <div>
         <div className={`font-display text-[30px] leading-none font-semibold tracking-tight tabular ${color}`}>{value}</div>
         {hint && <div className="text-xs text-ink-400 mt-1.5 truncate">{hint}</div>}

@@ -44,6 +44,27 @@ export const PLANS: PlanDef[] = [
   },
 ];
 
+/**
+ * Angar Edge — dispositivo fisico in abbonamento, per dispositivo al mese,
+ * aggiuntivo a qualunque piano (stesso modello per-device di Exein).
+ * Hardware incluso in comodato, sostituzione in caso di guasto.
+ */
+export const EDGE = {
+  name: "Angar Edge",
+  pricePerDevice: 39,
+  minMonths: 12,
+  maxSelfServe: 20,
+  stripePriceEnv: "STRIPE_PRICE_EDGE",
+  tagline: "A small appliance on your network that finds AI no connector can see.",
+  features: [
+    "Plug-and-play device for your office or plant network",
+    "Detects traffic to AI services (ChatGPT, Claude, Gemini, Copilot…) — no content inspected",
+    "Finds shadow AI and unmanaged tools automatically",
+    "Feeds AI Passports, the estate map and Changes",
+    "Hardware included, free replacement if it fails",
+  ],
+};
+
 export const planById = (id: Plan) => PLANS.find((p) => p.id === id)!;
 
 export function withinLimit(limit: number | null, used: number) {

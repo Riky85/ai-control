@@ -28,8 +28,8 @@ export function cut(s: string, n: number) {
 export function Edge({ d, alarm }: { d: string; alarm?: boolean }) {
   return (
     <g>
-      <path d={d} fill="none" stroke={alarm ? G.edgeAlarm : G.line} strokeWidth={2} />
-      <path d={d} fill="none" stroke={alarm ? G.alarm : G.accent} strokeOpacity={0.35} strokeWidth={1.4} className="edge-flow" />
+      <path d={d} fill="none" stroke={G.line} strokeWidth={2} />
+      <path d={d} fill="none" stroke={G.accent} strokeOpacity={alarm ? 0.5 : 0.3} strokeWidth={1.4} className="edge-flow" />
     </g>
   );
 }
@@ -89,18 +89,21 @@ export function Node({
   // sistema AI, rosso = rischio/dato sensibile), niente campiture colorate
   // che si scontrano tra arancio e rosso.
   const fill = "#FFFFFF";
-  const stroke = alarm ? G.alarm : emphasis ? G.accent : G.line;
+  // Un solo linguaggio visivo: bordi neutri (più scuri per i sistemi AI),
+  // il rischio è un pallino rosso — niente bordi rossi e arancioni mischiati.
+  const stroke = emphasis ? "#BDBDC6" : G.line;
   const textColor = G.text;
   const externalBrand = kind === "external" && resolveBrand(label) ? label : null;
   const showBrand = (vendor !== undefined && (kind === "provider" || kind === "system")) || externalBrand !== null;
   const body = (
     <g transform={`translate(${x}, ${y - h / 2})`}>
-      <rect width={w} height={h} rx={12} fill={fill} stroke={stroke} strokeWidth={emphasis ? 1.6 : 1.2} />
+      <rect width={w} height={h} rx={12} fill={fill} stroke={stroke} strokeWidth={1.2} />
+      {alarm && <circle cx={w - 14} cy={h / 2} r={3.5} fill={G.alarm} />}
       <g transform="translate(12, 12)">
-        {showBrand ? <VendorIcon vendor={externalBrand ?? vendor ?? ""} name={name} size={16} /> : <KindGlyph kind={kind} color={alarm ? G.alarm : G.muted} />}
+        {showBrand ? <VendorIcon vendor={externalBrand ?? vendor ?? ""} name={name} size={16} /> : <KindGlyph kind={kind} color={G.muted} />}
       </g>
       <text x={36} y={sublabel ? 17 : 24} fontSize="12" fontWeight={emphasis ? 600 : 500} fill={textColor}>
-        {cut(label, Math.floor((w - 44) / 6.6))}
+        {cut(label, Math.floor((w - (alarm ? 60 : 44)) / 6.6))}
       </text>
       {sublabel && (
         <text x={36} y={31} fontSize="10" fill={G.muted}>
@@ -114,7 +117,7 @@ export function Node({
 
 export function ColumnTitle({ x, text }: { x: number; text: string }) {
   return (
-    <text x={x} y={12} fontSize="10" letterSpacing="1.2" fill={G.muted} fontFamily="ui-monospace, SFMono-Regular, monospace">
+    <text x={x} y={12} fontSize="11" fontWeight={500} letterSpacing="0.6" fill={G.muted} fontFamily="var(--font-sans), ui-sans-serif, system-ui">
       {text}
     </text>
   );

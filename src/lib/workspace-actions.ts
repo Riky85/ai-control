@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { MemberRole, Plan } from "@prisma/client";
 import { db } from "@/lib/db";
-import { planById, withinLimit, PLANS } from "@/lib/plans";
+import { planById, withinLimit, PLANS, EDGE } from "@/lib/plans";
 import { stripeEnabled, stripePost } from "@/lib/stripe";
 
 const ORG_ID = "demo-org";
@@ -132,6 +132,36 @@ export async function openBillingPortalAction() {
     url = session.url;
   } catch (err) {
     redirect(`/billing?error=${encodeURIComponent((err as Error).message)}`);
+  }
+  redirect(url);
+}
+
+export async function startEdgeCheckoutAction(formData: FormData) {
+  const quantity = Math.max(1, Math.min(EDGE.maxSelfServe, Math.floor(Number(formData.get("quantity") ?? 1))));
+  const price = process.env[EDGE.stripePriceEnv];
+  if (!stripeEnabled() || !price) redirect(`/billing?error=${encodeURIComponent("Payments aren't connected on this deployment yet.")}#edge`);
+
+  const o = await org();
+  let url = "";
+  try {
+    const countries = ["IT", "DE", "FR", "ES", "NL", "BE", "AT", "CH", "PT", "IE", "SE", "DK", "FI", "PL", "GB", "US"];
+    const session = await stripePost<{ url: string }>("/checkout/sessions", {
+      mode: "subscription",
+      "line_items[0][price]": price!,
+      "line_items[0][quantity]": String(quantity),
+      ...Object.fromEntries(countries.map((c, i) => [`shipping_address_collection[allowed_countries][${i}]`, c])),
+      success_url: `${origin()}/billing?checkout=edge#edge`,
+      cancel_url: `${origin()}/billing?checkout=cancelled#edge`,
+      client_reference_id: o.id,
+      "metadata[organizationId]": o.id,
+      "metadata[kind]": "edge",
+      "subscription_data[metadata][organizationId]": o.id,
+      "subscription_data[metadata][kind]": "edge",
+      ...(o.stripeCustomerId ? { customer: o.stripeCustomerId } : {}),
+    });
+    url = session.url;
+  } catch (err) {
+    redirect(`/billing?error=${encodeURIComponent((err as Error).message)}#edge`);
   }
   redirect(url);
 }

@@ -19,7 +19,13 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const orgId = obj.metadata?.organizationId ?? obj.client_reference_id;
-    if (orgId) {
+    if (orgId && obj.metadata?.kind === "edge") {
+      // La quantità definitiva arriva con customer.subscription.updated.
+      await db.organization.update({
+        where: { id: orgId },
+        data: { stripeCustomerId: obj.customer ?? undefined, stripeEdgeSubscriptionId: obj.subscription ?? undefined },
+      });
+    } else if (orgId) {
       await db.organization.update({
         where: { id: orgId },
         data: {
@@ -34,7 +40,17 @@ export async function POST(req: Request) {
 
   if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
     const org = await db.organization.findFirst({ where: { stripeCustomerId: obj.customer } });
-    if (org) {
+    const isEdge = obj.metadata?.kind === "edge" || (org && obj.id === org.stripeEdgeSubscriptionId);
+    if (org && isEdge) {
+      const deleted = event.type === "customer.subscription.deleted" || obj.status === "canceled";
+      await db.organization.update({
+        where: { id: org.id },
+        data: {
+          stripeEdgeSubscriptionId: deleted ? null : obj.id,
+          edgeDevices: deleted ? 0 : Number(obj.items?.data?.[0]?.quantity ?? 0),
+        },
+      });
+    } else if (org) {
       const deleted = event.type === "customer.subscription.deleted";
       await db.organization.update({
         where: { id: org.id },

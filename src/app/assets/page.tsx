@@ -111,7 +111,7 @@ export default async function AssetsPage({
                   </td>
                   <td className="px-5 py-3 text-ink-400">{asset.type.replace(/_/g, " ").toLowerCase()}</td>
                   <td className="px-5 py-3 text-ink-400">
-                    {asset.owner?.name ?? <span className="text-signal">No owner</span>}
+                    {asset.owner?.name ?? <span className="text-ink-400">No owner</span>}
                   </td>
                   <td className="px-5 py-3">
                     <Badge>{asset.status}</Badge>
