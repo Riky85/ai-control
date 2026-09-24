@@ -4,6 +4,7 @@ import { currentOrgId } from "@/lib/org";
 import { requireRole, currentSession } from "@/lib/auth";
 import { issueSession } from "@/lib/auth-actions";
 import { audit } from "@/lib/audit";
+import { sendEmail, appOrigin } from "@/lib/mail";
 import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -42,9 +43,16 @@ export async function inviteMemberAction(formData: FormData) {
     update: { role, name: name ?? undefined },
     create: { organizationId: currentOrgId(), email, name, role },
   });
-  await audit("member.invite", email, { role });
+  const inviter = currentSession();
+  const signupLink = `${appOrigin(headers())}/signup?email=${encodeURIComponent(email)}`;
+  const mail = await sendEmail({
+    to: email,
+    subject: `${inviter?.name ?? inviter?.email ?? "Someone"} invited you to ${o.name} on Angar`,
+    text: `You've been invited to the ${o.name} workspace on Angar as ${role.toLowerCase()}.\n\nCreate your account with this email to join:\n${signupLink}`,
+  });
+  await audit("member.invite", email, { role, emailSent: mail.sent });
   revalidatePath("/workspace");
-  redirect("/workspace?invited=1");
+  redirect(`/workspace?invited=1&inviteLink=${encodeURIComponent(signupLink)}&emailSent=${mail.sent ? 1 : 0}`);
 }
 
 export async function setMemberRoleAction(formData: FormData) {

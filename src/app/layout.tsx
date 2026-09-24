@@ -1,4 +1,4 @@
-import { currentSession } from "@/lib/auth";
+import { currentSession, isPlatformAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Hanken_Grotesk, Space_Grotesk } from "next/font/google";
@@ -51,7 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`${sans.variable} ${brand.variable}`}>
       <body className={`flex h-screen overflow-hidden bg-[#1A1918] text-ink-100 font-body`}>
-        <Sidebar orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} />
+        <Sidebar orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={await isPlatformAdmin(session.email)} />
         <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto">
           <main className="flex-1 w-full max-w-[1400px] mx-auto px-10 py-8">{children}</main>
           <AskDocs docs={DOCS.map(({ slug, title, section, summary }) => ({ slug, title, section, summary }))} />

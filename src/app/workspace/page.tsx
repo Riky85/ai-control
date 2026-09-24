@@ -6,6 +6,7 @@ import { PageHeader, Panel, Tabs, Table } from "@/components/ui";
 import { planById } from "@/lib/plans";
 import CopyField from "@/components/CopyField";
 import { inviteMemberAction, setMemberRoleAction, removeMemberAction, createShareLinkAction, revokeShareLinkAction, switchWorkspaceAction, createWorkspaceAction, renameWorkspaceAction } from "@/lib/workspace-actions";
+import { createMemberResetLinkAction } from "@/lib/auth-actions";
 import Badge from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ const ROLE_HELP: Record<string, string> = {
   VIEWER: "Read-only",
 };
 
-export default async function WorkspacePage({ searchParams }: { searchParams: { tab?: string; error?: string; invited?: string; shared?: string } }) {
+export default async function WorkspacePage({ searchParams }: { searchParams: { tab?: string; error?: string; invited?: string; shared?: string; inviteLink?: string; emailSent?: string; resetFor?: string; resetLink?: string } }) {
   const tab = searchParams.tab === "sharing" ? "sharing" : searchParams.tab === "workspaces" ? "workspaces" : "members";
   const [org, members, links, allWorkspaces] = await Promise.all([
     db.organization.findUniqueOrThrow({ where: { id: currentOrgId() } }),
@@ -48,7 +49,18 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
       />
 
       {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
-      {searchParams.invited && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Member added.</div>}
+      {searchParams.invited && (
+        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100 flex flex-col gap-2">
+          <span>{searchParams.emailSent === "1" ? "Member added — invitation email sent." : "Member added. Email isn't set up yet, so send them this sign-up link:"}</span>
+          {searchParams.emailSent !== "1" && searchParams.inviteLink && <CopyField value={searchParams.inviteLink} />}
+        </div>
+      )}
+      {searchParams.resetLink && (
+        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100 flex flex-col gap-2">
+          <span>Password reset link for <b>{searchParams.resetFor}</b> — works once, expires in 1 hour. Send it only to them.</span>
+          <CopyField value={searchParams.resetLink} />
+        </div>
+      )}
       {searchParams.shared && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Link created — copy it below and send it to whoever needs to see the dashboard.</div>}
 
       {tab === "workspaces" ? (
@@ -125,10 +137,18 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                     </td>
                     <td className="px-5 py-3"><Badge>{m.status === "active" ? "ACTIVE" : "INVITED"}</Badge></td>
                     <td className="px-5 py-3 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                      {m.status === "active" && (
+                        <form action={createMemberResetLinkAction}>
+                          <input type="hidden" name="email" value={m.email} />
+                          <button className="text-sm text-ink-400 hover:text-ink-100 transition-colors">Reset link</button>
+                        </form>
+                      )}
                       <form action={removeMemberAction}>
                         <input type="hidden" name="memberId" value={m.id} />
                         <button className="text-sm text-ink-400 hover:text-alarm transition-colors">Remove</button>
                       </form>
+                      </div>
                     </td>
                   </tr>
                 ))}

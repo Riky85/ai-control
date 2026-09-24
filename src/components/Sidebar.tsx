@@ -100,7 +100,7 @@ export interface SidebarWorkspaceProps {
   limit: number | null;
 }
 
-export default function Sidebar({ orgName, workspace, userName, userEmail }: { orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string }) {
+export default function Sidebar({ orgName, workspace, userName, userEmail, platformAdmin = false }: { orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [moreOpen, setMoreOpen] = useState(true);
@@ -246,7 +246,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail }: { o
           {menuOpen && (
             <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#232220] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
               {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-[#A3A19C] truncate border-b border-white/[0.08] mb-1">{userEmail}</div>}
-              {MENU_ITEMS.map((item) => (
+              {[...MENU_ITEMS, ...(platformAdmin ? [{ href: "/system", label: "System", icon: "assurance" }] : [])].map((item) => (
                 <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive(item.href) ? "text-white bg-white/[0.09]" : "text-[#C8C6C1] hover:text-white hover:bg-white/[0.06]"}`}>
                   <Icon name={item.icon} />
                   {item.label}

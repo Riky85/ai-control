@@ -454,3 +454,42 @@ model AuditLog {
 
   @@index([organizationId, createdAt])
 }
+
+// Link di reset password: nel database solo l'hash del token, scade in 1 ora, monouso.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  accountId String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([accountId])
+}
+
+// Errori applicativi (server e browser) — visibili nella pagina System.
+model ErrorEvent {
+  id             String   @id @default(cuid())
+  organizationId String?
+  source         String   // server | client
+  message        String
+  digest         String?
+  path           String?
+  stack          String?
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Storico dei backup automatici (scritto dalla funzione di backup su Railway).
+model BackupRun {
+  id         String    @id @default(cuid())
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  status     String    // running | ok | failed
+  tables     Int       @default(0)
+  rows       Int       @default(0)
+  bytes      Int       @default(0)
+  location   String?
+  error      String?
+}

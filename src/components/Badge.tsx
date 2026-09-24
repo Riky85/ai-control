@@ -45,6 +45,12 @@ const STATES: Record<string, [string, Tone]> = {
   NOT_ENABLED: ["Not enabled yet", "neutral"],
   PASSWORD_AUTH: ["Email + password", "ok"],
   AUDIT_ON: ["On", "ok"],
+  OK_STATUS: ["OK", "ok"],
+  NEEDS_SETUP: ["Needs setup", "warn"],
+  RUNNING: ["Running", "neutral"],
+  FAILED_STATUS: ["Failed", "bad"],
+  SERVER: ["Server", "neutral"],
+  BROWSER: ["Browser", "neutral"],
 };
 
 const TONE: Record<Tone, string> = {

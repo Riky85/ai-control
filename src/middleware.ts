@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { verifySession, SESSION_COOKIE } from "@/lib/session";
 
 // Percorsi accessibili senza login.
-const PUBLIC = ["/login", "/signup", "/share/", "/api/billing/webhook", "/api/health"];
+const PUBLIC = ["/login", "/signup", "/forgot", "/reset/", "/share/", "/api/billing/webhook", "/api/health", "/api/backup/cron"];
 const IDENTITY_HEADERS = ["x-angar-account", "x-angar-email", "x-angar-name", "x-angar-org", "x-angar-role"];
 
 export async function middleware(req: NextRequest) {
@@ -25,7 +25,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Già autenticato: niente pagina di login.
-  if (pathname === "/login" || pathname === "/signup") return NextResponse.redirect(new URL("/", req.url));
+  if (pathname === "/login" || pathname === "/signup" || pathname === "/forgot" || pathname.startsWith("/reset/")) return NextResponse.redirect(new URL("/", req.url));
 
   headers.set("x-angar-account", session.a);
   headers.set("x-angar-email", session.e);
