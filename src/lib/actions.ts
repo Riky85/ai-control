@@ -229,6 +229,42 @@ export async function importCsvAction(formData: FormData) {
   redirect(`/connectors?imported=${count}#import`);
 }
 
+// GitHub con token personale di sola lettura: verificato subito (utente
+// valido e, se indicata, accesso ai repo dell'organizzazione), poi salvato
+// cifrato e scansionato.
+export async function connectGithubTokenAction(formData: FormData) {
+  await guard("ADMIN", "connector.connect", undefined, "/connectors");
+  const token = String(formData.get("token") ?? "").trim();
+  const org = String(formData.get("org") ?? "").trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/.*$/, "");
+  const back = (msg: string) => redirect(`/connectors?error=${encodeURIComponent(msg)}&provider=GITHUB#GITHUB`);
+  if (!token) back("Paste a GitHub token first.");
+  const gh = (path: string) =>
+    fetch(`https://api.github.com${path}`, { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" }, cache: "no-store" });
+  const me = await gh("/user");
+  if (me.status === 401) back("GitHub rejected this token — check you copied all of it and that it hasn't expired.");
+  if (!me.ok) back(`GitHub answered ${me.status}. Try again in a minute.`);
+  if (org) {
+    const r = await gh(`/orgs/${encodeURIComponent(org)}/repos?per_page=1`);
+    if (r.status === 404) back(`Can't see the organization "${org}" — check the name, and that the token was created with access to it.`);
+    if (!r.ok) back(`The token can't list ${org}'s repositories (${r.status}) — give it "Contents: Read-only" on that organization.`);
+  }
+  let credentials = "";
+  try {
+    credentials = encryptJson({ mode: "token", apiKey: token, org: org || undefined });
+  } catch (err) {
+    back((err as Error).message);
+  }
+  await db.connector.upsert({
+    where: { organizationId_provider: { organizationId: currentOrgId(), provider: "GITHUB" } },
+    update: { credentialsEncrypted: credentials, status: "CONNECTED", lastSyncError: null },
+    create: { organizationId: currentOrgId(), provider: "GITHUB", credentialsEncrypted: credentials, status: "CONNECTED", scopes: ["contents:read"] },
+  });
+  const result = await runConnectorSync(currentOrgId(), "GITHUB");
+  revalidatePath("/", "layout");
+  if (!result.ok) back(`Token saved, but the first scan failed: ${result.error.slice(0, 200)}`);
+  redirect("/connectors?connected=GITHUB#GITHUB");
+}
+
 export async function disconnectConnectorAction(formData: FormData) {
   await guard("ADMIN", "connector.disconnect", formData, "/connectors");
   const provider = formData.get("provider") as ConnectorProvider;

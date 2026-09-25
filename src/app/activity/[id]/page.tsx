@@ -1,3 +1,4 @@
+import { fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
@@ -40,7 +41,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
         </div>
         <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{activity.eventType}</h1>
         <p className="text-sm text-ink-400 mt-1">
-          {new Date(activity.occurredAt).toLocaleString()} · {SOURCE_LABEL[activity.source] ?? activity.source}
+          {fmtDateTime(activity.occurredAt)} · {SOURCE_LABEL[activity.source] ?? activity.source}
         </p>
       </div>
 

@@ -1,3 +1,4 @@
+import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
@@ -148,7 +149,7 @@ export default async function OverviewPage() {
                     {ch.field}: {ch.oldValue ?? "—"} → <span className="text-ink-100">{ch.newValue ?? "—"}</span>
                   </span>
                 </span>
-                <span className="text-xs text-ink-400 shrink-0">{new Date(ch.detectedAt).toLocaleDateString()}</span>
+                <span className="text-xs text-ink-400 shrink-0">{fmtDate(ch.detectedAt)}</span>
               </Link>
             ))}
             {changes.length === 0 && <p className="px-5 py-4 text-sm text-ink-400">No changes detected yet.</p>}

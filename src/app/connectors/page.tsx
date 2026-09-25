@@ -3,7 +3,8 @@ import { db } from "@/lib/db";
 import { VendorBadge } from "@/components/VendorIcon";
 import Badge from "@/components/Badge";
 import { PageHeader } from "@/components/ui";
-import { syncConnectorAction, connectWithApiKeyAction, disconnectConnectorAction, addManualAssetAction, importCsvAction } from "@/lib/actions";
+import { syncConnectorAction, connectWithApiKeyAction, disconnectConnectorAction, addManualAssetAction, importCsvAction, connectGithubTokenAction } from "@/lib/actions";
+import { fmtDateTime } from "@/lib/format";
 import { decryptJson } from "@/lib/crypto";
 import CsvDropzone from "@/components/CsvDropzone";
 import type { Connector, ConnectorProvider } from "@prisma/client";
@@ -60,6 +61,9 @@ export default async function ConnectorsPage({
   const byProvider = new Map<ConnectorProvider, Connector>(rows.map((c) => [c.provider, c]));
   const githubReady = Boolean(process.env.GITHUB_APP_SLUG);
   const github = byProvider.get("GITHUB");
+  // "Collegato" solo se ci sono credenziali vere (i dati demo non contano).
+  const githubConnected = github?.status === "CONNECTED" && Boolean(github.credentialsEncrypted);
+  const githubOrg = decryptJson<{ org?: string }>(github?.credentialsEncrypted)?.org;
   const connectedCount = rows.filter((r) => r.status === "CONNECTED" && r.credentialsEncrypted).length;
 
   return (
@@ -131,24 +135,79 @@ export default async function ConnectorsPage({
         })}
       </Section>
 
-      <Section title="Code" subtitle="Scans repositories for AI SDKs (OpenAI, Anthropic, LangChain…).">
-        <div className={card}>
-          <div className="flex items-center gap-3">
-            <VendorBadge vendor="GitHub" size={36} />
-            <div className="flex-1">
-              <div className="text-sm font-medium text-ink-100">GitHub</div>
-              <div className="mt-1"><Badge>{github?.status === "CONNECTED" ? "CONNECTED" : "DISCONNECTED"}</Badge></div>
+      <section id="GITHUB" className="scroll-mt-6">
+        <h2 className="text-base font-semibold text-ink-100">Code</h2>
+        <p className="text-sm text-ink-400 mb-3">Find the AI your developers have built into your own products.</p>
+        <div className="rounded-xl border border-line bg-panel p-5 grid grid-cols-5 gap-8">
+          <div className="col-span-2 flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <VendorBadge vendor="GitHub" size={40} />
+              <div>
+                <div className="text-sm font-medium text-ink-100">GitHub</div>
+                <div className="mt-1">
+                  <Badge>{githubConnected ? "CONNECTED" : "DISCONNECTED"}</Badge>
+                </div>
+              </div>
             </div>
+            <p className="text-sm text-ink-400">
+              Angar reads each repository&apos;s dependency files (<code className="text-ink-100">package.json</code>, <code className="text-ink-100">requirements.txt</code>, <code className="text-ink-100">pyproject.toml</code>) and lists every project that uses OpenAI, Anthropic, Google AI, LangChain or LlamaIndex — one AI Passport each.
+            </p>
+            <p className="text-xs text-ink-400">Read-only. Your code is never copied or stored — only which AI libraries each project uses.</p>
+            {githubConnected && (
+              <div className="flex items-center gap-2 mt-auto">
+                <span className="text-xs text-ink-400 flex-1">
+                  {githubOrg ? `Organization: ${githubOrg}` : "Your personal repositories"}
+                  {github?.lastSyncedAt && ` · scanned ${fmtDateTime(github.lastSyncedAt)}`}
+                </span>
+                <form action={syncConnectorAction}>
+                  <input type="hidden" name="provider" value="GITHUB" />
+                  <button className="btn btn-secondary btn-sm">Scan again</button>
+                </form>
+                <form action={disconnectConnectorAction}>
+                  <input type="hidden" name="provider" value="GITHUB" />
+                  <button className="text-sm text-ink-400 hover:text-alarm transition-colors">Disconnect</button>
+                </form>
+              </div>
+            )}
           </div>
-          {githubReady ? (
-            <a href="/api/connectors/github/install" className={`${btnSecondary} mt-auto`}>
-              Sign in with GitHub
-            </a>
-          ) : (
-            <p className="text-xs text-ink-400 mt-auto">Sign-in needs a one-time platform setup (GitHub App). Until then, use Import below.</p>
-          )}
+
+          <div className="col-span-3 border-l border-line pl-8">
+            {githubConnected ? (
+              <div className="text-sm text-ink-400">
+                Connected. New projects that add an AI library appear in <a href="/assets" className="text-ink-100 underline">AI Passports</a> after each scan.
+                {github?.lastSyncError && <p className="text-alarm mt-2">{github.lastSyncError}</p>}
+              </div>
+            ) : (
+              <form action={connectGithubTokenAction} className="flex flex-col gap-3">
+                <div className="text-sm font-medium text-ink-100">Connect in 2 steps</div>
+                <ol className="text-sm text-ink-400 flex flex-col gap-1.5 list-decimal list-inside">
+                  <li>
+                    On GitHub,{" "}
+                    <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer" className="text-ink-100 underline">
+                      create a fine-grained token
+                    </a>
+                    : choose the organization (or your account) as owner, <b className="text-ink-100">All repositories</b>, and permission <b className="text-ink-100">Contents: Read-only</b>.
+                  </li>
+                  <li>Paste it here. Add the organization name, or leave it empty to scan your personal repositories.</li>
+                </ol>
+                <div className="grid grid-cols-5 gap-2">
+                  <input name="token" type="password" required autoComplete="off" placeholder="github_pat_…" className={`${input} col-span-3`} />
+                  <input name="org" placeholder="Organization (optional)" className={`${input} col-span-2`} />
+                </div>
+                {searchParams.error && searchParams.provider === "GITHUB" && <p className="text-sm text-alarm">{searchParams.error}</p>}
+                <div className="flex items-center gap-3">
+                  <button className="btn btn-primary">Connect GitHub</button>
+                  {githubReady && (
+                    <a href="/api/connectors/github/install" className="text-sm text-ink-400 hover:text-ink-100 underline">
+                      or sign in with the GitHub App
+                    </a>
+                  )}
+                </div>
+              </form>
+            )}
+          </div>
         </div>
-      </Section>
+      </section>
 
       <Section title="Import" subtitle="Works for any AI — including tools without an API. One row per AI system.">
         <div id="import" className={`${card} col-span-2`}>

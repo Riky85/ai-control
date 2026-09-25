@@ -1,3 +1,4 @@
+import { fmtDateTime } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requirePlatformAdmin } from "@/lib/auth";
 import { PageHeader, Panel, Table, td } from "@/components/ui";
@@ -27,7 +28,7 @@ export default async function SystemPage() {
     ["Database", dbOk, dbOk ? "Reachable" : "Unreachable"],
     ["Sign-in sessions", Boolean(process.env.SESSION_SECRET), process.env.SESSION_SECRET ? "Signed sessions active" : "SESSION_SECRET missing"],
     ["Connector key encryption", Boolean(process.env.CREDENTIALS_SECRET), process.env.CREDENTIALS_SECRET ? "AES-256 at rest" : "CREDENTIALS_SECRET missing"],
-    ["Backups", Boolean(backupFresh), lastOkBackup ? `Last good backup ${lastOkBackup.startedAt.toLocaleString()}` : "No successful backup yet"],
+    ["Backups", Boolean(backupFresh), lastOkBackup ? `Last good backup ${fmtDateTime(lastOkBackup.startedAt)}` : "No successful backup yet"],
     ["Email (invites, password reset)", emailEnabled(), emailEnabled() ? "Sending via Resend" : "Not set up — needs RESEND_API_KEY and EMAIL_FROM"],
     ["Payments", stripeEnabled(), stripeEnabled() ? "Stripe connected" : "Not set up — needs Stripe keys"],
     ["Error tracking", true, `${errors24h} error${errors24h === 1 ? "" : "s"} in the last 24 h`],
@@ -60,7 +61,7 @@ export default async function SystemPage() {
         <Table columns={["Started", "Status", "Tables", "Rows", "Size", "Location"]} empty={backups.length === 0 ? "No backups have run yet." : false}>
           {backups.map((b) => (
             <tr key={b.id}>
-              <td className={`${td} tabular text-ink-400`}>{b.startedAt.toLocaleString()}</td>
+              <td className={`${td} tabular text-ink-400`}>{fmtDateTime(b.startedAt)}</td>
               <td className={td}><Badge>{b.status === "ok" ? "OK_STATUS" : b.status === "running" ? "RUNNING" : "FAILED_STATUS"}</Badge></td>
               <td className={`${td} tabular`}>{b.tables}</td>
               <td className={`${td} tabular`}>{b.rows.toLocaleString()}</td>
@@ -76,7 +77,7 @@ export default async function SystemPage() {
         <Table columns={["When", "Where", "Message", "Page", "Reference"]} empty={errors.length === 0 ? "No errors recorded." : false}>
           {errors.map((e) => (
             <tr key={e.id}>
-              <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{e.createdAt.toLocaleString()}</td>
+              <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(e.createdAt)}</td>
               <td className={td}><Badge>{e.source === "server" ? "SERVER" : "BROWSER"}</Badge></td>
               <td className={`${td} text-ink-100 max-w-[420px]`}>
                 <span className="block truncate" title={e.message}>{e.message}</span>

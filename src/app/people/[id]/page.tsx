@@ -1,3 +1,4 @@
+import { fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
@@ -111,7 +112,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
             {recentActivity.map((a) => (
               <Link key={a.id} href={`/activity/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.025] transition-colors">
                 <div className="flex items-center gap-3">
-                  <span className="tabular text-xs text-ink-400">{new Date(a.occurredAt).toLocaleString()}</span>
+                  <span className="tabular text-xs text-ink-400">{fmtDateTime(a.occurredAt)}</span>
                   <span className="text-ink-100">{a.aiAsset.name}</span>
                   <span className="text-ink-400 text-xs">{a.eventType}</span>
                 </div>

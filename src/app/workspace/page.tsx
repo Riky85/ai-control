@@ -1,3 +1,4 @@
+import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import Link from "next/link";
 import { headers } from "next/headers";
@@ -189,8 +190,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                       <span className="block text-sm font-medium text-ink-100 truncate">{l.name}</span>
                       <span className="block text-xs text-ink-400">
                         Overview dashboard · {l.viewCount} view{l.viewCount === 1 ? "" : "s"}
-                        {l.lastViewedAt && ` · last opened ${l.lastViewedAt.toLocaleDateString()}`} ·{" "}
-                        {l.revokedAt ? "Revoked" : expired ? "Expired" : l.expiresAt ? `Expires ${l.expiresAt.toLocaleDateString()}` : "No expiry"}
+                        {l.lastViewedAt && ` · last opened ${fmtDate(l.lastViewedAt)}`} ·{" "}
+                        {l.revokedAt ? "Revoked" : expired ? "Expired" : l.expiresAt ? `Expires ${fmtDate(l.expiresAt)}` : "No expiry"}
                       </span>
                     </span>
                     {live && (

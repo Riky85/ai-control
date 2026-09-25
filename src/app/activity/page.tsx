@@ -1,3 +1,4 @@
+import { fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -114,7 +115,7 @@ async function EventsTab({ q }: { q?: string }) {
               <td className={`${td} text-ink-400`}>{a.actorRef ?? "—"}</td>
               <td className={td}>{risk ? <Badge>{risk.level}</Badge> : <span className="text-ink-400">—</span>}</td>
               <td className={`${td} text-ink-400`}>{SOURCE_LABEL[a.source] ?? a.source}</td>
-              <td className={`${td} text-ink-400 tabular`}>{new Date(a.occurredAt).toLocaleString()}</td>
+              <td className={`${td} text-ink-400 tabular`}>{fmtDateTime(a.occurredAt)}</td>
             </tr>
           );
         })}
@@ -186,7 +187,7 @@ async function EvidenceTab() {
               <div key={s.id} className="px-5 py-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-ink-100">{s.summary}</span>
-                  <span className="tabular text-xs text-ink-400">{new Date(s.createdAt).toLocaleString()}</span>
+                  <span className="tabular text-xs text-ink-400">{fmtDateTime(s.createdAt)}</span>
                 </div>
                 {p?.highRiskCount > 0 && (
                   <div className="text-xs text-alarm mt-1">{p.highRiskCount} asset at high or critical risk at this point in time.</div>

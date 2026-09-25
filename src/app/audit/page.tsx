@@ -1,3 +1,4 @@
+import { fmtDateTime } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { PageHeader, Table, td } from "@/components/ui";
@@ -44,7 +45,7 @@ export default async function AuditPage({ searchParams }: { searchParams: { q?: 
       <Table columns={["When", "Who", "What", "Target", "IP"]} empty={rows.length === 0 ? "Nothing recorded yet." : false}>
         {rows.map((r) => (
           <tr key={r.id}>
-            <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{r.createdAt.toLocaleString()}</td>
+            <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(r.createdAt)}</td>
             <td className={`${td} text-ink-100`}>{r.actorEmail ?? "—"}</td>
             <td className={td}>
               <span className="text-ink-100">{LABEL[r.action] ?? r.action}</span>

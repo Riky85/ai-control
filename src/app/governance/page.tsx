@@ -1,3 +1,4 @@
+import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import { PageHeader, Tabs } from "@/components/ui";
@@ -91,7 +92,7 @@ async function ReviewsTab() {
                 {risk && <Badge>{risk.level}</Badge>}
               </div>
               <p className="text-xs text-ink-400 mt-1">
-                {asset.owner?.name ?? "No owner on record"} — first seen {new Date(asset.firstSeenAt).toLocaleDateString()}
+                {asset.owner?.name ?? "No owner on record"} — first seen {fmtDate(asset.firstSeenAt)}
               </p>
             </div>
             <div className="flex gap-2 shrink-0">

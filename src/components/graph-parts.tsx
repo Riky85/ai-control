@@ -122,3 +122,23 @@ export function ColumnTitle({ x, text }: { x: number; text: string }) {
     </text>
   );
 }
+
+/**
+ * Intestazioni delle colonne del grafo, in HTML sopra il disegno (non testo
+ * SVG): stesso font dell'app, leggibili e con il conteggio. Allineate alle
+ * tre colonne di nodi (sinistra, centro, destra).
+ */
+export function GraphHeader({ columns }: { columns: { label: string; count?: number; hint?: string }[] }) {
+  const align = ["text-left", "text-center", "text-right"];
+  return (
+    <div className="grid grid-cols-3 pb-3 mb-2 border-b border-line">
+      {columns.map((c, i) => (
+        <div key={c.label} className={align[i]}>
+          <span className="text-sm font-medium text-ink-100">{c.label}</span>
+          {c.count !== undefined && <span className="ml-1.5 text-sm text-ink-400 tabular">{c.count}</span>}
+          {c.hint && <span className="block text-xs text-ink-400">{c.hint}</span>}
+        </div>
+      ))}
+    </div>
+  );
+}

@@ -1,5 +1,7 @@
+import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
+import { resetWorkspaceDataAction, loadDemoDataAction } from "@/lib/test-data-actions";
 import Badge from "@/components/Badge";
 import Link from "next/link";
 import { addUserAction, restartOnboardingAction } from "@/lib/actions";
@@ -11,7 +13,7 @@ export const dynamic = "force-dynamic";
 const input = "w-full border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400";
 const button = "btn btn-secondary btn-sm";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: { searchParams: { error?: string; reset?: string } }) {
   const [org, users, connectors] = await Promise.all([
     db.organization.findUnique({ where: { id: currentOrgId() } }),
     db.user.findMany({ where: { organizationId: currentOrgId() }, orderBy: { name: "asc" } }),
@@ -71,7 +73,7 @@ export default async function SettingsPage() {
             <dl className="text-sm flex flex-col gap-2.5">
               <Row label="Name" value={org?.name ?? "—"} />
               <Row label="Country" value={org?.country ?? "—"} />
-              <Row label="Created" value={org ? new Date(org.createdAt).toLocaleDateString() : "—"} />
+              <Row label="Created" value={org ? fmtDate(org.createdAt) : "—"} />
             </dl>
           </Panel>
 
@@ -84,11 +86,39 @@ export default async function SettingsPage() {
             </dl>
           </Panel>
 
-          <Panel title="Setup wizard" subtitle={org?.onboardingCompletedAt ? `Completed ${new Date(org.onboardingCompletedAt).toLocaleDateString()}` : "Not completed yet"}>
+          <Panel title="Setup wizard" subtitle={org?.onboardingCompletedAt ? `Completed ${fmtDate(org.onboardingCompletedAt)}` : "Not completed yet"}>
             <form action={restartOnboardingAction}>
               <button className={button}>{org?.onboardingCompletedAt ? "Run again" : "Run setup"}</button>
             </form>
           </Panel>
+        </div>
+      </div>
+
+      <div id="test-data" className="rounded-xl border border-alarm/30 bg-panel p-5 scroll-mt-6">
+        <h2 className="text-base font-semibold text-ink-100">Test data</h2>
+        <p className="text-sm text-ink-400 mt-0.5 mb-4">
+          Start this workspace from scratch to try the platform with your own AI, or load the sample data. Owners only.
+        </p>
+        {searchParams.reset && <p className="text-sm text-steady mb-4">Workspace data reset — it's empty now. Connect a provider or import a CSV to start.</p>}
+        {searchParams.error && <p className="text-sm text-alarm mb-4">{searchParams.error}</p>}
+        <div className="grid grid-cols-2 gap-6">
+          <form action={resetWorkspaceDataAction} className="flex flex-col gap-2">
+            <div className="text-sm font-medium text-ink-100">Reset workspace data</div>
+            <p className="text-xs text-ink-400">
+              Deletes AI systems (with costs, alternatives, risk, activity and changes), people, data sources, policies, evidence and connections with their saved keys. Accounts, members, plan and audit log stay. This can't be undone.
+            </p>
+            <div className="flex gap-2 mt-1">
+              <input name="confirm" required autoComplete="off" placeholder={`Type "${org?.name ?? ""}" to confirm`} className="flex-1 min-w-0 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-alarm" />
+              <button className="btn border border-alarm/40 text-alarm bg-panel hover:bg-alarm/5">Reset</button>
+            </div>
+          </form>
+          <form action={loadDemoDataAction} className="flex flex-col gap-2">
+            <div className="text-sm font-medium text-ink-100">Load demo data</div>
+            <p className="text-xs text-ink-400">
+              Adds the Demo Manufacturing example: 4 AI systems, people, data sources, a cost, a model change and an alternative — useful to see every page filled in.
+            </p>
+            <button className="btn btn-secondary self-start mt-1">Load demo data</button>
+          </form>
         </div>
       </div>
     </div>

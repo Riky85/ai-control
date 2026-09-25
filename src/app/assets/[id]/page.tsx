@@ -1,3 +1,4 @@
+import { fmtDate, fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
@@ -114,8 +115,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                   <Field label="Department" value={asset.department} />
                   <Field label="EU AI Act" value={EU_LABEL[asset.euAiActTier]} />
                   <Field label="Discovered by" value={asset.connector ? asset.connector.provider.replace(/_/g, " ").toLowerCase() : "Added manually"} />
-                  <Field label="First seen" value={new Date(asset.firstSeenAt).toLocaleDateString()} />
-                  <Field label="Last seen" value={asset.lastSeenAt ? new Date(asset.lastSeenAt).toLocaleDateString() : null} />
+                  <Field label="First seen" value={fmtDate(asset.firstSeenAt)} />
+                  <Field label="Last seen" value={asset.lastSeenAt ? fmtDate(asset.lastSeenAt) : null} />
                 </dl>
               </Panel>
               <Panel title="Dependency graph" subtitle="Who uses it, and which systems and data it depends on">
@@ -200,7 +201,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             <Table columns={["When", "Event", "By", "Source"]} empty={asset.activities.length === 0 ? "No activity recorded yet." : false}>
               {asset.activities.map((a) => (
                 <tr key={a.id}>
-                  <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{new Date(a.occurredAt).toLocaleString()}</td>
+                  <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(a.occurredAt)}</td>
                   <td className={`${td} text-ink-100`}>{a.eventType.replace(/[._]/g, " ")}</td>
                   <td className={`${td} text-ink-400`}>{a.actorRef ?? "—"}</td>
                   <td className={`${td} text-ink-400`}>{a.source.replace(/_/g, " ").toLowerCase()}</td>

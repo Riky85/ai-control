@@ -1,3 +1,4 @@
+import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -128,7 +129,7 @@ export default async function AssetsPage({
                     {asset.cost?.monthlyCostEstimate != null ? `€${asset.cost.monthlyCostEstimate.toLocaleString()}` : "—"}
                   </td>
                   <td className="px-5 py-3 text-ink-400 text-xs tabular">
-                    {asset.lastSeenAt ? new Date(asset.lastSeenAt).toLocaleDateString() : "Never"}
+                    {asset.lastSeenAt ? fmtDate(asset.lastSeenAt) : "Never"}
                   </td>
                 </tr>
               );

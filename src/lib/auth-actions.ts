@@ -1,5 +1,7 @@
 "use server";
 
+import { fmtTime } from "@/lib/format";
+
 import { cookies, headers } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
 import { sendEmail, appOrigin, emailEnabled } from "@/lib/mail";
@@ -42,7 +44,7 @@ export async function signInAction(formData: FormData) {
 
   const account = await db.account.findUnique({ where: { email } });
   if (account?.lockedUntil && account.lockedUntil > new Date()) {
-    fail(`Too many failed attempts. Try again after ${account.lockedUntil.toLocaleTimeString()}.`);
+    fail(`Too many failed attempts. Try again after ${fmtTime(account.lockedUntil)}.`);
   }
   const ok = account ? await verifyPassword(password, account.passwordHash) : false;
   if (!account || !ok) {

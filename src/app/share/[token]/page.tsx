@@ -1,3 +1,4 @@
+import { fmtDate } from "@/lib/format";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import DonutChart from "@/components/DonutChart";
@@ -48,7 +49,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="text-xs text-ink-400 mb-1">
-            Shared by {link.organization.name} · read-only · {new Date().toLocaleDateString()}
+            Shared by {link.organization.name} · read-only · {fmtDate(new Date())}
           </div>
           <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{link.name}</h1>
         </div>

@@ -1,3 +1,4 @@
+import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import { PageHeader, Panel } from "@/components/ui";
@@ -59,7 +60,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
       <div className="grid grid-cols-3 gap-4">
         <Panel
           title={`${current.name} plan`}
-          subtitle={org.currentPeriodEnd ? `Renews ${org.currentPeriodEnd.toLocaleDateString()}` : undefined}
+          subtitle={org.currentPeriodEnd ? `Renews ${fmtDate(org.currentPeriodEnd)}` : undefined}
           action={<Badge>{org.planStatus}</Badge>}
           className="col-span-3"
         >

@@ -27,18 +27,20 @@
 
 import { createSign } from "node:crypto";
 import type { Connector, ConnectorSyncResult, ObservedAsset } from "./types";
+import { decryptJson } from "@/lib/crypto";
 
+// Due modi di collegare GitHub:
+//  - GitHub App (installationId): un clic, richiede la configurazione di piattaforma;
+//  - token personale di sola lettura (mode "token"): funziona subito.
 interface GithubCredentials {
-  installationId: string;
+  installationId?: string;
+  mode?: "token";
+  apiKey?: string;
+  org?: string; // organizzazione da scansionare; vuoto = repo personali
 }
 
 function readCredentials(connectorRow: { credentialsEncrypted: string | null }): GithubCredentials | null {
-  if (!connectorRow.credentialsEncrypted) return null;
-  try {
-    return JSON.parse(connectorRow.credentialsEncrypted) as GithubCredentials;
-  } catch {
-    return null;
-  }
+  return decryptJson<GithubCredentials>(connectorRow.credentialsEncrypted);
 }
 
 const GITHUB_API = "https://api.github.com";
@@ -173,11 +175,23 @@ export const githubConnector: Connector = {
   async sync(connectorRow): Promise<ConnectorSyncResult> {
     const warnings: string[] = [];
     const creds = readCredentials(connectorRow);
-    if (!creds?.installationId) {
-      throw new Error("GitHub not connected yet — press Connect and install the app on your organization.");
+    let token: string;
+    let org: string;
+    let personal = false;
+    if (creds?.mode === "token" && creds.apiKey) {
+      token = creds.apiKey;
+      if (creds.org) {
+        org = creds.org;
+      } else {
+        org = (await ghGet(token, "/user")).login;
+        personal = true;
+      }
+    } else if (creds?.installationId) {
+      token = await getInstallationToken(creds.installationId);
+      org = await getInstallationOrgLogin(creds.installationId);
+    } else {
+      throw new Error("GitHub not connected yet — paste a read-only token in Connections.");
     }
-    const token = await getInstallationToken(creds.installationId);
-    const org = await getInstallationOrgLogin(creds.installationId);
 
     const copilotAsset: ObservedAsset = {
       externalId: `github-copilot:${org}`,
@@ -190,7 +204,7 @@ export const githubConnector: Connector = {
     };
 
     // Copilot seat/billing info -> chi ha effettivamente un seat attivo
-    try {
+    if (!personal) try {
       const seats = await ghGet(token, `/orgs/${org}/copilot/billing/seats?per_page=100`);
       for (const seat of seats.seats ?? []) {
         const login = seat.assignee?.login;
@@ -210,7 +224,7 @@ export const githubConnector: Connector = {
     const assets: ObservedAsset[] = [copilotAsset];
     let repos: any[] = [];
     try {
-      repos = (await ghGet(token, `/orgs/${org}/repos?per_page=100&type=all`)) ?? [];
+      repos = (await ghGet(token, personal ? `/user/repos?per_page=100&affiliation=owner` : `/orgs/${org}/repos?per_page=100&type=all`)) ?? [];
       for (const repo of repos) {
         copilotAsset.connectedSystems!.push({
           system: "GitHub",
@@ -218,7 +232,7 @@ export const githubConnector: Connector = {
         });
       }
     } catch (err) {
-      warnings.push(`Unable to read org repositories: ${(err as Error).message}`);
+      warnings.push(`Unable to read repositories: ${(err as Error).message}`);
     }
 
     // Scansione del contenuto dei repo per rilevare SDK/framework AI —
@@ -260,7 +274,7 @@ export const githubConnector: Connector = {
 
     // Eventi "agentic" dall'audit log (schema in evoluzione lato GitHub —
     // trattato come best-effort, il payload grezzo va comunque salvato)
-    try {
+    if (!personal) try {
       const auditLog = await ghGet(
         token,
         `/orgs/${org}/audit-log?per_page=100&phrase=${encodeURIComponent("action:copilot")}`

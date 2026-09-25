@@ -1,3 +1,4 @@
+import { fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -45,7 +46,7 @@ export default async function ChangesPage() {
             <td className={`${td} text-ink-100`}>{FIELD_LABEL[c.field] ?? c.field}</td>
             <td className={td}>{value(c.field, c.oldValue)}</td>
             <td className={td}>{value(c.field, c.newValue, true)}</td>
-            <td className={`${td} text-ink-400 tabular`}>{new Date(c.detectedAt).toLocaleString()}</td>
+            <td className={`${td} text-ink-400 tabular`}>{fmtDateTime(c.detectedAt)}</td>
           </tr>
         ))}
       </Table>
