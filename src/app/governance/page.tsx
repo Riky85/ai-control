@@ -131,7 +131,7 @@ async function PoliciesTab() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-sm font-medium text-ink-400 mb-3">Active policies</h2>
+        <h2 className="text-base font-semibold text-ink-100 mb-3">Active policies</h2>
         {policies.length === 0 && (
           <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
             No policies yet. Add one from the library below, or write a custom one.
@@ -180,7 +180,7 @@ async function PoliciesTab() {
 
       {availableTemplates.length > 0 && (
         <div>
-          <h2 className="text-sm font-medium text-ink-400 mb-3">Policy library</h2>
+          <h2 className="text-base font-semibold text-ink-100 mb-3">Policy library</h2>
           <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
             {availableTemplates.map((t) => (
               <div key={t.name} className="px-5 py-4 flex items-start justify-between gap-4">
@@ -206,20 +206,20 @@ async function PoliciesTab() {
       )}
 
       <div>
-        <h2 className="text-sm font-medium text-ink-400 mb-3">Write a custom policy</h2>
+        <h2 className="text-base font-semibold text-ink-100 mb-3">Write a custom policy</h2>
         <form action={createPolicyAction} className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-ink-400">Name</label>
-            <input name="name" required placeholder="e.g. Agents cannot create discounts above 20%" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
+            <input name="name" required placeholder="e.g. Agents cannot create discounts above 20%" className="field" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-ink-400">Description</label>
-            <textarea name="description" required rows={2} className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel" />
+            <textarea name="description" required rows={2} className="field" />
           </div>
           <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col gap-1 flex-1">
               <label className="text-xs text-ink-400">Category</label>
-              <select name="category" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel">
+              <select name="category" className="field">
                 <option value="data_access">Data access</option>
                 <option value="approval">Approval</option>
                 <option value="environment">Environment</option>
@@ -287,7 +287,7 @@ async function AssuranceTab() {
       {groups.map(({ level, items }) =>
         items.length > 0 ? (
           <div key={level}>
-            <h2 className="text-sm font-medium text-ink-400 mb-3">
+            <h2 className="text-base font-semibold text-ink-100 mb-3">
               {LEVEL_LABEL[level]} ({items.length})
             </h2>
             <div className="flex flex-col gap-3">

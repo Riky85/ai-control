@@ -10,7 +10,7 @@ import { VendorBadge } from "@/components/VendorIcon";
 
 export const dynamic = "force-dynamic";
 
-const input = "w-full border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400";
+const input = "field w-full";
 const button = "btn btn-secondary btn-sm";
 
 export default async function SettingsPage({ searchParams }: { searchParams: { error?: string; reset?: string } }) {

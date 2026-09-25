@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui";
 import { fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
@@ -43,17 +44,11 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <div className="text-xs text-ink-400 mb-2">
-          <Link href="/people" className="hover:text-ink-100 hover:underline">People</Link>
-          <span className="mx-1.5">/</span>
-          {person.name ?? person.email}
-        </div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{person.name ?? person.email}</h1>
-        <p className="text-sm text-ink-400 mt-1">
-          {person.email}{person.department && ` · ${person.department}`}
-        </p>
-      </div>
+      <PageHeader
+        crumbs={[{ label: "People", href: "/people" }]}
+        title={person.name ?? person.email}
+        subtitle={`${person.email}${person.department ? ` · ${person.department}` : ""}`}
+      />
 
       <div className="rounded-xl border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
         <div className="px-5 py-4">
@@ -73,7 +68,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
       </div>
 
       <div>
-        <h2 className="text-sm font-medium text-ink-400 mb-3">Assets owned</h2>
+        <h2 className="text-base font-semibold text-ink-100 mb-3">Assets owned</h2>
         <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
           {person.ownedAssets.map((a) => (
             <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.025] transition-colors">
@@ -91,7 +86,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
       </div>
 
       <div>
-        <h2 className="text-sm font-medium text-ink-400 mb-3">Assets used</h2>
+        <h2 className="text-base font-semibold text-ink-100 mb-3">Assets used</h2>
         <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
           {person.usages.map((u) => (
             <Link key={u.id} href={`/assets/${u.aiAssetId}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.025] transition-colors">
@@ -107,7 +102,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
 
       {recentActivity.length > 0 && (
         <div>
-          <h2 className="text-sm font-medium text-ink-400 mb-3">Recent activity</h2>
+          <h2 className="text-base font-semibold text-ink-100 mb-3">Recent activity</h2>
           <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
             {recentActivity.map((a) => (
               <Link key={a.id} href={`/activity/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[0.025] transition-colors">

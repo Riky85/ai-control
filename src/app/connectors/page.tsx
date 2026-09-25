@@ -50,7 +50,7 @@ const COMING_SOON: { group: string; items: { label: string; vendor: string }[] }
 const card = "rounded-xl border border-line bg-panel p-4 flex flex-col gap-3";
 const btnPrimary = "btn btn-primary";
 const btnSecondary = "btn btn-secondary";
-const input = "w-full border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-accent";
+const input = "field w-full";
 
 export default async function ConnectorsPage({
   searchParams,

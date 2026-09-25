@@ -39,7 +39,7 @@ export default async function AuditPage({ searchParams }: { searchParams: { q?: 
     <div className="flex flex-col gap-6">
       <PageHeader title="Audit log" subtitle="Who did what, when and from where in this workspace. Entries can't be edited or deleted." />
       <form className="flex items-center gap-2">
-        <input name="q" defaultValue={q} placeholder="Filter by action, person or target" className="w-80 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400" />
+        <input name="q" defaultValue={q} placeholder="Filter by action, person or target" className="field w-80" />
         <button className="btn btn-secondary">Filter</button>
       </form>
       <Table columns={["When", "Who", "What", "Target", "IP"]} empty={rows.length === 0 ? "Nothing recorded yet." : false}>

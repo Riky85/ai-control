@@ -6,12 +6,13 @@ import { db } from "@/lib/db";
 import { PageHeader, Panel, Tabs, Table } from "@/components/ui";
 import { planById } from "@/lib/plans";
 import CopyField from "@/components/CopyField";
+import AutoSubmitSelect from "@/components/AutoSubmitSelect";
 import { inviteMemberAction, setMemberRoleAction, removeMemberAction, createShareLinkAction, revokeShareLinkAction, switchWorkspaceAction, createWorkspaceAction, renameWorkspaceAction } from "@/lib/workspace-actions";
 import { createMemberResetLinkAction } from "@/lib/auth-actions";
 import Badge from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
-const input = "border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400";
+const input = "field";
 const ROLE_HELP: Record<string, string> = {
   OWNER: "Everything, including billing",
   ADMIN: "Manage connections and members",
@@ -66,6 +67,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
 
       {tab === "workspaces" ? (
         <div className="grid grid-cols-3 gap-4 items-start">
+          <div className="col-span-2">
           <Table columns={["Workspace", "AI systems", "Members", "Plan", ""]}>
                 {allWorkspaces.map((w) => (
                   <tr key={w.id}>
@@ -92,6 +94,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                   </tr>
                 ))}
               </Table>
+          </div>
           <Panel
             title="Create a workspace"
             subtitle={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on the ${plan.name} plan — e.g. one per company, plant or client`}
@@ -111,6 +114,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
         </div>
       ) : tab === "members" ? (
         <div className="grid grid-cols-3 gap-4 items-start">
+          <div className="col-span-2">
           <Table columns={["Member", "Role", "Status", ""]}>
                 {members.map((m) => (
                   <tr key={m.id}>
@@ -128,12 +132,11 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                     <td className="px-5 py-3">
                       <form action={setMemberRoleAction} className="flex items-center gap-2">
                         <input type="hidden" name="memberId" value={m.id} />
-                        <select name="role" defaultValue={m.role} className={`${input} py-1.5`}>
+                        <AutoSubmitSelect name="role" defaultValue={m.role} aria-label="Role" className={`${input} py-1.5`}>
                           {Object.keys(ROLE_HELP).map((r) => (
                             <option key={r} value={r}>{r.charAt(0) + r.slice(1).toLowerCase()}</option>
                           ))}
-                        </select>
-                        <button className="btn btn-secondary btn-sm">Save</button>
+                        </AutoSubmitSelect>
                       </form>
                     </td>
                     <td className="px-5 py-3"><Badge>{m.status === "active" ? "ACTIVE" : "INVITED"}</Badge></td>
@@ -159,6 +162,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                   </tr>
                 )}
               </Table>
+          </div>
 
           <div className="flex flex-col gap-4">
             <Panel title="Invite a member" subtitle={`${members.length} of ${plan.limits.members ?? "unlimited"} on the ${plan.name} plan`}>

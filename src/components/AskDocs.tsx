@@ -18,7 +18,9 @@ interface DocLink {
 
 const SUGGESTIONS = ["How do I connect Claude?", "How do I import a CSV?", "How do I share a dashboard?", "What do the plans include?"];
 
-// Widget in basso a destra: "Ask docs" — assistente + elenco guide.
+// Pannello di aiuto (assistente + guide): si apre dal pulsante a libro in
+// alto a destra di ogni pagina (evento "angar:toggle-docs"), niente più
+// pulsante fluttuante sopra i contenuti. Esc per chiudere.
 export default function AskDocs({ docs }: { docs: DocLink[] }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -30,6 +32,16 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, loading]);
+  useEffect(() => {
+    const toggle = () => setOpen((v) => !v);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("angar:toggle-docs", toggle);
+    window.addEventListener("keydown", esc);
+    return () => {
+      window.removeEventListener("angar:toggle-docs", toggle);
+      window.removeEventListener("keydown", esc);
+    };
+  }, []);
   if (pathname.startsWith("/share")) return null;
 
   async function ask(text: string) {
@@ -52,10 +64,12 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
 
   const shown = docs.filter((d) => `${d.title} ${d.summary}`.toLowerCase().includes(filter.toLowerCase()));
 
+  if (!open) return null;
+
   return (
-    <div className="fixed bottom-5 right-5 z-40 print:hidden">
+    <div className="fixed top-20 right-6 z-40 print:hidden">
       {open && (
-        <div className="mb-3 w-[380px] h-[540px] rounded-2xl border border-line bg-panel shadow-2xl flex flex-col overflow-hidden animate-rise">
+        <div className="w-[380px] h-[560px] max-h-[calc(100vh-7rem)] rounded-2xl border border-line bg-panel shadow-2xl flex flex-col overflow-hidden animate-rise">
           <div className="px-4 pt-4 pb-3 border-b border-line">
             <div className="flex items-center justify-between">
               <div>
@@ -142,16 +156,6 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
           )}
         </div>
       )}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="ml-auto flex items-center gap-2 rounded-full bg-ink-100 text-white pl-3.5 pr-4 py-2.5 text-sm font-medium shadow-lg hover:bg-black transition-colors"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M3 2.5h6.5L13 6v7.5H3z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-          <path d="M9.5 2.5V6H13M5.5 9h5M5.5 11.5h3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
-        {open ? "Close" : "Ask docs"}
-      </button>
     </div>
   );
 }

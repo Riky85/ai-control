@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DocsButton from "@/components/DocsButton";
 
 /** Card statistica condivisa da tutte le pagine — nessun hover, solo link se serve. */
 export function StatCard({
@@ -66,14 +67,41 @@ export function Panel({
   );
 }
 
-export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
+/**
+ * Intestazione standard di ogni pagina: percorso opzionale, titolo,
+ * sottotitolo, azioni a destra — e sempre il pulsante documentazione.
+ */
+export function PageHeader({
+  title,
+  subtitle,
+  action,
+  crumbs,
+}: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  action?: React.ReactNode;
+  crumbs?: { label: string; href?: string }[];
+}) {
   return (
     <div className="flex items-end justify-between gap-4">
-      <div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{title}</h1>
+      <div className="min-w-0">
+        {crumbs && crumbs.length > 0 && (
+          <nav className="text-sm text-ink-400 mb-2 flex items-center gap-1.5">
+            {crumbs.map((c, i) => (
+              <span key={i} className="flex items-center gap-1.5">
+                {i > 0 && <span aria-hidden>/</span>}
+                {c.href ? <Link href={c.href} className="hover:text-ink-100 hover:underline">{c.label}</Link> : <span>{c.label}</span>}
+              </span>
+            ))}
+          </nav>
+        )}
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 truncate">{title}</h1>
         {subtitle && <p className="text-sm text-ink-400 mt-1">{subtitle}</p>}
       </div>
-      {action}
+      <div className="flex items-center gap-2 shrink-0">
+        {action}
+        <DocsButton />
+      </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import DocsButton from "@/components/DocsButton";
 import Link from "next/link";
 import FlowSteps from "@/components/FlowSteps";
 import { VendorBadge } from "@/components/VendorIcon";
@@ -7,14 +8,17 @@ import { API_KEY_PROVIDERS } from "@/lib/connectors/api-key-providers";
 
 export const dynamic = "force-dynamic";
 
-const INPUT = "w-full border border-line rounded-lg px-3 py-2.5 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400";
+const INPUT = "field w-full";
 
 // Passo 1 del percorso guidato: una sola schermata, tre scelte.
 export default function ConnectStep({ searchParams }: { searchParams: { error?: string } }) {
   const providers = Object.entries(API_KEY_PROVIDERS).map(([id, cfg]) => ({ id, label: cfg!.label }));
   return (
     <div className="max-w-5xl mx-auto flex flex-col gap-8 py-4">
-      <FlowSteps current={1} />
+      <div className="flex items-center justify-between gap-4">
+        <FlowSteps current={1} />
+        <DocsButton />
+      </div>
       <div>
         <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Where does your company use AI?</h1>
         <p className="text-sm text-ink-400 mt-1">Pick one to start — you can add the others later. angar only reads, never changes anything.</p>

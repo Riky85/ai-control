@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui";
 import { fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
@@ -33,20 +34,14 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
-      <div>
-        <div className="text-xs text-ink-400 mb-2">
-          <Link href="/activity" className="hover:text-ink-100 hover:underline">Activity</Link>
-          <span className="mx-1.5">/</span>
-          {activity.eventType}
-        </div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{activity.eventType}</h1>
-        <p className="text-sm text-ink-400 mt-1">
-          {fmtDateTime(activity.occurredAt)} · {SOURCE_LABEL[activity.source] ?? activity.source}
-        </p>
-      </div>
+      <PageHeader
+        crumbs={[{ label: "Activity", href: "/activity" }]}
+        title={activity.eventType}
+        subtitle={`${fmtDateTime(activity.occurredAt)} · ${SOURCE_LABEL[activity.source] ?? activity.source}`}
+      />
 
       <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm">
-        <h2 className="text-xs font-medium text-ink-400 mb-3">Event details</h2>
+        <h2 className="text-base font-semibold text-ink-100 mb-3">Event details</h2>
         <dl className="flex flex-col gap-2.5">
           <Row label="Asset">
             <Link href={`/assets/${activity.aiAssetId}`} className="text-ink-100 hover:underline font-medium">
@@ -71,7 +66,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
 
       {activity.payload != null && (
         <div className="rounded-xl border border-line bg-panel shadow-card p-5">
-          <h2 className="text-xs font-medium text-ink-400 mb-3">Raw event payload</h2>
+          <h2 className="text-base font-semibold text-ink-100 mb-3">Raw event payload</h2>
           <p className="text-xs text-ink-400 mb-3">
             Exactly what the connector imported — useful for tracing back to the source system.
           </p>

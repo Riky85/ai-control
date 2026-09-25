@@ -50,6 +50,8 @@ body {
   .btn-primary { @apply bg-accent text-white hover:bg-accent-dark; }
   .btn-secondary { @apply border border-line bg-panel text-ink-100 hover:bg-black/[0.04]; }
   .btn-sm { @apply text-xs px-2.5 py-1.5; }
+  /* Campo di input unico per tutta la piattaforma. */
+  .field { @apply border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400 transition-colors; }
 }
 
 /* Export PDF: la stampa nasconde sidebar, pulsanti e widget, e toglie i

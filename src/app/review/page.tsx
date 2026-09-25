@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
@@ -8,7 +9,7 @@ import { reviewAssetAction } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
-const INPUT = "w-full border border-line rounded-lg px-3 py-2.5 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400";
+const INPUT = "field w-full";
 const SENSITIVE = ["PII", "FINANCIAL", "SOURCE_CODE"];
 const LEVEL_RANK: Record<string, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
 
@@ -65,16 +66,12 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          {searchParams.from && <div className="mb-4"><FlowSteps current={2} /></div>}
-          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Review</h1>
-          <p className="text-sm text-ink-400 mt-1">
-            {open.length} AI system{open.length === 1 ? "" : "s"} to review — decide once, angar keeps watching afterwards.
-          </p>
-        </div>
-        {searchParams.reviewed && <span className="text-sm text-steady">✓ {searchParams.reviewed} reviewed</span>}
-      </div>
+      {searchParams.from && <FlowSteps current={2} />}
+      <PageHeader
+        title="Review"
+        subtitle={`${open.length} AI system${open.length === 1 ? "" : "s"} to review — decide once, angar keeps watching afterwards.`}
+        action={searchParams.reviewed ? <span className="text-sm text-steady mr-2">✓ {searchParams.reviewed} reviewed</span> : undefined}
+      />
 
       <div className="grid grid-cols-[320px_1fr] gap-4 items-start">
         <ul className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">

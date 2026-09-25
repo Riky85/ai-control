@@ -19,5 +19,4 @@ export default function AuthShell({ title, subtitle, children }: { title: string
   );
 }
 
-export const authInput =
-  "w-full border border-line rounded-lg px-3 py-2.5 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400";
+export const authInput = "field w-full";

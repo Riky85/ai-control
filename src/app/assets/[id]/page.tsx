@@ -11,6 +11,7 @@ import { VendorBadge } from "@/components/VendorIcon";
 import { StatCard, Tabs, Panel, Table, td } from "@/components/ui";
 import StatusDot from "@/components/StatusDot";
 import ExportMenu from "@/components/ExportMenu";
+import DocsButton from "@/components/DocsButton";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +81,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             {risk && <Badge>{risk.level}</Badge>}
             {assurance && <Badge>{assurance.level}</Badge>}
             <ExportMenu dataset={`passport-${asset.id}`} />
+            <DocsButton />
           </div>
         </div>
       </div>
@@ -343,7 +345,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   );
 }
 
-const INPUT = "border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400";
+const INPUT = "field";
 const SENSITIVE = ["PII", "FINANCIAL", "SOURCE_CODE"];
 const EU_LABEL: Record<string, string> = {
   UNCLASSIFIED: "Not classified yet",

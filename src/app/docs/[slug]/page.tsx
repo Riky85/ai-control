@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DOCS, DOC_SECTIONS, docBySlug } from "@/lib/docs";
@@ -34,13 +35,7 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
       </nav>
 
       <article className="max-w-2xl">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="text-xs text-ink-400 mb-1">{doc.section}</div>
-            <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{doc.title}</h1>
-          </div>
-          <ExportMenu />
-        </div>
+        <PageHeader crumbs={[{ label: "Documentation", href: "/docs" }, { label: doc.section }]} title={doc.title} action={<ExportMenu />} />
         <p className="text-base text-ink-400 mt-2">{doc.summary}</p>
         <div className="mt-4 border-t border-line pt-2">
           <DocBody body={doc.body} />
