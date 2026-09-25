@@ -20,6 +20,14 @@ async function guard(min: MemberRole, action: string, formData?: FormData, back 
     const ok = await db.policy.count({ where: { id: String(policyId), organizationId: s.orgId } });
     if (!ok) redirect(`${back}?error=${encodeURIComponent("That policy isn't in this workspace.")}`);
   }
+  // Anche l'owner scelto deve essere una persona di questo workspace: senza
+  // questo controllo si potrebbe collegare (e poi vedere) una persona di
+  // un'altra azienda falsificando l'ID nel modulo.
+  const ownerId = formData?.get("ownerId");
+  if (ownerId) {
+    const ok = await db.user.count({ where: { id: String(ownerId), organizationId: s.orgId } });
+    if (!ok) redirect(`${back}?error=${encodeURIComponent("That person isn't in this workspace.")}`);
+  }
   const alternativeId = formData?.get("alternativeId");
   if (alternativeId) {
     const ok = await db.modelAlternative.count({ where: { id: String(alternativeId), aiAsset: { organizationId: s.orgId } } });
