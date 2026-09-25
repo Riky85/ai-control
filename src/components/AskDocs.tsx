@@ -67,9 +67,9 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
   if (!open) return null;
 
   return (
-    <div className="fixed top-20 right-6 z-40 print:hidden">
+    <div className="fixed top-[108px] right-6 z-40 print:hidden">
       {open && (
-        <div className="w-[380px] h-[560px] max-h-[calc(100vh-7rem)] rounded-2xl border border-line bg-panel shadow-2xl flex flex-col overflow-hidden animate-rise">
+        <div className="w-[380px] h-[560px] max-h-[calc(100vh-8.5rem)] rounded-2xl border border-line bg-panel shadow-2xl flex flex-col overflow-hidden animate-rise">
           <div className="px-4 pt-4 pb-3 border-b border-line">
             <div className="flex items-center justify-between">
               <div>
