@@ -16,6 +16,11 @@ export const dynamic = "force-dynamic";
 const SENSITIVE = ["PII", "FINANCIAL", "SOURCE_CODE"];
 const STATUS_LABEL: Record<string, string> = { APPROVED: "Approved", UNREVIEWED: "In review", UNAPPROVED: "Rejected", UNKNOWN: "Not started" };
 
+const PROVIDER_LABEL: Record<string, string> = {
+  ANTHROPIC: "Anthropic", OPENAI: "OpenAI", GITHUB: "GitHub", GOOGLE_GEMINI: "Google Gemini", MISTRAL: "Mistral AI", GROQ: "Groq",
+  COHERE: "Cohere", DEEPSEEK: "DeepSeek", XAI: "xAI", TOGETHER: "Together AI", OPENROUTER: "OpenRouter", HUGGINGFACE: "Hugging Face",
+};
+
 export default async function OverviewPage() {
   const org = await db.organization.findUnique({ where: { id: currentOrgId() } });
   const assets = await db.aiAsset.findMany({
@@ -29,7 +34,11 @@ export default async function OverviewPage() {
     },
     orderBy: { lastSeenAt: "desc" },
   });
-  const brokenConnections = await db.connector.findMany({ where: { organizationId: currentOrgId(), status: "ERROR" } });
+  // Solo connessioni che l'utente ha davvero collegato (con credenziali salvate)
+  // e non ancora disponibili come "Coming soon": niente vecchi errori di prova.
+  const brokenConnections = await db.connector.findMany({
+    where: { organizationId: currentOrgId(), status: "ERROR", credentialsEncrypted: { not: null }, provider: { notIn: ["MICROSOFT_365", "GOOGLE_WORKSPACE"] } },
+  });
 
   const risk = (a: (typeof assets)[number]) => a.riskAssessments[0]?.level;
   const attention = assets
@@ -60,7 +69,13 @@ export default async function OverviewPage() {
 
   type Action = { tone: "alarm" | "signal" | "accent" | "steady"; title: string; detail: string; href: string; cta: string };
   const actions: Action[] = [
-    ...brokenConnections.map((cn) => ({ tone: "alarm" as const, title: `${cn.provider.replace(/_/g, " ").toLowerCase()} connection needs attention`, detail: cn.lastSyncError?.slice(0, 120) ?? "The last sync failed.", href: `/connectors#${cn.provider}`, cta: "Fix" })),
+    ...brokenConnections.map((cn) => ({
+      tone: "alarm" as const,
+      title: `${PROVIDER_LABEL[cn.provider] ?? cn.provider.replace(/_/g, " ").toLowerCase()} stopped syncing`,
+      detail: /401|403|rejected|invalid|revoked/i.test(cn.lastSyncError ?? "") ? "The key was rejected — it may have been revoked. Paste a new one." : "The last sync failed. Open Connections to check it.",
+      href: `/connectors#${cn.provider}`,
+      cta: "Fix",
+    })),
     ...(toReview.length ? [{ tone: "accent" as const, title: `${toReview.length} AI system${toReview.length === 1 ? "" : "s"} waiting for review`, detail: "Approve or reject, and set owner and cost — one screen each.", href: "/review", cta: "Review" }] : []),
     ...highRisk.slice(0, 3).map((a) => ({ tone: "alarm" as const, title: `${a.name} is at high risk`, detail: ((a.riskAssessments[0]?.reasons as string[] | undefined) ?? [])[0] ?? "See why in its passport.", href: `/assets/${a.id}?tab=risk`, cta: "See why" })),
     ...(noOwner.length ? [{ tone: "signal" as const, title: `${noOwner.length} system${noOwner.length === 1 ? " has" : "s have"} no owner`, detail: "Every AI system needs someone responsible for it.", href: "/review", cta: "Assign" }] : []),
