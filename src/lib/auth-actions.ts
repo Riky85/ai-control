@@ -109,7 +109,7 @@ export async function signUpAction(formData: FormData) {
 
   await issueSession(account, orgId);
   await audit("auth.signup", email, { firstAccount: isFirstAccount, invited: invited.length > 0 }, { orgId, actorEmail: email });
-  redirect(isFirstAccount || invited.length > 0 ? "/" : "/connectors");
+  redirect(isFirstAccount || invited.length > 0 ? "/" : "/onboarding");
 }
 
 export async function signOutAction() {

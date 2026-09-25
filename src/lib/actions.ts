@@ -101,7 +101,9 @@ export async function connectWithApiKeyAction(formData: FormData) {
   await guard("ADMIN", "connector.connect", formData, "/connectors");
   const provider = formData.get("provider") as ConnectorProvider;
   const apiKey = String(formData.get("apiKey") ?? "").trim();
-  const back = (msg: string) => redirect(`/connectors?error=${encodeURIComponent(msg)}&provider=${provider}#${provider}`);
+  const inFlow = formData.get("next") === "review";
+  const back = (msg: string) =>
+    redirect(inFlow ? `/onboarding?error=${encodeURIComponent(msg)}` : `/connectors?error=${encodeURIComponent(msg)}&provider=${provider}#${provider}`);
   if (!apiKey) back("Paste a key first.");
 
   // Chiave Admin (Anthropic/OpenAI) → connettore completo con utenti;
@@ -134,7 +136,8 @@ export async function connectWithApiKeyAction(formData: FormData) {
   const result = await runConnectorSync(currentOrgId(), provider);
   revalidatePath("/", "layout");
   if (!result.ok) back(`Key saved, but the first sync failed: ${result.error.slice(0, 200)}`);
-  redirect(`/connectors?connected=${provider}`);
+  // Nel percorso guidato si prosegue con la revisione dei sistemi trovati.
+  redirect(formData.get("next") === "review" ? "/review?from=connect" : `/connectors?connected=${provider}`);
 }
 
 // Crea (o aggiorna) un sistema AI senza connettore — aggiunta manuale e
@@ -198,7 +201,7 @@ export async function addManualAssetAction(formData: FormData) {
 export async function importCsvAction(formData: FormData) {
   await guard("EDITOR", "asset.import_csv", formData, "/connectors");
   const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) redirect(`/connectors?error=${encodeURIComponent("Choose a CSV file first.")}#import`);
+  if (!file || file.size === 0) redirect(`${formData.get("next") === "review" ? "/onboarding" : "/connectors"}?error=${encodeURIComponent("Choose a CSV file first.")}#import`);
   const text = await file!.text();
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
   const split = (l: string) => l.split(/[,;](?=(?:[^"]*"[^"]*")*[^"]*$)/).map((v) => v.trim().replace(/^"|"$/g, ""));
@@ -207,7 +210,7 @@ export async function importCsvAction(formData: FormData) {
     const i = header.findIndex((h) => names.includes(h));
     return i >= 0 ? row[i] : undefined;
   };
-  if (!header.includes("name")) redirect(`/connectors?error=${encodeURIComponent("The CSV needs at least a 'name' column.")}#import`);
+  if (!header.includes("name")) redirect(`${formData.get("next") === "review" ? "/onboarding" : "/connectors"}?error=${encodeURIComponent("The CSV needs at least a 'name' column.")}#import`);
   let count = 0;
   for (const line of lines.slice(1)) {
     const row = split(line);
@@ -226,7 +229,7 @@ export async function importCsvAction(formData: FormData) {
     count++;
   }
   revalidatePath("/", "layout");
-  redirect(`/connectors?imported=${count}#import`);
+  redirect(formData.get("next") === "review" ? "/review?from=import" : `/connectors?imported=${count}#import`);
 }
 
 // GitHub con token personale di sola lettura: verificato subito (utente
@@ -482,4 +485,42 @@ export async function restartOnboardingAction() {
   });
   revalidatePath("/settings");
   redirect("/onboarding?step=1");
+}
+
+// Revisione in un solo passaggio (coda /review): owner, costo e decisione
+// salvati insieme, poi si passa al sistema successivo.
+export async function reviewAssetAction(formData: FormData) {
+  const s = await guard("EDITOR", "asset.review", formData, "/review");
+  const assetId = String(formData.get("assetId"));
+  const decision = String(formData.get("decision"));
+  const status = decision === "approve" ? "APPROVED" : decision === "reject" ? "UNAPPROVED" : null;
+  if (!status) redirect("/review");
+
+  let ownerId = String(formData.get("ownerId") ?? "") || null;
+  const newOwner = String(formData.get("newOwnerEmail") ?? "").trim().toLowerCase();
+  if (!ownerId && newOwner.includes("@")) {
+    const u = await db.user.upsert({
+      where: { organizationId_email: { organizationId: s.orgId, email: newOwner } },
+      update: {},
+      create: { organizationId: s.orgId, email: newOwner },
+    });
+    ownerId = u.id;
+  }
+  const before = await db.aiAsset.findUniqueOrThrow({ where: { id: assetId } });
+  await db.aiAsset.update({ where: { id: assetId }, data: { status: status as AiAssetStatus, ...(ownerId ? { ownerId } : {}) } });
+  if (before.status !== status) {
+    await db.assetChange.create({ data: { aiAssetId: assetId, field: "status", oldValue: before.status, newValue: status } });
+  }
+  const cost = String(formData.get("monthlyCost") ?? "").trim();
+  if (cost && !Number.isNaN(Number(cost))) {
+    await db.aiSystemCost.upsert({
+      where: { aiAssetId: assetId },
+      update: { monthlyCostEstimate: Number(cost), basis: "manual" },
+      create: { aiAssetId: assetId, monthlyCostEstimate: Number(cost), basis: "manual", confidence: "MEDIUM" },
+    });
+  }
+  await recomputeAssuranceFor(assetId);
+  revalidatePath("/", "layout");
+  const skip = String(formData.get("skip") ?? "");
+  redirect(`/review?reviewed=${encodeURIComponent(before.name)}${skip ? `&skip=${encodeURIComponent(skip)}` : ""}`);
 }

@@ -60,11 +60,12 @@ function PanelToggleIcon() {
 // costa, cosa cambia) in evidenza; il resto — supporto/governance — sotto,
 // visivamente più piccolo e silenzioso. Meno cose in vista = più facile
 // da capire al primo sguardo.
+// Il percorso principale: vedi → rivedi → approfondisci → costi → cosa cambia.
 const PRIMARY_ITEMS = [
   { href: "/", label: "Overview", icon: "home" },
+  { href: "/review", label: "Review", icon: "approvals" },
   { href: "/assets", label: "AI Passports", icon: "assets" },
-  { href: "/providers", label: "Providers", icon: "providers" },
-  { href: "/savings", label: "Savings", icon: "savings" },
+  { href: "/providers", label: "Costs", icon: "savings", also: ["/savings"] },
   { href: "/changes", label: "Changes", icon: "changes" },
 ];
 
@@ -100,7 +101,7 @@ export interface SidebarWorkspaceProps {
   limit: number | null;
 }
 
-export default function Sidebar({ orgName, workspace, userName, userEmail, platformAdmin = false }: { orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean }) {
+export default function Sidebar({ orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0 }: { orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [moreOpen, setMoreOpen] = useState(true);
@@ -208,9 +209,17 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
 
       <nav className="flex flex-col gap-0.5 overflow-y-auto flex-1 min-h-0">
         {PRIMARY_ITEMS.map((item) => (
-          <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href))}>
+          <Link
+            key={item.href}
+            href={item.href}
+            title={collapsed ? item.label : undefined}
+            className={itemClass(isActive(item.href) || ("also" in item && (item.also ?? []).some((p) => pathname.startsWith(p))))}
+          >
             <Icon name={item.icon} />
-            {!collapsed && item.label}
+            {!collapsed && <span className="flex-1">{item.label}</span>}
+            {!collapsed && item.href === "/review" && reviewCount > 0 && (
+              <span className="text-[11px] font-semibold text-white bg-accent rounded-full px-1.5 min-w-[20px] text-center tabular">{reviewCount}</span>
+            )}
           </Link>
         ))}
 

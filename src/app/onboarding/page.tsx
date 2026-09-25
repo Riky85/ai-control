@@ -1,286 +1,97 @@
-import { currentOrgId } from "@/lib/org";
-import { db } from "@/lib/db";
-import Badge from "@/components/Badge";
 import Link from "next/link";
-import VendorIcon from "@/components/VendorIcon";
-import {
-  updateOrganizationAction,
-  addUserAction,
-  addPolicyFromLibraryAction,
-  completeOnboardingAction,
-} from "@/lib/actions";
-import { POLICY_LIBRARY } from "@/lib/policy-library";
+import FlowSteps from "@/components/FlowSteps";
+import { VendorBadge } from "@/components/VendorIcon";
+import { connectWithApiKeyAction, importCsvAction } from "@/lib/actions";
+import { loadDemoDataAction } from "@/lib/test-data-actions";
+import { API_KEY_PROVIDERS } from "@/lib/connectors/api-key-providers";
 
 export const dynamic = "force-dynamic";
 
-const STEPS = ["Welcome", "Organization", "Connect a source", "Add people", "Turn on policies"];
+const INPUT = "w-full border border-line rounded-lg px-3 py-2.5 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400";
 
-export default async function OnboardingPage({
-  searchParams,
-}: {
-  searchParams: { step?: string };
-}) {
-  const step = Math.min(Math.max(parseInt(searchParams.step ?? "1", 10) || 1, 1), STEPS.length);
-
-  const [org, people, activePolicies, connectedCount] = await Promise.all([
-    db.organization.findUnique({ where: { id: currentOrgId() } }),
-    db.user.findMany({ where: { organizationId: currentOrgId() }, orderBy: { name: "asc" } }),
-    db.policy.findMany({ where: { organizationId: currentOrgId() } }),
-    db.connector.count({ where: { organizationId: currentOrgId(), status: "CONNECTED" } }),
-  ]);
-  const activeNames = new Set(activePolicies.map((p) => p.name));
-
-  // Il completamento di ogni voce e' verificato contro dati reali dove
-  // possibile (connettori, persone, policy), non solo "hai visitato lo step":
-  // e' l'idea di checklist di OneTrust applicata onestamente al nostro dato.
-  const checklistDone = [
-    step > 1,
-    step > 2,
-    connectedCount > 0,
-    people.length > 0,
-    activePolicies.length > 0,
-  ];
-
+// Passo 1 del percorso guidato: una sola schermata, tre scelte.
+export default function ConnectStep({ searchParams }: { searchParams: { error?: string } }) {
+  const providers = Object.entries(API_KEY_PROVIDERS).map(([id, cfg]) => ({ id, label: cfg!.label }));
   return (
-    <div className="max-w-2xl mx-auto flex flex-col gap-8">
+    <div className="max-w-5xl mx-auto flex flex-col gap-8 py-4">
+      <FlowSteps current={1} />
       <div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Get angar set up</h1>
-        <p className="text-sm text-ink-400 mt-1">{checklistDone.filter(Boolean).length} of {STEPS.length} done</p>
-        <div className="h-1 bg-line rounded-full mt-3 overflow-hidden">
-          <div
-            className="h-full bg-steady rounded-full transition-all"
-            style={{ width: `${(checklistDone.filter(Boolean).length / STEPS.length) * 100}%` }}
-          />
-        </div>
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Where does your company use AI?</h1>
+        <p className="text-sm text-ink-400 mt-1">Pick one to start — you can add the others later. angar only reads, never changes anything.</p>
       </div>
+      {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
-      <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
-        {STEPS.map((label, i) => {
-          const n = i + 1;
-          const done = checklistDone[i];
-          const active = n === step;
-          return (
-            <Link
-              key={label}
-              href={`/onboarding?step=${n}`}
-              className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
-                active ? "bg-black/[0.03]" : "hover:bg-black/[0.025]"
-              }`}
-            >
-              <span
-                className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 text-[10px] ${
-                  done ? "bg-steady text-white" : active ? "border-2 border-accent text-accent" : "border border-line text-ink-400"
-                }`}
-              >
-                {done ? "✓" : n}
-              </span>
-              <span className={active ? "text-ink-100 font-medium" : done ? "text-ink-400" : "text-ink-400"}>
-                {label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-
-      {step === 1 && (
-        <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Welcome to angar</h1>
-          <p className="text-sm text-ink-400">
-            This walks you through the four things worth setting up before the
-            inventory means anything: your organization's name, a real
-            connector, the people who'll own what gets found, and a couple of
-            starting policies. Takes a few minutes — you can leave and come
-            back any time from Settings.
-          </p>
-          <Link
-            href="/onboarding?step=2"
-            className="btn btn-primary self-start"
-          >
-            Get started
-          </Link>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Your organization</h1>
-          <p className="text-sm text-ink-400">
-            This is what shows up on evidence exports and audit trails.
-          </p>
-          <form action={updateOrganizationAction} className="flex flex-col gap-3 max-w-sm">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-ink-400">Organization name</label>
-              <input
-                name="name"
-                defaultValue={org?.name}
-                required
-                className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-ink-400">Country</label>
-              <input
-                name="country"
-                defaultValue={org?.country ?? ""}
-                placeholder="e.g. Italy"
-                className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel"
-              />
-            </div>
-            <button
-              type="submit"
-              className="btn btn-secondary self-start"
-            >
-              Save
-            </button>
-          </form>
-          <div className="flex justify-between pt-2">
-            <Link href="/onboarding?step=1" className="text-xs text-ink-400 hover:text-ink-100">
-              ← Back
-            </Link>
-            <Link
-              href="/onboarding?step=3"
-              className="btn btn-primary"
-            >
-              Continue
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Connect a source</h1>
-          <p className="text-sm text-ink-400">
-            Nothing shows up until a connector actually syncs. GitHub is the
-            one you can realistically test on yourself — it needs a free
-            GitHub organization, not just a personal account. The full
-            step-by-step is on the Connectors page.
-          </p>
-          <div className="flex flex-col gap-2">
-            {[
-              { name: "GitHub", note: "Testable on a free org you create yourself" },
-              { name: "Microsoft 365 / Entra ID", note: "Needs an Entra tenant with admin rights" },
-              { name: "Anthropic (Claude)", note: "Needs a Claude Enterprise/Team org" },
-              { name: "OpenAI (ChatGPT)", note: "Needs a ChatGPT Enterprise/Edu org" },
-            ].map((c) => (
-              <div key={c.name} className="border border-line rounded-md px-4 py-3 flex items-center justify-between">
-                <span className="text-sm text-ink-100 flex items-center gap-2">
-                  <VendorIcon vendor={c.name.split(" ")[0]} />
-                  {c.name}
-                </span>
-                <span className="text-xs text-ink-400">{c.note}</span>
-              </div>
-            ))}
-          </div>
-          <Link href="/connectors" className="text-sm text-ink-100 hover:underline">
-            Open Connections for setup instructions →
-          </Link>
-          <div className="flex justify-between pt-2">
-            <Link href="/onboarding?step=2" className="text-xs text-ink-400 hover:text-ink-100">
-              ← Back
-            </Link>
-            <Link
-              href="/onboarding?step=4"
-              className="btn btn-primary"
-            >
-              I'll do this later — continue
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {step === 4 && (
-        <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Add the people who'll own things</h1>
-          <p className="text-sm text-ink-400">
-            Assets show up unowned until someone is assigned. You don't need
-            everyone yet — just the people likely to own what gets found first.
-          </p>
-          <form action={addUserAction} className="flex gap-2 items-end flex-wrap">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-ink-400">Email</label>
-              <input name="email" type="email" required className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel w-56" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-ink-400">Name</label>
-              <input name="name" className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel w-40" />
-            </div>
-            <button type="submit" className="btn btn-secondary">
-              Add
-            </button>
-          </form>
-          {people.length > 0 && (
-            <ul className="text-sm text-ink-100 flex flex-col gap-1">
-              {people.map((p) => (
-                <li key={p.id} className="text-ink-400">
-                  <span className="text-ink-100">{p.name ?? p.email}</span> — {p.email}
-                </li>
+      <div className="grid grid-cols-3 gap-4">
+        <Choice
+          title="Paste an AI key"
+          text="Claude, ChatGPT, Gemini, Mistral and more. A normal API key is enough."
+          icons={["ANTHROPIC", "OPENAI", "GOOGLE_GEMINI"]}
+        >
+          <form action={connectWithApiKeyAction} className="flex flex-col gap-2">
+            <input type="hidden" name="next" value="review" />
+            <select name="provider" className={INPUT} defaultValue="ANTHROPIC">
+              {providers.map((p) => (
+                <option key={p.id} value={p.id}>{p.label}</option>
               ))}
-            </ul>
-          )}
-          <div className="flex justify-between pt-2">
-            <Link href="/onboarding?step=3" className="text-xs text-ink-400 hover:text-ink-100">
-              ← Back
-            </Link>
-            <Link
-              href="/onboarding?step=5"
-              className="btn btn-primary"
-            >
-              Continue
-            </Link>
-          </div>
-        </div>
-      )}
+            </select>
+            <input name="apiKey" type="password" required autoComplete="off" placeholder="Paste the API key" className={INPUT} />
+            <button className="btn btn-primary w-full">Connect</button>
+          </form>
+        </Choice>
 
-      {step === 5 && (
-        <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Turn on a couple of policies</h1>
-          <p className="text-sm text-ink-400">
-            These are read as governance intent, not enforced automatically
-            yet — but they're what the Approvals queue and asset detail pages
-            check against. Add as many as make sense; you can add the rest later
-            from Policies.
-          </p>
-          <div className="flex flex-col gap-2">
-            {POLICY_LIBRARY.map((t) => {
-              const added = activeNames.has(t.name);
-              return (
-                <div key={t.name} className="border border-line rounded-md px-4 py-3 flex items-center justify-between gap-4">
-                  <div>
-                    <div className="text-sm text-ink-100">{t.name}</div>
-                    <div className="text-xs text-ink-400">{t.description}</div>
-                  </div>
-                  {added ? (
-                    <span className="shrink-0"><Badge>ADDED</Badge></span>
-                  ) : (
-                    <form action={addPolicyFromLibraryAction} className="shrink-0">
-                      <input type="hidden" name="name" value={t.name} />
-                      <input type="hidden" name="description" value={t.description} />
-                      <input type="hidden" name="category" value={t.category} />
-                      <button type="submit" className="btn btn-secondary btn-sm">
-                        Add
-                      </button>
-                    </form>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex justify-between pt-2">
-            <Link href="/onboarding?step=4" className="text-xs text-ink-400 hover:text-ink-100">
-              ← Back
-            </Link>
-            <form action={completeOnboardingAction}>
-              <button
-                type="submit"
-                className="btn btn-primary"
-              >
-                Finish setup
-              </button>
-            </form>
-          </div>
+        <Choice title="Upload a spreadsheet" text="A list of the AI tools you use — works for anything, even tools without an API." icons={[]}>
+          <form action={importCsvAction} className="flex flex-col gap-2">
+            <input type="hidden" name="next" value="review" />
+            <input name="file" type="file" accept=".csv,text/csv" required className="w-full text-sm text-ink-400 file:mr-3 file:rounded-lg file:border file:border-line file:bg-panel file:px-3 file:py-2 file:text-sm file:text-ink-100" />
+            <button className="btn btn-primary w-full">Upload</button>
+            <a href="/api/csv-template" className="text-xs text-ink-400 hover:text-ink-100 underline text-center">Download the template</a>
+          </form>
+        </Choice>
+
+        <Choice title="Connect GitHub" text="Finds the AI your developers built into your own products." icons={["GitHub"]}>
+          <Link href="/connectors#GITHUB" className="btn btn-secondary w-full mt-auto">Connect GitHub</Link>
+          <p className="text-xs text-ink-400 text-center">Takes 2 minutes with a read-only token.</p>
+        </Choice>
+      </div>
+
+      <div className="flex items-center justify-between rounded-xl border border-dashed border-line px-5 py-4">
+        <div>
+          <div className="text-sm font-medium text-ink-100">Just exploring?</div>
+          <div className="text-sm text-ink-400">Load a demo company and try the whole flow.</div>
         </div>
-      )}
+        <div className="flex items-center gap-3">
+          <form action={loadDemoDataAction}>
+            <input type="hidden" name="next" value="review" />
+            <button className="btn btn-secondary">Load demo data</button>
+          </form>
+          <Link href="/" className="text-sm text-ink-400 hover:text-ink-100">Skip for now</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Choice({ title, text, icons, children }: { title: string; text: string; icons: string[]; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
+      <div className="flex -space-x-1.5">
+        {icons.length ? (
+          icons.map((v) => (
+            <span key={v} className="rounded-lg ring-2 ring-panel">
+              <VendorBadge vendor={v} size={34} />
+            </span>
+          ))
+        ) : (
+          <span className="h-[34px] w-[34px] rounded-lg border border-line flex items-center justify-center text-ink-400">
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><rect x="2.5" y="2" width="11" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.3" /><path d="M2.5 6h11M2.5 10h11M6.5 2v12" stroke="currentColor" strokeWidth="1.3" /></svg>
+          </span>
+        )}
+      </div>
+      <div className="flex-1">
+        <h2 className="text-base font-semibold text-ink-100">{title}</h2>
+        <p className="text-sm text-ink-400 mt-1">{text}</p>
+      </div>
+      {children}
     </div>
   );
 }

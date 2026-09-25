@@ -4,7 +4,7 @@ import Link from "next/link";
 import Badge from "@/components/Badge";
 import ExportMenu from "@/components/ExportMenu";
 import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
-import { PageHeader, StatCard, Table, td } from "@/components/ui";
+import { Tabs, PageHeader, StatCard, Table, td } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -33,10 +33,12 @@ export default async function SavingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Savings"
-        subtitle="Current cost minus the cheapest alternative you've recorded on each Passport. Estimates, not recommendations."
+        title="Costs"
+        subtitle="Where you could spend less: current cost vs. the cheapest alternative on each passport. Estimates, not recommendations."
         action={<ExportMenu dataset="savings" />}
       />
+
+      <Tabs active="savings" items={[{ key: "providers", label: "By provider", href: "/providers" }, { key: "savings", label: "Savings", href: "/savings" }]} />
 
       <div className="grid grid-cols-3 gap-4">
         <StatCard label="Estimated annual opportunity" value={`€${totalAnnualOpportunity.toLocaleString()}`} hint={`${withOpportunity.length} system${withOpportunity.length === 1 ? "" : "s"} with a cheaper alternative`} />

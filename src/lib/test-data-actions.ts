@@ -37,11 +37,11 @@ export async function resetWorkspaceDataAction(formData: FormData) {
 }
 
 /** Carica i dati di esempio nel workspace corrente. */
-export async function loadDemoDataAction() {
+export async function loadDemoDataAction(formData?: FormData) {
   const s = await requireRole("OWNER", "/settings");
   await seedDemoData(db, s.orgId);
   await db.organization.update({ where: { id: s.orgId }, data: { onboardingCompletedAt: new Date() } });
   await audit("workspace.load_demo_data");
   revalidatePath("/", "layout");
-  redirect("/?demo=1");
+  redirect(formData?.get("next") === "review" ? "/review?from=demo" : "/?demo=1");
 }

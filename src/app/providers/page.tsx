@@ -1,6 +1,6 @@
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
-import { PageHeader, StatCard, Panel } from "@/components/ui";
+import { Tabs, PageHeader, StatCard, Panel } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import Link from "next/link";
 import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
@@ -41,10 +41,12 @@ export default async function ProvidersPage() {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        title="Providers"
-        subtitle={"What your AI estate actually depends on, grouped by vendor."}
+        title="Costs"
+        subtitle="Where your AI money goes, by provider."
         action={<ExportMenu dataset="providers" />}
       />
+
+      <Tabs active="providers" items={[{ key: "providers", label: "By provider", href: "/providers" }, { key: "savings", label: "Savings", href: "/savings" }]} />
 
       <div className="grid grid-cols-3 gap-4">
         <StatCard label="Providers" value={String(rows.length)} hint={rows.slice(0, 3).map((r) => r.vendor).join(", ")} />
