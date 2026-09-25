@@ -65,7 +65,8 @@ const PRIMARY_ITEMS = [
   { href: "/", label: "Overview", icon: "home" },
   { href: "/review", label: "Review", icon: "approvals" },
   { href: "/assets", label: "AI Passports", icon: "assets" },
-  { href: "/providers", label: "Costs", icon: "savings", also: ["/savings"] },
+  { href: "/providers", label: "Providers", icon: "providers" },
+  { href: "/savings", label: "Savings", icon: "savings" },
   { href: "/changes", label: "Changes", icon: "changes" },
 ];
 
@@ -213,7 +214,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
             key={item.href}
             href={item.href}
             title={collapsed ? item.label : undefined}
-            className={itemClass(isActive(item.href) || ("also" in item && (item.also ?? []).some((p) => pathname.startsWith(p))))}
+            className={itemClass(isActive(item.href))}
           >
             <Icon name={item.icon} />
             {!collapsed && <span className="flex-1">{item.label}</span>}

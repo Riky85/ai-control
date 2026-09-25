@@ -9,6 +9,7 @@ import BarChart from "@/components/BarChart";
 import EstateGraph from "@/components/EstateGraph";
 import { StatCard, Panel, PageHeader } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
+import SetupCard from "@/components/SetupCard";
 import { RISK_CHART_COLORS } from "@/lib/chart-colors";
 
 export const dynamic = "force-dynamic";
@@ -111,6 +112,8 @@ export default async function OverviewPage() {
         }
       />
 
+      {!org?.onboardingCompletedAt && <SetupCard orgId={currentOrgId()} />}
+
       {assets.length === 0 ? (
         <div className="rounded-xl border border-dashed border-line p-12 text-center">
           <h2 className="text-lg font-semibold text-ink-100">Let's find the AI your company uses</h2>
@@ -119,15 +122,27 @@ export default async function OverviewPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-4">
-            <Answer label="AI in use" value={String(assets.length)} detail={`${providers.size} provider${providers.size === 1 ? "" : "s"}`} href="/assets" />
-            <Answer
-              label="Monthly cost"
-              value={monthlySpend > 0 ? `€${monthlySpend.toLocaleString()}` : "—"}
-              detail={monthlySpend > 0 && topProvider ? `${Math.round((topProvider[1] / monthlySpend) * 100)}% on ${topProvider[0]}` : "Add costs to see this"}
+          <div className="grid grid-cols-4 gap-4">
+            <StatCard label="AI systems" value={String(assets.length)} hint={`${assets.length - toReview.length} reviewed`} href="/assets" />
+            <StatCard
+              label="Providers"
+              value={String(providers.size)}
+              hint={Array.from(providers).slice(0, 3).join(", ")}
               href="/providers"
             />
-            <Answer label="Needs action" value={String(actions.length)} detail={actions.length ? "See the list below" : "Nothing right now"} href="#next" dot={actions.some((a) => a.tone === "alarm") ? "bg-alarm" : actions.length ? "bg-signal" : "bg-steady"} />
+            <StatCard
+              label="Monthly spend"
+              value={monthlySpend > 0 ? `€${monthlySpend.toLocaleString()}` : "—"}
+              hint={monthlySpend > 0 && topProvider ? `${Math.round((topProvider[1] / monthlySpend) * 100)}% on ${topProvider[0]}` : "Add costs to see this"}
+              href="/savings"
+            />
+            <StatCard
+              label="Need review"
+              value={String(toReview.length)}
+              hint={toReview.length ? "Waiting in Review" : "All reviewed"}
+              href="/review"
+              tone={toReview.length ? "signal" : undefined}
+            />
           </div>
 
           <Panel title="What to do next" subtitle="Most important first — one click each">
@@ -201,19 +216,6 @@ export default async function OverviewPage() {
         </>
       )}
     </div>
-  );
-}
-
-function Answer({ label, value, detail, href, dot }: { label: string; value: string; detail: string; href: string; dot?: string }) {
-  return (
-    <Link href={href} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3 hover:border-ink-400 transition-colors">
-      <span className="text-sm text-ink-400 flex items-center gap-2">
-        {dot && <span className={`h-2 w-2 rounded-full ${dot}`} />}
-        {label}
-      </span>
-      <span className="font-display text-[34px] leading-none font-semibold tracking-tight text-ink-100 tabular">{value}</span>
-      <span className="text-sm text-ink-400">{detail}</span>
-    </Link>
   );
 }
 
