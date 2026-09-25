@@ -123,7 +123,7 @@ export default async function OverviewPage() {
       ) : (
         <>
           <div className="grid grid-cols-4 gap-4">
-            <StatCard label="AI systems" value={String(assets.length)} hint={`${assets.length - toReview.length} reviewed`} href="/assets" />
+            <StatCard label="AI systems" value={String(assets.length)} hint={`${assets.length - toReview.length} reviewed`} href="/assets" tone="accent" />
             <StatCard
               label="Providers"
               value={String(providers.size)}

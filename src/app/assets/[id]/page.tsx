@@ -11,7 +11,6 @@ import { VendorBadge } from "@/components/VendorIcon";
 import { StatCard, Tabs, Panel, Table, td } from "@/components/ui";
 import StatusDot from "@/components/StatusDot";
 import ExportMenu from "@/components/ExportMenu";
-import DocsButton from "@/components/DocsButton";
 
 export const dynamic = "force-dynamic";
 
@@ -60,29 +59,29 @@ export default async function AssetDetailPage({ params, searchParams }: { params
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <div className="text-xs text-ink-400 mb-2">
-          <Link href="/assets" className="hover:text-ink-100 hover:underline">AI Passports</Link>
-          <span className="mx-1.5">/</span>
-          {asset.name}
-        </div>
-        <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <nav className="text-sm text-ink-400 mb-2 flex items-center gap-1.5">
+            <Link href="/assets" className="hover:text-ink-100 hover:underline">AI Passports</Link>
+            <span aria-hidden>/</span>
+            <span className="truncate">{asset.name}</span>
+          </nav>
           <div className="flex items-center gap-4">
             <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={56} />
-            <div>
-              <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{asset.name}</h1>
+            <div className="min-w-0">
+              <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 truncate">{asset.name}</h1>
               <p className="text-sm text-ink-400 mt-0.5">
                 {asset.vendor ?? "Vendor unknown"} · {asset.type.replace(/_/g, " ").toLowerCase()}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 pt-1 text-xs">
-            <Badge>{asset.status}</Badge>
-            {risk && <Badge>{risk.level}</Badge>}
-            {assurance && <Badge>{assurance.level}</Badge>}
-            <ExportMenu dataset={`passport-${asset.id}`} />
-            <DocsButton />
-          </div>
+        </div>
+        {/* Stessa riga e stessa altezza del pulsante documentazione (fisso nel layout). */}
+        <div className="flex items-center gap-2 shrink-0 pr-11 min-h-9">
+          <Badge>{asset.status}</Badge>
+          {risk && <Badge>{risk.level}</Badge>}
+          {assurance && <Badge>{assurance.level}</Badge>}
+          <ExportMenu dataset={`passport-${asset.id}`} />
         </div>
       </div>
 

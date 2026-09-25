@@ -47,7 +47,7 @@ export default async function ProvidersPage() {
       />
 
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Providers" value={String(rows.length)} hint={rows.slice(0, 3).map((r) => r.vendor).join(", ")} />
+        <StatCard label="Providers" tone="accent" value={String(rows.length)} hint={rows.slice(0, 3).map((r) => r.vendor).join(", ")} />
         <StatCard label="Tracked monthly spend" value={`€${totalMonthlySpend.toLocaleString()}`} hint="Manually entered on Passports" />
         <Panel title="Spend by provider">
           {rows.some((r) => r.hasCostData) ? (

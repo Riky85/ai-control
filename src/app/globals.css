@@ -46,10 +46,12 @@ body {
 /* Pulsanti unificati — un solo stile primario (arancio) e uno secondario
    (bordo) in tutta la piattaforma. */
 @layer components {
-  .btn { @apply inline-flex items-center justify-center gap-1.5 text-sm font-medium px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap; }
+  /* Altezza fissa: tutti i pulsanti (testo o sola icona) sono alti uguali. */
+  .btn { @apply inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium px-3.5 rounded-lg transition-colors whitespace-nowrap; }
+  .btn-icon { @apply w-9 px-0; }
   .btn-primary { @apply bg-accent text-white hover:bg-accent-dark; }
   .btn-secondary { @apply border border-line bg-panel text-ink-100 hover:bg-black/[0.04]; }
-  .btn-sm { @apply text-xs px-2.5 py-1.5; }
+  .btn-sm { @apply h-8 text-xs px-2.5; }
   /* Campo di input unico per tutta la piattaforma. */
   .field { @apply border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400 transition-colors; }
 }

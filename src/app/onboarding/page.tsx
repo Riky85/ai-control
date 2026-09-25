@@ -1,4 +1,3 @@
-import DocsButton from "@/components/DocsButton";
 import Link from "next/link";
 import FlowSteps from "@/components/FlowSteps";
 import { VendorBadge } from "@/components/VendorIcon";
@@ -15,10 +14,7 @@ export default function ConnectStep({ searchParams }: { searchParams: { error?: 
   const providers = Object.entries(API_KEY_PROVIDERS).map(([id, cfg]) => ({ id, label: cfg!.label }));
   return (
     <div className="max-w-5xl mx-auto flex flex-col gap-8 py-4">
-      <div className="flex items-center justify-between gap-4">
-        <FlowSteps current={1} />
-        <DocsButton />
-      </div>
+      <FlowSteps current={1} />
       <div>
         <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Where does your company use AI?</h1>
         <p className="text-sm text-ink-400 mt-1">Pick one to start — you can add the others later. angar only reads, never changes anything.</p>

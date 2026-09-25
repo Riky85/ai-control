@@ -1,5 +1,4 @@
 import Link from "next/link";
-import DocsButton from "@/components/DocsButton";
 
 /** Card statistica condivisa da tutte le pagine — nessun hover, solo link se serve. */
 export function StatCard({
@@ -15,7 +14,7 @@ export function StatCard({
   href?: string;
   tone?: "signal" | "alarm" | "accent";
 }) {
-  const color = "text-ink-100";
+  const color = tone === "accent" ? "text-accent" : "text-ink-100";
   const dot = tone === "signal" ? "bg-signal" : tone === "alarm" ? "bg-alarm" : null;
   const inner = (
     <>
@@ -83,7 +82,7 @@ export function PageHeader({
   crumbs?: { label: string; href?: string }[];
 }) {
   return (
-    <div className="flex items-end justify-between gap-4">
+    <div className="flex items-start justify-between gap-4">
       <div className="min-w-0">
         {crumbs && crumbs.length > 0 && (
           <nav className="text-sm text-ink-400 mb-2 flex items-center gap-1.5">
@@ -98,10 +97,8 @@ export function PageHeader({
         <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 truncate">{title}</h1>
         {subtitle && <p className="text-sm text-ink-400 mt-1">{subtitle}</p>}
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        {action}
-        <DocsButton />
-      </div>
+      {/* Le azioni stanno a sinistra del pulsante documentazione, che è fisso nel layout. */}
+      <div className="flex items-center gap-2 shrink-0 pr-11 min-h-9">{action}</div>
     </div>
   );
 }

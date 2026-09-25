@@ -5,6 +5,7 @@ import { Hanken_Grotesk, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Sidebar, { type SidebarWorkspaceProps } from "@/components/Sidebar";
 import AskDocs from "@/components/AskDocs";
+import DocsButton from "@/components/DocsButton";
 import { DOCS } from "@/lib/docs";
 import { planById } from "@/lib/plans";
 import { db } from "@/lib/db";
@@ -53,7 +54,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`flex h-screen overflow-hidden bg-[#1A1918] text-ink-100 font-body`}>
         <Sidebar orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={await isPlatformAdmin(session.email)} reviewCount={await db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } })} />
         <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto">
-          <main className="flex-1 w-full max-w-[1400px] mx-auto px-10 pt-8 pb-24">{children}</main>
+          <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-10 pt-8 pb-24">
+            {/* Sempre nello stesso punto, in ogni pagina. */}
+            <div className="absolute top-8 right-10 z-30 print:hidden">
+              <DocsButton />
+            </div>
+            {children}
+          </main>
           <AskDocs docs={DOCS.map(({ slug, title, section, summary }) => ({ slug, title, section, summary }))} />
         </div>
       </body>
