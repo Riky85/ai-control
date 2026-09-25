@@ -120,7 +120,7 @@ export async function GET(_req: Request, { params }: { params: { dataset: string
   if (!data) return new Response("Unknown export", { status: 404 });
 
   const wb = new ExcelJS.Workbook();
-  wb.creator = "Angar";
+  wb.creator = "angar";
   wb.created = new Date();
   for (const sheet of data.sheets) {
     const ws = wb.addWorksheet(sheet.name.slice(0, 31));

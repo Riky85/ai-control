@@ -5,7 +5,7 @@ import VendorIcon, { resolveBrand } from "@/components/VendorIcon";
 export const G = {
   line: "#E6E6EB",
   text: "#141418",
-  muted: "#6E6E78",
+  muted: "#5F5F69",
   accent: "#FF7323",
   accentSoft: "#FFF1E8",
   alarm: "#C4433B",
@@ -139,6 +139,48 @@ export function GraphHeader({ columns }: { columns: { label: string; count?: num
           {c.hint && <span className="block text-xs text-ink-400">{c.hint}</span>}
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Raggruppa visivamente le colonne di un grafo: un riquadro di sfondo per
+ * colonna, con titolo, numero e descrizione dentro. Le posizioni sono in
+ * percentuale sulle stesse coordinate dell'SVG, così restano allineate a
+ * qualsiasi larghezza. Il testo è HTML vero (si legge e si copia bene).
+ */
+export const GRAPH_PAD = 18;
+export function GraphColumns({
+  W,
+  COL,
+  xs,
+  columns,
+  children,
+}: {
+  W: number;
+  COL: number;
+  xs: number[];
+  columns: { label: string; count?: number; hint?: string }[];
+  children: React.ReactNode;
+}) {
+  const total = W + 2 * GRAPH_PAD;
+  const inset = 12;
+  return (
+    <div className="relative">
+      {xs.map((x, i) => (
+        <div
+          key={i}
+          className={`absolute top-0 bottom-0 rounded-xl border ${i === 1 ? "bg-accent-soft/60 border-accent/20" : "bg-ink border-line"}`}
+          style={{ left: `${((x - inset + GRAPH_PAD) / total) * 100}%`, width: `${((COL + inset * 2) / total) * 100}%` }}
+        >
+          <div className="px-4 pt-3">
+            <span className="text-sm font-semibold text-ink-100">{columns[i]?.label}</span>
+            {columns[i]?.count !== undefined && <span className="ml-1.5 text-sm text-ink-400 tabular">{columns[i]?.count}</span>}
+            {columns[i]?.hint && <span className="block text-xs text-ink-400">{columns[i]?.hint}</span>}
+          </div>
+        </div>
+      ))}
+      <div className="relative pt-16 pb-3">{children}</div>
     </div>
   );
 }

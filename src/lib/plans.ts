@@ -45,12 +45,12 @@ export const PLANS: PlanDef[] = [
 ];
 
 /**
- * Angar Edge — dispositivo fisico in abbonamento, per dispositivo al mese,
+ * angar Edge — dispositivo fisico in abbonamento, per dispositivo al mese,
  * aggiuntivo a qualunque piano (stesso modello per-device di Exein).
  * Hardware incluso in comodato, sostituzione in caso di guasto.
  */
 export const EDGE = {
-  name: "Angar Edge",
+  name: "angar Edge",
   pricePerDevice: 39,
   minMonths: 12,
   maxSelfServe: 20,

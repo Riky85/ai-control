@@ -9,13 +9,13 @@ import { DOCS } from "@/lib/docs";
 import { planById } from "@/lib/plans";
 import { db } from "@/lib/db";
 
-// Testo in Hanken Grotesk; il nome "Angar" in Space Grotesk, distinto dal
+// Testo in Hanken Grotesk; il nome "angar" in Space Grotesk, distinto dal
 // serif della Claude Console.
 const sans = Hanken_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans" });
 const brand = Space_Grotesk({ subsets: ["latin"], weight: ["600"], variable: "--font-brand" });
 
 export const metadata: Metadata = {
-  title: "Angar",
+  title: "angar",
   description: "Discover every AI in your company. Understand what it can access. Control what it can do.",
 };
 

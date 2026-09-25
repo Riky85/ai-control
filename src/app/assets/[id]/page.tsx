@@ -146,7 +146,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
 
           {tab === "risk" && (
             <>
-              <Panel title="Risk" subtitle="Computed by rules from what Angar knows about this system">
+              <Panel title="Risk" subtitle="Computed by rules from what angar knows about this system">
                 {risk ? (
                   <div className="flex gap-8 items-start">
                     <div className="shrink-0">

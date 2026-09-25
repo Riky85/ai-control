@@ -3,7 +3,7 @@ import { DOCS, searchDocs } from "@/lib/docs";
 export const dynamic = "force-dynamic";
 
 /**
- * Assistente "Ask docs": risponde solo dalla documentazione di Angar.
+ * Assistente "Ask docs": risponde solo dalla documentazione di angar.
  * Con ANTHROPIC_API_KEY (variabile di piattaforma) usa Claude; senza,
  * restituisce gli articoli più pertinenti. Nessun dato dei clienti viene
  * inviato al modello: solo la domanda e il testo della documentazione.
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const { question, history } = (await req.json().catch(() => ({}))) as { question?: string; history?: { role: "user" | "assistant"; content: string }[] };
   const q = String(question ?? "").trim().slice(0, 1000);
-  if (!q) return Response.json({ answer: "Ask me anything about using Angar.", sources: [] });
+  if (!q) return Response.json({ answer: "Ask me anything about using angar.", sources: [] });
 
   const sources = searchDocs(q, 3).map((d) => ({ slug: d.slug, title: d.title }));
   const key = process.env.ANTHROPIC_API_KEY;
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
           model: process.env.ASSISTANT_MODEL ?? "claude-haiku-4-5-20251001",
           max_tokens: 600,
           system:
-            "You are the in-app help assistant of Angar, an AI estate intelligence SaaS. Answer ONLY from the documentation below. " +
+            "You are the in-app help assistant of angar, an AI estate intelligence SaaS. Answer ONLY from the documentation below. " +
             "Reply in the user's language, in 2-6 short sentences or numbered steps, plainly, no markdown headings. " +
             "If the docs don't cover it, say so and suggest the closest article. Never invent features.\n\n" + docs,
           messages: [...(history ?? []).slice(-6), { role: "user", content: q }],

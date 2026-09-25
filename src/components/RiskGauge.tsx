@@ -17,7 +17,7 @@ export default function RiskGauge({ score, level }: { score: number; level: stri
   const circumference = Math.PI * radius; // semicerchio
   const progress = Math.min(100, Math.max(0, score)) / 100;
   const dash = circumference * progress;
-  const color = TONE[level] ?? "#6E6E78";
+  const color = TONE[level] ?? "#5F5F69";
 
   return (
     <div className="flex flex-col items-center">

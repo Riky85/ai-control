@@ -1,4 +1,4 @@
-import { Edge, Node, GraphHeader, curve, G } from "@/components/graph-parts";
+import { Edge, Node, GraphColumns, GRAPH_PAD, curve, G } from "@/components/graph-parts";
 
 /**
  * Mappa dell'AI estate: Provider → Sistema AI → Dati. Solo relazioni
@@ -28,9 +28,8 @@ export default function EstateGraph({ systems, linkNodes = true }: { systems: Es
   const y = (i: number, n: number) => (H - n * ROW) / 2 + i * ROW + ROW / 2;
 
   return (
-    <div>
-      <GraphHeader columns={[{ label: "Providers", count: providers.length, hint: "Who powers it" }, { label: "AI systems", count: systems.length, hint: "What you run" }, { label: "Data", count: data.length, hint: "What it touches" }]} />
-    <svg width="100%" viewBox={`-4 0 ${W + 8} ${H}`}>
+    <GraphColumns W={W} COL={COL} xs={x} columns={[{ label: "Providers", count: providers.length, hint: "Who powers it" }, { label: "AI systems", count: systems.length, hint: "What you run" }, { label: "Data", count: data.length, hint: "What it touches" }]}>
+    <svg width="100%" viewBox={`${-GRAPH_PAD} 0 ${W + 2 * GRAPH_PAD} ${H}`}>
       <g>
         {systems.map((s, si) => {
           const pi = providers.indexOf(s.vendor ?? "Unknown vendor");
@@ -68,6 +67,6 @@ export default function EstateGraph({ systems, linkNodes = true }: { systems: Es
         {data.length === 0 && <text x={x[2]} y={H / 2 + 4} fontSize="12" fill={G.muted}>No data sources declared yet</text>}
       </g>
     </svg>
-    </div>
+    </GraphColumns>
   );
 }

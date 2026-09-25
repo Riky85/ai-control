@@ -173,7 +173,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
       ) : (
         <div className="flex items-center mb-4 px-2">
           <Link href="/" className="font-brand text-[18px] leading-none tracking-tight text-white">
-            Angar
+            angar
           </Link>
           <button
             onClick={toggle}

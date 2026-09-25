@@ -20,7 +20,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="text-center max-w-sm">
-          <div className="font-brand text-xl text-ink-100 mb-2">Angar</div>
+          <div className="font-brand text-xl text-ink-100 mb-2">angar</div>
           <h1 className="text-lg font-semibold text-ink-100">This link is no longer available</h1>
           <p className="text-sm text-ink-400 mt-1">It was revoked or has expired. Ask the person who shared it for a new one.</p>
         </div>
@@ -53,7 +53,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
           </div>
           <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{link.name}</h1>
         </div>
-        <span className="font-brand text-lg text-ink-100">Angar</span>
+        <span className="font-brand text-lg text-ink-100">angar</span>
       </div>
 
       <div className="grid grid-cols-4 gap-4">
@@ -103,7 +103,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
               </tr>
             ))}
           </Table>
-      <p className="text-xs text-ink-400 text-center">Read-only snapshot shared from Angar. Data is live at the moment you open the link.</p>
+      <p className="text-xs text-ink-400 text-center">Read-only snapshot shared from angar. Data is live at the moment you open the link.</p>
     </div>
   );
 }

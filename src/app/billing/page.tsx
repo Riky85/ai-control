@@ -126,7 +126,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
               {isCurrent ? (
                 <div className="btn btn-secondary opacity-60 cursor-default">Current plan</div>
               ) : p.price === null ? (
-                <a href={`mailto:${salesEmail ?? ""}?subject=${encodeURIComponent("Angar Enterprise")}`} className="btn btn-secondary">
+                <a href={`mailto:${salesEmail ?? ""}?subject=${encodeURIComponent("angar Enterprise")}`} className="btn btn-secondary">
                   Contact sales
                 </a>
               ) : (
@@ -182,13 +182,13 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
             <button disabled={!payments} className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
               Order Edge devices
             </button>
-            <a href={`mailto:${salesEmail ?? ""}?subject=${encodeURIComponent("Angar Edge — more than 20 devices")}`} className="text-xs text-ink-400 hover:text-ink-100 underline text-center">
+            <a href={`mailto:${salesEmail ?? ""}?subject=${encodeURIComponent("angar Edge — more than 20 devices")}`} className="text-xs text-ink-400 hover:text-ink-100 underline text-center">
               More than {EDGE.maxSelfServe} devices? Contact sales
             </a>
           </form>
         </div>
       </section>
-      <p className="text-xs text-ink-400">Prices exclude VAT. Payments are processed securely by Stripe — Angar never sees your card details.</p>
+      <p className="text-xs text-ink-400">Prices exclude VAT. Payments are processed securely by Stripe — angar never sees your card details.</p>
     </div>
   );
 }
@@ -205,7 +205,7 @@ function EdgeDevice() {
       <rect x="66" y="59" width="8" height="6" rx="1" fill="#3A3A42" />
       <rect x="78" y="59" width="8" height="6" rx="1" fill="#3A3A42" />
       <rect x="90" y="59" width="8" height="6" rx="1" fill="#3A3A42" />
-      <text x="66" y="48" fontSize="8" fill="#8C8C96" fontFamily="var(--font-brand), sans-serif">Angar Edge</text>
+      <text x="66" y="48" fontSize="8" fill="#8C8C96" fontFamily="var(--font-brand), sans-serif">angar Edge</text>
       <ellipse cx="66" cy="92" rx="50" ry="4" fill="#141418" opacity="0.08" />
     </svg>
   );

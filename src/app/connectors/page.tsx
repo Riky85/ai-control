@@ -70,7 +70,7 @@ export default async function ConnectorsPage({
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Connections"
-        subtitle="Connect where your AI lives. Paste a key, sign in, or import a list — Angar builds your AI Passports from it."
+        subtitle="Connect where your AI lives. Paste a key, sign in, or import a list — angar builds your AI Passports from it."
         action={<span className="text-sm text-ink-400">{connectedCount} connected</span>}
       />
 
@@ -150,7 +150,7 @@ export default async function ConnectorsPage({
               </div>
             </div>
             <p className="text-sm text-ink-400">
-              Angar reads each repository&apos;s dependency files (<code className="text-ink-100">package.json</code>, <code className="text-ink-100">requirements.txt</code>, <code className="text-ink-100">pyproject.toml</code>) and lists every project that uses OpenAI, Anthropic, Google AI, LangChain or LlamaIndex — one AI Passport each.
+              angar reads each repository&apos;s dependency files (<code className="text-ink-100">package.json</code>, <code className="text-ink-100">requirements.txt</code>, <code className="text-ink-100">pyproject.toml</code>) and lists every project that uses OpenAI, Anthropic, Google AI, LangChain or LlamaIndex — one AI Passport each.
             </p>
             <p className="text-xs text-ink-400">Read-only. Your code is never copied or stored — only which AI libraries each project uses.</p>
             {githubConnected && (

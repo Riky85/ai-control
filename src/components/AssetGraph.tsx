@@ -1,4 +1,4 @@
-import { Edge, Node, GraphHeader, curve, G, type NodeKind } from "@/components/graph-parts";
+import { Edge, Node, GraphColumns, GRAPH_PAD, curve, G, type NodeKind } from "@/components/graph-parts";
 
 /**
  * Dependency graph del passaporto: chi lo usa → il sistema → da cosa
@@ -30,9 +30,8 @@ export default function AssetGraph({ center, centerVendor, left, right }: AssetG
   const cy = H / 2;
 
   return (
-    <div>
-      <GraphHeader columns={[{ label: "Used by", count: left.length }, { label: "AI system" }, { label: "Depends on", count: right.length }]} />
-    <svg width="100%" viewBox={`-4 0 ${W + 8} ${H}`}>
+    <GraphColumns W={W} COL={COL} xs={x} columns={[{ label: "Used by", count: left.length, hint: "People using it" }, { label: "AI system", hint: "This passport" }, { label: "Depends on", count: right.length, hint: "Systems and data" }]}>
+    <svg width="100%" viewBox={`${-GRAPH_PAD} 0 ${W + 2 * GRAPH_PAD} ${H}`}>
       <g>
         {left.map((_, i) => (
           <Edge key={`le${i}`} d={curve(x[0] + COL, y(i, left.length), x[1], cy)} />
@@ -51,6 +50,6 @@ export default function AssetGraph({ center, centerVendor, left, right }: AssetG
         {right.length === 0 && <text x={x[2]} y={cy + 4} fontSize="12" fill={G.muted}>No dependencies declared</text>}
       </g>
     </svg>
-    </div>
+    </GraphColumns>
   );
 }

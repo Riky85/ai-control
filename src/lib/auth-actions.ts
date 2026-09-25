@@ -138,7 +138,7 @@ export async function requestPasswordResetAction(formData: FormData) {
     const link = await createResetLink(account.id);
     await sendEmail({
       to: email,
-      subject: "Reset your Angar password",
+      subject: "Reset your angar password",
       text: `Someone asked to reset the password for ${email}.\n\nSet a new password here (valid for ${RESET_MINUTES} minutes, one use only):\n${link}\n\nIf it wasn't you, ignore this email — your password stays the same.`,
     });
     await audit("auth.reset_requested", email, { emailSent: emailEnabled() }, { orgId: null, actorEmail: email });

@@ -7,7 +7,7 @@ export default function AuthShell({ title, subtitle, children }: { title: string
       <div className="w-full max-w-[400px]">
         <div className="flex items-center justify-center gap-2 mb-8 text-ink-100">
           <Logo size={20} />
-          <span className="font-brand text-[20px] leading-none tracking-tight">Angar</span>
+          <span className="font-brand text-[20px] leading-none tracking-tight">angar</span>
         </div>
         <div className="rounded-xl border border-line bg-panel p-7 shadow-card">
           <h1 className="font-display text-[22px] font-semibold tracking-tight text-ink-100">{title}</h1>

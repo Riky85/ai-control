@@ -4,7 +4,7 @@ import { PLANS } from "@/lib/plans";
 import type { Plan } from "@prisma/client";
 import { audit } from "@/lib/audit";
 
-// Stripe → Angar: aggiorna piano e stato dell'abbonamento. Richiede
+// Stripe → angar: aggiorna piano e stato dell'abbonamento. Richiede
 // STRIPE_WEBHOOK_SECRET; senza firma valida la richiesta viene rifiutata.
 export async function POST(req: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;

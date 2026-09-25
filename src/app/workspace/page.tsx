@@ -36,7 +36,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Workspace"
-        subtitle={`${org.name} — who can use Angar, and dashboards shared outside it.`}
+        subtitle={`${org.name} — who can use angar, and dashboards shared outside it.`}
         action={<Link href="/billing" className="btn btn-secondary">{plan.name} plan</Link>}
       />
 

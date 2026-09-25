@@ -22,7 +22,7 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
         <button className="btn btn-primary w-full mt-2">Sign in</button>
       </form>
       <p className="text-sm text-ink-400 mt-5 text-center">
-        New to Angar? <Link href="/signup" className="text-ink-100 font-medium underline">Create an account</Link>
+        New to angar? <Link href="/signup" className="text-ink-100 font-medium underline">Create an account</Link>
       </p>
     </AuthShell>
   );

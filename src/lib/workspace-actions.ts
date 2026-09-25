@@ -47,8 +47,8 @@ export async function inviteMemberAction(formData: FormData) {
   const signupLink = `${appOrigin(headers())}/signup?email=${encodeURIComponent(email)}`;
   const mail = await sendEmail({
     to: email,
-    subject: `${inviter?.name ?? inviter?.email ?? "Someone"} invited you to ${o.name} on Angar`,
-    text: `You've been invited to the ${o.name} workspace on Angar as ${role.toLowerCase()}.\n\nCreate your account with this email to join:\n${signupLink}`,
+    subject: `${inviter?.name ?? inviter?.email ?? "Someone"} invited you to ${o.name} on angar`,
+    text: `You've been invited to the ${o.name} workspace on angar as ${role.toLowerCase()}.\n\nCreate your account with this email to join:\n${signupLink}`,
   });
   await audit("member.invite", email, { role, emailSent: mail.sent });
   revalidatePath("/workspace");

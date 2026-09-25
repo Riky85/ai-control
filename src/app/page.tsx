@@ -9,6 +9,7 @@ import BarChart from "@/components/BarChart";
 import EstateGraph from "@/components/EstateGraph";
 import { StatCard, Panel, PageHeader } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
+import SetupCard from "@/components/SetupCard";
 import { RISK_CHART_COLORS } from "@/lib/chart-colors";
 
 export const dynamic = "force-dynamic";
@@ -56,15 +57,7 @@ export default async function OverviewPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {!org?.onboardingCompletedAt && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 flex items-center gap-3">
-          <span className="text-xs font-medium text-accent-dark bg-accent-soft rounded-full px-2.5 py-0.5 shrink-0">Setup</span>
-          <p className="text-sm text-ink-100">
-            Connect your first provider to discover your AI automatically.{" "}
-            <Link href="/connectors" className="font-medium underline">Go to Connections</Link>
-          </p>
-        </div>
-      )}
+      {!org?.onboardingCompletedAt && <SetupCard orgId={currentOrgId()} />}
 
       <PageHeader
         title="Overview"

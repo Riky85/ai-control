@@ -1,5 +1,5 @@
 /**
- * Documentazione di Angar — unica fonte per la pagina /docs e per
+ * Documentazione di angar — unica fonte per la pagina /docs e per
  * l'assistente "Ask docs". Formato del corpo: righe normali = paragrafi,
  * "## " = sottotitolo, "- " = elenco puntato, "1. " = passi numerati.
  */
@@ -16,10 +16,10 @@ export const DOCS: DocArticle[] = [
   {
     slug: "what-is-angar",
     section: "Getting started",
-    title: "What is Angar",
+    title: "What is angar",
     summary: "A living map of every AI system your company uses: what it is, who owns it, what it costs, what it depends on and what you could change.",
     keywords: ["overview", "intro", "estate", "passport"],
-    body: `Angar builds a living map of your company's AI estate — every AI application, agent, API and developer tool in use.
+    body: `angar builds a living map of your company's AI estate — every AI application, agent, API and developer tool in use.
 For each AI system it keeps an AI Passport: vendor, model, owner, cost, data it touches, risk and assurance, changes over time and cheaper alternatives.
 ## The workflow
 1. Discover — connect providers, scan code or import a list.
@@ -44,11 +44,11 @@ For each AI system it keeps an AI Passport: vendor, model, owner, cost, data it 
     slug: "connect-a-provider",
     section: "Connections",
     title: "Connect an AI provider",
-    summary: "Paste an API key on the provider's card — Angar checks it and runs the first sync immediately.",
+    summary: "Paste an API key on the provider's card — angar checks it and runs the first sync immediately.",
     keywords: ["connect", "api key", "key", "anthropic", "openai", "claude", "chatgpt", "gemini", "mistral", "connector", "not working", "rejected", "error"],
     body: `1. Open Connections and find the provider (e.g. Anthropic, OpenAI, Google Gemini, Mistral, xAI, DeepSeek, Groq, Cohere, Together AI, OpenRouter, Hugging Face).
 2. Click Connect, paste the API key and press Connect again.
-3. Angar verifies the key with a read-only call (it lists the available models — no credits are used), saves it encrypted and runs the first sync.
+3. angar verifies the key with a read-only call (it lists the available models — no credits are used), saves it encrypted and runs the first sync.
 4. The provider appears in AI Passports as "<Provider> API" and the card shows Connected.
 ## If the key is rejected
 - Make sure you copied the whole key, without spaces.
@@ -63,7 +63,7 @@ Press Disconnect on the card: the key is deleted. Your AI Passports stay.`,
     title: "Where to find your API key",
     summary: "Direct links to the API key page of every supported provider.",
     keywords: ["where", "find", "api key", "console", "create key"],
-    body: `Create a dedicated key named "Angar" — you can revoke it any time without affecting other apps.
+    body: `Create a dedicated key named "angar" — you can revoke it any time without affecting other apps.
 - Anthropic (Claude): console.anthropic.com → Settings → API keys
 - OpenAI (ChatGPT): platform.openai.com → API keys
 - Google Gemini: aistudio.google.com → Get API key
@@ -84,7 +84,7 @@ Every card on the Connections page also has a direct link.`,
     summary: "A normal key shows you use a provider and which models are available; an Admin key also brings in users.",
     keywords: ["admin", "users", "organization", "difference"],
     body: `- Normal API key: confirms your company uses the provider and lists the models available. Works with any account.
-- Admin key (Anthropic and OpenAI only): also reads the organization's users, so Angar knows who has access. Requires an organization account (Anthropic Team/Enterprise, OpenAI organization).
+- Admin key (Anthropic and OpenAI only): also reads the organization's users, so angar knows who has access. Requires an organization account (Anthropic Team/Enterprise, OpenAI organization).
 The Connections card shows "Admin key" when one is in use.`,
   },
   {
@@ -113,11 +113,11 @@ Valid types: AI_APPLICATION, AI_AGENT, AI_API, AI_FEATURE, AI_DEV_TOOL, MCP_SERV
     title: "GitHub code scanning",
     summary: "Finds AI SDKs (OpenAI, Anthropic, Gemini, LangChain…) in your repositories.",
     keywords: ["github", "code", "repository", "sdk", "scan"],
-    body: `Once GitHub sign-in is enabled on your deployment, click Sign in with GitHub and pick your organization. Angar reads package.json, requirements.txt and pyproject.toml of your most recently updated repositories and creates an AI Passport for each AI SDK it finds, recording where it was found.`,
+    body: `Once GitHub sign-in is enabled on your deployment, click Sign in with GitHub and pick your organization. angar reads package.json, requirements.txt and pyproject.toml of your most recently updated repositories and creates an AI Passport for each AI SDK it finds, recording where it was found.`,
   },
   {
     slug: "ai-passports",
-    section: "Using Angar",
+    section: "Using angar",
     title: "AI Passports",
     summary: "The living technical record of each AI system: owner, cost, dependencies, risk, changes and alternatives.",
     keywords: ["passport", "system", "owner", "cost", "status", "approve"],
@@ -131,7 +131,7 @@ On the right, Manage lets you set the owner, approve or reject, set the EU AI Ac
   },
   {
     slug: "risk-and-assurance",
-    section: "Using Angar",
+    section: "Using angar",
     title: "Risk and assurance",
     summary: "Deterministic scores from facts in the database — never a guess.",
     keywords: ["risk", "assurance", "score", "controls", "blocked", "restricted", "needs review"],
@@ -145,7 +145,7 @@ Fix a check from the Passport (e.g. assign an owner) and the status updates imme
   },
   {
     slug: "estate-map",
-    section: "Using Angar",
+    section: "Using angar",
     title: "Estate map and dependencies",
     summary: "Which provider powers each system and which data it touches.",
     keywords: ["map", "graph", "dependency", "dependencies", "provider", "data"],
@@ -153,7 +153,7 @@ Fix a check from the Passport (e.g. assign an owner) and the status updates imme
   },
   {
     slug: "savings",
-    section: "Using Angar",
+    section: "Using angar",
     title: "Savings and alternatives",
     summary: "Estimated savings = current monthly cost minus the cheapest alternative you've recorded.",
     keywords: ["savings", "save", "cost", "cheaper", "alternative", "optimize", "spend"],
@@ -164,15 +164,15 @@ These are estimates from the numbers you entered — validate quality with real 
   },
   {
     slug: "changes",
-    section: "Using Angar",
+    section: "Using angar",
     title: "Changes",
     summary: "What changed between syncs: model, vendor and status, before and after.",
     keywords: ["changes", "history", "model change", "before", "after"],
-    body: `Every time a sync finds a different model or vendor, or someone changes a status, Angar records a change with the old and new value and the time it was detected. See them all in Changes, the latest on Overview, and per system in its Passport export.`,
+    body: `Every time a sync finds a different model or vendor, or someone changes a status, angar records a change with the old and new value and the time it was detected. See them all in Changes, the latest on Overview, and per system in its Passport export.`,
   },
   {
     slug: "export",
-    section: "Using Angar",
+    section: "Using angar",
     title: "Export to Excel or PDF",
     summary: "Every table, page and Passport can be exported.",
     keywords: ["export", "excel", "xlsx", "pdf", "download", "print", "report"],
@@ -200,7 +200,7 @@ Invite from Workspace → Members. A workspace always keeps at least one Owner. 
     keywords: ["share", "link", "dashboard", "read-only", "board", "auditor", "public"],
     body: `1. Open Workspace → Shared dashboards.
 2. Name the link (e.g. "Board — Q3 AI estate"), pick an expiry and press Create link.
-3. Copy the link and send it. Whoever opens it sees numbers, charts, the estate map and the system list — nothing else in Angar.
+3. Copy the link and send it. Whoever opens it sees numbers, charts, the estate map and the system list — nothing else in angar.
 You can see how many times it was opened and revoke it at any time.`,
   },
   {
@@ -225,11 +225,11 @@ Upgrade from Plan & billing. Payments are processed by Stripe; invoices and paym
   {
     slug: "angar-edge",
     section: "Plans & billing",
-    title: "Angar Edge",
+    title: "angar Edge",
     summary: "A small appliance on your network that detects AI traffic no connector can see.",
     keywords: ["edge", "device", "hardware", "appliance", "network", "shadow ai"],
-    body: `Angar Edge is a plug-and-play device for your office or plant network. It detects traffic to AI services (ChatGPT, Claude, Gemini, Copilot…) without inspecting content, finds shadow AI and feeds AI Passports, the estate map and Changes.
-It's billed per device per month on top of any plan, with a 12-month minimum; hardware and replacement are included. Angar Edge is in early access — order from Plan & billing.`,
+    body: `angar Edge is a plug-and-play device for your office or plant network. It detects traffic to AI services (ChatGPT, Claude, Gemini, Copilot…) without inspecting content, finds shadow AI and feeds AI Passports, the estate map and Changes.
+It's billed per device per month on top of any plan, with a 12-month minimum; hardware and replacement are included. angar Edge is in early access — order from Plan & billing.`,
   },
   {
     slug: "security",
@@ -237,10 +237,10 @@ It's billed per device per month on top of any plan, with a 12-month minimum; ha
     title: "How your keys and data are handled",
     summary: "Read-only access, keys encrypted at rest, nothing sent to third parties.",
     keywords: ["security", "encryption", "privacy", "gdpr", "safe", "keys", "data"],
-    body: `- Connections are read-only: Angar never changes anything in your providers.
+    body: `- Connections are read-only: angar never changes anything in your providers.
 - API keys are encrypted at rest (AES-256-GCM) and can be deleted any time with Disconnect.
-- Angar stores metadata about AI systems (names, models, owners, costs, events) — not the content of prompts or documents.
-- Card details are handled by Stripe and never reach Angar.`,
+- angar stores metadata about AI systems (names, models, owners, costs, events) — not the content of prompts or documents.
+- Card details are handled by Stripe and never reach angar.`,
   },
 ];
 

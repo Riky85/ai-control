@@ -44,7 +44,7 @@ export default async function OnboardingPage({
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-8">
       <div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Get Angar set up</h1>
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Get angar set up</h1>
         <p className="text-sm text-ink-400 mt-1">{checklistDone.filter(Boolean).length} of {STEPS.length} done</p>
         <div className="h-1 bg-line rounded-full mt-3 overflow-hidden">
           <div
@@ -84,7 +84,7 @@ export default async function OnboardingPage({
 
       {step === 1 && (
         <div className="rounded-xl border border-line bg-panel shadow-card p-8 flex flex-col gap-4">
-          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Welcome to Angar</h1>
+          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Welcome to angar</h1>
           <p className="text-sm text-ink-400">
             This walks you through the four things worth setting up before the
             inventory means anything: your organization's name, a real
