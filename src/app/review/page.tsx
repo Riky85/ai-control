@@ -113,7 +113,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
             <div>
               <h3 className="text-sm font-medium text-ink-100 mb-2">Why it matters</h3>
               <ul className="flex flex-col gap-1.5 text-sm text-ink-400">
-                {((risk?.reasons as string[] | undefined) ?? []).slice(0, 4).map((r, i) => (
+                {((risk?.reasons as string[] | undefined) ?? []).filter((r) => !/^status:/i.test(r)).slice(0, 4).map((r, i) => (
                   <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-alarm shrink-0" />{r}</li>
                 ))}
                 {!risk && <li>Not assessed yet.</li>}
