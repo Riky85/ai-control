@@ -3,9 +3,10 @@ import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
 import { PageHeader } from "@/components/ui";
 import CsvDropzone from "@/components/CsvDropzone";
-import { uploadSpendAction } from "@/lib/spend-actions";
+import { uploadSpendAction, syncFattureInCloudAction } from "@/lib/spend-actions";
 import { fmtDate } from "@/lib/format";
 import { workplaceStatus } from "@/lib/connectors/workplace";
+import { ficConfigured } from "@/lib/connectors/fatture-in-cloud";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,8 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
     db.connector.findUnique({ where: { organizationId_provider: { organizationId: orgId, provider: "NETWORK" } } }),
     workplaceStatus(orgId),
   ]);
-  const keys = connectors.filter((c) => !["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK"].includes(c.provider));
+  const fic = await db.connector.findUnique({ where: { organizationId_provider: { organizationId: orgId, provider: "FATTURE_IN_CLOUD" } } });
+  const keys = connectors.filter((c) => !["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK", "FATTURE_IN_CLOUD"].includes(c.provider));
 
   return (
     <div className="flex flex-col gap-6">
@@ -43,6 +45,16 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
             <div className="flex items-center justify-between gap-3">
               <button className="btn btn-primary">Find my AI spend</button>
               <a href="/api/spend/sample" className="text-xs text-ink-400 hover:text-ink-100 underline">Try with a sample statement</a>
+            </div>
+            <div className="flex items-center justify-between rounded-lg border border-line px-3 py-2.5">
+              <span className="text-sm text-ink-100">Fatture in Cloud <span className="text-ink-400 text-xs">— invoices arrive automatically every month</span></span>
+              {fic?.credentialsEncrypted ? (
+                <button formAction={syncFattureInCloudAction} formNoValidate className="btn btn-secondary btn-sm">Sync now</button>
+              ) : ficConfigured() ? (
+                <a href="/api/connectors/fattureincloud/connect" className="btn btn-secondary btn-sm">Connect</a>
+              ) : (
+                <span className="text-xs text-ink-400">Coming soon</span>
+              )}
             </div>
             <p className="text-xs text-ink-400">
               CSV or Excel from any bank or card (Revolut, Qonto, Intesa, UniCredit…), e-invoices (FatturaPA XML, .p7m, TD17 self-invoices) or the zip from your accountant. Only AI lines are kept; everything else is discarded.

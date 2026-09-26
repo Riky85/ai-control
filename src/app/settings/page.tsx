@@ -5,6 +5,7 @@ import { resetWorkspaceDataAction, loadDemoDataAction } from "@/lib/test-data-ac
 import Badge from "@/components/Badge";
 import Link from "next/link";
 import { addUserAction } from "@/lib/actions";
+import { setEmployeesAction } from "@/lib/spend-actions";
 import { Panel, PageHeader } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import ThemeSelect from "@/components/ThemeSelect";
@@ -85,6 +86,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
               <Row label="Country" value={org?.country ?? "—"} />
               <Row label="Created" value={org ? fmtDate(org.createdAt) : "—"} />
             </dl>
+            <form action={setEmployeesAction} className="flex items-end gap-2 mt-4 pt-4 border-t border-line">
+              <label className="flex-1 flex flex-col gap-1.5 text-sm text-ink-400">
+                Employees
+                <input name="employees" type="number" min="1" defaultValue={org?.employees ?? ""} placeholder="e.g. 120" className={input} />
+              </label>
+              <button className={button}>Save</button>
+            </form>
+            <p className="text-xs text-ink-400 mt-2">Used to show AI spend per employee.</p>
           </Panel>
 
           <Panel title="Security">

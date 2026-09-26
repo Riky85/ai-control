@@ -111,7 +111,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         <>
           <div className="grid grid-cols-4 gap-4">
             <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} found by the scan to decide` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} tone="accent" href={toReview ? "/?status=TODECIDE#your-ai" : "/#your-ai"} />
-            <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (estimated ? `${estimated} estimated from list prices` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/?paid=yes#your-ai" : "/sources"} />
+            <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (org?.employees ? `${fmtEur(spend / org.employees, { decimals: true })} per employee` : estimated ? `${estimated} estimated from list prices` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/?paid=yes#your-ai" : "/sources"} />
             <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"} →` : "Nothing found yet"} href="/savings" />
             <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/discover"} />
           </div>

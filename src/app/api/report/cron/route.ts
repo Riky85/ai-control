@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db";
 import { buildReport, reportText } from "@/lib/report";
 import { sendEmail, appOrigin } from "@/lib/mail";
+import { syncFattureInCloud } from "@/lib/connectors/fatture-in-cloud";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,9 @@ export async function POST(req: Request) {
   const orgs = await db.organization.findMany({ where: { aiAssets: { some: { deletedAt: null } } }, include: { members: { where: { role: { in: ["OWNER", "ADMIN"] } } } } });
   let sent = 0;
   for (const org of orgs) {
+    // Prima si aggiornano le fatture automatiche, così il report è fresco.
+    const fic = await db.connector.findUnique({ where: { organizationId_provider: { organizationId: org.id, provider: "FATTURE_IN_CLOUD" } } });
+    if (fic?.credentialsEncrypted) await syncFattureInCloud(org.id).catch(() => {});
     const r = await buildReport(org.id);
     const text = reportText(r, appOrigin());
     for (const m of org.members) {

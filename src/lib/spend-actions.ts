@@ -85,3 +85,25 @@ export async function remindInactiveAction(formData: FormData) {
   await audit("seats.remind_inactive", asset!.name, { count: inactive.length, sent });
   redirect(`/assets/${assetId}?tab=people&${sent ? `reminded=${sent}` : `error=${encodeURIComponent(reason || "Email isn't configured — use 'Write the email yourself'.")}`}`);
 }
+
+export async function setEmployeesAction(formData: FormData) {
+  const s = await requireRole("ADMIN", "/settings");
+  const { db } = await import("@/lib/db");
+  const n = Math.round(Number(formData.get("employees")));
+  await db.organization.update({ where: { id: s.orgId }, data: { employees: Number.isFinite(n) && n > 0 && n < 1_000_000 ? n : null } });
+  revalidatePath("/", "layout");
+  redirect("/settings");
+}
+
+export async function syncFattureInCloudAction() {
+  const s = await requireRole("EDITOR", "/sources");
+  const { syncFattureInCloud } = await import("@/lib/connectors/fatture-in-cloud");
+  try {
+    const r = await syncFattureInCloud(s.orgId);
+    revalidatePath("/", "layout");
+    redirect(`/?spend=${r.services}`);
+  } catch (err) {
+    if ((err as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw err;
+    redirect(`/sources?error=${encodeURIComponent((err as Error).message)}`);
+  }
+}

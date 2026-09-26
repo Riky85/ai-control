@@ -249,17 +249,19 @@ def main():
     ap.add_argument("--sniff", type=int, default=0, help="also listen to DNS traffic for N seconds (admin)")
     ap.add_argument("--dry-run", action="store_true", help="only show what would be sent")
     ap.add_argument("--yes", "-y", action="store_true", help="send without asking")
+    ap.add_argument("--network-only", action="store_true", help="only logs / DNS traffic (for angar Edge)")
     a = ap.parse_args()
 
     print("angar scanner - looking for AI on %s" % socket.gethostname())
     catalog = http("GET", a.server.rstrip("/") + "/api/discovery/catalog")["services"]
     m = Matcher(catalog)
     findings = []
-    scan_browsers(m, findings)
-    scan_dns_cache(m, findings)
-    scan_apps(findings)
-    scan_env(findings)
-    scan_ports(findings)
+    if not a.network_only:
+        scan_browsers(m, findings)
+        scan_dns_cache(m, findings)
+        scan_apps(findings)
+        scan_env(findings)
+        scan_ports(findings)
     for path in a.log:
         scan_log(m, path, findings)
     if a.sniff:
@@ -298,12 +300,12 @@ def main():
     kept = list(merged.values())
     names = sorted({f["_svc"] for f in kept})
     if not kept:
-        print("No AI found on this computer.")
+        print("No AI found." if a.network_only else "No AI found on this computer.")
         return
     print("\nFound %d AI service%s:" % (len(names), "" if len(names) == 1 else "s"))
     for n in names:
         print("  - " + n)
-    device = "%s (%s)" % (socket.gethostname(), os.environ.get("USER") or os.environ.get("USERNAME") or "user")
+    device = ("angar Edge · %s" % socket.gethostname()) if a.network_only else "%s (%s)" % (socket.gethostname(), os.environ.get("USER") or os.environ.get("USERNAME") or "user")
     payload = {"device": device, "os": SYSTEM, "findings": [{k: v for k, v in f.items() if k != "_svc"} for f in kept]}
     if a.dry_run:
         print("\nWould send:\n" + json.dumps(payload, indent=2))

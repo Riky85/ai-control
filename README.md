@@ -109,3 +109,20 @@ Create a client secret and set `MS365_CLIENT_ID`, `MS365_CLIENT_SECRET` on Railw
 
 `POST /api/report/cron` with `Authorization: Bearer $REPORT_TOKEN` (falls back to `BACKUP_TOKEN`) emails the monthly AI
 report to owners and admins of every workspace. Schedule it once a month (e.g. `0 7 1 * *`). Needs `RESEND_API_KEY` and `EMAIL_FROM`.
+
+## Fatture in Cloud (automatic invoices, Italy)
+
+Create an app on developers.fattureincloud.it (OAuth, scope `received_documents:r`), redirect URI
+`https://<APP_URL>/api/connectors/fattureincloud/callback`, then set `FIC_CLIENT_ID` and `FIC_CLIENT_SECRET`.
+Customers connect it from Sources; invoices sync on connect, on "Sync now" and before each monthly report.
+
+## Browser extension
+
+`/api/discovery/extension.zip` serves the Chrome/Edge extension with this server's URL built in. For company-wide rollout,
+publish it once (Chrome Web Store / Edge Add-ons, unlisted) and force-install it with a managed policy
+`{"token": "<scan token>", "server": "<APP_URL>"}`. It posts to `/api/discovery/usage` every 30 minutes.
+
+## angar Edge (software)
+
+On any always-on Linux box with Docker that sees DNS traffic:
+`docker run -d --name angar-edge --restart unless-stopped --network host --cap-add NET_RAW --cap-add NET_ADMIN -e ANGAR_TOKEN=<token> python:3.12-alpine sh -c "apk add --no-cache tcpdump curl && curl -fsSL <APP_URL>/api/discovery/scanner.py -o /s.py && while true; do python3 /s.py --network-only --sniff 3600 --yes; done"`

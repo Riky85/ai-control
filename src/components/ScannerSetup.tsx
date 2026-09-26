@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { createDiscoveryTokenAction } from "@/lib/discovery-actions";
 
-type Os = "mac" | "windows" | "network";
+type Os = "mac" | "windows" | "network" | "edge";
 
 // Il token compare una volta sola, già dentro i comandi da copiare.
 export default function ScannerSetup({ base, hint, canCreate }: { base: string; hint: string | null; canCreate: boolean }) {
@@ -18,7 +18,9 @@ export default function ScannerSetup({ base, hint, canCreate }: { base: string; 
       ? `curl -fsSL ${url} -o angar-scan.py && python3 angar-scan.py --token ${t}`
       : os === "windows"
         ? `iwr ${url} -OutFile angar-scan.py; py angar-scan.py --token ${t}`
-        : `curl -fsSL ${url} -o angar-scan.py && sudo python3 angar-scan.py --token ${t} --sniff 900 --yes`;
+        : os === "network"
+          ? `curl -fsSL ${url} -o angar-scan.py && sudo python3 angar-scan.py --token ${t} --sniff 900 --yes`
+          : `docker run -d --name angar-edge --restart unless-stopped --network host --cap-add NET_RAW --cap-add NET_ADMIN -e ANGAR_TOKEN=${t} python:3.12-alpine sh -c "apk add --no-cache tcpdump curl >/dev/null && curl -fsSL ${url} -o /s.py && while true; do python3 /s.py --network-only --sniff 3600 --yes; done"`;
 
   return (
     <div className="flex flex-col gap-3">
@@ -47,6 +49,7 @@ export default function ScannerSetup({ base, hint, canCreate }: { base: string; 
             ["mac", "macOS / Linux"],
             ["windows", "Windows"],
             ["network", "Whole network"],
+            ["edge", "Always on (angar Edge)"],
           ] as const
         ).map(([id, label]) => (
           <button key={id} type="button" onClick={() => setOs(id)} className={`text-xs px-3 py-1 rounded-md transition-colors ${os === id ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"}`}>
@@ -73,7 +76,9 @@ export default function ScannerSetup({ base, hint, canCreate }: { base: string; 
         {os === "mac" && "Open Terminal, paste, press Enter. It shows what it found and asks before sending."}
         {os === "windows" && "Open PowerShell, paste, press Enter. Needs Python 3 (free in the Microsoft Store)."}
         {os === "network" &&
-          "Run once on a server that sees your DNS traffic (e.g. the DNS server or a mirror port): it listens for 15 minutes and reports every AI service used by anyone on the network. Schedule it to keep angar up to date."}
+          "Run once on a server that sees your DNS traffic (e.g. the DNS server or a mirror port): it listens for 15 minutes and reports every AI service used by anyone on the network."}
+        {os === "edge" &&
+          "angar Edge as software: paste on any always-on Linux machine with Docker that sees your DNS traffic (DNS server, firewall mirror port, a small PC). It reports new AI every hour, forever. No hardware to buy."}
       </p>
     </div>
   );

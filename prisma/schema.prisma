@@ -27,6 +27,7 @@ enum ConnectorProvider {
   TOGETHER
   OPENROUTER
   HUGGINGFACE
+  FATTURE_IN_CLOUD // fatture passive (Italia), per i costi
   NETWORK // scoperta automatica: scanner angar sui computer / log DNS e firewall
 }
 
@@ -128,6 +129,7 @@ model Organization {
   policies   Policy[]
 
   // Token dello scanner di rete (solo hash SHA-256; il token si vede una volta).
+  employees          Int? // numero dipendenti: spesa AI per dipendente
   discoveryTokenHash String? @unique
   discoveryTokenHint String?
 
