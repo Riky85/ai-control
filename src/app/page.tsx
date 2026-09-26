@@ -51,6 +51,14 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         ...(canSave > 0 ? [{ name: "With savings", style: "ghost" as const, values: spendByMonth.slice(from).map((v) => Math.round(v * ratio)) }] : []),
       ]
     : [{ name: "AI in use", values: months.map((m) => all.filter((a) => a.firstSeenAt.toISOString().slice(0, 7) <= m.key).length) }];
+  // Ultimo mese completo con dati e variazione sul precedente.
+  const mainValues = chartSeries[0].values;
+  const labelsShown = hasSpend ? chartLabels : months.map((m) => m.label);
+  const li = Math.max(0, mainValues.length - (hasSpend && mainValues.length > 1 && new Date().getUTCDate() < 25 ? 2 : 1));
+  const lastValue = mainValues[li] ?? 0;
+  const lastLabel = labelsShown[li] ?? "";
+  const prevValue = li > 0 ? mainValues[li - 1] : 0;
+  const delta = prevValue > 0 ? Math.round(((lastValue - prevValue) / prevValue) * 100) : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -108,12 +116,29 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/discover"} />
           </div>
 
-          <Panel
-            title={hasSpend ? "AI spend by month" : "AI in use over time"}
-            subtitle={hasSpend ? (canSave > 0 ? "From your statements and invoices · dashed: what it would cost with angar's savings" : "From your statements and invoices") : "Add a bank statement to see spend over time"}
-          >
-            <LineChart labels={hasSpend ? chartLabels : months.map((m) => m.label)} series={chartSeries} unit={hasSpend ? "eur" : "count"} />
-          </Panel>
+          <section className="rounded-xl border border-line bg-panel p-5 grid grid-cols-[240px_1fr] gap-6 items-center animate-rise">
+            <div className="flex flex-col gap-3">
+              <div className="text-sm text-ink-400">{hasSpend ? "AI spend by month" : "AI in use over time"}</div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-display text-[28px] leading-none font-semibold tracking-tight tabular text-ink-100">{hasSpend ? fmtEur(lastValue) : String(lastValue)}</span>
+                {delta !== null && (
+                  <span className={`text-xs font-medium rounded-full px-1.5 py-0.5 tabular ${delta > 0 ? "text-alarm bg-alarm/10" : "text-steady bg-steady/10"}`}>
+                    {delta > 0 ? "▲" : "▼"} {Math.abs(delta)}%
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-ink-400">{lastLabel}{delta !== null ? " vs previous month" : ""}</div>
+              <div className="flex flex-col gap-1.5 text-xs text-ink-400 pt-1">
+                {chartSeries.map((s) => (
+                  <span key={s.name} className="flex items-center gap-2">
+                    <span className={`inline-block w-4 border-t-2 ${"style" in s && s.style === "ghost" ? "border-dashed border-ink-400" : "border-accent"}`} />
+                    {s.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <LineChart labels={hasSpend ? chartLabels : months.map((m) => m.label)} series={chartSeries} unit={hasSpend ? "eur" : "count"} height={140} />
+          </section>
 
           <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">
             <div className="flex items-end justify-between">

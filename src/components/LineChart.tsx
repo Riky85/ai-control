@@ -13,14 +13,14 @@ export interface LineSeries {
  * Grafico a linee semplice: una scala, linee sottili, griglia leggera,
  * etichetta diretta sull'ultimo punto, crosshair + tooltip al passaggio.
  */
-export default function LineChart({ labels, series, unit = "count", height = 220 }: { labels: string[]; series: LineSeries[]; unit?: "eur" | "count"; height?: number }) {
+export default function LineChart({ labels, series, unit = "count", height = 150 }: { labels: string[]; series: LineSeries[]; unit?: "eur" | "count"; height?: number }) {
   // Il formato si decide qui: le funzioni non possono arrivare dal server.
   const format = (v: number) => (unit === "eur" ? "€" + Math.round(v).toLocaleString("en-GB") : String(Math.round(v)));
   const ref = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<number | null>(null);
   const W = 800;
   const H = height;
-  const pad = { l: 56, r: 96, t: 16, b: 28 };
+  const pad = { l: 48, r: 12, t: 10, b: 24 };
   const max = Math.max(1, ...series.flatMap((s) => s.values)) * 1.1;
   const ticks = niceTicks(max);
   const top = ticks[ticks.length - 1];
@@ -59,7 +59,6 @@ export default function LineChart({ labels, series, unit = "count", height = 220
               {s.values.map((v, i) => (hover === i || i === last) && (
                 <circle key={i} cx={x(i)} cy={y(v)} r={4} fill={main ? "#FF7323" : "rgb(var(--c-muted))"} stroke="rgb(var(--c-panel))" strokeWidth={2} />
               ))}
-              <text x={x(last) + 10} y={y(s.values[last]) + 4} fontSize="11" fill="rgb(var(--c-text))">{s.name}</text>
             </g>
           );
         })}
@@ -86,7 +85,7 @@ export default function LineChart({ labels, series, unit = "count", height = 220
 }
 
 function niceTicks(max: number) {
-  const raw = max / 4;
+  const raw = max / 2;
   const mag = Math.pow(10, Math.floor(Math.log10(raw)));
   const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) ?? raw;
   const out: number[] = [];
