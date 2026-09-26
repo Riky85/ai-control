@@ -38,7 +38,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
     <div className="flex flex-col gap-6">
       <PageHeader
         crumbs={[{ label: "Sources", href: "/sources" }]}
-        title="Find AI automatically"
+        title="Scan computers & network"
         subtitle="You don't need to remember which AI your company uses — angar looks for it and shows you what it finds."
       />
       {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
@@ -65,7 +65,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
           <ul className="text-sm text-ink-400 flex flex-col gap-2">
             <li className="flex gap-2"><Tick />Only AI services angar recognises — e.g. "claude.ai, 42 visits".</li>
             <li className="flex gap-2"><Tick />Never the rest of the browsing, page contents, prompts or key values.</li>
-            <li className="flex gap-2"><Tick />It lists what it found and asks before sending. <span className="font-mono text-xs">--dry-run</span> sends nothing.</li>
+            <li className="flex gap-2"><Tick />It lists what it found and asks before sending. <span className="font-mono text-xs whitespace-nowrap">--dry-run</span> sends nothing.</li>
           </ul>
           {org?.discoveryTokenHint && (
             <form action={revokeDiscoveryTokenAction} className="pt-2 border-t border-line">
