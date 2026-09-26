@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { resetWorkspaceDataAction, loadDemoDataAction } from "@/lib/test-data-actions";
 import Badge from "@/components/Badge";
 import Link from "next/link";
-import { addUserAction, restartOnboardingAction } from "@/lib/actions";
+import { addUserAction } from "@/lib/actions";
 import { Panel, PageHeader } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import ThemeSelect from "@/components/ThemeSelect";
@@ -30,7 +30,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
 
       <div className="grid grid-cols-3 gap-4 items-start">
         <div className="col-span-2 flex flex-col gap-4">
-          <Panel title="Team" subtitle={`${users.length} ${users.length === 1 ? "person" : "people"} — owners of AI systems are picked from here`}>
+          <Panel title="People" subtitle={`${users.length} ${users.length === 1 ? "person" : "people"} — added automatically from company accounts and provider keys`}>
             <div className="divide-y divide-line -mx-5 border-y border-line mb-4">
               {users.map((u) => (
                 <Link key={u.id} href={`/people/${u.id}`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-ink-100/[0.02] transition-colors">
@@ -46,12 +46,15 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
               ))}
               {users.length === 0 && <p className="px-5 py-3 text-sm text-ink-400">No people yet.</p>}
             </div>
-            <form action={addUserAction} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2">
-              <input name="email" type="email" required placeholder="Email" className={input} />
-              <input name="name" placeholder="Name" className={input} />
-              <input name="department" placeholder="Department" className={input} />
-              <button className="btn btn-primary btn-sm">Add</button>
-            </form>
+            <details>
+              <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none">Add someone by hand (optional)</summary>
+              <form action={addUserAction} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 mt-3">
+                <input name="email" type="email" required placeholder="Email" className={input} />
+                <input name="name" placeholder="Name" className={input} />
+                <input name="department" placeholder="Department" className={input} />
+                <button className="btn btn-secondary btn-sm">Add</button>
+              </form>
+            </details>
           </Panel>
 
           <Panel
@@ -93,11 +96,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
             </dl>
           </Panel>
 
-          <Panel title="Setup wizard" subtitle={org?.onboardingCompletedAt ? `Completed ${fmtDate(org.onboardingCompletedAt)}` : "Not completed yet"}>
-            <form action={restartOnboardingAction}>
-              <button className={button}>{org?.onboardingCompletedAt ? "Run again" : "Run setup"}</button>
-            </form>
-          </Panel>
         </div>
       </div>
 
@@ -106,7 +104,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
         <p className="text-sm text-ink-400 mt-0.5 mb-4">
           Start this workspace from scratch to try the platform with your own AI, or load the sample data. Owners only.
         </p>
-        {searchParams.reset && <p className="text-sm text-steady mb-4">Workspace data reset — it's empty now. Connect a provider or import a CSV to start.</p>}
+        {searchParams.reset && <p className="text-sm text-steady mb-4">Workspace data reset — it's empty now. Drop a bank statement on Overview to start.</p>}
         {searchParams.error && <p className="text-sm text-alarm mb-4">{searchParams.error}</p>}
         <div className="grid grid-cols-2 gap-6">
           <form action={resetWorkspaceDataAction} className="flex flex-col gap-2">
