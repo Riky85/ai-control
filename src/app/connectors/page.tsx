@@ -75,12 +75,12 @@ export default async function ConnectorsPage({
 
       {searchParams.connected && (
         <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
-          <b>Connected.</b> First sync done — your systems are now in <a href="/assets" className="underline">AI Passports</a>.
+          <b>Connected.</b> First sync done — your systems are now in <a href="/" className="underline">Your AI</a>.
         </div>
       )}
       {searchParams.imported && (
         <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
-          <b>{searchParams.imported} AI systems imported.</b> See them in <a href="/assets" className="underline">AI Passports</a>.
+          <b>{searchParams.imported} AI systems imported.</b> See them in <a href="/" className="underline">Your AI</a>.
         </div>
       )}
       {searchParams.error && !searchParams.provider && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
@@ -173,7 +173,7 @@ export default async function ConnectorsPage({
           <div className="col-span-3 border-l border-line pl-8">
             {githubConnected ? (
               <div className="text-sm text-ink-400">
-                Connected. New projects that add an AI library appear in <a href="/assets" className="text-ink-100 underline">AI Passports</a> after each scan.
+                Connected. New projects that add an AI library appear in <a href="/assets" className="text-ink-100 underline">Your AI</a> after each scan.
                 {github?.lastSyncError && <p className="text-alarm mt-2">{github.lastSyncError}</p>}
               </div>
             ) : (

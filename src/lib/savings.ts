@@ -148,7 +148,7 @@ export async function computeSavings(organizationId: string) {
           monthlyEur: save,
           confidence: "LOW",
           assets: [ref(a)],
-          href: `/assets/${a.id}?tab=alternatives`,
+          href: `/assets/${a.id}`,
         });
     }
 
@@ -179,7 +179,7 @@ export async function computeSavings(organizationId: string) {
         monthlyEur: m.eur - best.estimatedMonthlyCost!,
         confidence: (best.qualityConfidence as Confidence) ?? "MEDIUM",
         assets: [ref(a)],
-        href: `/assets/${a.id}?tab=alternatives`,
+        href: `/assets/${a.id}`,
       });
     }
   }

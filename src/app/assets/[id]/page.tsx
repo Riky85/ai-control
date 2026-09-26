@@ -1,68 +1,84 @@
-import { fmtDate, fmtDateTime } from "@/lib/format";
+import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
-import AssetGraph from "@/components/AssetGraph";
-import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, setAssetCostAction, addAlternativeAction, deleteAlternativeAction } from "@/lib/actions";
+import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, setAssetCostAction } from "@/lib/actions";
+import { dismissSavingAction } from "@/lib/spend-actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
 import { StatCard, Tabs, Panel, Table, td } from "@/components/ui";
 import StatusDot from "@/components/StatusDot";
 import ExportMenu from "@/components/ExportMenu";
+import { computeSavings, categoryOf, monthlyOf } from "@/lib/savings";
+import { CATEGORY_LABEL, PLANS } from "@/lib/pricing/catalog";
 
 export const dynamic = "force-dynamic";
 
-const ASSURANCE_LABEL: Record<string, string> = {
-  ASSURED: "Assured",
-  NEEDS_REVIEW: "Needs review",
-  RESTRICTED: "Restricted",
-  BLOCKED: "Blocked",
-};
-
 const TABS = [
   { key: "overview", label: "Overview" },
-  { key: "risk", label: "Risk & Assurance" },
+  { key: "spend", label: "Spend" },
+  { key: "people", label: "People" },
+  { key: "risk", label: "Risk & compliance" },
   { key: "activity", label: "Activity" },
-  { key: "alternatives", label: "Alternatives" },
 ] as const;
 
+const DAY = 86400000;
+const CONF: Record<string, string> = { HIGH: "Sure", MEDIUM: "Likely", LOW: "Worth checking" };
+
+// Il passaporto di un'AI: quanto costa, chi la usa, come risparmiare, cosa tocca.
 export default async function AssetDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { tab?: string } }) {
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "overview";
+  const orgId = currentOrgId();
 
-  const [asset, orgUsers] = await Promise.all([
+  const [asset, orgUsers, spend, { items, assets }] = await Promise.all([
     db.aiAsset.findFirst({
-      where: { id: params.id, organizationId: currentOrgId() },
+      where: { id: params.id, organizationId: orgId },
       include: {
         owner: true,
         connector: true,
         connectedSystems: true,
         dataAccess: { include: { dataAsset: true } },
-        usages: { include: { user: true }, take: 20 },
+        usages: { include: { user: true }, orderBy: { lastSeenAt: "desc" }, take: 200 },
         riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
         assuranceReports: { orderBy: { createdAt: "desc" }, take: 1 },
-        activities: { orderBy: { occurredAt: "desc" }, take: 8 },
-        relationsFrom: { include: { targetAsset: true } },
-        relationsTo: { include: { sourceAsset: true } },
+        activities: { orderBy: { occurredAt: "desc" }, take: 30 },
         cost: true,
-        alternatives: { orderBy: { createdAt: "desc" } },
       },
     }),
-    db.user.findMany({ where: { organizationId: currentOrgId() }, orderBy: { name: "asc" } }),
+    db.user.findMany({ where: { organizationId: orgId }, orderBy: { name: "asc" } }),
+    db.spendRecord.findMany({ where: { organizationId: orgId, aiAssetId: params.id }, orderBy: { date: "desc" }, take: 100 }),
+    computeSavings(orgId),
   ]);
 
   if (!asset) notFound();
 
   const risk = asset.riskAssessments[0];
   const assurance = asset.assuranceReports[0];
+  const loaded = assets.find((a) => a.id === asset.id);
+  const m = loaded ? monthlyOf(loaded) : asset.cost?.monthlyCostEstimate != null ? { eur: asset.cost.monthlyCostEstimate, estimated: false } : null;
+  const cat = categoryOf(asset);
+  const plan = asset.cost?.planId ? PLANS.find((p) => p.id === asset.cost!.planId) : null;
+  const seats = asset.cost?.seats ?? null;
+  const active = asset.usages.filter((u) => u.lastSeenAt && Date.now() - u.lastSeenAt.getTime() < 30 * DAY).length;
+  const mine = items.filter((i) => i.assets.some((a) => a.id === asset.id));
+  const canSave = mine.reduce((t, i) => t + (i.kind === "duplicate" ? (i.assets[0]?.id === asset.id ? 0 : m?.eur ?? 0) : i.monthlyEur), 0);
+  const sources = [
+    spend.some((r) => r.source === "bank") && "Bank statement",
+    spend.some((r) => r.source === "invoice") && "Invoices",
+    asset.connector && asset.connector.provider !== "NETWORK" && asset.connector.provider.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
+    asset.activities.some((a) => a.eventType === "discovery.seen") && "Scan",
+    asset.activities.some((a) => a.eventType === "signin" || a.eventType === "copilot.active") && "Microsoft 365",
+    asset.activities.some((a) => a.eventType.startsWith("oauth.")) && "Google Workspace",
+  ].filter(Boolean) as string[];
 
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <nav className="text-sm text-ink-400 mb-2 flex items-center gap-1.5">
-            <Link href="/assets" className="hover:text-ink-100 hover:underline">AI Passports</Link>
+            <Link href="/" className="hover:text-ink-100 hover:underline">Your AI</Link>
             <span aria-hidden>/</span>
             <span className="truncate">{asset.name}</span>
           </nav>
@@ -71,34 +87,30 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             <div className="min-w-0">
               <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 truncate">{asset.name}</h1>
               <p className="text-sm text-ink-400 mt-0.5">
-                {asset.vendor ?? "Vendor unknown"} · {asset.type.replace(/_/g, " ").toLowerCase()}
+                {[asset.vendor ?? "Vendor unknown", cat ? CATEGORY_LABEL[cat] : asset.type.replace(/_/g, " ").toLowerCase(), sources.length ? `found via ${sources.join(", ")}` : null].filter(Boolean).join(" · ")}
               </p>
             </div>
           </div>
         </div>
-        {/* Stessa riga e stessa altezza del pulsante documentazione (fisso nel layout). */}
         <div className="flex items-center gap-2 shrink-0 pr-11 min-h-9">
           <Badge>{asset.status}</Badge>
-          {risk && <Badge>{risk.level}</Badge>}
-          {assurance && <Badge>{assurance.level}</Badge>}
           <ExportMenu dataset={`passport-${asset.id}`} />
         </div>
       </div>
 
       <div className="grid grid-cols-4 gap-4">
         <StatCard
-          label="Current cost"
-          value={asset.cost?.monthlyCostEstimate != null ? `€${asset.cost.monthlyCostEstimate.toLocaleString()}` : "—"}
-          hint={asset.cost?.monthlyCostEstimate != null ? costSource(asset.cost) : "Found automatically from your bank statement or billing"}
+          label="Cost / month"
+          value={m ? `${m.estimated ? "≈ " : ""}${fmtEur(m.eur)}` : "Not paid"}
+          hint={asset.cost?.monthlyCostEstimate != null ? costSource(asset.cost) : m ? "Estimated from list prices" : "Free, or paid personally"}
         />
-        <StatCard label="Annualized" value={asset.cost?.monthlyCostEstimate != null ? `€${(asset.cost.monthlyCostEstimate * 12).toLocaleString()}` : "—"} />
-        <StatCard label="Dependencies" value={String(asset.connectedSystems.length + asset.dataAccess.length)} hint="Systems and data it touches" />
+        <StatCard label="Plan" value={plan ? (seats && seats > 1 ? `${seats} seats` : "1 seat") : m && !m.estimated ? "Usage" : "—"} hint={plan?.name ?? (m ? "Pay as you go" : "Unknown")} />
         <StatCard
-          label="Assurance"
-          value={assurance ? `${assurance.score}%` : "—"}
-          hint={assurance ? ASSURANCE_LABEL[assurance.level] : "Not assessed"}
-          tone={assurance ? (assurance.level === "ASSURED" ? undefined : assurance.level === "NEEDS_REVIEW" ? "signal" : "alarm") : undefined}
+          label="People"
+          value={asset.usages.length ? (seats ? `${active} / ${seats}` : String(asset.usages.length)) : seats ? `? / ${seats}` : "—"}
+          hint={asset.usages.length ? (seats ? "active in 30 days / paid seats" : "people using it") : "Connect Microsoft 365 or Google to see who uses it"}
         />
+        <StatCard label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} tone={canSave >= 1 ? "accent" : undefined} />
       </div>
 
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/assets/${asset.id}?tab=${t.key}` }))} />
@@ -107,47 +119,78 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         <div className="col-span-2 flex flex-col gap-4">
           {tab === "overview" && (
             <>
+              <Panel title="How to save" subtitle="Calculated automatically from your bills, seats and list prices">
+                <div className="divide-y divide-line -mx-5 border-t border-line">
+                  {mine.map((i) => (
+                    <div key={i.key} className="flex items-start gap-4 px-5 py-3.5">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-ink-100">{i.title} <span className="ml-1 text-[11px] font-normal text-ink-400">{CONF[i.confidence]}</span></div>
+                        <div className="text-sm text-ink-400 mt-0.5">{i.detail}</div>
+                      </div>
+                      <div className="text-sm font-semibold text-ink-100 tabular shrink-0">{fmtEur(i.monthlyEur)}/mo</div>
+                      <form action={dismissSavingAction}>
+                        <input type="hidden" name="key" value={i.key} />
+                        <button className="text-xs text-ink-400 hover:text-ink-100" title="Not for us — hide">Hide</button>
+                      </form>
+                    </div>
+                  ))}
+                  {mine.length === 0 && <p className="px-5 py-4 text-sm text-ink-400">Nothing to save on {asset.name} right now. angar checks again whenever new data arrives.</p>}
+                </div>
+              </Panel>
               <Panel title="Details">
                 <dl className="grid grid-cols-3 gap-x-6 gap-y-5">
-                  <Field label="Model" value={asset.model} />
                   <Field label="Provider" value={asset.vendor} />
-                  <Field label="Type" value={asset.type.replace(/_/g, " ").toLowerCase()} />
-                  <Field label="Owner" value={asset.owner?.name ?? asset.owner?.email} empty="No owner yet" />
-                  <Field label="Department" value={asset.department} />
+                  <Field label="Model" value={asset.model} />
+                  <Field label="Owner" value={asset.owner?.name ?? asset.owner?.email} empty="No owner" />
                   <Field label="EU AI Act" value={EU_LABEL[asset.euAiActTier]} />
-                  <Field label="Discovered by" value={asset.connector ? asset.connector.provider.replace(/_/g, " ").toLowerCase() : "Added manually"} />
-                  <Field label="First seen" value={fmtDate(asset.firstSeenAt)} />
+                  <Field label="In use since" value={fmtDate(asset.firstSeenAt)} />
                   <Field label="Last seen" value={asset.lastSeenAt ? fmtDate(asset.lastSeenAt) : null} />
                 </dl>
-              </Panel>
-              <Panel title="Dependency graph" subtitle="Who uses it, and which systems and data it depends on">
-                <AssetGraph
-                  center={asset.name}
-                  centerVendor={asset.vendor}
-                  left={asset.usages.slice(0, 6).map((u) => ({ label: u.user?.name ?? u.externalUserRef ?? "Unknown user", sublabel: u.user?.department ?? undefined, kind: "user" as const }))}
-                  right={[
-                    ...asset.connectedSystems.map((s) => ({
-                      label: s.system,
-                      sublabel: s.detail ?? undefined,
-                      kind: "external" as const,
-                      tone: (s.detail?.match(/prod/i) ? "alarm" : "default") as "default" | "alarm",
-                    })),
-                    ...asset.relationsFrom.map((r) => ({ label: r.targetAsset.name, sublabel: r.relationType, kind: "system" as const })),
-                    ...asset.dataAccess.map((d) => ({
-                      label: d.dataAsset.name,
-                      sublabel: d.dataAsset.sensitivity.replace(/_/g, " ").toLowerCase(),
-                      kind: "data" as const,
-                      tone: (SENSITIVE.includes(d.dataAsset.sensitivity) ? "alarm" : "default") as "default" | "alarm",
-                    })),
-                  ]}
-                />
+                {(asset.dataAccess.length > 0 || asset.connectedSystems.length > 0) && (
+                  <div className="mt-5 pt-5 border-t border-line">
+                    <div className="text-xs text-ink-400 mb-2">What it touches</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {asset.dataAccess.map((d) => (
+                        <span key={d.id} className={`text-xs rounded-full px-2.5 py-1 ${SENSITIVE.includes(d.dataAsset.sensitivity) ? "bg-alarm/10 text-alarm" : "bg-ink text-ink-400"}`}>{d.dataAsset.name}</span>
+                      ))}
+                      {asset.connectedSystems.map((c) => (
+                        <span key={c.id} className="text-xs rounded-full px-2.5 py-1 bg-ink text-ink-400">{c.system}{c.detail ? ` · ${c.detail}` : ""}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </Panel>
             </>
           )}
 
+          {tab === "spend" && (
+            <Table columns={["Date", "Charge", "Source", { label: "Amount", className: "text-right" }]} empty={spend.length === 0 ? "No charges yet — add a bank statement or invoices in Sources." : false}>
+              {spend.map((r) => (
+                <tr key={r.id}>
+                  <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDate(r.date)}</td>
+                  <td className={`${td} text-ink-100`}>{r.description}</td>
+                  <td className={`${td} text-ink-400`}>{r.source === "bank" ? "Bank statement" : "Invoice"}</td>
+                  <td className={`${td} text-right tabular text-ink-100`}>{fmtEur(r.amountEur, { decimals: true })}</td>
+                </tr>
+              ))}
+            </Table>
+          )}
+
+          {tab === "people" && (
+            <Table columns={["Person", "Department", "Last active"]} empty={asset.usages.length === 0 ? "Nobody known yet — connect Microsoft 365, Google Workspace or an Admin key to see who uses it." : false}>
+              {asset.usages.map((u) => (
+                <tr key={u.id}>
+                  <td className={`${td} text-ink-100`}>{u.user?.name ?? u.user?.email ?? u.externalUserRef ?? "Unknown"}{u.user?.name && <span className="block text-xs text-ink-400">{u.user.email}</span>}</td>
+                  <td className={`${td} text-ink-400`}>{u.user?.department ?? "—"}</td>
+                  <td className={`${td} text-ink-400 tabular`}>{u.lastSeenAt ? fmtDate(u.lastSeenAt) : "—"}</td>
+                </tr>
+              ))}
+            </Table>
+          )}
+
           {tab === "risk" && (
             <>
-              <Panel title="Risk" subtitle="Computed by rules from what angar knows about this system">
+              <Panel title="Risk" subtitle="Computed by rules from what angar knows about this AI">
                 {risk ? (
                   <div className="flex gap-8 items-start">
                     <div className="shrink-0">
@@ -209,65 +252,6 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 </tr>
               ))}
             </Table>
-          )}
-
-          {tab === "alternatives" && (
-            <>
-              <Table
-                columns={["Alternative", "Est. cost / mo", "Saving / mo", "Quality", "Migration", { label: "", className: "w-16" }]}
-                empty={asset.alternatives.length === 0 ? "No alternatives recorded yet — add one you've evaluated below." : false}
-              >
-                {asset.alternatives.map((alt) => {
-                  const current = asset.cost?.monthlyCostEstimate;
-                  const saving = current != null && alt.estimatedMonthlyCost != null ? current - alt.estimatedMonthlyCost : null;
-                  return (
-                    <tr key={alt.id}>
-                      <td className={td}>
-                        <span className="flex items-center gap-3">
-                          <VendorBadge vendor={alt.provider} name={alt.model} size={28} />
-                          <span>
-                            <span className="block font-medium text-ink-100">{alt.model}</span>
-                            <span className="block text-xs text-ink-400">{alt.provider}</span>
-                          </span>
-                        </span>
-                      </td>
-                      <td className={`${td} tabular`}>{alt.estimatedMonthlyCost != null ? `€${alt.estimatedMonthlyCost.toLocaleString()}` : "—"}</td>
-                      <td className={`${td} tabular font-medium ${saving == null ? "text-ink-400" : saving > 0 ? "text-steady" : "text-alarm"}`}>
-                        {saving == null ? "—" : `${saving > 0 ? "−" : "+"}€${Math.abs(saving).toLocaleString()}`}
-                      </td>
-                      <td className={`${td} text-ink-100`}>{alt.qualityConfidence ? alt.qualityConfidence.charAt(0) + alt.qualityConfidence.slice(1).toLowerCase() : "—"}</td>
-                      <td className={`${td} text-ink-400`}>{alt.migrationEffortDays ? `${alt.migrationEffortDays} days` : "—"}</td>
-                      <td className={`${td} text-right`}>
-                        <form action={deleteAlternativeAction}>
-                          <input type="hidden" name="alternativeId" value={alt.id} />
-                          <input type="hidden" name="assetId" value={asset.id} />
-                          <button type="submit" className="text-sm text-ink-400 hover:text-alarm transition-colors">Remove</button>
-                        </form>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </Table>
-              <Panel title="Add an alternative" subtitle={asset.cost?.monthlyCostEstimate != null ? `Compared with the current €${asset.cost.monthlyCostEstimate.toLocaleString()}/month` : "Enter this system's current cost in Manage to see savings"}>
-                <form action={addAlternativeAction} className="grid grid-cols-6 gap-3">
-                  <input type="hidden" name="assetId" value={asset.id} />
-                  <input name="provider" required placeholder="Provider, e.g. OpenAI" className={`${INPUT} col-span-2`} />
-                  <input name="model" required placeholder="Model, e.g. GPT-5" className={`${INPUT} col-span-2`} />
-                  <input name="estimatedMonthlyCost" type="number" step="0.01" placeholder="€ / month" className={`${INPUT} col-span-2`} />
-                  <select name="qualityConfidence" defaultValue="" className={`${INPUT} col-span-2`}>
-                    <option value="">Quality confidence</option>
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                  </select>
-                  <input name="migrationEffortDays" placeholder="Migration days, e.g. 3-5" className={`${INPUT} col-span-2`} />
-                  <input name="reasoning" placeholder="Why it could work (optional)" className={`${INPUT} col-span-2`} />
-                  <div className="col-span-6 flex justify-end">
-                    <button type="submit" className="btn btn-primary">Add alternative</button>
-                  </div>
-                </form>
-              </Panel>
-            </>
           )}
         </div>
 
