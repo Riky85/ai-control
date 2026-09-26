@@ -32,9 +32,9 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
       {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="AI in use" value={String(r.assets.length)} tone="accent" />
-        <StatCard label="Monthly spend" value={r.spend ? fmtEur(r.spend) : "—"} hint={r.spend ? `${fmtEur(r.spend * 12)} a year` : undefined} />
-        <StatCard label="You could save" value={r.canSave ? `${fmtEur(r.canSave)}/mo` : "—"} hint={r.canSave ? `${fmtEur(r.canSave * 12)} a year` : undefined} />
+        <StatCard href="/#your-ai" label="AI in use" value={String(r.assets.length)} tone="accent" />
+        <StatCard href="/?paid=yes#your-ai" label="Monthly spend" value={r.spend ? fmtEur(r.spend) : "—"} hint={r.spend ? `${fmtEur(r.spend * 12)} a year` : undefined} />
+        <StatCard href="/savings" label="You could save" value={r.canSave ? `${fmtEur(r.canSave)}/mo` : "—"} hint={r.canSave ? `${fmtEur(r.canSave * 12)} a year` : undefined} />
       </div>
 
       <div className="grid grid-cols-2 gap-4 items-start">

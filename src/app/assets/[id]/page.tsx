@@ -101,17 +101,19 @@ export default async function AssetDetailPage({ params, searchParams }: { params
 
       <div className="grid grid-cols-4 gap-4">
         <StatCard
+          href={`/assets/${asset.id}?tab=spend`}
           label="Cost / month"
           value={m ? `${m.estimated ? "≈ " : ""}${fmtEur(m.eur)}` : "Not paid"}
           hint={asset.cost?.monthlyCostEstimate != null ? costSource(asset.cost) : m ? "Estimated from list prices" : "Free, or paid personally"}
         />
-        <StatCard label="Plan" value={plan ? (seats && seats > 1 ? `${seats} seats` : "1 seat") : m && !m.estimated ? "Usage" : "—"} hint={plan?.name ?? (m ? "Pay as you go" : "Unknown")} />
+        <StatCard href={`/assets/${asset.id}?tab=spend`} label="Plan" value={plan ? (seats && seats > 1 ? `${seats} seats` : "1 seat") : m && !m.estimated ? "Usage" : "—"} hint={plan?.name ?? (m ? "Pay as you go" : "Unknown")} />
         <StatCard
+          href={asset.usages.length ? `/assets/${asset.id}?tab=people` : "/sources"}
           label="People"
           value={asset.usages.length ? (seats ? `${active} / ${seats}` : String(asset.usages.length)) : seats ? `? / ${seats}` : "—"}
           hint={asset.usages.length ? (seats ? "active in 30 days / paid seats" : "people using it") : "Connect Microsoft 365 or Google to see who uses it"}
         />
-        <StatCard label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} tone={canSave >= 1 ? "accent" : undefined} />
+        <StatCard href={`/assets/${asset.id}`} label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} tone={canSave >= 1 ? "accent" : undefined} />
       </div>
 
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/assets/${asset.id}?tab=${t.key}` }))} />

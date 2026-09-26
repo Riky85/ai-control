@@ -252,7 +252,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
       <div className="mt-3 pt-3 border-t border-white/[0.08] flex flex-col gap-0.5">
         <div ref={menuRef} className="relative">
           {menuOpen && (
-            <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#171717] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
+            <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#25282B] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
               {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-[#A3A19C] truncate border-b border-white/[0.08] mb-1">{userEmail}</div>}
               {[...MENU_ITEMS, ...(platformAdmin ? [{ href: "/system", label: "System", icon: "assurance" }] : [])].map((item) => (
                 <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive(item.href) ? "text-white bg-white/[0.09]" : "text-[#C8C6C1] hover:text-white hover:bg-white/[0.06]"}`}>

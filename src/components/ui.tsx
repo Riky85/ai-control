@@ -30,7 +30,7 @@ export function StatCard({
   );
   const cls = "rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-4 animate-rise";
   return href ? (
-    <Link href={href} className={cls}>
+    <Link href={href} className={`${cls} hover:border-ink-400 transition-colors`}>
       {inner}
     </Link>
   ) : (

@@ -21,11 +21,11 @@
 }
 html.dark {
   color-scheme: dark;
-  --c-subtle: 30 30 30;
-  --c-text: 237 237 237;
-  --c-muted: 153 153 160;
-  --c-panel: 21 21 21;
-  --c-line: 44 44 44;
+  --c-subtle: 40 43 48;
+  --c-text: 237 237 239;
+  --c-muted: 156 160 168;
+  --c-panel: 32 35 39;
+  --c-line: 52 56 61;
   --c-accent-soft: 46 30 20;
   --c-signal: 217 169 40;
   --c-steady: 63 182 122;

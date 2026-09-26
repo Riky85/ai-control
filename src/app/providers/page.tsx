@@ -48,8 +48,8 @@ export default async function ProvidersPage() {
       />
 
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Providers" tone="accent" value={String(rows.length)} hint={rows.slice(0, 3).map((r) => r.vendor).join(", ")} />
-        <StatCard label="Tracked monthly spend" value={fmtEur(totalMonthlySpend)} hint="From bills, billing and list prices" />
+        <StatCard href="/#your-ai" label="Providers" tone="accent" value={String(rows.length)} hint={rows.slice(0, 3).map((r) => r.vendor).join(", ")} />
+        <StatCard href="/savings" label="Tracked monthly spend" value={fmtEur(totalMonthlySpend)} hint="From bills, billing and list prices" />
         <Panel title="Spend by provider">
           {rows.some((r) => r.hasCostData) ? (
             <BarChart rows={rows.filter((r) => r.hasCostData).map((r) => ({ label: r.vendor, value: r.monthlySpend }))} formatValue={(v) => fmtEur(v)} />

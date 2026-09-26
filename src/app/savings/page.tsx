@@ -32,9 +32,9 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
       <PageHeader title="Savings" subtitle="angar compares what you pay with how the AI is used and today's prices — no data to enter." action={<ExportMenu dataset="savings" />} />
 
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="You could save" value={`${fmtEur(totalMonthly)}/mo`} hint={`${fmtEur(totalMonthly * 12)} a year`} tone="accent" />
-        <StatCard label="Of which certain" value={`${fmtEur(sure)}/mo`} hint="Based on your own bills and usage" />
-        <StatCard label="AI spend today" value={`${fmtEur(spend)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% could be saved` : "Add a bank statement to see it"} />
+        <StatCard label="You could save" value={`${fmtEur(totalMonthly)}/mo`} hint={`${fmtEur(totalMonthly * 12)} a year`} tone="accent" href="/savings" />
+        <StatCard label="Of which certain" value={`${fmtEur(sure)}/mo`} hint="Based on your own bills and usage" href="/savings?confidence=HIGH" />
+        <StatCard href="/?paid=yes#your-ai" label="AI spend today" value={`${fmtEur(spend)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% could be saved` : "Add a bank statement to see it"} />
       </div>
 
       {all.length > 0 && (

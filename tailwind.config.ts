@@ -6,7 +6,7 @@ const config: Config = {
   theme: {
     extend: {
       // Colori come variabili CSS (globals.css): tema chiaro e scuro con gli
-      // stessi nomi. La sidebar resta sempre nera (#0B0B0B).
+      // stessi nomi. La sidebar resta sempre scura (#1A1C1D).
       colors: {
         ink: {
           DEFAULT: "rgb(var(--c-subtle) / <alpha-value>)",
@@ -23,7 +23,7 @@ const config: Config = {
         signal: "rgb(var(--c-signal) / <alpha-value>)",
         steady: "rgb(var(--c-steady) / <alpha-value>)",
         alarm: "rgb(var(--c-alarm) / <alpha-value>)",
-        sidebar: "#0B0B0B",
+        sidebar: "#1A1C1D",
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
