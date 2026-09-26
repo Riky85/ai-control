@@ -43,7 +43,12 @@ export const DOCS: DocArticle[] = [
     title: "Bank statements and e-invoices",
     summary: "Drop a bank or card export or your e-invoices: angar finds every AI you pay for, with plan, seats and real cost.",
     keywords: ["bank", "statement", "estratto conto", "card", "invoice", "fattura", "td17", "xml", "p7m", "zip", "revolut", "qonto", "cost", "costs"],
-    body: `1. Export the statement from your bank or card as CSV or Excel (most banks: Movements → Export). Three months is ideal.
+    body: `## Automatic (recommended)
+- Bank account: Sources → Bank & invoices → Bank account → Connect. Pick your bank and approve read-only access on its site (90 days). angar reads only AI charges.
+- Accounting software: DATEV, Pennylane, Exact, Sage, Odoo, Xero, QuickBooks… connect once and supplier invoices arrive by themselves.
+- Fatture in Cloud (Italy): connect once, e-invoices arrive every month.
+## Or upload files
+1. Export the statement from your bank or card as CSV or Excel (most banks: Movements → Export). Three months is ideal.
 2. Drop it on Overview or in Sources → Bank statement & invoices. You can drop several files at once.
 3. angar keeps only the lines that are AI services (OpenAI, Claude, Cursor, Copilot, Perplexity, Midjourney…) and discards everything else.
 ## E-invoices (Italy)

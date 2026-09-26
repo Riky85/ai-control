@@ -28,6 +28,8 @@ enum ConnectorProvider {
   OPENROUTER
   HUGGINGFACE
   FATTURE_IN_CLOUD // fatture passive (Italia), per i costi
+  BANK // conti bancari via Enable Banking (PSD2), per i costi
+  ACCOUNTING // software di contabilità europei via Chift, per i costi
   NETWORK // scoperta automatica: scanner angar sui computer / log DNS e firewall
 }
 

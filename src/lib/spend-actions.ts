@@ -107,3 +107,46 @@ export async function syncFattureInCloudAction() {
     redirect(`/sources?error=${encodeURIComponent((err as Error).message)}`);
   }
 }
+
+export async function startBankAuthAction(formData: FormData) {
+  const s = await requireRole("ADMIN", "/sources/bank");
+  const { startBankAuth } = await import("@/lib/connectors/bank");
+  const { signState } = await import("@/lib/oauth-state");
+  const { appOrigin } = await import("@/lib/mail");
+  const { headers } = await import("next/headers");
+  const name = String(formData.get("name") ?? "");
+  const country = String(formData.get("country") ?? "");
+  let url = "";
+  try {
+    url = await startBankAuth({ name, country }, `${appOrigin(headers())}/api/connectors/bank/callback`, signState({ orgId: s.orgId, email: s.email }));
+  } catch (err) {
+    redirect(`/sources/bank?country=${country}&error=${encodeURIComponent((err as Error).message)}`);
+  }
+  redirect(url);
+}
+
+export async function syncBankAction() {
+  const s = await requireRole("EDITOR", "/sources");
+  const { syncBank } = await import("@/lib/connectors/bank");
+  let services = 0;
+  try {
+    services = (await syncBank(s.orgId)).services;
+  } catch (err) {
+    redirect(`/sources?error=${encodeURIComponent((err as Error).message)}`);
+  }
+  revalidatePath("/", "layout");
+  redirect(`/?spend=${services}`);
+}
+
+export async function syncAccountingAction() {
+  const s = await requireRole("EDITOR", "/sources");
+  const { syncAccounting } = await import("@/lib/connectors/chift");
+  let services = 0;
+  try {
+    services = (await syncAccounting(s.orgId)).services;
+  } catch (err) {
+    redirect(`/sources?error=${encodeURIComponent((err as Error).message)}`);
+  }
+  revalidatePath("/", "layout");
+  redirect(`/?spend=${services}`);
+}

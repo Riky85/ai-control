@@ -126,3 +126,19 @@ publish it once (Chrome Web Store / Edge Add-ons, unlisted) and force-install it
 
 On any always-on Linux box with Docker that sees DNS traffic:
 `docker run -d --name angar-edge --restart unless-stopped --network host --cap-add NET_RAW --cap-add NET_ADMIN -e ANGAR_TOKEN=<token> python:3.12-alpine sh -c "apk add --no-cache tcpdump curl && curl -fsSL <APP_URL>/api/discovery/scanner.py -o /s.py && while true; do python3 /s.py --network-only --sniff 3600 --yes; done"`
+
+## Bank accounts (Enable Banking, PSD2)
+
+Register an application at enablebanking.com (sandbox is free), upload/generate its RSA key, add the redirect URL
+`https://<APP_URL>/api/connectors/bank/callback`, then set `ENABLEBANKING_APP_ID` and `ENABLEBANKING_PRIVATE_KEY`
+(PEM; `\n` escapes are accepted). Customers pick their bank in Sources → Bank account; access lasts 90 days.
+
+## Accounting software (Chift)
+
+With a Chift account set `CHIFT_CLIENT_ID`, `CHIFT_CLIENT_SECRET`, `CHIFT_ACCOUNT_ID`. Customers connect DATEV, Pennylane,
+Exact, Sage, Odoo, Xero, QuickBooks… from Sources → Accounting software; supplier invoices are imported.
+
+## Daily cost sync
+
+`POST /api/spend/cron` with `Authorization: Bearer $REPORT_TOKEN` syncs banks, accounting software and Fatture in Cloud for
+every workspace. Schedule it daily (e.g. `0 5 * * *`).
