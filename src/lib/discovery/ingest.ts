@@ -44,7 +44,7 @@ export function domainsFromText(text: string): Finding[] {
  * Trasforma ciò che lo scanner (o un log) ha visto in sistemi AI.
  * Tutto ciò che arriva da qui parte "da rivedere": nessuno lo ha dichiarato.
  */
-export async function ingestFindings(organizationId: string, device: string, findings: Finding[]) {
+export async function ingestFindings(organizationId: string, device: string, findings: Finding[], userEmail?: string | null) {
   const byService = new Map<string, { svc: AiService; hits: number; evidence: Set<string>; last?: Date }>();
   for (const f of findings.slice(0, 5000)) {
     const value = String(f.value ?? "").slice(0, 300);
@@ -69,10 +69,12 @@ export async function ingestFindings(organizationId: string, device: string, fin
     name: svc.name,
     vendor: svc.vendor,
     connectedSystems: [{ system: "Seen on", detail: device.slice(0, 120) }],
+    // Con l'estensione del browser si sa anche chi la usa (email aziendale).
+    users: userEmail ? [{ email: userEmail }] : [],
     activities: [
       {
-        eventType: "discovery.seen",
-        actorRef: device.slice(0, 120),
+        eventType: userEmail ? "extension.active" : "discovery.seen",
+        actorRef: (userEmail ?? device).slice(0, 120),
         occurredAt: last ?? new Date(),
         payload: { device, hits, evidence: [...evidence].slice(0, 10) },
       },

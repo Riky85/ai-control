@@ -39,9 +39,30 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
       <PageHeader
         crumbs={[{ label: "Sources", href: "/sources" }]}
         title="Scan computers & network"
-        subtitle="You don't need to remember which AI your company uses — angar looks for it and shows you what it finds."
+        subtitle="Find the AI people really use — with a browser extension, a one-minute scan or your network logs."
       />
       {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
+
+      <section className="rounded-xl border border-accent/50 bg-panel p-5 grid grid-cols-[1fr_320px] gap-6">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-ink-100">Browser extension — who really uses each AI</h2>
+            <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Best for usage</span>
+          </div>
+          <p className="text-sm text-ink-400">
+            Works for Chrome and Edge. It tells angar which AI websites each person opens (ChatGPT, Claude, Gemini, Copilot…), including personal accounts. That's how angar knows "4 of 10 seats are used" and spots AI nobody pays for.
+          </p>
+          <ol className="text-sm text-ink-100 flex flex-col gap-1.5 list-decimal pl-5">
+            <li>Create a scan token below (step 1) — the same token works for the extension.</li>
+            <li>Download the extension and send it to IT, or try it yourself: <span className="text-ink-400">chrome://extensions → Developer mode → Load unpacked</span>.</li>
+            <li>IT installs it on every computer with a policy: <code className="text-xs bg-ink rounded px-1.5 py-0.5">{`{"token": "…", "server": "${base}"}`}</code></li>
+          </ol>
+        </div>
+        <div className="flex flex-col gap-3 justify-center">
+          <a href="/api/discovery/extension.zip" className="btn btn-primary">Download extension</a>
+          <p className="text-xs text-ink-400">Sends only AI website names, visit counts and the work email — never pages, prompts or other browsing.</p>
+        </div>
+      </section>
 
       <div className="grid grid-cols-3 gap-4 items-start">
         <section className="col-span-2 rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">

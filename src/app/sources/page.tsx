@@ -72,8 +72,8 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
           <Link href="/connectors" className="btn btn-secondary self-start">{keys.length ? "Manage keys" : "Add a key"}</Link>
         </Card>
 
-        <Card n={4} title="Scan computers & network" finds="AI used without being paid by the company (shadow AI)" status={network?.lastSyncedAt ? `Last scan ${fmtDate(network.lastSyncedAt)}` : null}>
-          <Link href="/discover" className="btn btn-secondary self-start">{network ? "Open scans" : "Set up a scan"}</Link>
+        <Card n={4} title="Extension & network scan" finds="Who really uses each AI, and AI nobody pays for" status={network?.lastSyncedAt ? `Last scan ${fmtDate(network.lastSyncedAt)}` : null}>
+          <Link href="/discover" className="btn btn-secondary self-start">{network ? "Open" : "Set up"}</Link>
         </Card>
       </div>
     </div>
