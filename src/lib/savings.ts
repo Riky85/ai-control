@@ -211,7 +211,10 @@ export async function computeSavings(organizationId: string) {
   }
 
   const hidden = new Set(dismissed.map((d) => d.key));
-  const items = out.filter((s) => !hidden.has(s.key) && s.monthlyEur >= 1).sort((a, b) => b.monthlyEur - a.monthlyEur);
+  const visible = out.filter((s) => !hidden.has(s.key) && s.monthlyEur >= 1);
+  // Se un'AI va tolta perché doppione, gli altri suggerimenti su di lei non servono.
+  const dropped = new Set(visible.filter((s) => s.kind === "duplicate").flatMap((s) => s.assets.slice(1).map((a) => a.id)));
+  const items = visible.filter((s) => s.kind === "duplicate" || !dropped.has(s.assets[0]?.id ?? "")).sort((a, b) => b.monthlyEur - a.monthlyEur);
   // Più suggerimenti sulla stessa AI non si sommano oltre il suo costo.
   const cap = new Map<string, number>();
   let total = 0;

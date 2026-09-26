@@ -62,7 +62,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const plan = asset.cost?.planId ? PLANS.find((p) => p.id === asset.cost!.planId) : null;
   const seats = asset.cost?.seats ?? null;
   const active = asset.usages.filter((u) => u.lastSeenAt && Date.now() - u.lastSeenAt.getTime() < 30 * DAY).length;
-  const mine = items.filter((i) => i.assets.some((a) => a.id === asset.id));
+  // Per un doppione, il suggerimento compare solo sulle AI da togliere.
+  const mine = items.filter((i) => (i.kind === "duplicate" ? i.assets.slice(1) : i.assets).some((a) => a.id === asset.id));
   const canSave = mine.reduce((t, i) => t + (i.kind === "duplicate" ? (i.assets[0]?.id === asset.id ? 0 : m?.eur ?? 0) : i.monthlyEur), 0);
   const sources = [
     spend.some((r) => r.source === "bank") && "Bank statement",

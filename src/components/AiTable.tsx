@@ -70,7 +70,7 @@ export default function AiTable({ assets, savings, empty }: { assets: AssetForSa
               )}
             </td>
             <td className="px-5 py-3 text-right tabular">
-              {couldSave >= 1 ? <Link href="/savings" className="font-medium text-accent hover:underline">{fmtEur(couldSave)}</Link> : <span className="text-ink-400">—</span>}
+              {couldSave >= 1 ? <Link href="/savings" className="font-medium text-accent hover:underline">{fmtEur(Math.round(couldSave))}</Link> : <span className="text-ink-400">—</span>}
             </td>
             <td className="px-5 py-3 text-right">
               {needsDecision ? (

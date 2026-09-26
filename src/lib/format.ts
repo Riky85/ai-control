@@ -24,6 +24,7 @@ export function fmtDateTime(d: DateInput) {
 
 /** Euro senza decimali (o con, per importi piccoli): €1,234 · €24.40 */
 export function fmtEur(n: number, opts: { decimals?: boolean } = {}) {
-  const d = opts.decimals ?? (Math.abs(n) < 100 && n % 1 !== 0);
+  n = Math.round(n * 100) / 100;
+  const d = opts.decimals ?? (Math.abs(n) < 100 && Math.abs(n % 1) >= 0.01);
   return "€" + n.toLocaleString("en-GB", { minimumFractionDigits: d ? 2 : 0, maximumFractionDigits: d ? 2 : 0 });
 }
