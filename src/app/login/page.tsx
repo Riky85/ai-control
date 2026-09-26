@@ -24,6 +24,9 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
       <p className="text-sm text-ink-400 mt-5 text-center">
         New to angar? <Link href="/signup" className="text-ink-100 font-medium underline">Create an account</Link>
       </p>
+      <p className="text-xs text-ink-400 mt-2 text-center">
+        Or <Link href="/check" className="underline hover:text-ink-100">check your AI spend for free</Link> — no account needed.
+      </p>
     </AuthShell>
   );
 }
