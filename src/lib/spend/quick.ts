@@ -3,7 +3,7 @@
  * dell'estratto conto (piani, posti, doppioni), senza database.
  */
 import { AI_SERVICES } from "@/lib/discovery/catalog";
-import { PLANS, SERVICE_CATEGORY, CATEGORY_LABEL, type Category } from "@/lib/pricing/catalog";
+import { PLANS, SERVICE_CATEGORY, CATEGORY_LABEL, categoryPlural, type Category } from "@/lib/pricing/catalog";
 import type { ServiceSpend } from "./parse";
 
 export interface QuickLine {
@@ -57,7 +57,7 @@ export function quickReport(summary: ServiceSpend[]) {
     const sorted = [...list].sort((a, b) => b.monthlyEur - a.monthlyEur);
     const names = sorted.map((s) => AI_SERVICES.find((x) => x.id === s.service)?.name ?? s.service);
     savings.push({
-      title: `${list.length} ${CATEGORY_LABEL[c as Category].toLowerCase()}s doing the same job`,
+      title: `${list.length} ${categoryPlural(c as Category)} doing the same job`,
       detail: `You pay for ${names.join(", ")}. Standardise on one where the same people have both.`,
       monthlyEur: sorted.slice(1).reduce((t, s) => t + s.monthlyEur, 0),
     });

@@ -6,7 +6,7 @@
 import { db } from "@/lib/db";
 import { AI_SERVICES } from "@/lib/discovery/catalog";
 import { matchMerchant } from "@/lib/pricing/merchants";
-import { PLANS, SERVICE_CATEGORY, CATEGORY_LABEL, USD_TO_EUR, apiModelFor, cheaperModel, blended, estimateMonthlyEur, type Category } from "@/lib/pricing/catalog";
+import { PLANS, SERVICE_CATEGORY, CATEGORY_LABEL, categoryPlural, USD_TO_EUR, apiModelFor, cheaperModel, blended, estimateMonthlyEur, type Category } from "@/lib/pricing/catalog";
 
 export type Confidence = "HIGH" | "MEDIUM" | "LOW";
 export interface Saving {
@@ -201,7 +201,7 @@ export async function computeSavings(organizationId: string) {
     out.push({
       key: `dup:${cat}:${sorted.map((a) => a.id).join(",")}`,
       kind: "duplicate",
-      title: `${list.length} ${CATEGORY_LABEL[cat].toLowerCase()}s — keep one`,
+      title: `${list.length} ${categoryPlural(cat)} — keep one`,
       detail: `You pay for ${sorted.map((a) => a.name).join(", ")}. They do the same job: standardise on ${keep.name} and cancel the others where the same people have both.`,
       monthlyEur: save,
       confidence: "MEDIUM",

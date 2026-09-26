@@ -139,7 +139,7 @@ export function guessPlan(service: string, monthlyEur: number): { plan: Plan; se
         if (seats < 1 || seats > 5000) continue;
         const err = Math.abs(usd - seats * price * vat) / usd;
         // A parità, preferire i piani business per più posti e quelli personali per 1 posto.
-        const bias = (seats > 1 && !plan.business ? 0.02 : 0) + (seats === 1 && plan.business ? 0.01 : 0);
+        const bias = (seats > 1 && !plan.business ? 0.02 : 0) + (seats === 1 && plan.business ? 0.01 : 0) + (!plan.business && plan.monthlyUsd >= 100 ? 0.005 : 0);
         if (err < 0.12 && (!best || err + bias < best.err)) best = { plan, seats, annual, err: err + bias };
       }
     }
@@ -153,3 +153,9 @@ export function estimateMonthlyEur(service: string, users: number): { eur: numbe
   if (!plan || users < 1) return null;
   return { eur: Math.round(users * plan.monthlyUsd * USD_TO_EUR * 100) / 100, plan };
 }
+
+/** "AI assistants", "coding assistants"… per i titoli. */
+export const categoryPlural = (c: Category) => {
+  const l = CATEGORY_LABEL[c];
+  return (l.startsWith("AI") ? l : l.charAt(0).toLowerCase() + l.slice(1)) + (l.endsWith("s") ? "" : "s");
+};
