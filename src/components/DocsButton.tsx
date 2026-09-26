@@ -5,11 +5,14 @@
 // di aiuto (AskDocs, montato una sola volta nel layout).
 export default function DocsButton() {
   return (
-    <span className="relative group">
+    <span className="relative group/docs">
       <button
         type="button"
         aria-label="View documentation"
-        onClick={() => window.dispatchEvent(new CustomEvent("angar:toggle-docs"))}
+        onClick={(e) => {
+          e.currentTarget.blur();
+          window.dispatchEvent(new CustomEvent("angar:toggle-docs"));
+        }}
         className="btn btn-secondary btn-icon"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -19,7 +22,7 @@ export default function DocsButton() {
       </button>
       <span
         role="tooltip"
-        className="pointer-events-none absolute right-0 top-full mt-2 whitespace-nowrap rounded-md bg-ink-100 px-2 py-1 text-xs text-white opacity-0 translate-y-[-2px] transition-all group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 z-50"
+        className="pointer-events-none absolute right-0 top-full mt-2 whitespace-nowrap rounded-md bg-ink-100 px-2 py-1 text-xs text-panel opacity-0 translate-y-[-2px] transition-all group-hover/docs:opacity-100 group-hover/docs:translate-y-0 group-has-[:focus-visible]/docs:opacity-100 z-50"
       >
         View documentation
       </span>

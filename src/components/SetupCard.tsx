@@ -18,9 +18,8 @@ export default async function SetupCard({ orgId }: { orgId: string }) {
   ]);
 
   const steps = [
-    { title: "Connect a provider", hint: "Paste an API key, connect GitHub or import a CSV.", done: connected > 0 || githubOrKeys > 0, href: "/onboarding", cta: "Connect" },
-    { title: "Review what was found", hint: "Approve or reject each AI system.", done: reviewed > 0, href: "/review", cta: "Review" },
-    { title: "Assign owners", hint: "Every system needs someone responsible.", done: owned > 0, href: "/review", cta: "Assign" },
+    { title: "Find your AI", hint: "Scan automatically, paste an API key or import a list.", done: connected > 0 || githubOrKeys > 0, href: "/onboarding", cta: "Start" },
+    { title: "Review what was found", hint: "Allowed or not — one click each.", done: reviewed > 0, href: "/review", cta: "Review" },
     { title: "Invite your team", hint: "Colleagues see and edit with their own role.", done: members > 1, href: "/workspace", cta: "Invite" },
     { title: "Turn on a policy", hint: "Start from the ready-made library.", done: policies > 0, href: "/governance?tab=policies", cta: "Add policy" },
   ];

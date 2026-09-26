@@ -90,7 +90,7 @@ export default async function AssetsPage({
               const risk = asset.riskAssessments[0];
               const assurance = asset.assuranceReports[0];
               return (
-                <tr key={asset.id} className="hover:bg-black/[0.02] transition-colors">
+                <tr key={asset.id} className="hover:bg-ink-100/[0.02] transition-colors">
                   <td className="px-5 py-3">
                     <Link href={`/assets/${asset.id}`} className="flex items-center gap-3 group">
                       <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={32} />

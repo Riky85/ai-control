@@ -22,7 +22,7 @@ const PROVIDER_LABEL: Record<string, string> = {
   COHERE: "Cohere", DEEPSEEK: "DeepSeek", XAI: "xAI", TOGETHER: "Together AI", OPENROUTER: "OpenRouter", HUGGINGFACE: "Hugging Face",
 };
 
-export default async function OverviewPage() {
+export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string } }) {
   const org = await db.organization.findUnique({ where: { id: currentOrgId() } });
   const assets = await db.aiAsset.findMany({
     where: { organizationId: currentOrgId(), deletedAt: null },
@@ -111,6 +111,15 @@ export default async function OverviewPage() {
           </div>
         }
       />
+      {(searchParams.connected || searchParams.imported) && (
+        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
+          {searchParams.connected ? (
+            <><b>Connected.</b> What angar found is now in your estate, with you as owner. Costs fill in automatically when billing data is available.</>
+          ) : (
+            <><b>{searchParams.imported} AI systems imported</b>, with you as owner. You can change owners any time from each passport.</>
+          )}
+        </div>
+      )}
 
       {!org?.onboardingCompletedAt && <SetupCard orgId={currentOrgId()} />}
 
@@ -199,7 +208,7 @@ export default async function OverviewPage() {
         >
           <div className="divide-y divide-line -mx-5 border-t border-line">
             {changes.map((ch) => (
-              <Link key={ch.id} href={`/assets/${ch.aiAssetId}`} className="flex items-center gap-3 px-5 py-3 hover:bg-black/[0.02] transition-colors">
+              <Link key={ch.id} href={`/assets/${ch.aiAssetId}`} className="flex items-center gap-3 px-5 py-3 hover:bg-ink-100/[0.02] transition-colors">
                 <VendorBadge vendor={ch.aiAsset.vendor ?? ""} name={ch.aiAsset.name} size={28} />
                 <span className="flex-1 min-w-0">
                   <span className="block text-sm font-medium text-ink-100 truncate">{ch.aiAsset.name}</span>

@@ -14,7 +14,7 @@ const SENSITIVE = ["PII", "FINANCIAL", "SOURCE_CODE"];
 const LEVEL_RANK: Record<string, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
 
 // Coda di revisione: lista a sinistra, pannello di decisione a destra.
-export default async function ReviewPage({ searchParams }: { searchParams: { id?: string; skip?: string; reviewed?: string; from?: string } }) {
+export default async function ReviewPage({ searchParams }: { searchParams: { id?: string; skip?: string; reviewed?: string; from?: string; found?: string } }) {
   const orgId = currentOrgId();
   const skipped = (searchParams.skip ?? "").split(",").filter(Boolean);
   const [pending, users, reviewedCount] = await Promise.all([
@@ -66,10 +66,15 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
 
   return (
     <div className="flex flex-col gap-6">
-      {searchParams.from && <FlowSteps current={2} />}
+      {searchParams.from && searchParams.from !== "scan" && <FlowSteps current={2} />}
+      {searchParams.found && (
+        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
+          <b>Scan done — {searchParams.found} AI service{searchParams.found === "1" ? "" : "s"} found.</b> Mark each one as allowed or not; that's all.
+        </div>
+      )}
       <PageHeader
         title="Review"
-        subtitle={`${open.length} AI system${open.length === 1 ? "" : "s"} to review — decide once, angar keeps watching afterwards.`}
+        subtitle={`${open.length} AI system${open.length === 1 ? "" : "s"} angar found on its own — is each one allowed? One click, angar keeps watching afterwards.`}
         action={searchParams.reviewed ? <span className="text-sm text-steady mr-2">✓ {searchParams.reviewed} reviewed</span> : undefined}
       />
 
@@ -82,7 +87,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
               <li key={a.id}>
                 <Link
                   href={`/review?id=${a.id}${searchParams.skip ? `&skip=${searchParams.skip}` : ""}`}
-                  className={`flex items-center gap-3 px-4 py-3 transition-colors ${active ? "bg-accent-soft/60" : "hover:bg-black/[0.02]"} ${skipped.includes(a.id) ? "opacity-50" : ""}`}
+                  className={`flex items-center gap-3 px-4 py-3 transition-colors ${active ? "bg-accent-soft/60" : "hover:bg-ink-100/[0.02]"} ${skipped.includes(a.id) ? "opacity-50" : ""}`}
                 >
                   <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={30} />
                   <span className="flex-1 min-w-0">
@@ -135,28 +140,42 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
           <form action={reviewAssetAction} className="flex flex-col gap-4 pt-6 border-t border-line">
             <input type="hidden" name="assetId" value={current.id} />
             <input type="hidden" name="skip" value={searchParams.skip ?? ""} />
-            <div className="grid grid-cols-2 gap-4">
-              <label className="flex flex-col gap-1.5 text-sm text-ink-100">
-                Who is responsible?
-                <select name="ownerId" defaultValue={current.ownerId ?? ""} className={INPUT}>
-                  <option value="">Choose a person…</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>{u.name ?? u.email}</option>
-                  ))}
-                </select>
-                <input name="newOwnerEmail" type="email" placeholder="…or type a new email" className={INPUT} />
-              </label>
-              <label className="flex flex-col gap-1.5 text-sm text-ink-100">
-                What does it cost per month?
-                <span className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">€</span>
-                  <input name="monthlyCost" type="number" step="0.01" min="0" defaultValue={current.cost?.monthlyCostEstimate ?? ""} placeholder="Leave empty if unknown" className={`${INPUT} pl-7`} />
-                </span>
-              </label>
-            </div>
+            <p className="text-sm text-ink-400">
+              {current.owner ? <>Owner: <span className="text-ink-100">{current.owner.name ?? current.owner.email}</span></> : "No owner yet — you can add one later."}
+              {" · "}
+              {current.cost?.monthlyCostEstimate != null ? (
+                <>Cost: <span className="text-ink-100">€{current.cost.monthlyCostEstimate.toLocaleString("en-GB")}/month</span>{current.cost.basis === "billing_connector" ? " (from billing)" : ""}</>
+              ) : (
+                "Cost fills in automatically when billing is connected."
+              )}
+            </p>
+            <details className="group">
+              <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 inline-flex items-center gap-1.5 select-none">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="transition-transform group-open:rotate-90"><path d="M3.5 2l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                Change owner or cost (optional)
+              </summary>
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <label className="flex flex-col gap-1.5 text-sm text-ink-100">
+                  Owner
+                  <select name="ownerId" defaultValue={current.ownerId ?? ""} className={INPUT}>
+                    <option value="">Keep as is</option>
+                    {users.map((u) => (
+                      <option key={u.id} value={u.id}>{u.name ?? u.email}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1.5 text-sm text-ink-100">
+                  Monthly cost
+                  <span className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">€</span>
+                    <input name="monthlyCost" type="number" step="0.01" min="0" placeholder="Leave empty if unknown" className={`${INPUT} pl-7`} />
+                  </span>
+                </label>
+              </div>
+            </details>
             <div className="flex items-center gap-3">
               <button name="decision" value="approve" className="btn btn-primary">Approve</button>
-              <button name="decision" value="reject" className="btn btn-secondary">Reject</button>
+              <button name="decision" value="reject" className="btn btn-secondary">Not allowed</button>
               <Link href={`/review?skip=${nextSkip}`} className="ml-auto text-sm text-ink-400 hover:text-ink-100">Decide later →</Link>
             </div>
           </form>

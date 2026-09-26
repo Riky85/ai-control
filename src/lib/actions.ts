@@ -1,7 +1,7 @@
 "use server";
 
 import { currentOrgId } from "@/lib/org";
-import { requireRole } from "@/lib/auth";
+import { requireRole, currentSession } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import type { MemberRole } from "@prisma/client";
 
@@ -83,6 +83,27 @@ async function recomputeAssuranceFor(assetId: string) {
   });
 }
 
+
+// Chi collega un provider con la propria chiave lo conosce già: i sistemi
+// trovati diventano suoi (owner) e approvati, senza domande. La revisione
+// resta per ciò che angar scopre da solo (rete, log, dispositivi).
+async function claimConnectorAssets(session: { orgId: string; email: string; name?: string }, provider: ConnectorProvider) {
+  const connector = await db.connector.findUnique({ where: { organizationId_provider: { organizationId: session.orgId, provider } } });
+  if (!connector || !session.email) return 0;
+  const owner = await db.user.upsert({
+    where: { organizationId_email: { organizationId: session.orgId, email: session.email } },
+    update: {},
+    create: { organizationId: session.orgId, email: session.email, name: session.name },
+  });
+  const pending = await db.aiAsset.findMany({ where: { connectorId: connector.id, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } });
+  for (const a of pending) {
+    await db.aiAsset.update({ where: { id: a.id }, data: { status: "APPROVED", ownerId: a.ownerId ?? owner.id } });
+    await db.assetChange.create({ data: { aiAssetId: a.id, field: "status", oldValue: a.status, newValue: "APPROVED" } });
+    await recomputeAssuranceFor(a.id);
+  }
+  return pending.length;
+}
+
 export async function syncConnectorAction(formData: FormData) {
   await guard("EDITOR", "connector.sync", formData, "/connectors");
   const provider = formData.get("provider") as ConnectorProvider;
@@ -106,7 +127,7 @@ const KEY_TESTS: Partial<Record<ConnectorProvider, (key: string) => Promise<unkn
 };
 
 export async function connectWithApiKeyAction(formData: FormData) {
-  await guard("ADMIN", "connector.connect", formData, "/connectors");
+  const session = await guard("ADMIN", "connector.connect", formData, "/connectors");
   const provider = formData.get("provider") as ConnectorProvider;
   const apiKey = String(formData.get("apiKey") ?? "").trim();
   const inFlow = formData.get("next") === "review";
@@ -144,8 +165,10 @@ export async function connectWithApiKeyAction(formData: FormData) {
   const result = await runConnectorSync(currentOrgId(), provider);
   revalidatePath("/", "layout");
   if (!result.ok) back(`Key saved, but the first sync failed: ${result.error.slice(0, 200)}`);
-  // Nel percorso guidato si prosegue con la revisione dei sistemi trovati.
-  redirect(formData.get("next") === "review" ? "/review?from=connect" : `/connectors?connected=${provider}`);
+  await claimConnectorAssets(session, provider);
+  revalidatePath("/", "layout");
+  // Nessuna domanda dopo il collegamento: si torna alla panoramica.
+  redirect(inFlow ? `/?connected=${provider}` : `/connectors?connected=${provider}`);
 }
 
 // Crea (o aggiorna) un sistema AI senza connettore — aggiunta manuale e
@@ -153,11 +176,14 @@ export async function connectWithApiKeyAction(formData: FormData) {
 async function upsertManualAsset(input: { name: string; vendor?: string; type?: string; model?: string; ownerEmail?: string; department?: string; monthlyCost?: number }) {
   const types = ["AI_APPLICATION", "AI_FEATURE", "AI_API", "AI_AGENT", "MCP_SERVER", "AI_DEV_TOOL"];
   const type = (types.includes((input.type ?? "").toUpperCase()) ? input.type!.toUpperCase() : "AI_APPLICATION") as any;
-  const owner = input.ownerEmail
+  // Chi aggiunge un sistema a mano (o da CSV) lo conosce: owner di default è lui.
+  const me = currentSession();
+  const ownerEmail = (input.ownerEmail || me?.email || "").toLowerCase();
+  const owner = ownerEmail
     ? await db.user.upsert({
-        where: { organizationId_email: { organizationId: currentOrgId(), email: input.ownerEmail.toLowerCase() } },
+        where: { organizationId_email: { organizationId: currentOrgId(), email: ownerEmail } },
         update: {},
-        create: { organizationId: currentOrgId(), email: input.ownerEmail.toLowerCase() },
+        create: { organizationId: currentOrgId(), email: ownerEmail, name: input.ownerEmail ? undefined : me?.name },
       })
     : null;
   const existing = await db.aiAsset.findFirst({ where: { organizationId: currentOrgId(), connectorId: null, name: input.name } });
@@ -171,7 +197,7 @@ async function upsertManualAsset(input: { name: string; vendor?: string; type?: 
   };
   const asset = existing
     ? await db.aiAsset.update({ where: { id: existing.id }, data })
-    : await db.aiAsset.create({ data: { ...data, organizationId: currentOrgId(), name: input.name, status: "UNREVIEWED", firstSeenAt: new Date() } });
+    : await db.aiAsset.create({ data: { ...data, organizationId: currentOrgId(), name: input.name, status: "APPROVED", firstSeenAt: new Date() } });
   if (input.monthlyCost != null && !Number.isNaN(input.monthlyCost)) {
     await db.aiSystemCost.upsert({
       where: { aiAssetId: asset.id },
@@ -237,7 +263,7 @@ export async function importCsvAction(formData: FormData) {
     count++;
   }
   revalidatePath("/", "layout");
-  redirect(formData.get("next") === "review" ? "/review?from=import" : `/connectors?imported=${count}#import`);
+  redirect(formData.get("next") === "review" ? `/?imported=${count}` : `/connectors?imported=${count}#import`);
 }
 
 // GitHub con token personale di sola lettura: verificato subito (utente

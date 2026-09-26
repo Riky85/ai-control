@@ -9,6 +9,8 @@ import DocsButton from "@/components/DocsButton";
 import { DOCS } from "@/lib/docs";
 import { planById } from "@/lib/plans";
 import { db } from "@/lib/db";
+import { cookies } from "next/headers";
+import { THEME_COOKIE, THEME_SCRIPT, parseTheme } from "@/lib/theme";
 
 // Testo in Hanken Grotesk; il nome "angar" in Space Grotesk, distinto dal
 // serif della Claude Console.
@@ -22,11 +24,19 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = currentSession();
+  const theme = parseTheme(cookies().get(THEME_COOKIE)?.value);
+  const htmlClass = `${sans.variable} ${brand.variable}${theme === "dark" ? " dark" : ""}`;
+  const head = (
+    <head>
+      <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+    </head>
+  );
 
   // Senza sessione (login, registrazione, dashboard condivise): pagina piena, niente sidebar.
   if (!session) {
     return (
-      <html lang="en" className={`${sans.variable} ${brand.variable}`}>
+      <html lang="en" className={htmlClass} suppressHydrationWarning>
+        {head}
         <body className="min-h-screen bg-panel text-ink-100 font-body">
           <main className="w-full">{children}</main>
         </body>
@@ -50,8 +60,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
 
   return (
-    <html lang="en" className={`${sans.variable} ${brand.variable}`}>
-      <body className={`flex h-screen overflow-hidden bg-[#1A1918] text-ink-100 font-body`}>
+    <html lang="en" className={htmlClass} suppressHydrationWarning>
+        {head}
+      <body className={`flex h-screen overflow-hidden bg-sidebar text-ink-100 font-body`}>
         <Sidebar orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={await isPlatformAdmin(session.email)} reviewCount={await db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } })} />
         <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto">
           <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-10 pt-8 pb-24">

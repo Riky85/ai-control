@@ -56,6 +56,16 @@ export async function persistSyncResult(
     });
     touchedAssetIds.push(asset.id);
 
+    // Costo reale dalla fatturazione del provider: sostituisce le stime.
+    if (typeof observed.monthlyCost === "number" && Number.isFinite(observed.monthlyCost)) {
+      const value = Math.round(observed.monthlyCost * 100) / 100;
+      await db.aiSystemCost.upsert({
+        where: { aiAssetId: asset.id },
+        update: { monthlyCostEstimate: value, basis: "billing_connector", confidence: "HIGH", notes: observed.costNote ?? null },
+        create: { aiAssetId: asset.id, monthlyCostEstimate: value, basis: "billing_connector", confidence: "HIGH", notes: observed.costNote ?? null },
+      });
+    }
+
     // Change detection: confronto diretto vecchio/nuovo su model e vendor —
     // i due campi di "dipendenza" che il sync può davvero osservare cambiare.
     // Solo per asset già esistenti: un asset appena creato non e' un cambiamento.

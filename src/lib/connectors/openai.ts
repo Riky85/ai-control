@@ -97,6 +97,23 @@ export const openaiConnector: Connector = {
       );
     }
 
+    // Spesa reale ultimi 30 giorni (Costs API: importi in USD).
+    try {
+      const start = Math.floor(Date.now() / 1000) - 30 * 86400;
+      let page: string | undefined;
+      let usd = 0;
+      let guard = 0;
+      do {
+        const costs = await adminGet(`/organization/costs?start_time=${start}&bucket_width=1d&limit=31${page ? `&page=${encodeURIComponent(page)}` : ""}`, apiKey);
+        for (const bucket of costs.data ?? []) for (const r of bucket.results ?? []) usd += Number(r.amount?.value ?? 0) || 0;
+        page = costs.has_more ? costs.next_page : undefined;
+      } while (page && ++guard < 5);
+      asset.monthlyCost = usd;
+      asset.costNote = "USD, last 30 days, from OpenAI billing";
+    } catch (err) {
+      warnings.push(`Costs not available: ${(err as Error).message.slice(0, 160)}`);
+    }
+
     // Metriche di utilizzo (utenti attivi, volume messaggi) esposte tramite
     // "Workspace Analytics" lato UI Enterprise/Edu — non implementate qui:
     // l'endpoint pubblico corrispondente va verificato contro la
@@ -107,7 +124,7 @@ export const openaiConnector: Connector = {
 
     return {
       provider: "OPENAI",
-      assets: asset.users!.length > 0 ? [asset] : [],
+      assets: asset.users!.length > 0 || asset.monthlyCost ? [asset] : [],
       syncedAt: new Date(),
       warnings,
     };

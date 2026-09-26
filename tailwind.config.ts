@@ -1,28 +1,29 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
+      // Colori come variabili CSS (globals.css): tema chiaro e scuro con gli
+      // stessi nomi. La sidebar resta sempre nera (#0B0B0B).
       colors: {
-        // Stile OneTrust: contenuto bianco, sidebar nera (colori espliciti in
-        // Sidebar.tsx), accento blu-viola, verde/ambra/rosso solo per stato.
         ink: {
-          DEFAULT: "#F6F6F8",
-          100: "#141418",
-          400: "#5F5F69", // grigio secondario: contrasto ~6:1 su bianco (era ~4.9:1)
+          DEFAULT: "rgb(var(--c-subtle) / <alpha-value>)",
+          100: "rgb(var(--c-text) / <alpha-value>)",
+          400: "rgb(var(--c-muted) / <alpha-value>)",
         },
-        panel: "#FFFFFF",
-        line: "#E6E6EB",
+        panel: "rgb(var(--c-panel) / <alpha-value>)",
+        line: "rgb(var(--c-line) / <alpha-value>)",
         accent: {
-          // Arancio Exein (#FF7323).
           DEFAULT: "#FF7323",
           dark: "#E85E10",
-          soft: "#FFF1E8",
+          soft: "rgb(var(--c-accent-soft) / <alpha-value>)",
         },
-        signal: "#B08500",  // ambra: attenzione — distinto dall'arancio di brand
-        steady: "#1F9254",
-        alarm: "#C4433B",
+        signal: "rgb(var(--c-signal) / <alpha-value>)",
+        steady: "rgb(var(--c-steady) / <alpha-value>)",
+        alarm: "rgb(var(--c-alarm) / <alpha-value>)",
+        sidebar: "#0B0B0B",
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],

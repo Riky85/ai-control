@@ -87,6 +87,25 @@ export const anthropicConnector: Connector = {
       );
     }
 
+    // Spesa reale ultimi 30 giorni (Cost API: importi in centesimi di USD).
+    try {
+      const end = new Date();
+      const start = new Date(end.getTime() - 30 * 86400000);
+      let page: string | undefined;
+      let cents = 0;
+      let guard = 0;
+      do {
+        const q = `?starting_at=${encodeURIComponent(start.toISOString())}&ending_at=${encodeURIComponent(end.toISOString())}&bucket_width=1d&limit=31${page ? `&page=${encodeURIComponent(page)}` : ""}`;
+        const report = await adminGet(`/organizations/cost_report${q}`, apiKey);
+        for (const bucket of report.data ?? []) for (const r of bucket.results ?? []) cents += Number(r.amount ?? 0) || 0;
+        page = report.has_more ? report.next_page : undefined;
+      } while (page && ++guard < 5);
+      asset.monthlyCost = cents / 100;
+      asset.costNote = "USD, last 30 days, from Anthropic billing";
+    } catch (err) {
+      warnings.push(`Cost report not available: ${(err as Error).message.slice(0, 160)}`);
+    }
+
     // No documented public endpoint equivalent to a "conversation access
     // audit log" exists: we deliberately don't invent one. If and when
     // Anthropic exposes an audit/access log for the Admin API, it goes
@@ -97,7 +116,7 @@ export const anthropicConnector: Connector = {
 
     return {
       provider: "ANTHROPIC",
-      assets: asset.users!.length > 0 ? [asset] : [],
+      assets: asset.users!.length > 0 || asset.monthlyCost ? [asset] : [],
       syncedAt: new Date(),
       warnings,
     };

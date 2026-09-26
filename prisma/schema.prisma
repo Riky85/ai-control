@@ -27,6 +27,7 @@ enum ConnectorProvider {
   TOGETHER
   OPENROUTER
   HUGGINGFACE
+  NETWORK // scoperta automatica: scanner angar sui computer / log DNS e firewall
 }
 
 enum ConnectorStatus {
@@ -125,6 +126,10 @@ model Organization {
   dataAssets DataAsset[]
   evidence   Evidence[]
   policies   Policy[]
+
+  // Token dello scanner di rete (solo hash SHA-256; il token si vede una volta).
+  discoveryTokenHash String? @unique
+  discoveryTokenHint String?
 }
 
 model User {

@@ -38,6 +38,11 @@ export interface ObservedAsset {
   connectedSystems?: ObservedConnectedSystem[];
   activities?: ObservedActivity[];
   users?: ObservedUser[]; // chi risulta usare/possedere questo asset
+  /** Spesa reale degli ultimi 30 giorni letta dalla fatturazione del provider. */
+  monthlyCost?: number;
+  costNote?: string;
+  /** Asset trovati per caso (rete, log): partono "da rivedere". Default: sì. */
+  needsReview?: boolean;
 }
 
 export interface ConnectorSyncResult {

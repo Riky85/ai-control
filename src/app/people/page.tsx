@@ -35,7 +35,7 @@ export default async function PeoplePage() {
                 ["HIGH", "CRITICAL"].includes(a.riskAssessments[0]?.level ?? "")
               ).length;
               return (
-                <tr key={u.id} className="hover:bg-black/[0.025]">
+                <tr key={u.id} className="hover:bg-ink-100/[0.025]">
                   <td className="px-5 py-3">
                     <Link href={`/people/${u.id}`} className="font-medium text-ink-100 hover:underline">
                       {u.name ?? u.email}

@@ -69,7 +69,7 @@ export default function VendorIcon({ vendor, name, size = 16 }: { vendor: string
       viewBox={icon.viewBox}
       fill="currentColor"
       fillRule="evenodd"
-      className="shrink-0 text-[#141418]"
+      className="shrink-0 text-ink-100"
       dangerouslySetInnerHTML={{ __html: icon.body }}
     />
   );

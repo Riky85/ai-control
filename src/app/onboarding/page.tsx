@@ -21,6 +21,21 @@ export default function ConnectStep({ searchParams }: { searchParams: { error?: 
       </div>
       {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
+      <Link href="/discover" className="group rounded-xl border border-accent/50 bg-panel p-5 flex items-center gap-4 hover:border-accent transition-colors">
+        <span className="h-10 w-10 rounded-lg bg-accent-soft text-accent flex items-center justify-center shrink-0">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" /><path d="M13 13l4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+        </span>
+        <span className="flex-1">
+          <span className="flex items-center gap-2">
+            <span className="text-base font-semibold text-ink-100">Don't know what AI you use? Let angar find it</span>
+            <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Recommended</span>
+          </span>
+          <span className="block text-sm text-ink-400 mt-0.5">Scan your computers or your network — angar lists every AI service in use, nothing to remember or type.</span>
+        </span>
+        <span className="btn btn-primary">Find my AI</span>
+      </Link>
+
+      <div className="text-xs text-ink-400 uppercase tracking-wide -mb-4">Or add what you know</div>
       <div className="grid grid-cols-3 gap-4">
         <Choice
           title="Paste an AI key"

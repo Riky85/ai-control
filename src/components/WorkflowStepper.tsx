@@ -26,7 +26,7 @@ function StageIcon({ index, state }: { index: number; state: StageState }) {
     <svg key="3" {...common}><path {...stroke} d="M2 12h11M4 12V7l2.5 2.5L9 6l3 3" /></svg>, // monitor: grafico
   ];
   const bg =
-    state === "done" ? "bg-ink-100 text-white" : state === "continuous" ? "bg-accent text-white" : state === "active" ? "bg-accent-soft text-accent" : "bg-panel text-ink-400 border border-line";
+    state === "done" ? "bg-ink-100 text-panel" : state === "continuous" ? "bg-accent text-white" : state === "active" ? "bg-accent-soft text-accent" : "bg-panel text-ink-400 border border-line";
   return <span className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 ${bg}`}>{state === "done" ? <Check /> : glyphs[index]}</span>;
 }
 

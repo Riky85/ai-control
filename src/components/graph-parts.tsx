@@ -3,15 +3,15 @@ import VendorIcon, { resolveBrand } from "@/components/VendorIcon";
 // Primitivi condivisi da AssetGraph (dettaglio passaporto) ed EstateGraph
 // (Home), così i due grafi hanno esattamente lo stesso aspetto.
 export const G = {
-  line: "#E6E6EB",
-  text: "#141418",
-  muted: "#5F5F69",
+  line: "rgb(var(--c-line))",
+  text: "rgb(var(--c-text))",
+  muted: "rgb(var(--c-muted))",
   accent: "#FF7323",
-  accentSoft: "#FFF1E8",
-  alarm: "#C4433B",
-  alarmSoft: "#FDF1F0",
-  edge: "#C9C9D6",
-  edgeAlarm: "#E7A9A4",
+  accentSoft: "rgb(var(--c-accent-soft))",
+  alarm: "rgb(var(--c-alarm))",
+  alarmSoft: "rgb(var(--c-alarm-soft))",
+  edge: "rgb(var(--c-edge))",
+  edgeAlarm: "rgb(var(--c-alarm) / 0.5)",
 };
 
 export type NodeKind = "user" | "system" | "data" | "provider" | "external";
@@ -88,10 +88,10 @@ export function Node({
   // Riempimento sempre bianco: il significato sta solo nel bordo (arancio =
   // sistema AI, rosso = rischio/dato sensibile), niente campiture colorate
   // che si scontrano tra arancio e rosso.
-  const fill = "#FFFFFF";
+  const fill = "rgb(var(--c-panel))";
   // Un solo linguaggio visivo: bordi neutri (più scuri per i sistemi AI),
   // il rischio è un pallino rosso — niente bordi rossi e arancioni mischiati.
-  const stroke = emphasis ? "#BDBDC6" : G.line;
+  const stroke = emphasis ? "rgb(var(--c-node-strong))" : G.line;
   const textColor = G.text;
   const externalBrand = kind === "external" && resolveBrand(label) ? label : null;
   const showBrand = (vendor !== undefined && (kind === "provider" || kind === "system")) || externalBrand !== null;

@@ -86,6 +86,17 @@ export default async function ConnectorsPage({
       )}
       {searchParams.error && !searchParams.provider && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
+      <div className="rounded-xl border border-line bg-panel p-5 flex items-center gap-4">
+        <span className="h-10 w-10 rounded-lg bg-accent-soft text-accent flex items-center justify-center shrink-0">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" /><path d="M13 13l4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+        </span>
+        <div className="flex-1">
+          <div className="text-base font-semibold text-ink-100">Find AI automatically</div>
+          <div className="text-sm text-ink-400">Scan computers or a network log — angar finds the AI in use, even the ones nobody told you about.</div>
+        </div>
+        <a href="/discover" className="btn btn-primary">Start a scan</a>
+      </div>
+
       <Section title="AI providers" subtitle="A normal API key is enough. Admin keys (Anthropic, OpenAI) also bring in users.">
         {AI_PROVIDERS.map((p) => {
           const row = byProvider.get(p.provider);

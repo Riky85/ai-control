@@ -7,6 +7,9 @@ import Link from "next/link";
 import { addUserAction, restartOnboardingAction } from "@/lib/actions";
 import { Panel, PageHeader } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
+import ThemeSelect from "@/components/ThemeSelect";
+import { cookies } from "next/headers";
+import { THEME_COOKIE, parseTheme } from "@/lib/theme";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +33,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
           <Panel title="Team" subtitle={`${users.length} ${users.length === 1 ? "person" : "people"} — owners of AI systems are picked from here`}>
             <div className="divide-y divide-line -mx-5 border-y border-line mb-4">
               {users.map((u) => (
-                <Link key={u.id} href={`/people/${u.id}`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-black/[0.02] transition-colors">
+                <Link key={u.id} href={`/people/${u.id}`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-ink-100/[0.02] transition-colors">
                   <span className="h-7 w-7 rounded-full bg-accent-soft text-accent text-xs font-semibold flex items-center justify-center shrink-0">
                     {(u.name ?? u.email).charAt(0).toUpperCase()}
                   </span>
@@ -69,6 +72,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
         </div>
 
         <div className="flex flex-col gap-4">
+          <Panel title="Appearance" subtitle="Light, dark, or follow your system">
+            <ThemeSelect initial={parseTheme(cookies().get(THEME_COOKIE)?.value)} />
+          </Panel>
+
           <Panel title="Organization">
             <dl className="text-sm flex flex-col gap-2.5">
               <Row label="Name" value={org?.name ?? "—"} />

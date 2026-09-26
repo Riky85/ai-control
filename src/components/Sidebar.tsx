@@ -159,14 +159,14 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
 
   return (
     <aside
-      className={`shrink-0 bg-[#1A1918] border-r border-white/[0.08] h-full py-3 flex flex-col transition-[width] duration-150 ${
+      className={`shrink-0 bg-sidebar border-r border-white/[0.08] h-full py-3 flex flex-col transition-[width] duration-150 ${
         collapsed ? "w-[68px] px-2.5" : "w-64 px-3"
       } ${ready ? "" : "invisible"}`}
     >
       {collapsed ? (
         <button onClick={toggle} aria-label="Expand sidebar" className="group relative h-9 w-9 mx-auto mb-4 flex items-center justify-center rounded-lg hover:bg-white/[0.08] transition-colors">
           <span className="text-white transition-opacity group-hover:opacity-0">
-            <Logo size={18} />
+            <Logo size={14} />
           </span>
           <span className="absolute inset-0 flex items-center justify-center text-[#A3A19C] opacity-0 group-hover:opacity-100 group-hover:text-white transition-opacity">
             <PanelToggleIcon />
@@ -254,7 +254,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
         </Link>
         <div ref={menuRef} className="relative mt-2">
           {menuOpen && (
-            <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#232220] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
+            <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#171717] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
               {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-[#A3A19C] truncate border-b border-white/[0.08] mb-1">{userEmail}</div>}
               {[...MENU_ITEMS, ...(platformAdmin ? [{ href: "/system", label: "System", icon: "assurance" }] : [])].map((item) => (
                 <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive(item.href) ? "text-white bg-white/[0.09]" : "text-[#C8C6C1] hover:text-white hover:bg-white/[0.06]"}`}>

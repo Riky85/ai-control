@@ -2,9 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tema: valori RGB separati così Tailwind può applicare l'opacità
+   (bg-ink-100/[0.04] ecc.). Scuro come Exa: contenuto #151515. */
+:root {
+  color-scheme: light;
+  --c-subtle: 246 246 248;
+  --c-text: 20 20 24;
+  --c-muted: 95 95 105;
+  --c-panel: 255 255 255;
+  --c-line: 230 230 235;
+  --c-accent-soft: 255 241 232;
+  --c-signal: 176 133 0;
+  --c-steady: 31 146 84;
+  --c-alarm: 196 67 59;
+  --c-edge: 201 201 214;
+  --c-node-strong: 189 189 198;
+  --c-alarm-soft: 253 241 240;
+}
+html.dark {
+  color-scheme: dark;
+  --c-subtle: 30 30 30;
+  --c-text: 237 237 237;
+  --c-muted: 153 153 160;
+  --c-panel: 21 21 21;
+  --c-line: 44 44 44;
+  --c-accent-soft: 46 30 20;
+  --c-signal: 217 169 40;
+  --c-steady: 63 182 122;
+  --c-alarm: 229 98 90;
+  --c-edge: 70 70 76;
+  --c-node-strong: 90 90 96;
+  --c-alarm-soft: 52 26 24;
+}
+
 body {
-  background-color: #FFFFFF;
-  color: #141418;
+  background-color: rgb(var(--c-panel));
+  color: rgb(var(--c-text));
 }
 
 ::selection {
@@ -34,6 +67,11 @@ body {
 .grid > .animate-rise:nth-child(3) { animation-delay: 0.1s; }
 .grid > .animate-rise:nth-child(4) { animation-delay: 0.15s; }
 
+@keyframes slide-in { from { transform: translateX(100%); } to { transform: none; } }
+.animate-slide-in { animation: slide-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade { animation: fade 0.2s ease both; }
+
 @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .animate-grow { transform-origin: left; animation: grow 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 
@@ -50,7 +88,7 @@ body {
   .btn { @apply inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium px-3.5 rounded-lg transition-colors whitespace-nowrap; }
   .btn-icon { @apply w-9 px-0; }
   .btn-primary { @apply bg-accent text-white hover:bg-accent-dark; }
-  .btn-secondary { @apply border border-line bg-panel text-ink-100 hover:bg-black/[0.04]; }
+  .btn-secondary { @apply border border-line bg-panel text-ink-100 hover:bg-ink-100/[0.05]; }
   .btn-sm { @apply h-8 text-xs px-2.5; }
   /* Campo di input unico per tutta la piattaforma. */
   .field { @apply border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-ink-400 transition-colors; }

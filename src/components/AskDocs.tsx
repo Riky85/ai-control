@@ -67,16 +67,17 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
   if (!open) return null;
 
   return (
-    <div className="fixed top-[108px] right-6 z-40 print:hidden">
+    <div className="fixed inset-0 z-50 print:hidden">
+      <div className="absolute inset-0 bg-black/20 animate-fade" onClick={() => setOpen(false)} aria-hidden />
       {open && (
-        <div className="w-[380px] h-[560px] max-h-[calc(100vh-8.5rem)] rounded-2xl border border-line bg-panel shadow-2xl flex flex-col overflow-hidden animate-rise">
-          <div className="px-4 pt-4 pb-3 border-b border-line">
+        <aside role="dialog" aria-label="angar help" className="absolute top-0 right-0 h-screen w-[420px] max-w-full border-l border-line bg-panel shadow-2xl flex flex-col overflow-hidden animate-slide-in">
+          <div className="px-5 pt-5 pb-3 border-b border-line">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-ink-100">angar help</div>
                 <div className="text-xs text-ink-400">Answers from the angar documentation</div>
               </div>
-              <button onClick={() => setOpen(false)} aria-label="Close" className="h-7 w-7 rounded-lg text-ink-400 hover:text-ink-100 hover:bg-black/[0.04] flex items-center justify-center">
+              <button onClick={() => setOpen(false)} aria-label="Close" className="h-7 w-7 rounded-lg text-ink-400 hover:text-ink-100 hover:bg-ink-100/[0.04] flex items-center justify-center">
                 ✕
               </button>
             </div>
@@ -96,7 +97,7 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
                   <div className="flex flex-col gap-2">
                     <p className="text-sm text-ink-400">Hi! Ask how to do something in angar.</p>
                     {SUGGESTIONS.map((s) => (
-                      <button key={s} onClick={() => ask(s)} className="text-left text-sm text-ink-100 border border-line rounded-lg px-3 py-2 hover:bg-black/[0.03] transition-colors">
+                      <button key={s} onClick={() => ask(s)} className="text-left text-sm text-ink-100 border border-line rounded-lg px-3 py-2 hover:bg-ink-100/[0.03] transition-colors">
                         {s}
                       </button>
                     ))}
@@ -104,7 +105,7 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
                 )}
                 {messages.map((m, i) => (
                   <div key={i} className={m.role === "user" ? "self-end max-w-[85%]" : "self-start max-w-[92%]"}>
-                    <div className={`text-sm rounded-2xl px-3.5 py-2 whitespace-pre-line ${m.role === "user" ? "bg-ink-100 text-white rounded-br-md" : "bg-ink text-ink-100 rounded-bl-md"}`}>{m.content}</div>
+                    <div className={`text-sm rounded-2xl px-3.5 py-2 whitespace-pre-line ${m.role === "user" ? "bg-ink-100 text-panel rounded-br-md" : "bg-ink text-ink-100 rounded-bl-md"}`}>{m.content}</div>
                     {m.sources && m.sources.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-1.5">
                         {m.sources.map((s) => (
@@ -142,19 +143,19 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
               </div>
               <div className="divide-y divide-line">
                 {shown.map((d) => (
-                  <Link key={d.slug} href={`/docs/${d.slug}`} onClick={() => setOpen(false)} className="block px-4 py-3 hover:bg-black/[0.02] transition-colors">
+                  <Link key={d.slug} href={`/docs/${d.slug}`} onClick={() => setOpen(false)} className="block px-4 py-3 hover:bg-ink-100/[0.02] transition-colors">
                     <div className="text-[11px] text-ink-400">{d.section}</div>
                     <div className="text-sm font-medium text-ink-100">{d.title}</div>
                     <div className="text-xs text-ink-400 line-clamp-2">{d.summary}</div>
                   </Link>
                 ))}
               </div>
-              <Link href="/docs" onClick={() => setOpen(false)} className="block text-center text-sm text-ink-100 font-medium py-3 border-t border-line hover:bg-black/[0.02]">
+              <Link href="/docs" onClick={() => setOpen(false)} className="block text-center text-sm text-ink-100 font-medium py-3 border-t border-line hover:bg-ink-100/[0.02]">
                 Open full documentation
               </Link>
             </div>
           )}
-        </div>
+        </aside>
       )}
     </div>
   );
