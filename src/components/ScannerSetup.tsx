@@ -1,17 +1,14 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { createDiscoveryTokenAction } from "@/lib/discovery-actions";
+import { useState } from "react";
 
 type Os = "mac" | "windows" | "network" | "edge";
 
 // Il token compare una volta sola, già dentro i comandi da copiare.
-export default function ScannerSetup({ base, hint, canCreate }: { base: string; hint: string | null; canCreate: boolean }) {
-  const [token, setToken] = useState<string | null>(null);
+export default function ScannerSetup({ base, token }: { base: string; token: string }) {
   const [os, setOs] = useState<Os>("mac");
-  const [pending, start] = useTransition();
   const [copied, setCopied] = useState(false);
-  const t = token ?? "YOUR_TOKEN";
+  const t = token;
   const url = `${base}/api/discovery/scanner.py`;
   const cmd =
     os === "mac"
@@ -24,25 +21,6 @@ export default function ScannerSetup({ base, hint, canCreate }: { base: string; 
 
   return (
     <div className="flex flex-col gap-3">
-      {!token ? (
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            disabled={!canCreate || pending}
-            onClick={() => start(async () => setToken((await createDiscoveryTokenAction()).token))}
-            className="btn btn-primary disabled:opacity-50"
-          >
-            {pending ? "Creating…" : hint ? "Create a new token" : "Create scan token"}
-          </button>
-          <span className="text-xs text-ink-400">
-            {hint ? <>Current token <span className="font-mono">{hint}</span> — a new one replaces it.</> : "Links the scan results to this workspace."}
-            {!canCreate && " Needs the admin role."}
-          </span>
-        </div>
-      ) : (
-        <div className="text-xs text-ink-400">Token created — it's already in the command below. Copy it now: it won't be shown again.</div>
-      )}
-
       <div className="inline-flex gap-1 bg-ink rounded-lg p-1 self-start">
         {(
           [

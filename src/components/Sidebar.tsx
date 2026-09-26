@@ -22,7 +22,15 @@ function Icon({ name }: { name: string }) {
     case "data":
       return <svg {...common}><ellipse {...stroke} cx="9" cy="4" rx="5.5" ry="1.8" /><path {...stroke} d="M3.5 4v10c0 1 2.5 1.8 5.5 1.8s5.5-.8 5.5-1.8V4" /><path {...stroke} d="M3.5 9c0 1 2.5 1.8 5.5 1.8s5.5-.8 5.5-1.8" /></svg>;
     case "savings":
-      return <svg {...common}><circle {...stroke} cx="9" cy="9" r="7" /><path {...stroke} d="M9 5.5v1M9 11.5v1" /><path {...stroke} d="M11 7.2c0-.9-.9-1.7-2-1.7s-2 .6-2 1.5c0 2 4 1 4 3 0 .9-.9 1.5-2 1.5s-2-.8-2-1.7" /></svg>;
+      return <svg {...common}><path {...stroke} d="M2.5 5.5l4.5 4.5 3-3 5.5 5.5" /><path {...stroke} d="M11.5 12.5h4v-4" /></svg>;
+    case "report":
+      return <svg {...common}><rect {...stroke} x="3" y="2.5" width="12" height="13" rx="1.5" /><path {...stroke} d="M6 12.5v-2.5M9 12.5V7.5M12 12.5v-4" /></svg>;
+    case "billing":
+      return <svg {...common}><rect {...stroke} x="2" y="4" width="14" height="10" rx="1.5" /><path {...stroke} d="M2 7.5h14" /><path {...stroke} d="M5 11h3" /></svg>;
+    case "more":
+      return <svg {...common}><circle cx="4.5" cy="9" r="1.2" fill="currentColor" /><circle cx="9" cy="9" r="1.2" fill="currentColor" /><circle cx="13.5" cy="9" r="1.2" fill="currentColor" /></svg>;
+    case "usage":
+      return <svg {...common}><circle {...stroke} cx="6.5" cy="6" r="2.3" /><path {...stroke} d="M2.5 15c0-2.3 1.8-4 4-4s4 1.7 4 4" /><path {...stroke} d="M12 15v-3M14.5 15V8.5" /></svg>;
     case "providers":
       return <svg {...common}><circle {...stroke} cx="9" cy="3.5" r="1.8" /><circle {...stroke} cx="4" cy="14" r="1.8" /><circle {...stroke} cx="14" cy="14" r="1.8" /><path {...stroke} d="M9 5.3v3.2M9 8.5L5 12.5M9 8.5l4 4" /></svg>;
     case "changes":
@@ -64,6 +72,7 @@ function PanelToggleIcon() {
 const PRIMARY_ITEMS = [
   { href: "/", label: "Overview", icon: "home" },
   { href: "/savings", label: "Savings", icon: "savings" },
+  { href: "/usage", label: "Usage", icon: "usage" },
   { href: "/review", label: "Review", icon: "approvals" },
   { href: "/sources", label: "Sources", icon: "connectors" },
 ];
@@ -72,8 +81,8 @@ const PRIMARY_ITEMS = [
 // sidebar aperta non ha bisogno di scroll.
 const MENU_ITEMS = [
   { href: "/workspace", label: "Workspace", icon: "people" },
-  { href: "/report", label: "Monthly report", icon: "evidence" },
-  { href: "/billing", label: "Plan & billing", icon: "savings" },
+  { href: "/report", label: "Monthly report", icon: "report" },
+  { href: "/billing", label: "Plan & billing", icon: "billing" },
   { href: "/settings", label: "Settings", icon: "settings" },
   { href: "/audit", label: "Audit log", icon: "activity" },
   { href: "/docs", label: "Documentation", icon: "evidence" },
@@ -233,7 +242,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
             onClick={() => setMoreOpen((v) => !v)}
             className="mt-3 flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] text-[#C8C6C1] hover:text-white hover:bg-white/[0.05] transition-colors"
           >
-            <Icon name="evidence" />
+            <Icon name="more" />
             <span className="flex-1 text-left">More</span>
             <span className={`transition-transform ${moreOpen ? "" : "-rotate-90"}`}>
               <Chevron />

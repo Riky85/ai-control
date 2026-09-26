@@ -6,7 +6,7 @@
  * Configurazione: token del workspace (e server) via policy gestita da IT
  * (chrome.storage.managed) o a mano nella pagina opzioni.
  */
-export function extensionFiles(server: string): Record<string, string> {
+export function extensionFiles(server: string, preset?: { token: string; company?: string }): Record<string, string> {
   const manifest = {
     manifest_version: 3,
     name: "angar",
@@ -16,6 +16,7 @@ export function extensionFiles(server: string): Record<string, string> {
     host_permissions: [`${server}/*`],
     background: { service_worker: "background.js" },
     options_page: "options.html",
+    content_scripts: [{ matches: [`${server}/join/*`], js: ["connect.js"], run_at: "document_idle" }],
     action: { default_title: "angar", default_popup: "options.html" },
     storage: { managed_schema: "schema.json" },
   };
@@ -33,11 +34,13 @@ async function cfg() {
   let m = {};
   try { m = await chrome.storage.managed.get(null); } catch (e) {}
   const l = await chrome.storage.local.get(["token", "email", "server"]);
+  let preset = {};
+  try { preset = await (await fetch(chrome.runtime.getURL("config.json"))).json(); } catch (e) {}
   let email = m.email || l.email || "";
   if (!email && chrome.identity && chrome.identity.getProfileUserInfo) {
     try { const u = await chrome.identity.getProfileUserInfo({ accountStatus: "ANY" }); email = u.email || ""; } catch (e) {}
   }
-  return { server: (m.server || l.server || DEFAULT_SERVER).replace(/\/$/, ""), token: m.token || l.token || "", email, managed: Boolean(m.token) };
+  return { server: (m.server || l.server || DEFAULT_SERVER).replace(/\/$/, ""), token: m.token || l.token || preset.token || "", email, managed: Boolean(m.token) };
 }
 
 async function catalog() {
@@ -99,7 +102,19 @@ async function flush() {
 chrome.alarms.create("flush", { periodInMinutes: 30 });
 chrome.alarms.onAlarm.addListener((a) => { if (a.name === "flush") flush(); });
 chrome.runtime.onStartup.addListener(flush);
-chrome.runtime.onMessage.addListener((msg, _s, reply) => { if (msg === "flush") flush().then(() => reply(true)); return true; });
+chrome.runtime.onMessage.addListener((msg, _s, reply) => {
+  if (msg === "flush") { flush().then(() => reply(true)); return true; }
+  if (msg && msg.type === "connect") {
+    chrome.storage.local.set({ token: msg.token, email: msg.email, server: msg.server }).then(() => reply(true));
+    return true;
+  }
+});
+chrome.runtime.onInstalled.addListener(async (d) => {
+  if (d.reason !== "install") return;
+  const { token, email } = await cfg();
+  // Già configurata (scaricata da angar o impostata da IT) e con l'email? Non serve altro.
+  if (!token || !email) chrome.tabs.create({ url: chrome.runtime.getURL("options.html") });
+});
 `;
   const options = `<!doctype html>
 <html><head><meta charset="utf-8"><title>angar</title>
@@ -113,7 +128,7 @@ button{margin-top:14px;width:100%;padding:9px;border:0;border-radius:8px;backgro
 <h1>angar</h1>
 <p>Tells your company which AI tools are used at work. Only the names of AI websites are sent (e.g. "chatgpt.com, 12 visits") — never pages, prompts or other browsing.</p>
 <div id="form">
-<label>Workspace token</label><input id="token" placeholder="angd_…" autocomplete="off">
+<label>Company token</label><input id="token" placeholder="angd_…" autocomplete="off">
 <label>Your work email</label><input id="email" placeholder="name@company.com">
 <button id="save">Save</button>
 </div>
@@ -123,18 +138,30 @@ button{margin-top:14px;width:100%;padding:9px;border:0;border-radius:8px;backgro
   const optionsJs = `async function load(){
   let m={};try{m=await chrome.storage.managed.get(null)}catch(e){}
   const l=await chrome.storage.local.get(["token","email","lastSent","lastError","pending"]);
-  if(m.token){document.getElementById("form").style.display="none"}
+  let p={};try{p=await (await fetch(chrome.runtime.getURL("config.json"))).json()}catch(e){}
+  if(m.token||(p.token&&!l.token)){document.getElementById("token").parentElement&&(document.getElementById("token").style.display="none",document.getElementById("token").previousElementSibling.style.display="none")}
   document.getElementById("token").value=l.token||"";document.getElementById("email").value=l.email||m.email||"";
   const n=Object.keys(l.pending||{}).length;
   const s=document.getElementById("status");
-  s.innerHTML=(m.token?'<span class="ok">Set up by your company.</span> ':'')+(l.lastSent?'Last sent '+new Date(l.lastSent).toLocaleString()+'. ':'Nothing sent yet. ')+(n?n+' AI service'+(n>1?'s':'')+' waiting to be sent. ':'')+(l.lastError?'<br>Problem: '+l.lastError:'');
+  s.innerHTML=((m.token||p.token)?'<span class="ok">Connected to '+(p.company||'your company')+'.</span> ':'')+(l.lastSent?'Last sent '+new Date(l.lastSent).toLocaleString()+'. ':'Nothing sent yet. ')+(n?n+' AI service'+(n>1?'s':'')+' waiting to be sent. ':'')+(l.lastError?'<br>Problem: '+l.lastError:'');
 }
 document.getElementById("save").onclick=async()=>{
-  await chrome.storage.local.set({token:document.getElementById("token").value.trim(),email:document.getElementById("email").value.trim()});
+  const tk=document.getElementById("token").value.trim();
+  await chrome.storage.local.set({...(tk?{token:tk}:{}),email:document.getElementById("email").value.trim()});
   chrome.runtime.sendMessage("flush",()=>load());
   load();
 };
 load();`;
+  const connect = `// Pagina "collega questo browser" di angar: passa token ed email all'estensione.
+document.documentElement.dataset.angarExtension = "1";
+window.postMessage({ type: "angar-extension-ready" }, "*");
+window.addEventListener("message", (e) => {
+  if (e.source !== window || !e.data || e.data.type !== "angar-connect") return;
+  chrome.runtime.sendMessage({ type: "connect", token: e.data.token, email: e.data.email, server: location.origin }, () => {
+    chrome.runtime.sendMessage("flush");
+    window.postMessage({ type: "angar-connected" }, "*");
+  });
+});`;
   const readme = `angar browser extension
 
 INSTALL ON ONE COMPUTER (test)
@@ -158,5 +185,7 @@ Only AI service names from angar's list, visit counts, last visit time and the w
     "options.html": options,
     "options.js": optionsJs,
     "README.txt": readme,
+    "connect.js": connect,
+    ...(preset ? { "config.json": JSON.stringify({ token: preset.token, company: preset.company ?? "" }) } : {}),
   };
 }

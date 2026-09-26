@@ -6,6 +6,8 @@ import { PageHeader, Table, td } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import Badge from "@/components/Badge";
 import ScannerSetup from "@/components/ScannerSetup";
+import CopyButton from "@/components/CopyButton";
+import { ensureWorkspaceToken } from "@/lib/discovery/ingest";
 import CsvDropzone from "@/components/CsvDropzone";
 import { uploadNetworkLogAction, revokeDiscoveryTokenAction } from "@/lib/discovery-actions";
 import { fmtDateTime } from "@/lib/format";
@@ -33,6 +35,9 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
       })
     : [];
   const canCreate = member?.role === "OWNER" || member?.role === "ADMIN";
+  const { token, joinCode } = await ensureWorkspaceToken(s.orgId);
+  const joinUrl = `${base}/join/${joinCode}`;
+  const policy = JSON.stringify({ token, server: base });
 
   return (
     <div className="flex flex-col gap-6">
@@ -43,26 +48,54 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
       />
       {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
-      <section className="rounded-xl border border-accent/50 bg-panel p-5 grid grid-cols-[1fr_320px] gap-6">
-        <div className="flex flex-col gap-3">
+      <section id="extension" className="rounded-xl border border-accent/50 bg-panel p-6 flex flex-col gap-5 scroll-mt-6">
+        <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-ink-100">Browser extension — who really uses each AI</h2>
-            <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Best for usage</span>
+            <h2 className="text-lg font-semibold text-ink-100">See who really uses each AI</h2>
+            <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Recommended</span>
           </div>
-          <p className="text-sm text-ink-400">
-            Works for Chrome and Edge. It tells angar which AI websites each person opens (ChatGPT, Claude, Gemini, Copilot…), including personal accounts. That's how angar knows "4 of 10 seats are used" and spots AI nobody pays for.
+          <p className="text-sm text-ink-400 mt-1">
+            A small browser extension (Chrome, Edge) tells angar which AI websites each person opens. Then you see in <a href="/usage" className="underline text-ink-100">Usage</a> who uses what and how often — and which paid seats nobody uses.
           </p>
-          <ol className="text-sm text-ink-100 flex flex-col gap-1.5 list-decimal pl-5">
-            <li>Create a scan token below (step 1) — the same token works for the extension.</li>
-            <li>Download the extension and send it to IT, or try it yourself: <span className="text-ink-400">chrome://extensions → Developer mode → Load unpacked</span>.</li>
-            <li>IT installs it on every computer with a policy: <code className="text-xs bg-ink rounded px-1.5 py-0.5">{`{"token": "…", "server": "${base}"}`}</code></li>
-          </ol>
         </div>
-        <div className="flex flex-col gap-3 justify-center">
-          <a href="/api/discovery/extension.zip" className="btn btn-primary">Download extension</a>
-          <p className="text-xs text-ink-400">Sends only AI website names, visit counts and the work email — never pages, prompts or other browsing.</p>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="rounded-xl border border-line p-5 flex flex-col gap-3">
+            <div className="text-sm font-semibold text-ink-100">Try it on this computer</div>
+            <ol className="text-sm text-ink-400 flex flex-col gap-2">
+              <li><span className="text-ink-100">1.</span> Download it — it's already connected to {org?.name}.</li>
+              <li><span className="text-ink-100">2.</span> Unzip the file, then open <span className="text-ink-100">chrome://extensions</span> (Edge: <span className="text-ink-100">edge://extensions</span>).</li>
+              <li><span className="text-ink-100">3.</span> Turn on <span className="text-ink-100">Developer mode</span> (top right), click <span className="text-ink-100">Load unpacked</span> and pick the unzipped folder.</li>
+            </ol>
+            <a href="/api/extension/download" className="btn btn-primary self-start mt-auto">Download extension</a>
+          </div>
+          <div className="rounded-xl border border-line p-5 flex flex-col gap-3">
+            <div className="text-sm font-semibold text-ink-100">Everyone in the company</div>
+            <p className="text-sm text-ink-400">Send this link to your team. Each person installs the extension and opens the link: it connects by itself, they only type their work email.</p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{joinUrl}</code>
+              <CopyButton text={joinUrl} label="Copy link" />
+            </div>
+            <CopyButton
+              text={`Hi! We use angar to see which AI tools we use and avoid paying for seats nobody needs. It takes a minute: install the angar extension (file attached, or from IT), then open ${joinUrl} and type your work email. Only the names of AI websites are shared — nothing else. Thanks!`}
+              label="Copy invitation message"
+              className="btn btn-secondary self-start mt-auto"
+            />
+          </div>
         </div>
+
+        <details className="text-sm">
+          <summary className="cursor-pointer list-none text-ink-400 hover:text-ink-100 select-none">For IT: install it on every computer automatically</summary>
+          <div className="mt-3 flex flex-col gap-2 text-ink-400">
+            <p>Force-install the extension with Google Admin or Intune/Group Policy (ExtensionInstallForcelist) and push this managed configuration — nobody has to do anything:</p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{policy}</code>
+              <CopyButton text={policy} />
+            </div>
+          </div>
+        </details>
       </section>
+
 
       <div className="grid grid-cols-3 gap-4 items-start">
         <section className="col-span-2 rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
@@ -78,7 +111,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
               </p>
             </div>
           </div>
-          <ScannerSetup base={base} hint={org?.discoveryTokenHint ?? null} canCreate={canCreate} />
+          <ScannerSetup base={base} token={token} />
         </section>
 
         <aside className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">

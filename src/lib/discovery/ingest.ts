@@ -90,3 +90,27 @@ export async function ingestFindings(organizationId: string, device: string, fin
   await recordInventorySnapshot(organizationId);
   return assets.map((a) => a.name);
 }
+
+/**
+ * Token del workspace sempre disponibile (cifrato), così l'estensione si
+ * scarica già configurata e il link aziendale funziona senza copiare nulla.
+ */
+export async function ensureWorkspaceToken(organizationId: string) {
+  const { encryptJson, decryptJson } = await import("@/lib/crypto");
+  const org = await db.organization.findUniqueOrThrow({ where: { id: organizationId } });
+  const existing = decryptJson<{ token: string }>(org.discoveryTokenEncrypted)?.token;
+  let token = existing;
+  const data: Record<string, string> = {};
+  if (!token) {
+    const t = newDiscoveryToken();
+    token = t.token;
+    Object.assign(data, { discoveryTokenHash: t.hash, discoveryTokenHint: t.hint, discoveryTokenEncrypted: encryptJson({ token }) });
+  }
+  let joinCode = org.joinCode;
+  if (!joinCode) {
+    joinCode = randomBytes(9).toString("base64url");
+    data.joinCode = joinCode;
+  }
+  if (Object.keys(data).length) await db.organization.update({ where: { id: organizationId }, data });
+  return { token, joinCode };
+}

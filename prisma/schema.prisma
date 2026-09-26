@@ -134,6 +134,8 @@ model Organization {
   employees          Int? // numero dipendenti: spesa AI per dipendente
   discoveryTokenHash String? @unique
   discoveryTokenHint String?
+  discoveryTokenEncrypted String? // per rimetterlo nell'estensione già configurata
+  joinCode           String? @unique // link aziendale per collegare l'estensione
 
   spendRecords     SpendRecord[]
   savingDismissals SavingDismissal[]

@@ -11,14 +11,15 @@ import { domainsFromText, ingestFindings, newDiscoveryToken } from "@/lib/discov
 export async function createDiscoveryTokenAction(): Promise<{ token: string; hint: string }> {
   const s = await requireRole("ADMIN", "/discover");
   const t = newDiscoveryToken();
-  await db.organization.update({ where: { id: s.orgId }, data: { discoveryTokenHash: t.hash, discoveryTokenHint: t.hint } });
+  const { encryptJson } = await import("@/lib/crypto");
+  await db.organization.update({ where: { id: s.orgId }, data: { discoveryTokenHash: t.hash, discoveryTokenHint: t.hint, discoveryTokenEncrypted: encryptJson({ token: t.token }) } });
   await audit("discovery.token_created");
   return { token: t.token, hint: t.hint };
 }
 
 export async function revokeDiscoveryTokenAction() {
   const s = await requireRole("ADMIN", "/discover");
-  await db.organization.update({ where: { id: s.orgId }, data: { discoveryTokenHash: null, discoveryTokenHint: null } });
+  await db.organization.update({ where: { id: s.orgId }, data: { discoveryTokenHash: null, discoveryTokenHint: null, discoveryTokenEncrypted: null, joinCode: null } });
   await audit("discovery.token_revoked");
   revalidatePath("/discover");
 }
