@@ -1,3 +1,4 @@
+import { Wordmark } from "@/components/Logo";
 import type { Metadata } from "next";
 import SpendCheck from "@/components/SpendCheck";
 import { currentSession } from "@/lib/auth";
@@ -14,7 +15,7 @@ export default function CheckPage() {
     <div className={signedIn ? "" : "min-h-screen bg-panel"}>
       {!signedIn && (
         <header className="max-w-5xl mx-auto px-6 pt-8 flex items-center justify-between">
-          <a href="/check" className="font-brand text-[20px] tracking-tight text-ink-100">angar</a>
+          <a href="/check" className="text-ink-100" aria-label="angar"><Wordmark size={18} /></a>
           <div className="flex items-center gap-3">
             <a href="/pricing" className="text-sm text-ink-400 hover:text-ink-100">Pricing</a>
             <a href="/login" className="text-sm text-ink-400 hover:text-ink-100">Sign in</a>

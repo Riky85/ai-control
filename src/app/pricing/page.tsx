@@ -1,3 +1,4 @@
+import { Wordmark } from "@/components/Logo";
 import type { Metadata } from "next";
 import PricingCards from "@/components/PricingCards";
 import { currentSession } from "@/lib/auth";
@@ -22,7 +23,7 @@ export default function PricingPage() {
     <div className={signedIn ? "" : "min-h-screen bg-panel"}>
       {!signedIn && (
         <header className="max-w-6xl mx-auto px-6 pt-8 flex items-center justify-between">
-          <a href="/check" className="font-brand text-[20px] tracking-tight text-ink-100">angar</a>
+          <a href="/check" className="text-ink-100" aria-label="angar"><Wordmark size={18} /></a>
           <nav className="flex items-center gap-4 text-sm">
             <a href="/check" className="text-ink-400 hover:text-ink-100">Free AI Spend Check</a>
             <a href="/login" className="text-ink-400 hover:text-ink-100">Sign in</a>

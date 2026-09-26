@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { signOutAction } from "@/lib/auth-actions";
-import Logo from "./Logo";
+import Logo, { Wordmark } from "./Logo";
 import WorkspaceSwitcher, { type WorkspaceOption } from "./WorkspaceSwitcher";
 
 // Icone minimali, un solo stroke-width, coerenti tra loro — niente set di
@@ -168,7 +168,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
       {collapsed ? (
         <button onClick={toggle} aria-label="Expand sidebar" className="group relative h-9 w-9 mx-auto mb-4 flex items-center justify-center rounded-lg hover:bg-white/[0.08] transition-colors">
           <span className="text-white transition-opacity group-hover:opacity-0">
-            <Logo size={14} />
+            <Logo size={16} />
           </span>
           <span className="absolute inset-0 flex items-center justify-center text-[#A3A19C] opacity-0 group-hover:opacity-100 group-hover:text-white transition-opacity">
             <PanelToggleIcon />
@@ -176,8 +176,8 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
         </button>
       ) : (
         <div className="flex items-center mb-4 px-2">
-          <Link href="/" className="font-brand text-[18px] leading-none tracking-tight text-white">
-            angar
+          <Link href="/" className="text-white" aria-label="angar home">
+            <Wordmark size={16} />
           </Link>
           <button
             onClick={toggle}
