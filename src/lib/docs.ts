@@ -17,36 +17,92 @@ export const DOCS: DocArticle[] = [
     slug: "what-is-angar",
     section: "Getting started",
     title: "What is angar",
-    summary: "A living map of every AI system your company uses: what it is, who owns it, what it costs, what it depends on and what you could change.",
-    keywords: ["overview", "intro", "estate", "passport"],
-    body: `angar builds a living map of your company's AI estate — every AI application, agent, API and developer tool in use.
-For each AI system it keeps an AI Passport: vendor, model, owner, cost, data it touches, risk and assurance, changes over time and cheaper alternatives.
-## The workflow
-1. Discover — connect providers, scan code or import a list.
-2. Understand — open each AI Passport and the estate map.
-3. Measure — add costs, see spend by provider.
-4. Optimize — record alternatives and see estimated savings.
-5. Govern — review, approve and share evidence when needed.`,
+    summary: "angar finds every AI your company uses or pays for, what it really costs and where you can save — automatically.",
+    keywords: ["overview", "intro", "estate", "passport", "what"],
+    body: `angar answers three questions without asking you to type anything: which AI does the company use, how much does it cost, and where can we save.
+## How it works
+1. Sources — give angar a bank or card statement, e-invoices, company accounts (Microsoft 365, Google Workspace), provider keys or a network scan.
+2. Your AI — angar lists every AI with its plan, seats, real cost, who uses it and what data it touches (the AI Passport).
+3. Savings — angar compares what you pay with how the AI is used and today's prices, and tells you what to change.
+4. Radar and monthly report — angar tells you when a new AI appears or a cost goes up, and emails a monthly summary.`,
   },
   {
     slug: "first-10-minutes",
     section: "Getting started",
     title: "Your first 10 minutes",
-    summary: "Connect one provider, import the rest, assign owners and costs.",
-    keywords: ["start", "setup", "onboarding", "quick"],
-    body: `1. Open Connections and connect the AI provider your company already pays for (Anthropic, OpenAI, Gemini…). A normal API key is enough.
-2. Import anything without an API (SaaS tools, internal apps) with a CSV, or add them one by one.
-3. Open AI Passports, open each system and set an owner and a monthly cost.
-4. Go back to Overview: risk, review status and the estate map are now filled in.
-5. Optional: share a read-only dashboard with management from Workspace → Shared dashboards.`,
+    summary: "Drop a bank statement, look at Savings, then add the other sources when you want.",
+    keywords: ["start", "setup", "onboarding", "quick", "first"],
+    body: `1. On Overview, drop a bank or card statement (CSV or Excel) or your e-invoices. angar finds every AI subscription with plan, seats and monthly cost.
+2. Open Savings: suggestions are already calculated — yearly billing, unused seats, duplicate tools, oversized models.
+3. Optional: in Sources connect Microsoft 365 or Google Workspace to see who uses which AI, and run a scan to find AI nobody pays for.
+4. Nothing else is required: no costs to type, no owners to assign, no invitations. You can invite colleagues later from Workspace.`,
+  },
+  {
+    slug: "bank-statements",
+    section: "Sources",
+    title: "Bank statements and e-invoices",
+    summary: "Drop a bank or card export or your e-invoices: angar finds every AI you pay for, with plan, seats and real cost.",
+    keywords: ["bank", "statement", "estratto conto", "card", "invoice", "fattura", "td17", "xml", "p7m", "zip", "revolut", "qonto", "cost", "costs"],
+    body: `1. Export the statement from your bank or card as CSV or Excel (most banks: Movements → Export). Three months is ideal.
+2. Drop it on Overview or in Sources → Bank statement & invoices. You can drop several files at once.
+3. angar keeps only the lines that are AI services (OpenAI, Claude, Cursor, Copilot, Perplexity, Midjourney…) and discards everything else.
+## E-invoices (Italy)
+Drop the FatturaPA XML or .p7m files, or the zip your accountant sends. Foreign AI subscriptions appear as TD17 self-invoices: angar reads the supplier and the amount.
+## How the cost is calculated
+The monthly cost is the average of the charges. From the amount angar also recognises the plan and the number of seats (for example 305 € ≈ 10 seats of ChatGPT Business).`,
+  },
+  {
+    slug: "company-accounts",
+    section: "Sources",
+    title: "Microsoft 365 and Google Workspace",
+    summary: "An administrator approves read-only access once; angar sees which AI apps people sign in to with their work account.",
+    keywords: ["microsoft", "365", "entra", "azure", "google", "workspace", "copilot", "sso", "oauth", "who uses"],
+    body: `1. Open Sources → Company accounts and press Connect.
+2. Sign in as an administrator and approve. angar only reads: never emails, files or chats.
+## What angar sees
+- Microsoft 365: AI apps in Entra ID, who authorised them, sign-ins of the last 30 days, Microsoft 365 Copilot licences and usage.
+- Google Workspace: AI apps people authorised with "Sign in with Google" in the last 6 months.
+AI found this way goes to Review, where you decide in one click whether it's allowed.`,
+  },
+  {
+    slug: "scan",
+    section: "Sources",
+    title: "Scan computers and the network",
+    summary: "Find AI used without the company paying for it — one command, or a DNS/firewall log.",
+    keywords: ["scan", "scanner", "network", "shadow", "dns", "firewall", "log", "edge", "discover"],
+    body: `angar runs in the cloud and can't see inside your network, so the scan runs on your side and sends only the AI it recognises.
+1. Open Sources → Scan computers & network and create a scan token.
+2. Copy the command and run it in Terminal (macOS, Linux) or PowerShell (Windows).
+3. It shows what it found and asks before sending. --dry-run sends nothing.
+## Whole network
+Upload a DNS or firewall log, or run the command with --sniff on a server that sees DNS traffic. angar Edge, a small device, will do this continuously.`,
+  },
+  {
+    slug: "spend-check",
+    section: "Getting started",
+    title: "Free AI Spend Check",
+    summary: "A public page anyone can use without an account: drop a statement, see AI spend and savings. Nothing is stored.",
+    keywords: ["check", "free", "public", "try", "no account"],
+    body: `Open /check (also linked from the sign-in page), drop a statement and see AI subscriptions, spend and savings in seconds. The file is read in memory and never saved. Share the link with anyone who wants to try angar.`,
+  },
+  {
+    slug: "monthly-report",
+    section: "Using angar",
+    title: "Monthly report and AI register",
+    summary: "A monthly email for owners and admins, and an AI register ready for the EU AI Act and GDPR records.",
+    keywords: ["report", "email", "monthly", "register", "ai act", "gdpr", "article 4", "pdf"],
+    body: `## Monthly report
+Owners and admins receive a monthly email: AI in use, spend, top savings and what changed. Open it any time from the user menu → Monthly report, email it to yourself or save it as PDF.
+## AI register
+On Your AI press AI register: an Excel file with every AI, provider, category, who uses it, the data it touches, the EU AI Act risk class and cost. Use it for your AI Act inventory and AI literacy records (article 4).`,
   },
   {
     slug: "connect-a-provider",
-    section: "Connections",
+    section: "Sources",
     title: "Connect an AI provider",
     summary: "Paste an API key on the provider's card — angar checks it and runs the first sync immediately.",
     keywords: ["connect", "api key", "key", "anthropic", "openai", "claude", "chatgpt", "gemini", "mistral", "connector", "not working", "rejected", "error"],
-    body: `1. Open Connections and find the provider (e.g. Anthropic, OpenAI, Google Gemini, Mistral, xAI, DeepSeek, Groq, Cohere, Together AI, OpenRouter, Hugging Face).
+    body: `1. Open Sources → AI provider keys and find the provider (e.g. Anthropic, OpenAI, Google Gemini, Mistral, xAI, DeepSeek, Groq, Cohere, Together AI, OpenRouter, Hugging Face).
 2. Click Connect, paste the API key and press Connect again.
 3. angar verifies the key with a read-only call (it lists the available models — no credits are used), saves it encrypted and runs the first sync.
 4. The provider appears in AI Passports as "<Provider> API" and the card shows Connected.
@@ -59,7 +115,7 @@ Press Disconnect on the card: the key is deleted. Your AI Passports stay.`,
   },
   {
     slug: "find-your-api-key",
-    section: "Connections",
+    section: "Sources",
     title: "Where to find your API key",
     summary: "Direct links to the API key page of every supported provider.",
     keywords: ["where", "find", "api key", "console", "create key"],
@@ -75,25 +131,25 @@ Press Disconnect on the card: the key is deleted. Your AI Passports stay.`,
 - Together AI: api.together.ai → Settings → API keys
 - OpenRouter: openrouter.ai → Settings → Keys
 - Hugging Face: huggingface.co → Settings → Access tokens (read)
-Every card on the Connections page also has a direct link.`,
+Every card in Sources → AI provider keys also has a direct link.`,
   },
   {
     slug: "admin-vs-normal-keys",
-    section: "Connections",
+    section: "Sources",
     title: "Admin keys vs normal keys",
     summary: "A normal key shows you use a provider and which models are available; an Admin key also brings in users.",
     keywords: ["admin", "users", "organization", "difference"],
     body: `- Normal API key: confirms your company uses the provider and lists the models available. Works with any account.
 - Admin key (Anthropic and OpenAI only): also reads the organization's users, so angar knows who has access. Requires an organization account (Anthropic Team/Enterprise, OpenAI organization).
-The Connections card shows "Admin key" when one is in use.`,
+The provider card shows "Admin key" when one is in use.`,
   },
   {
     slug: "import-csv",
-    section: "Connections",
+    section: "Sources",
     title: "Import from a spreadsheet (CSV)",
     summary: "Upload a CSV with one row per AI system — works for any tool, even without an API.",
     keywords: ["csv", "excel", "import", "spreadsheet", "upload", "template", "bulk"],
-    body: `1. On Connections → Import, click Download template.
+    body: `1. In Sources → AI provider keys → Import, click Download template.
 2. Fill one row per AI system. Columns: name (required), vendor, type, model, owner_email, department, monthly_cost.
 3. Save as CSV (in Excel: File → Save as → CSV) and drop it in the upload area, then press Import CSV.
 Rows with the same name update the existing system instead of duplicating it. Owners are created automatically from their email.
@@ -101,15 +157,15 @@ Valid types: AI_APPLICATION, AI_AGENT, AI_API, AI_FEATURE, AI_DEV_TOOL, MCP_SERV
   },
   {
     slug: "add-manually",
-    section: "Connections",
+    section: "Sources",
     title: "Add an AI system manually",
     summary: "One form, one AI system — risk and assurance are computed immediately.",
     keywords: ["manual", "add", "new system", "create"],
-    body: `On Connections → Import, use "Add one manually": give a name, optionally a vendor and a monthly cost, and press Add AI system. You land on its AI Passport, where you can set the owner, status, EU AI Act classification and alternatives.`,
+    body: `In Sources → AI provider keys → Import, use "Add one manually": give a name and optionally a vendor, and press Add AI system. The cost is found automatically from your statements. You land on its AI Passport, where you can set the owner, status, EU AI Act classification and alternatives.`,
   },
   {
     slug: "github",
-    section: "Connections",
+    section: "Sources",
     title: "GitHub code scanning",
     summary: "Finds AI SDKs (OpenAI, Anthropic, Gemini, LangChain…) in your repositories.",
     keywords: ["github", "code", "repository", "sdk", "scan"],
@@ -154,13 +210,19 @@ Fix a check from the Passport (e.g. assign an owner) and the status updates imme
   {
     slug: "savings",
     section: "Using angar",
-    title: "Savings and alternatives",
-    summary: "Estimated savings = current monthly cost minus the cheapest alternative you've recorded.",
-    keywords: ["savings", "save", "cost", "cheaper", "alternative", "optimize", "spend"],
-    body: `1. On a Passport, enter the monthly cost in Manage.
-2. In the Alternatives tab, add an option with its provider, model, estimated monthly cost and migration effort.
-3. Savings lists every system where an alternative is cheaper, largest first, with monthly and yearly savings.
-These are estimates from the numbers you entered — validate quality with real tests before migrating.`,
+    title: "Savings",
+    summary: "angar calculates savings by itself from your bills, seats, usage and list prices.",
+    keywords: ["savings", "save", "cost", "cheaper", "alternative", "optimize", "spend", "seats", "annual"],
+    body: `Savings are calculated automatically — there is nothing to enter.
+## What angar looks for
+- Yearly billing: business plans paid monthly that are cheaper yearly.
+- Unused seats: seats you pay for that nobody used in the last 30 days (needs Microsoft 365, Google Workspace or an Admin key to know who is active).
+- Premium seats: expensive tiers where the standard plan is probably enough.
+- Duplicate tools: two AI assistants (or coding assistants) paid for the same job.
+- Oversized models: API usage on a top model where a cheaper one would do for simple requests.
+- Unused subscriptions: paid, but not seen on any computer in recent scans.
+Each suggestion says how sure angar is (Sure, Likely, Worth checking). Press ✕ to hide one that doesn't apply.
+List prices are updated regularly; check before changing a plan.`,
   },
   {
     slug: "changes",
@@ -237,7 +299,7 @@ It's billed per device per month on top of any plan, with a 12-month minimum; ha
     title: "How your keys and data are handled",
     summary: "Read-only access, keys encrypted at rest, nothing sent to third parties.",
     keywords: ["security", "encryption", "privacy", "gdpr", "safe", "keys", "data"],
-    body: `- Connections are read-only: angar never changes anything in your providers.
+    body: `- Sources are read-only: angar never changes anything in your providers.
 - API keys are encrypted at rest (AES-256-GCM) and can be deleted any time with Disconnect.
 - angar stores metadata about AI systems (names, models, owners, costs, events) — not the content of prompts or documents.
 - Card details are handled by Stripe and never reach angar.`,

@@ -243,7 +243,7 @@ def sniff_dns(m, seconds, out):
 
 def main():
     ap = argparse.ArgumentParser(description="Find the AI in use and send it to angar.")
-    ap.add_argument("--token", default=os.environ.get("ANGAR_TOKEN"), help="discovery token from angar (Connections > Find AI automatically)")
+    ap.add_argument("--token", default=os.environ.get("ANGAR_TOKEN"), help="discovery token from angar (Sources > Scan computers & network)")
     ap.add_argument("--server", default=os.environ.get("ANGAR_SERVER", SERVER))
     ap.add_argument("--log", action="append", default=[], help="DNS / firewall / proxy log to read (can repeat)")
     ap.add_argument("--sniff", type=int, default=0, help="also listen to DNS traffic for N seconds (admin)")
@@ -309,7 +309,7 @@ def main():
         print("\nWould send:\n" + json.dumps(payload, indent=2))
         return
     if not a.token:
-        raise SystemExit("\nAdd --token (from angar: Connections > Find AI automatically) to send the results.")
+        raise SystemExit("\nAdd --token (from angar: Sources > Scan computers & network) to send the results.")
     if not a.yes:
         try:
             if input("\nSend these to angar? [Y/n] ").strip().lower() in ("n", "no"):

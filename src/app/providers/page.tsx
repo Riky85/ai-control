@@ -53,7 +53,7 @@ export default async function ProvidersPage() {
           {rows.some((r) => r.hasCostData) ? (
             <BarChart rows={rows.filter((r) => r.hasCostData).map((r) => ({ label: r.vendor, value: r.monthlySpend }))} formatValue={(v) => `€${v.toLocaleString()}`} />
           ) : (
-            <p className="text-sm text-ink-400">No cost data yet — add it from each Passport.</p>
+            <p className="text-sm text-ink-400">No cost data yet — add a bank statement in Sources.</p>
           )}
         </Panel>
       </div>

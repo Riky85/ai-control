@@ -55,9 +55,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
           </Panel>
 
           <Panel
-            title="Connections"
+            title="Sources"
             subtitle={connectors.length ? `${connectors.length} provider${connectors.length === 1 ? "" : "s"} connected` : "Nothing connected yet"}
-            action={<Link href="/connectors" className={button}>Manage</Link>}
+            action={<Link href="/sources" className={button}>Manage</Link>}
           >
             <div className="flex flex-wrap gap-2">
               {connectors.map((c) => (

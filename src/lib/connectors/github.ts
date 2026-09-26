@@ -190,7 +190,7 @@ export const githubConnector: Connector = {
       token = await getInstallationToken(creds.installationId);
       org = await getInstallationOrgLogin(creds.installationId);
     } else {
-      throw new Error("GitHub not connected yet — paste a read-only token in Connections.");
+      throw new Error("GitHub not connected yet — paste a read-only token in Sources > AI provider keys.");
     }
 
     const copilotAsset: ObservedAsset = {

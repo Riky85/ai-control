@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const org = await orgForToken(token);
-  if (!org) return NextResponse.json({ error: "Invalid discovery token — create a new one in angar (Connections)." }, { status: 401 });
+  if (!org) return NextResponse.json({ error: "Invalid discovery token — create a new one in angar (Sources > Scan computers & network)." }, { status: 401 });
 
   const raw = await req.text();
   if (raw.length > 2_000_000) return NextResponse.json({ error: "Too much data." }, { status: 413 });
