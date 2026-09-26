@@ -1,7 +1,7 @@
 import type { Plan } from "@prisma/client";
 
 /**
- * I tre piani di abbonamento. Prezzi e limiti sono una proposta iniziale:
+ * I piani di abbonamento (Free, Starter, Growth, Scale, Enterprise). Prezzi e limiti sono una proposta iniziale:
  * si cambiano solo qui. `null` = illimitato. Gli ID prezzo Stripe arrivano
  * da variabili d'ambiente (STRIPE_PRICE_STARTER / STRIPE_PRICE_GROWTH).
  */
@@ -9,6 +9,7 @@ export interface PlanDef {
   id: Plan;
   name: string;
   price: number | null; // €/mese, null = su richiesta
+  employees: string;
   tagline: string;
   limits: { aiSystems: number | null; connections: number | null; members: number | null; sharedDashboards: number | null; workspaces: number | null };
   features: string[];
@@ -17,32 +18,57 @@ export interface PlanDef {
 
 export const PLANS: PlanDef[] = [
   {
+    id: "FREE",
+    name: "Free",
+    price: 0,
+    employees: "Freelancers & 1 person",
+    tagline: "See what you pay for AI, forever free.",
+    limits: { aiSystems: 5, connections: 1, members: 1, sharedDashboards: 0, workspaces: 1 },
+    features: ["Up to 5 AI", "Bank statements & invoices", "Automatic savings", "1 member"],
+  },
+  {
     id: "STARTER",
     name: "Starter",
-    price: 49,
-    tagline: "Every AI you pay for, and what it costs.",
-    limits: { aiSystems: 25, connections: 3, members: 3, sharedDashboards: 1, workspaces: 1 },
-    features: ["Up to 25 AI systems", "Bank statements & e-invoices", "Automatic savings", "Monthly report", "3 connections", "3 members"],
+    price: 79,
+    employees: "Up to 50 employees",
+    tagline: "Every AI your company pays for, and where to save.",
+    limits: { aiSystems: 30, connections: 3, members: 3, sharedDashboards: 1, workspaces: 1 },
+    features: ["Up to 30 AI", "Bank statements & e-invoices", "Automatic savings", "Monthly report", "Renewal alerts", "3 members"],
     stripePriceEnv: "STRIPE_PRICE_STARTER",
   },
   {
     id: "GROWTH",
     name: "Growth",
-    price: 199,
-    tagline: "Who uses what, unused seats and shadow AI.",
+    price: 249,
+    employees: "Up to 250 employees",
+    tagline: "Who really uses each AI, unused seats and shadow AI.",
     limits: { aiSystems: 250, connections: null, members: 15, sharedDashboards: null, workspaces: 3 },
-    features: ["Up to 250 AI systems", "Microsoft 365 & Google Workspace", "Unused seats & usage", "Network scans", "Unlimited connections", "15 members, 3 workspaces"],
+    features: ["Everything in Starter", "Microsoft 365 & Google Workspace", "Browser extension: real usage per person", "Unused seats & reminders", "Network scans & angar Edge software", "15 members, 3 workspaces"],
     stripePriceEnv: "STRIPE_PRICE_GROWTH",
+  },
+  {
+    id: "SCALE",
+    name: "Scale",
+    price: 599,
+    employees: "Up to 1,000 employees",
+    tagline: "For groups with many teams, sites and AI.",
+    limits: { aiSystems: null, connections: null, members: 50, sharedDashboards: null, workspaces: 10 },
+    features: ["Everything in Growth", "Unlimited AI", "AI register (AI Act) & evidence exports", "10 workspaces, 50 members", "Priority support"],
+    stripePriceEnv: "STRIPE_PRICE_SCALE",
   },
   {
     id: "ENTERPRISE",
     name: "Enterprise",
     price: null,
-    tagline: "For large AI estates and regulated teams.",
+    employees: "1,000+ employees",
+    tagline: "Custom contract, SSO and dedicated support.",
     limits: { aiSystems: null, connections: null, members: null, sharedDashboards: null, workspaces: null },
-    features: ["Unlimited AI systems", "Unlimited members & workspaces", "AI register & evidence exports", "Priority support", "Custom contract & invoicing", "SSO (on the roadmap)"],
+    features: ["Everything in Scale", "Unlimited members & workspaces", "SSO & custom contract", "Dedicated success manager"],
   },
 ];
+
+/** Garanzia: se in 90 giorni non troviamo risparmi pari all'abbonamento, rimborso. */
+export const GUARANTEE = "If angar doesn't find savings at least equal to your subscription in the first 90 days, we refund you.";
 
 /**
  * angar Edge — dispositivo fisico in abbonamento, per dispositivo al mese,
@@ -51,13 +77,13 @@ export const PLANS: PlanDef[] = [
  */
 export const EDGE = {
   name: "angar Edge",
-  pricePerDevice: 39,
+  pricePerDevice: 29,
   minMonths: 12,
   maxSelfServe: 20,
   stripePriceEnv: "STRIPE_PRICE_EDGE",
-  tagline: "A small appliance on your network that finds AI no connector can see.",
+  tagline: "Always-on discovery for a whole network: software for any always-on computer, or a small device on loan.",
   features: [
-    "Plug-and-play device for your office or plant network",
+    "Software (Docker) included in Growth and above — or a pre-configured device on loan",
     "Detects traffic to AI services (ChatGPT, Claude, Gemini, Copilot…) — no content inspected",
     "Finds shadow AI and unmanaged tools automatically",
     "Feeds Your AI, Savings and the monthly report",

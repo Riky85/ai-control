@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { verifySession, SESSION_COOKIE } from "@/lib/session";
 
 // Percorsi accessibili senza login.
-const PUBLIC = ["/login", "/signup", "/forgot", "/reset/", "/share/", "/api/billing/webhook", "/api/health", "/api/backup/cron", "/api/discovery/", "/api/spend/sample", "/check"];
+const PUBLIC = ["/login", "/signup", "/forgot", "/reset/", "/share/", "/api/billing/webhook", "/api/health", "/api/backup/cron", "/api/discovery/", "/api/spend/sample", "/check", "/pricing"];
 const IDENTITY_HEADERS = ["x-angar-account", "x-angar-email", "x-angar-name", "x-angar-org", "x-angar-role"];
 
 export async function middleware(req: NextRequest) {

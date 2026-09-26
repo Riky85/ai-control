@@ -3,12 +3,12 @@ import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import { PageHeader, Panel } from "@/components/ui";
 import Badge from "@/components/Badge";
-import { PLANS, planById, EDGE } from "@/lib/plans";
+import { planById, EDGE } from "@/lib/plans";
+import PricingCards from "@/components/PricingCards";
 import { stripeEnabled } from "@/lib/stripe";
-import { startCheckoutAction, openBillingPortalAction, startEdgeCheckoutAction } from "@/lib/workspace-actions";
+import { openBillingPortalAction, startEdgeCheckoutAction } from "@/lib/workspace-actions";
 
 export const dynamic = "force-dynamic";
-const ORDER = ["STARTER", "GROWTH", "ENTERPRISE"];
 
 export default async function BillingPage({ searchParams }: { searchParams: { checkout?: string; error?: string } }) {
   const [org, aiSystems, connections, members, sharedDashboards] = await Promise.all([
@@ -89,58 +89,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
         </Panel>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        {PLANS.map((p) => {
-          const isCurrent = p.id === org.plan;
-          const upgrade = ORDER.indexOf(p.id) > ORDER.indexOf(org.plan);
-          const highlight = p.id === "GROWTH";
-          return (
-            <div key={p.id} className={`rounded-xl border bg-panel p-6 flex flex-col gap-5 ${highlight ? "border-ink-100" : "border-line"}`}>
-              <div>
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-semibold text-ink-100">{p.name}</h2>
-                  {highlight && <span className="text-[11px] font-medium text-accent-dark bg-accent-soft rounded-full px-2 py-0.5">Most popular</span>}
-                </div>
-                <p className="text-sm text-ink-400 mt-1">{p.tagline}</p>
-              </div>
-              <div className="font-display text-ink-100">
-                {p.price === null ? (
-                  <span className="text-[30px] font-semibold tracking-tight">Custom</span>
-                ) : (
-                  <>
-                    <span className="text-[30px] font-semibold tracking-tight tabular">€{p.price}</span>
-                    <span className="text-sm text-ink-400"> / month</span>
-                  </>
-                )}
-              </div>
-              <ul className="flex flex-col gap-2 text-sm text-ink-100 flex-1">
-                {p.features.map((f) => (
-                  <li key={f} className="flex gap-2">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 mt-0.5 text-accent">
-                      <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              {isCurrent ? (
-                <div className="btn btn-secondary opacity-60 cursor-default">Current plan</div>
-              ) : p.price === null ? (
-                <a href={`mailto:${salesEmail ?? ""}?subject=${encodeURIComponent("angar Enterprise")}`} className="btn btn-secondary">
-                  Contact sales
-                </a>
-              ) : (
-                <form action={startCheckoutAction}>
-                  <input type="hidden" name="plan" value={p.id} />
-                  <button disabled={!payments} className={`btn w-full ${upgrade ? "btn-primary" : "btn-secondary"} disabled:opacity-50 disabled:cursor-not-allowed`}>
-                    {upgrade ? `Upgrade to ${p.name}` : `Switch to ${p.name}`}
-                  </button>
-                </form>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      <PricingCards mode="billing" current={org.plan} payments={payments} salesEmail={salesEmail} />
 
       <section id="edge" className="rounded-xl border border-line bg-panel p-6 grid grid-cols-3 gap-8 scroll-mt-6">
         <div className="col-span-2 flex gap-6">

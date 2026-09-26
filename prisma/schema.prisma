@@ -398,8 +398,10 @@ model Evidence {
 
 
 enum Plan {
+  FREE
   STARTER
   GROWTH
+  SCALE
   ENTERPRISE
 }
 

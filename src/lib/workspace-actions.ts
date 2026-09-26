@@ -237,3 +237,22 @@ export async function renameWorkspaceAction(formData: FormData) {
   }
   revalidatePath("/", "layout");
 }
+
+/** Passaggio al piano Free (nessun pagamento): solo se i limiti sono rispettati. */
+export async function switchToFreeAction() {
+  const s = await requireRole("OWNER", "/billing");
+  const free = planById("FREE");
+  const [ais, members] = await Promise.all([
+    db.aiAsset.count({ where: { organizationId: s.orgId, deletedAt: null } }),
+    db.workspaceMember.count({ where: { organizationId: s.orgId } }),
+  ]);
+  if (!withinLimit(free.limits.aiSystems, ais - 1) || !withinLimit(free.limits.members, members - 1)) {
+    redirect(`/billing?error=${encodeURIComponent(`Free includes up to ${free.limits.aiSystems} AI and ${free.limits.members} member — you have ${ais} AI and ${members} members.`)}`);
+  }
+  const o = await db.organization.findUniqueOrThrow({ where: { id: s.orgId } });
+  if (o.stripeSubscriptionId) redirect(`/billing?error=${encodeURIComponent("Cancel the paid subscription from 'Invoices & payment method' first.")}`);
+  await db.organization.update({ where: { id: s.orgId }, data: { plan: "FREE", planStatus: "active" } });
+  await audit("billing.switch_free");
+  revalidatePath("/", "layout");
+  redirect("/billing");
+}

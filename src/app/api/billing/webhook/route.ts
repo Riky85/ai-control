@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         where: { id: org.id },
         data: {
           planStatus: deleted ? "canceled" : obj.status,
-          plan: deleted ? "STARTER" : planFromPrice(obj.items?.data?.[0]?.price?.id) ?? undefined,
+          plan: deleted ? "FREE" : planFromPrice(obj.items?.data?.[0]?.price?.id) ?? undefined,
           currentPeriodEnd: obj.current_period_end ? new Date(obj.current_period_end * 1000) : undefined,
           stripeSubscriptionId: deleted ? null : obj.id,
         },

@@ -16,6 +16,7 @@ export default function CheckPage() {
         <header className="max-w-5xl mx-auto px-6 pt-8 flex items-center justify-between">
           <a href="/check" className="font-brand text-[20px] tracking-tight text-ink-100">angar</a>
           <div className="flex items-center gap-3">
+            <a href="/pricing" className="text-sm text-ink-400 hover:text-ink-100">Pricing</a>
             <a href="/login" className="text-sm text-ink-400 hover:text-ink-100">Sign in</a>
             <a href="/signup" className="btn btn-secondary btn-sm">Create free account</a>
           </div>
