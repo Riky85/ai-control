@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { computeSavings } from "@/lib/savings";
+import { computeSavings, categoryOf } from "@/lib/savings";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +29,44 @@ async function build(dataset: string, orgId: string): Promise<{ title: string; s
           "Cost €/month": eur(a.cost?.monthlyCostEstimate), "First seen": day(a.firstSeenAt), "Last seen": day(a.lastSeenAt),
         })),
       }],
+    };
+  }
+  if (dataset === "register") {
+    // Registro delle AI in uso (base per AI Act e GDPR): un sistema per riga,
+    // con fornitore, scopo, chi lo usa, dati toccati, classificazione.
+    const [assets, org] = await Promise.all([
+      db.aiAsset.findMany({
+        where: { organizationId: orgId, deletedAt: null },
+        include: { owner: true, cost: true, usages: true, dataAccess: { include: { dataAsset: true } }, riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 } },
+        orderBy: { name: "asc" },
+      }),
+      db.organization.findUnique({ where: { id: orgId } }),
+    ]);
+    const TIER: Record<string, string> = { UNCLASSIFIED: "Not classified yet", MINIMAL_RISK: "Minimal risk", LIMITED_RISK: "Limited risk (transparency duties)", HIGH_RISK: "High risk" };
+    return {
+      title: "AI register",
+      sheets: [
+        {
+          name: "AI register",
+          rows: assets.map((a) => ({
+            "AI system": a.name, Provider: a.vendor, Category: label(categoryOf(a) ?? a.type), "Model(s)": a.model,
+            "Allowed in the company": a.status === "APPROVED" ? "Yes" : a.status === "UNAPPROVED" ? "No" : "Not decided",
+            Owner: a.owner?.name ?? a.owner?.email, "People using it": a.usages.length || null,
+            "Data it touches": a.dataAccess.map((d) => `${d.dataAsset.name} (${label(d.dataAsset.sensitivity)})`).join(", ") || null,
+            "EU AI Act risk class": TIER[a.euAiActTier] ?? a.euAiActTier, "angar risk": label(a.riskAssessments[0]?.level),
+            "Cost €/month": eur(a.cost?.monthlyCostEstimate), "In use since": day(a.firstSeenAt), "Last seen": day(a.lastSeenAt),
+          })),
+        },
+        {
+          name: "About",
+          rows: [
+            { Item: "Organisation", Value: org?.name },
+            { Item: "Generated", Value: new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC" },
+            { Item: "Source", Value: "angar — discovered from bank statements, invoices, provider accounts, company accounts and scans" },
+            { Item: "AI literacy (AI Act art. 4)", Value: "List the people in 'People using it' and record the training they received." },
+          ],
+        },
+      ],
     };
   }
   if (dataset === "providers") {

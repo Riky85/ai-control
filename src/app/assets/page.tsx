@@ -72,6 +72,7 @@ export default async function AssetsPage({
         subtitle="Every AI your company uses or pays for — open one to see its passport: who uses it, what it costs, what it touches."
         action={
           <div className="flex gap-2">
+            <a href="/api/export/register" className="btn btn-secondary" title="AI register for the EU AI Act and GDPR records (Excel)">AI register</a>
             <ExportMenu dataset="assets" />
             <Link href="/sources" className="btn btn-secondary">
               + Add sources

@@ -9,7 +9,8 @@ import { StatCard, Panel, PageHeader } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import { computeSavings, monthlyOf } from "@/lib/savings";
 import { uploadSpendAction } from "@/lib/spend-actions";
-import { fmtEur } from "@/lib/format";
+import { fmtEur, fmtDate } from "@/lib/format";
+import { radar } from "@/lib/radar";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
     db.connector.findUnique({ where: { organizationId_provider: { organizationId: orgId, provider: "NETWORK" } } }),
     db.aiAsset.count({ where: { organizationId: orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } }),
   ]);
+  const events = await radar(orgId);
 
   const costed = assets.map((a) => ({ a, m: monthlyOf(a) })).filter((x) => x.m && x.m.eur > 0);
   const spend = costed.reduce((s, x) => s + x.m!.eur, 0);
@@ -169,6 +171,22 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
               </Panel>
             </div>
           </div>
+
+          <Panel title="Radar" subtitle="What changed by itself in the last weeks" action={<Link href="/changes" className="btn btn-secondary btn-sm">All changes</Link>}>
+            <div className="divide-y divide-line -mx-5 border-t border-line">
+              {events.map((e, i) => (
+                <Link key={i} href={e.href} className="flex items-start gap-3 px-5 py-3 hover:bg-ink-100/[0.02] transition-colors">
+                  <span className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${{ alarm: "bg-alarm", signal: "bg-signal", steady: "bg-steady" }[e.tone]}`} />
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-medium text-ink-100">{e.title}</span>
+                    <span className="block text-xs text-ink-400">{e.detail}</span>
+                  </span>
+                  <span className="text-xs text-ink-400 shrink-0">{fmtDate(e.at)}</span>
+                </Link>
+              ))}
+              {events.length === 0 && <p className="px-5 py-4 text-sm text-ink-400">Nothing new. angar tells you when a new AI appears or a cost goes up.</p>}
+            </div>
+          </Panel>
 
           <Panel title="AI estate map" subtitle="Which provider powers each AI, and which data it touches">
             <div className="max-w-4xl mx-auto">

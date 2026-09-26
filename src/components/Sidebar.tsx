@@ -73,6 +73,7 @@ const PRIMARY_ITEMS = [
 // sidebar aperta non ha bisogno di scroll.
 const MENU_ITEMS = [
   { href: "/workspace", label: "Workspace", icon: "people" },
+  { href: "/report", label: "Monthly report", icon: "evidence" },
   { href: "/billing", label: "Plan & billing", icon: "savings" },
   { href: "/settings", label: "Settings", icon: "settings" },
   { href: "/audit", label: "Audit log", icon: "activity" },

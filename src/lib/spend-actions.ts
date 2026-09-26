@@ -50,3 +50,12 @@ export async function restoreSavingsAction() {
   await db.savingDismissal.deleteMany({ where: { organizationId: s.orgId } });
   revalidatePath("/", "layout");
 }
+
+export async function sendReportNowAction() {
+  const s = await requireRole("VIEWER", "/report");
+  const { buildReport, reportText } = await import("@/lib/report");
+  const { sendEmail, appOrigin } = await import("@/lib/mail");
+  const r = await buildReport(s.orgId);
+  const res = await sendEmail({ to: s.email, subject: `Your AI in ${r.month}`, text: reportText(r, appOrigin()) });
+  redirect(res.sent ? "/report?sent=1" : `/report?error=${encodeURIComponent(res.reason ?? "Couldn't send the email.")}`);
+}
