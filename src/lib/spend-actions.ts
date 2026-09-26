@@ -59,3 +59,29 @@ export async function sendReportNowAction() {
   const res = await sendEmail({ to: s.email, subject: `Your AI in ${r.month}`, text: reportText(r, appOrigin()) });
   redirect(res.sent ? "/report?sent=1" : `/report?error=${encodeURIComponent(res.reason ?? "Couldn't send the email.")}`);
 }
+
+/** Chiede a chi non usa un'AI da 30 giorni se il posto serve ancora. */
+export async function remindInactiveAction(formData: FormData) {
+  const s = await requireRole("EDITOR", "/");
+  const { db } = await import("@/lib/db");
+  const { sendEmail } = await import("@/lib/mail");
+  const assetId = String(formData.get("assetId") ?? "");
+  const asset = await db.aiAsset.findFirst({ where: { id: assetId, organizationId: s.orgId }, include: { usages: { include: { user: true } } } });
+  if (!asset) redirect("/");
+  const cutoff = Date.now() - 30 * 86400000;
+  const inactive = asset!.usages.filter((u) => u.user?.email && (!u.lastSeenAt || u.lastSeenAt.getTime() < cutoff)).map((u) => u.user!.email);
+  if (!inactive.length) redirect(`/assets/${assetId}?tab=people&error=${encodeURIComponent("Everyone known has used it in the last 30 days.")}`);
+  let sent = 0;
+  let reason = "";
+  for (const to of inactive) {
+    const r = await sendEmail({
+      to,
+      subject: `Do you still need your ${asset!.name} seat?`,
+      text: `Hi,\n\nyou have a company ${asset!.name} seat but haven't used it in the last 30 days.\n\nIf you still need it, just reply to ${s.email}. Otherwise we'll free it up so the company stops paying for it.\n\nThanks!`,
+    });
+    if (r.sent) sent++;
+    else reason = r.reason ?? "";
+  }
+  await audit("seats.remind_inactive", asset!.name, { count: inactive.length, sent });
+  redirect(`/assets/${assetId}?tab=people&${sent ? `reminded=${sent}` : `error=${encodeURIComponent(reason || "Email isn't configured — use 'Write the email yourself'.")}`}`);
+}

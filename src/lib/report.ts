@@ -5,18 +5,20 @@
 import { db } from "@/lib/db";
 import { computeSavings, monthlyOf } from "@/lib/savings";
 import { radar } from "@/lib/radar";
-import { fmtEur } from "@/lib/format";
+import { fmtEur, fmtDate } from "@/lib/format";
+import { upcomingRenewals } from "@/lib/renewals";
 
 export async function buildReport(organizationId: string) {
-  const [org, { items, totalMonthly, assets }, events] = await Promise.all([
+  const [org, { items, totalMonthly, assets }, events, renewals] = await Promise.all([
     db.organization.findUnique({ where: { id: organizationId } }),
     computeSavings(organizationId),
     radar(organizationId, 31),
+    upcomingRenewals(organizationId, 45),
   ]);
   const costed = assets.map((a) => ({ a, m: monthlyOf(a) })).filter((x) => x.m && x.m.eur > 0).sort((x, y) => y.m!.eur - x.m!.eur);
   const spend = costed.reduce((s, x) => s + x.m!.eur, 0);
   const month = new Date().toLocaleString("en-GB", { month: "long", year: "numeric" });
-  return { org, month, assets, costed, spend, savings: items, canSave: totalMonthly, events };
+  return { org, month, assets, costed, spend, savings: items, canSave: totalMonthly, events, renewals: renewals.filter((r) => r.annual) };
 }
 
 export function reportText(r: Awaited<ReturnType<typeof buildReport>>, origin: string) {
@@ -30,6 +32,7 @@ export function reportText(r: Awaited<ReturnType<typeof buildReport>>, origin: s
     ...r.costed.slice(0, 5).map((x) => `• ${x.a.name}: ${fmtEur(x.m!.eur)}/month${x.m!.estimated ? " (estimated)" : ""}`),
   ];
   if (r.savings.length) lines.push("", "Top savings:", ...r.savings.slice(0, 3).map((s) => `• ${s.title} — ${fmtEur(s.monthlyEur)}/month`));
+  if (r.renewals.length) lines.push("", "Yearly renewals coming:", ...r.renewals.map((x) => `• ${x.name} — ${fmtDate(x.date)}, ${fmtEur(x.amountEur)}`));
   if (r.events.length) lines.push("", "What changed:", ...r.events.slice(0, 5).map((e) => `• ${e.title}`));
   lines.push("", `Open angar: ${origin}/`);
   return lines.join("\n");

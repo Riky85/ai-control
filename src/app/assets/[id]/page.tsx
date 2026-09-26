@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
 import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, setAssetCostAction } from "@/lib/actions";
-import { dismissSavingAction } from "@/lib/spend-actions";
+import { dismissSavingAction, remindInactiveAction } from "@/lib/spend-actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
@@ -12,7 +12,7 @@ import { StatCard, Tabs, Panel, Table, td } from "@/components/ui";
 import StatusDot from "@/components/StatusDot";
 import ExportMenu from "@/components/ExportMenu";
 import { computeSavings, categoryOf, monthlyOf } from "@/lib/savings";
-import { CATEGORY_LABEL, PLANS } from "@/lib/pricing/catalog";
+import { CATEGORY_LABEL, PLANS, MANAGE_URL } from "@/lib/pricing/catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,7 @@ const DAY = 86400000;
 const CONF: Record<string, string> = { HIGH: "Sure", MEDIUM: "Likely", LOW: "Worth checking" };
 
 // Il passaporto di un'AI: quanto costa, chi la usa, come risparmiare, cosa tocca.
-export default async function AssetDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { tab?: string } }) {
+export default async function AssetDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { tab?: string; reminded?: string; error?: string } }) {
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "overview";
   const orgId = currentOrgId();
 
@@ -63,6 +63,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const seats = asset.cost?.seats ?? null;
   const active = asset.usages.filter((u) => u.lastSeenAt && Date.now() - u.lastSeenAt.getTime() < 30 * DAY).length;
   // Per un doppione, il suggerimento compare solo sulle AI da togliere.
+  const inactive = asset.usages.filter((u) => u.user?.email && (!u.lastSeenAt || Date.now() - u.lastSeenAt.getTime() > 30 * DAY)).map((u) => u.user!.email);
+  const manage = asset.serviceId ? MANAGE_URL[asset.serviceId] : undefined;
   const mine = items.filter((i) => (i.kind === "duplicate" ? i.assets.slice(1) : i.assets).some((a) => a.id === asset.id));
   const canSave = mine.reduce((t, i) => t + (i.kind === "duplicate" ? (i.assets[0]?.id === asset.id ? 0 : m?.eur ?? 0) : i.monthlyEur), 0);
   const sources = [
@@ -95,6 +97,11 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         </div>
         <div className="flex items-center gap-2 shrink-0 pr-11 min-h-9">
           <Badge>{asset.status}</Badge>
+          {manage && (
+            <a href={manage} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" title="Change seats, plan or cancel on the provider's site">
+              Manage plan ↗
+            </a>
+          )}
           <ExportMenu dataset={`passport-${asset.id}`} />
         </div>
       </div>
@@ -178,6 +185,27 @@ export default async function AssetDetailPage({ params, searchParams }: { params
               ))}
             </Table>
           )}
+
+          {tab === "people" && inactive.length > 0 && (
+            <div className="rounded-xl border border-line bg-panel px-5 py-4 flex items-center gap-4">
+              <div className="flex-1">
+                <div className="text-sm font-medium text-ink-100">{inactive.length} {inactive.length === 1 ? "person hasn't" : "people haven't"} used {asset.name} in 30 days</div>
+                <div className="text-sm text-ink-400">Ask if they still need the seat — the ones who don't reply can be removed.</div>
+              </div>
+              <a
+                href={`mailto:?bcc=${encodeURIComponent(inactive.join(","))}&subject=${encodeURIComponent(`Do you still need your ${asset.name} seat?`)}&body=${encodeURIComponent(`Hi,\n\nyou have a company ${asset.name} seat but haven't used it in the last 30 days. If you still need it, just reply. Otherwise we'll free it up.\n\nThanks!`)}`}
+                className="btn btn-secondary btn-sm"
+              >
+                Write the email yourself
+              </a>
+              <form action={remindInactiveAction}>
+                <input type="hidden" name="assetId" value={asset.id} />
+                <button className="btn btn-primary btn-sm">Ask them</button>
+              </form>
+            </div>
+          )}
+          {tab === "people" && searchParams.reminded && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Sent to {searchParams.reminded} {searchParams.reminded === "1" ? "person" : "people"}.</div>}
+          {tab === "people" && searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
           {tab === "people" && (
             <Table columns={["Person", "Department", "Last active"]} empty={asset.usages.length === 0 ? "Nobody known yet — connect Microsoft 365, Google Workspace or an Admin key to see who uses it." : false}>

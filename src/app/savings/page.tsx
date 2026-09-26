@@ -6,7 +6,9 @@ import { VendorBadge } from "@/components/VendorIcon";
 import ExportMenu from "@/components/ExportMenu";
 import { PageHeader, StatCard } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
-import { PRICES_AS_OF } from "@/lib/pricing/catalog";
+import { PRICES_AS_OF, MANAGE_URL } from "@/lib/pricing/catalog";
+import { upcomingRenewals } from "@/lib/renewals";
+import { fmtDate } from "@/lib/format";
 import { db } from "@/lib/db";
 import FilterBar from "@/components/FilterBar";
 
@@ -23,7 +25,8 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
   const orgId = currentOrgId();
   const { items: all, totalMonthly, assets } = await computeSavings(orgId);
   const items = all.filter((i) => (!searchParams.confidence || i.confidence === searchParams.confidence) && (!searchParams.kind || i.kind === searchParams.kind));
-  const dismissed = await db.savingDismissal.count({ where: { organizationId: orgId } });
+  const [dismissed, renewals] = await Promise.all([db.savingDismissal.count({ where: { organizationId: orgId } }), upcomingRenewals(orgId, 60)]);
+  const soon = renewals.filter((r) => r.annual || r.date.getTime() - Date.now() < 7 * 86400000);
   const spend = assets.reduce((s, a) => s + (monthlyOf(a)?.eur ?? 0), 0);
   const sure = all.filter((i) => i.confidence === "HIGH").reduce((s, i) => s + i.monthlyEur, 0);
 
@@ -78,6 +81,24 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
         </div>
       )}
 
+      {soon.length > 0 && (
+        <section className="rounded-xl border border-line bg-panel">
+          <div className="px-5 pt-4 pb-3">
+            <h2 className="text-base font-semibold text-ink-100">Coming renewals</h2>
+            <p className="text-sm text-ink-400">Decide before they renew — yearly plans can't be cut until the next term.</p>
+          </div>
+          <div className="divide-y divide-line border-t border-line">
+            {soon.map((r) => (
+              <Link key={r.assetId + r.date.toISOString()} href={`/assets/${r.assetId}`} className="flex items-center gap-4 px-5 py-3 hover:bg-ink-100/[0.02] transition-colors">
+                <span className="w-24 text-sm text-ink-400 tabular">{fmtDate(r.date)}</span>
+                <span className="flex-1 text-sm text-ink-100">{r.name} <span className="text-ink-400">· {r.annual ? "yearly" : "monthly"}</span></span>
+                <span className="text-sm tabular text-ink-100">{fmtEur(r.amountEur)}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="flex items-center justify-between text-xs text-ink-400">
         <span>List prices as of {PRICES_AS_OF}. Estimates — check before changing a plan.</span>
         {dismissed > 0 && (
@@ -88,6 +109,11 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
       </div>
     </div>
   );
+}
+
+function manageUrl(s: Saving) {
+  const a = s.kind === "duplicate" ? s.assets[1] : s.assets[0];
+  return a?.serviceId ? MANAGE_URL[a.serviceId] ?? null : null;
 }
 
 function SavingRow({ s }: { s: Saving }) {
@@ -113,6 +139,11 @@ function SavingRow({ s }: { s: Saving }) {
         <div className="text-xs text-ink-400 tabular">{fmtEur(s.monthlyEur * 12)} a year</div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
+        {manageUrl(s) && (
+          <a href={manageUrl(s)!} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" title="Open the provider's billing page">
+            Billing ↗
+          </a>
+        )}
         <Link href={s.href} className="btn btn-secondary btn-sm">Open</Link>
         <form action={dismissSavingAction}>
           <input type="hidden" name="key" value={s.key} />

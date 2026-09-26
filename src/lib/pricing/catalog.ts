@@ -159,3 +159,23 @@ export const categoryPlural = (c: Category) => {
   const l = CATEGORY_LABEL[c];
   return (l.startsWith("AI") ? l : l.charAt(0).toLowerCase() + l.slice(1)) + (l.endsWith("s") ? "" : "s");
 };
+
+/** Dove gestire abbonamento e posti di ciascun servizio (per agire subito). */
+export const MANAGE_URL: Record<string, string> = {
+  chatgpt: "https://chatgpt.com/admin/billing",
+  claude: "https://claude.ai/settings/billing",
+  gemini: "https://admin.google.com/ac/billing/subscriptions",
+  copilot: "https://admin.microsoft.com/#/licenses",
+  "github-copilot": "https://github.com/settings/copilot",
+  cursor: "https://cursor.com/dashboard",
+  perplexity: "https://www.perplexity.ai/settings/account",
+  midjourney: "https://www.midjourney.com/account",
+  "openai-api": "https://platform.openai.com/settings/organization/billing/overview",
+  "anthropic-api": "https://console.anthropic.com/settings/billing",
+  "mistral-api": "https://console.mistral.ai/billing",
+  "gemini-api": "https://aistudio.google.com/usage",
+  elevenlabs: "https://elevenlabs.io/app/subscription",
+  deepl: "https://www.deepl.com/your-account/subscription",
+  grammarly: "https://account.grammarly.com/subscription",
+  windsurf: "https://windsurf.com/subscription/manage-plan",
+};
