@@ -5,18 +5,21 @@ import CsvDropzone from "@/components/CsvDropzone";
 import AiTable from "@/components/AiTable";
 import { StatCard, PageHeader } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
-import { computeSavings, monthlyOf } from "@/lib/savings";
+import { computeSavings, monthlyOf, loadAssets } from "@/lib/savings";
+import { AI_FILTERS, filterAssets, type AiFilterParams } from "@/lib/ai-filters";
+import FilterBar from "@/components/FilterBar";
 import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 // Home = la risposta + la tabella delle AI. Niente altri blocchi.
-export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string; spend?: string } }) {
+export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string; spend?: string } & AiFilterParams }) {
   const orgId = currentOrgId();
-  const [org, { items: savings, totalMonthly: canSave, assets }, broken, toReview] = await Promise.all([
+  const [org, { items: savings, totalMonthly: canSave, assets }, all, broken, toReview] = await Promise.all([
     db.organization.findUnique({ where: { id: orgId } }),
     computeSavings(orgId),
+    loadAssets(orgId, { includeRejected: true }),
     db.connector.count({ where: { organizationId: orgId, status: "ERROR", credentialsEncrypted: { not: null }, provider: { notIn: ["NETWORK"] } } }),
     db.aiAsset.count({ where: { organizationId: orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } }),
   ]);
@@ -24,10 +27,18 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   const spend = costed.reduce((s, m) => s + m.eur, 0);
   const estimated = costed.filter((m) => m.estimated).length;
   const unpaid = assets.filter((a) => !monthlyOf(a)).length;
+  const shown = filterAssets(all, searchParams);
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Overview" subtitle={`${org?.name ?? ""} — your AI at a glance.`} action={assets.length ? <ExportMenu dataset="assets" /> : undefined} />
+      <PageHeader title="Overview" subtitle={`${org?.name ?? ""} — your AI at a glance.`} action={
+          assets.length ? (
+            <div className="flex items-center gap-2">
+              <a href="/api/export/register" className="btn btn-secondary" title="AI register for the EU AI Act and GDPR records (Excel)">AI register</a>
+              <ExportMenu dataset="assets" />
+            </div>
+          ) : undefined
+        } />
 
       {(searchParams.connected || searchParams.imported || searchParams.spend) && (
         <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
@@ -80,12 +91,10 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
                 <h2 className="text-base font-semibold text-ink-100">Your AI</h2>
                 <p className="text-sm text-ink-400">Most expensive first. Open one to see its passport.</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Link href="/assets" className="btn btn-secondary btn-sm">Filter</Link>
-                <Link href="/sources" className="btn btn-secondary btn-sm">+ Add sources</Link>
-              </div>
+              <Link href="/sources" className="btn btn-secondary btn-sm">+ Add sources</Link>
             </div>
-            <AiTable assets={assets} savings={savings} />
+            <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={AI_FILTERS} right={`${shown.length} of ${all.length}`} />
+            <AiTable assets={shown} savings={savings} empty="Nothing matches these filters." />
           </div>
         </>
       )}
