@@ -89,7 +89,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         <StatCard
           label="Current cost"
           value={asset.cost?.monthlyCostEstimate != null ? `€${asset.cost.monthlyCostEstimate.toLocaleString()}` : "—"}
-          hint={asset.cost?.monthlyCostEstimate != null ? "per month" : "Not entered yet"}
+          hint={asset.cost?.monthlyCostEstimate != null ? costSource(asset.cost) : "Found automatically from your bank statement or billing"}
         />
         <StatCard label="Annualized" value={asset.cost?.monthlyCostEstimate != null ? `€${(asset.cost.monthlyCostEstimate * 12).toLocaleString()}` : "—"} />
         <StatCard label="Dependencies" value={String(asset.connectedSystems.length + asset.dataAccess.length)} hint="Systems and data it touches" />
@@ -322,7 +322,9 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             </div>
           </form>
 
-          <form action={setAssetCostAction} className="flex flex-col gap-2 pt-5 border-t border-line">
+          <details className="pt-5 border-t border-line group">
+          <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none">Cost looks wrong? Correct it</summary>
+          <form action={setAssetCostAction} className="flex flex-col gap-2 mt-3">
             <input type="hidden" name="assetId" value={asset.id} />
             <label className="text-sm text-ink-400" htmlFor="cost">Monthly cost</label>
             <div className="flex gap-2">
@@ -338,6 +340,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             </div>
             <button type="submit" className="btn btn-secondary w-full">Save cost</button>
           </form>
+          </details>
         </aside>
       </div>
     </div>
@@ -360,4 +363,11 @@ function Field({ label, value, empty = "—" }: { label: string; value?: string 
       <dd className={`text-sm mt-1 truncate ${value ? "text-ink-100" : "text-ink-400"}`}>{value || empty}</dd>
     </div>
   );
+}
+
+function costSource(c: { basis: string; seats: number | null; planId: string | null; notes: string | null }) {
+  const plan = c.notes?.match(/looks like (.+)$/)?.[1];
+  const from =
+    c.basis === "bank" ? "From your bank statement" : c.basis === "invoice" ? "From your invoices" : c.basis === "billing_connector" ? "From provider billing" : c.basis === "estimate" ? "Estimated from list prices" : "Entered by hand";
+  return plan ? `${from} · ${plan}` : `${from} · per month`;
 }

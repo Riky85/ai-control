@@ -37,6 +37,7 @@ export async function persistSyncResult(
         },
       },
       update: {
+        ...(observed.serviceId ? { serviceId: observed.serviceId } : {}),
         name: observed.name,
         vendor: observed.vendor,
         model: observed.model,
@@ -47,6 +48,7 @@ export async function persistSyncResult(
         connectorId,
         externalId: observed.externalId,
         type: observed.type,
+        serviceId: observed.serviceId,
         name: observed.name,
         vendor: observed.vendor,
         model: observed.model,

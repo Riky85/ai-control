@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
+import { computeSavings } from "@/lib/savings";
 
 export const dynamic = "force-dynamic";
 
@@ -48,20 +49,19 @@ async function build(dataset: string, orgId: string): Promise<{ title: string; s
     };
   }
   if (dataset === "savings") {
-    const assets = await db.aiAsset.findMany({ where: { organizationId: orgId, deletedAt: null }, include: { cost: true, alternatives: true } });
-    const rows: Row[] = [];
-    for (const a of assets) {
-      const current = a.cost?.monthlyCostEstimate;
-      for (const alt of a.alternatives) {
-        const saving = current != null && alt.estimatedMonthlyCost != null ? current - alt.estimatedMonthlyCost : null;
-        rows.push({
-          System: a.name, "Current vendor": a.vendor, "Current €/month": eur(current), Alternative: `${alt.provider} · ${alt.model}`,
-          "Alternative €/month": eur(alt.estimatedMonthlyCost), "Saving €/month": eur(saving), "Saving €/year": eur(saving != null ? saving * 12 : null),
-          "Migration days": alt.migrationEffortDays, "Quality confidence": label(alt.qualityConfidence), Notes: alt.reasoning,
-        });
-      }
-    }
-    return { title: "Savings", sheets: [{ name: "Opportunities", rows }] };
+    const { items } = await computeSavings(orgId);
+    const rows: Row[] = items.map((i) => ({
+      Suggestion: i.title, "AI systems": i.assets.map((a) => a.name).join(", "), "Saving €/month": eur(i.monthlyEur), "Saving €/year": eur(i.monthlyEur * 12),
+      Confidence: label(i.confidence), Why: i.detail,
+    }));
+    const spend = await db.spendRecord.findMany({ where: { organizationId: orgId }, orderBy: { date: "desc" } });
+    return {
+      title: "Savings",
+      sheets: [
+        { name: "Savings", rows },
+        { name: "AI charges", rows: spend.map((r) => ({ Date: day(r.date), Service: r.service, "Amount €": eur(r.amountEur), Source: label(r.source), Description: r.description })) },
+      ],
+    };
   }
   if (dataset === "changes") {
     const changes = await db.assetChange.findMany({ where: { aiAsset: { organizationId: orgId } }, include: { aiAsset: true }, orderBy: { detectedAt: "desc" } });

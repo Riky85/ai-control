@@ -53,6 +53,7 @@ export const openaiConnector: Connector = {
     const asset: ObservedAsset = {
       externalId: ASSET_EXTERNAL_ID,
       type: "AI_APPLICATION",
+      serviceId: "chatgpt",
       name: "ChatGPT",
       vendor: "OpenAI",
       users: [],

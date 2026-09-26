@@ -29,8 +29,6 @@ const COMING_SOON: { group: string; items: { label: string; vendor: string }[] }
   {
     group: "Workplace",
     items: [
-      { label: "Microsoft 365 / Copilot", vendor: "Microsoft" },
-      { label: "Google Workspace", vendor: "Google" },
       { label: "Slack", vendor: "Slack" },
       { label: "Salesforce", vendor: "Salesforce" },
       { label: "Notion", vendor: "Notion" },
@@ -69,8 +67,9 @@ export default async function ConnectorsPage({
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="Connections"
-        subtitle="Connect where your AI lives. Paste a key, sign in, or import a list — angar builds your AI Passports from it."
+        crumbs={[{ label: "Sources", href: "/sources" }]}
+        title="Provider keys & imports"
+        subtitle="Paste a provider key for exact API costs, or import a list of AI tools."
         action={<span className="text-sm text-ink-400">{connectedCount} connected</span>}
       />
 
@@ -86,18 +85,7 @@ export default async function ConnectorsPage({
       )}
       {searchParams.error && !searchParams.provider && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
-      <div className="rounded-xl border border-line bg-panel p-5 flex items-center gap-4">
-        <span className="h-10 w-10 rounded-lg bg-accent-soft text-accent flex items-center justify-center shrink-0">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" /><path d="M13 13l4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-        </span>
-        <div className="flex-1">
-          <div className="text-base font-semibold text-ink-100">Find AI automatically</div>
-          <div className="text-sm text-ink-400">Scan computers or a network log — angar finds the AI in use, even the ones nobody told you about.</div>
-        </div>
-        <a href="/discover" className="btn btn-primary">Start a scan</a>
-      </div>
-
-      <Section title="AI providers" subtitle="A normal API key is enough. Admin keys (Anthropic, OpenAI) also bring in users.">
+      <Section title="AI providers" subtitle="A normal API key is enough. Admin keys (Anthropic, OpenAI) also bring in users and exact costs.">
         {AI_PROVIDERS.map((p) => {
           const row = byProvider.get(p.provider);
           const connected = row?.status === "CONNECTED" || (Boolean(row?.credentialsEncrypted) && row?.status !== "DISCONNECTED");
@@ -243,7 +231,6 @@ export default async function ConnectorsPage({
             <input name="name" required placeholder="Name, e.g. Support chatbot" className={input} />
             <div className="grid grid-cols-2 gap-2">
               <input name="vendor" placeholder="Vendor" className={input} />
-              <input name="monthlyCost" type="number" step="0.01" placeholder="€ / month" className={input} />
             </div>
             <button className={`${btnSecondary} w-full`}>+ Add AI system</button>
           </form>

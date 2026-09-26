@@ -1,112 +1,64 @@
 import Link from "next/link";
-import FlowSteps from "@/components/FlowSteps";
-import { VendorBadge } from "@/components/VendorIcon";
-import { connectWithApiKeyAction, importCsvAction } from "@/lib/actions";
+import CsvDropzone from "@/components/CsvDropzone";
+import { uploadSpendAction } from "@/lib/spend-actions";
 import { loadDemoDataAction } from "@/lib/test-data-actions";
-import { API_KEY_PROVIDERS } from "@/lib/connectors/api-key-providers";
 
 export const dynamic = "force-dynamic";
 
-const INPUT = "field w-full";
-
-// Passo 1 del percorso guidato: una sola schermata, tre scelte.
-export default function ConnectStep({ searchParams }: { searchParams: { error?: string } }) {
-  const providers = Object.entries(API_KEY_PROVIDERS).map(([id, cfg]) => ({ id, label: cfg!.label }));
+// Un solo passo: dai ad angar l'estratto conto (o le fatture) e basta.
+// Le altre fonti sono facoltative e si aggiungono quando si vuole.
+export default function Onboarding({ searchParams }: { searchParams: { error?: string } }) {
   return (
-    <div className="max-w-5xl mx-auto flex flex-col gap-8 py-4">
-      <FlowSteps current={1} />
-      <div>
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">Where does your company use AI?</h1>
-        <p className="text-sm text-ink-400 mt-1">Pick one to start — you can add the others later. angar only reads, never changes anything.</p>
+    <div className="max-w-3xl mx-auto flex flex-col gap-8 py-6">
+      <div className="text-center">
+        <h1 className="font-display text-[30px] leading-tight font-semibold tracking-tight text-ink-100">Let angar find your AI</h1>
+        <p className="text-sm text-ink-400 mt-2">One file is enough. angar finds every AI subscription, what it really costs and where you can save — nothing to type, nothing to remember.</p>
       </div>
       {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
-      <Link href="/discover" className="group rounded-xl border border-accent/50 bg-panel p-5 flex items-center gap-4 hover:border-accent transition-colors">
-        <span className="h-10 w-10 rounded-lg bg-accent-soft text-accent flex items-center justify-center shrink-0">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" /><path d="M13 13l4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-        </span>
-        <span className="flex-1">
-          <span className="flex items-center gap-2">
-            <span className="text-base font-semibold text-ink-100">Don't know what AI you use? Let angar find it</span>
-            <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Recommended</span>
-          </span>
-          <span className="block text-sm text-ink-400 mt-0.5">Scan your computers or your network — angar lists every AI service in use, nothing to remember or type.</span>
-        </span>
-        <span className="btn btn-primary">Find my AI</span>
-      </Link>
+      <form action={uploadSpendAction} className="rounded-xl border border-line bg-panel p-6 flex flex-col gap-4">
+        <input type="hidden" name="back" value="/onboarding" />
+        <div>
+          <h2 className="text-base font-semibold text-ink-100">Drop a bank or card statement</h2>
+          <p className="text-sm text-ink-400 mt-0.5">CSV or Excel from your bank, or your e-invoices (XML / zip from the accountant). Only AI charges are kept.</p>
+        </div>
+        <CsvDropzone accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.p7m,.zip" multiple label="Choose files or drag them here" />
+        <div className="flex items-center justify-between">
+          <button className="btn btn-primary">Find my AI</button>
+          <a href="/api/spend/sample" className="text-xs text-ink-400 hover:text-ink-100 underline">No file at hand? Download a sample</a>
+        </div>
+      </form>
 
-      <div className="text-xs text-ink-400 uppercase tracking-wide -mb-4">Or add what you know</div>
-      <div className="grid grid-cols-3 gap-4">
-        <Choice
-          title="Paste an AI key"
-          text="Claude, ChatGPT, Gemini, Mistral and more. A normal API key is enough."
-          icons={["ANTHROPIC", "OPENAI", "GOOGLE_GEMINI"]}
-        >
-          <form action={connectWithApiKeyAction} className="flex flex-col gap-2">
-            <input type="hidden" name="next" value="review" />
-            <select name="provider" className={INPUT} defaultValue="ANTHROPIC">
-              {providers.map((p) => (
-                <option key={p.id} value={p.id}>{p.label}</option>
-              ))}
-            </select>
-            <input name="apiKey" type="password" required autoComplete="off" placeholder="Paste the API key" className={INPUT} />
-            <button className="btn btn-primary w-full">Connect</button>
-          </form>
-        </Choice>
-
-        <Choice title="Upload a spreadsheet" text="A list of the AI tools you use — works for anything, even tools without an API." icons={[]}>
-          <form action={importCsvAction} className="flex flex-col gap-2">
-            <input type="hidden" name="next" value="review" />
-            <input name="file" type="file" accept=".csv,text/csv" required className="w-full text-sm text-ink-400 file:mr-3 file:rounded-lg file:border file:border-line file:bg-panel file:px-3 file:py-2 file:text-sm file:text-ink-100" />
-            <button className="btn btn-primary w-full">Upload</button>
-            <a href="/api/csv-template" className="text-xs text-ink-400 hover:text-ink-100 underline text-center">Download the template</a>
-          </form>
-        </Choice>
-
-        <Choice title="Connect GitHub" text="Finds the AI your developers built into your own products." icons={["GitHub"]}>
-          <Link href="/connectors#GITHUB" className="btn btn-secondary w-full mt-auto">Connect GitHub</Link>
-          <p className="text-xs text-ink-400 text-center">Takes 2 minutes with a read-only token.</p>
-        </Choice>
+      <div>
+        <div className="text-xs text-ink-400 uppercase tracking-wide mb-3">Or start from</div>
+        <div className="grid grid-cols-3 gap-3">
+          <Option href="/sources" title="Company accounts" text="Microsoft 365 or Google Workspace — who uses which AI." />
+          <Option href="/connectors" title="An AI provider key" text="Claude, OpenAI, Gemini, Mistral… exact API costs." />
+          <Option href="/discover" title="A network scan" text="AI used without the company paying for it." />
+        </div>
       </div>
 
       <div className="flex items-center justify-between rounded-xl border border-dashed border-line px-5 py-4">
         <div>
           <div className="text-sm font-medium text-ink-100">Just exploring?</div>
-          <div className="text-sm text-ink-400">Load a demo company and try the whole flow.</div>
+          <div className="text-sm text-ink-400">Load a demo company and see angar with data.</div>
         </div>
         <div className="flex items-center gap-3">
           <form action={loadDemoDataAction}>
-            <input type="hidden" name="next" value="review" />
             <button className="btn btn-secondary">Load demo data</button>
           </form>
-          <Link href="/" className="text-sm text-ink-400 hover:text-ink-100">Skip for now</Link>
+          <Link href="/" className="text-sm text-ink-400 hover:text-ink-100">Skip</Link>
         </div>
       </div>
     </div>
   );
 }
 
-function Choice({ title, text, icons, children }: { title: string; text: string; icons: string[]; children: React.ReactNode }) {
+function Option({ href, title, text }: { href: string; title: string; text: string }) {
   return (
-    <div className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
-      <div className="flex -space-x-1.5">
-        {icons.length ? (
-          icons.map((v) => (
-            <span key={v} className="rounded-lg ring-2 ring-panel">
-              <VendorBadge vendor={v} size={34} />
-            </span>
-          ))
-        ) : (
-          <span className="h-[34px] w-[34px] rounded-lg border border-line flex items-center justify-center text-ink-400">
-            <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><rect x="2.5" y="2" width="11" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.3" /><path d="M2.5 6h11M2.5 10h11M6.5 2v12" stroke="currentColor" strokeWidth="1.3" /></svg>
-          </span>
-        )}
-      </div>
-      <div className="flex-1">
-        <h2 className="text-base font-semibold text-ink-100">{title}</h2>
-        <p className="text-sm text-ink-400 mt-1">{text}</p>
-      </div>
-      {children}
-    </div>
+    <Link href={href} className="rounded-xl border border-line bg-panel p-4 hover:border-ink-400 transition-colors">
+      <div className="text-sm font-semibold text-ink-100">{title}</div>
+      <div className="text-xs text-ink-400 mt-1">{text}</div>
+    </Link>
   );
 }

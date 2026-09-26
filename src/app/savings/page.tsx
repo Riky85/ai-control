@@ -1,80 +1,101 @@
-import { currentOrgId } from "@/lib/org";
-import { db } from "@/lib/db";
 import Link from "next/link";
-import Badge from "@/components/Badge";
+import { currentOrgId } from "@/lib/org";
+import { computeSavings, monthlyOf, type Saving } from "@/lib/savings";
+import { dismissSavingAction, restoreSavingsAction } from "@/lib/spend-actions";
+import { VendorBadge } from "@/components/VendorIcon";
 import ExportMenu from "@/components/ExportMenu";
-import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
-import {PageHeader, StatCard, Table, td } from "@/components/ui";
+import { PageHeader, StatCard } from "@/components/ui";
+import { fmtEur } from "@/lib/format";
+import { PRICES_AS_OF } from "@/lib/pricing/catalog";
+import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+const CONF: Record<string, { label: string; cls: string }> = {
+  HIGH: { label: "Sure", cls: "text-steady bg-steady/10" },
+  MEDIUM: { label: "Likely", cls: "text-signal bg-signal/10" },
+  LOW: { label: "Worth checking", cls: "text-ink-400 bg-ink-400/10" },
+};
 
+// Risparmi calcolati da soli: nessun dato da inserire.
 export default async function SavingsPage() {
-  const assets = await db.aiAsset.findMany({
-    where: { organizationId: currentOrgId(), deletedAt: null },
-    include: { cost: true, alternatives: true },
-    orderBy: { name: "asc" },
-  });
-
-  const withCost = assets.filter((a) => a.cost?.monthlyCostEstimate != null);
-  const withOpportunity = withCost
-    .map((a) => {
-      const best = a.alternatives.sort((x, y) => (x.estimatedMonthlyCost ?? Infinity) - (y.estimatedMonthlyCost ?? Infinity))[0];
-      if (!best || best.estimatedMonthlyCost == null || a.cost!.monthlyCostEstimate! <= best.estimatedMonthlyCost) return null;
-      const monthlySavings = a.cost!.monthlyCostEstimate! - best.estimatedMonthlyCost;
-      return { asset: a, best, monthlySavings, annualSavings: monthlySavings * 12 };
-    })
-    .filter((x): x is NonNullable<typeof x> => x !== null)
-    .sort((a, b) => b.annualSavings - a.annualSavings);
-
-  const totalMonthlySpend = withCost.reduce((sum, a) => sum + (a.cost!.monthlyCostEstimate ?? 0), 0);
-  const totalAnnualOpportunity = withOpportunity.reduce((sum, x) => sum + x.annualSavings, 0);
+  const orgId = currentOrgId();
+  const { items, totalMonthly, assets } = await computeSavings(orgId);
+  const dismissed = await db.savingDismissal.count({ where: { organizationId: orgId } });
+  const spend = assets.reduce((s, a) => s + (monthlyOf(a)?.eur ?? 0), 0);
+  const sure = items.filter((i) => i.confidence === "HIGH").reduce((s, i) => s + i.monthlyEur, 0);
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Savings"
-        subtitle="Where you could spend less: current cost vs. the cheapest alternative on each passport. Estimates, not recommendations."
-        action={<ExportMenu dataset="savings" />}
-      />
+      <PageHeader title="Savings" subtitle="angar compares what you pay with how the AI is used and today's prices — no data to enter." action={<ExportMenu dataset="savings" />} />
 
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Estimated annual opportunity" value={`€${totalAnnualOpportunity.toLocaleString()}`} hint={`${withOpportunity.length} system${withOpportunity.length === 1 ? "" : "s"} with a cheaper alternative`} />
-        <StatCard label="Tracked monthly spend" value={`€${totalMonthlySpend.toLocaleString()}`} hint="Manually entered on Passports" />
-        <StatCard label="Systems with cost on record" value={`${withCost.length} / ${assets.length}`} />
+        <StatCard label="You could save" value={`${fmtEur(totalMonthly)}/mo`} hint={`${fmtEur(totalMonthly * 12)} a year`} tone="accent" />
+        <StatCard label="Of which certain" value={`${fmtEur(sure)}/mo`} hint="Based on your own bills and usage" />
+        <StatCard label="AI spend today" value={`${fmtEur(spend)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% could be saved` : "Add a bank statement to see it"} />
       </div>
 
-      <Table
-        columns={["System", "Current", "Best alternative", "Alternative", "Saving / month", "Saving / year", "Migration", "Quality"]}
-        empty={withOpportunity.length === 0 && "No opportunities yet — add a monthly cost and at least one alternative on a Passport."}
-      >
-        {withOpportunity.map(({ asset, best, monthlySavings, annualSavings }) => (
-          <tr key={asset.id}>
-            <td className={td}>
-              <Link href={`/assets/${asset.id}?tab=alternatives`} className="flex items-center gap-3 group">
-                <VendorBadge vendor={asset.vendor ?? ""} name={asset.name} size={32} />
-                <span>
-                  <span className="block font-medium text-ink-100 group-hover:underline">{asset.name}</span>
-                  <span className="block text-xs text-ink-400">{asset.vendor ?? "Vendor unknown"}</span>
-                </span>
-              </Link>
-            </td>
-            <td className={`${td} tabular text-ink-100`}>€{asset.cost!.monthlyCostEstimate!.toLocaleString()}</td>
-            <td className={td}>
-              <span className="flex items-center gap-2 text-ink-100">
-                <VendorIcon vendor={best.provider} name={best.model} size={16} />
-                {best.provider} · {best.model}
-              </span>
-            </td>
-            <td className={`${td} tabular text-ink-100`}>€{best.estimatedMonthlyCost!.toLocaleString()}</td>
-            <td className={`${td} tabular font-semibold text-ink-100`}>€{monthlySavings.toLocaleString()}</td>
-            <td className={`${td} tabular font-semibold text-ink-100`}>€{annualSavings.toLocaleString()}</td>
-            <td className={`${td} text-ink-400`}>{best.migrationEffortDays ? `${best.migrationEffortDays} days` : "—"}</td>
-            <td className={td}>{best.qualityConfidence ? <Badge>{best.qualityConfidence}</Badge> : <span className="text-ink-400">—</span>}</td>
-          </tr>
+      {items.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-line p-10 text-center">
+          <h2 className="text-lg font-semibold text-ink-100">{spend ? "Nothing to save right now" : "angar needs to see what you pay"}</h2>
+          <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">
+            {spend
+              ? "Your AI spend looks tidy. angar keeps checking every time new data arrives."
+              : "Upload a bank statement or your e-invoices: angar finds the AI subscriptions, the seats and the plans, and tells you where to save."}
+          </p>
+          {!spend && <Link href="/sources" className="btn btn-primary mt-5">Add a bank statement</Link>}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {items.map((s) => (
+            <SavingRow key={s.key} s={s} />
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between text-xs text-ink-400">
+        <span>List prices as of {PRICES_AS_OF}. Estimates — check before changing a plan.</span>
+        {dismissed > 0 && (
+          <form action={restoreSavingsAction}>
+            <button className="underline hover:text-ink-100">Show {dismissed} hidden suggestion{dismissed === 1 ? "" : "s"}</button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SavingRow({ s }: { s: Saving }) {
+  const c = CONF[s.confidence];
+  return (
+    <div className="rounded-xl border border-line bg-panel p-5 flex items-center gap-5 animate-rise">
+      <div className="flex -space-x-2 shrink-0">
+        {s.assets.slice(0, 3).map((a) => (
+          <span key={a.id} className="rounded-lg ring-2 ring-panel">
+            <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={36} />
+          </span>
         ))}
-      </Table>
-      <p className="text-xs text-ink-400">Validate quality with real tests before migrating anything.</p>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <h3 className="text-[15px] font-semibold text-ink-100">{s.title}</h3>
+          <span className={`text-[11px] font-medium rounded-full px-2 py-0.5 ${c.cls}`}>{c.label}</span>
+        </div>
+        <p className="text-sm text-ink-400 mt-0.5">{s.detail}</p>
+      </div>
+      <div className="text-right shrink-0">
+        <div className="font-display text-xl font-semibold text-ink-100 tabular">{fmtEur(s.monthlyEur)}<span className="text-sm text-ink-400 font-normal">/mo</span></div>
+        <div className="text-xs text-ink-400 tabular">{fmtEur(s.monthlyEur * 12)} a year</div>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <Link href={s.href} className="btn btn-secondary btn-sm">Open</Link>
+        <form action={dismissSavingAction}>
+          <input type="hidden" name="key" value={s.key} />
+          <button className="btn btn-secondary btn-sm btn-icon w-8" aria-label="Not for us" title="Not for us — hide">
+            ✕
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

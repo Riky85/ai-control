@@ -68,6 +68,11 @@ export async function testApiKey(provider: ConnectorProvider, key: string): Prom
   }
 }
 
+const SERVICE: Partial<Record<ConnectorProvider, string>> = {
+  ANTHROPIC: "anthropic-api", OPENAI: "openai-api", GOOGLE_GEMINI: "gemini-api", MISTRAL: "mistral-api", GROQ: "groq", COHERE: "cohere",
+  DEEPSEEK: "deepseek", XAI: "grok", TOGETHER: "together", OPENROUTER: "openrouter", HUGGINGFACE: "huggingface",
+};
+
 export function apiKeyConnector(provider: ConnectorProvider): Connector {
   return {
     provider,
@@ -81,11 +86,12 @@ export function apiKeyConnector(provider: ConnectorProvider): Connector {
       return {
         provider,
         syncedAt: now,
-        warnings: ["Connected with a standard key: shows that you use this provider and which models are available. Users and costs need an Admin key."],
+        warnings: ["Connected with a standard key: shows that you use this provider. For exact costs, add an Admin key or upload your bank statement."],
         assets: [
           {
             externalId: `${provider.toLowerCase()}:api`,
             type: "AI_API",
+            serviceId: SERVICE[provider],
             name: `${cfg.label} API`,
             vendor: cfg.vendor,
             model: test.models.slice(0, 3).join(", ") || undefined,

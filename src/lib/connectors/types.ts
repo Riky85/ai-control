@@ -33,6 +33,8 @@ export interface ObservedAsset {
   externalId: string; // stabile lato provider, usato per l'upsert idempotente
   type: AiAssetType;
   name: string;
+  /** Servizio del catalogo (discovery/catalog.ts), per costi e alternative. */
+  serviceId?: string;
   vendor?: string;
   model?: string;
   connectedSystems?: ObservedConnectedSystem[];

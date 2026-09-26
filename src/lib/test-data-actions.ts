@@ -1,5 +1,9 @@
 "use server";
 
+import { sampleStatementCsv } from "@/lib/spend/sample";
+import { parseSpendFile } from "@/lib/spend/parse";
+import { ingestSpend } from "@/lib/spend/ingest";
+
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
@@ -22,6 +26,8 @@ export async function resetWorkspaceDataAction(formData: FormData) {
   const counts = await db.$transaction(async (tx) => {
     // I sistemi AI portano con sé (cascade) costi, alternative, rischio,
     // assurance, attività, cambiamenti, utilizzi e dipendenze.
+    await tx.spendRecord.deleteMany({ where });
+    await tx.savingDismissal.deleteMany({ where });
     const assets = await tx.aiAsset.deleteMany({ where });
     const data = await tx.dataAsset.deleteMany({ where });
     const people = await tx.user.deleteMany({ where });
@@ -40,6 +46,9 @@ export async function resetWorkspaceDataAction(formData: FormData) {
 export async function loadDemoDataAction(formData?: FormData) {
   const s = await requireRole("OWNER", "/settings");
   await seedDemoData(db, s.orgId);
+  // Anche costi reali di esempio: così Home e Savings mostrano numeri veri.
+  const csv = sampleStatementCsv();
+  await ingestSpend(s.orgId, await parseSpendFile("demo.csv", new TextEncoder().encode(csv)));
   await db.organization.update({ where: { id: s.orgId }, data: { onboardingCompletedAt: new Date() } });
   await audit("workspace.load_demo_data");
   revalidatePath("/", "layout");

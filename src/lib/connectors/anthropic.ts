@@ -60,6 +60,7 @@ export const anthropicConnector: Connector = {
     const asset: ObservedAsset = {
       externalId: ASSET_EXTERNAL_ID,
       type: "AI_APPLICATION",
+      serviceId: "claude",
       name: "Claude",
       vendor: "Anthropic",
       users: [],

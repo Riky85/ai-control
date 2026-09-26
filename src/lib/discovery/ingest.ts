@@ -65,6 +65,7 @@ export async function ingestFindings(organizationId: string, device: string, fin
   const assets: ObservedAsset[] = [...byService.values()].map(({ svc, hits, evidence, last }) => ({
     externalId: `net:${svc.id}`,
     type: svc.type,
+    serviceId: svc.id,
     name: svc.name,
     vendor: svc.vendor,
     connectedSystems: [{ system: "Seen on", detail: device.slice(0, 120) }],

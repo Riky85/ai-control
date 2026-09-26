@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 // Area di caricamento: clic o trascinamento del file; mostra il nome scelto.
-export default function CsvDropzone({ accept = ".csv,text/csv", label = "Choose a CSV file or drag it here" }: { accept?: string; label?: string }) {
+export default function CsvDropzone({ accept = ".csv,text/csv", label = "Choose a CSV file or drag it here", multiple = false }: { accept?: string; label?: string; multiple?: boolean }) {
   const [name, setName] = useState<string | null>(null);
   return (
     <label className="relative flex items-center gap-3 rounded-lg border border-dashed border-line bg-ink px-4 py-3 cursor-pointer hover:border-ink-400 transition-colors">
@@ -18,7 +18,11 @@ export default function CsvDropzone({ accept = ".csv,text/csv", label = "Choose 
         type="file"
         accept={accept}
         required
-        onChange={(e) => setName(e.target.files?.[0]?.name ?? null)}
+        multiple={multiple}
+        onChange={(e) => {
+          const f = e.target.files;
+          setName(!f || f.length === 0 ? null : f.length === 1 ? f[0].name : `${f.length} files`);
+        }}
         className="absolute inset-0 opacity-0 cursor-pointer"
       />
     </label>

@@ -146,13 +146,13 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
               {current.cost?.monthlyCostEstimate != null ? (
                 <>Cost: <span className="text-ink-100">€{current.cost.monthlyCostEstimate.toLocaleString("en-GB")}/month</span>{current.cost.basis === "billing_connector" ? " (from billing)" : ""}</>
               ) : (
-                "Cost fills in automatically when billing is connected."
+                "Cost fills in automatically from your bank statement or billing."
               )}
             </p>
             <details className="group">
               <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 inline-flex items-center gap-1.5 select-none">
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="transition-transform group-open:rotate-90"><path d="M3.5 2l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                Change owner or cost (optional)
+                Change owner (optional)
               </summary>
               <div className="grid grid-cols-2 gap-4 mt-3">
                 <label className="flex flex-col gap-1.5 text-sm text-ink-100">
@@ -164,13 +164,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
                     ))}
                   </select>
                 </label>
-                <label className="flex flex-col gap-1.5 text-sm text-ink-100">
-                  Monthly cost
-                  <span className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">€</span>
-                    <input name="monthlyCost" type="number" step="0.01" min="0" placeholder="Leave empty if unknown" className={`${INPUT} pl-7`} />
-                  </span>
-                </label>
+
               </div>
             </details>
             <div className="flex items-center gap-3">

@@ -37,7 +37,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        crumbs={[{ label: "Connections", href: "/connectors" }]}
+        crumbs={[{ label: "Sources", href: "/sources" }]}
         title="Find AI automatically"
         subtitle="You don't need to remember which AI your company uses — angar looks for it and shows you what it finds."
       />

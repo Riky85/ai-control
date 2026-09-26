@@ -63,11 +63,10 @@ function PanelToggleIcon() {
 // Il percorso principale: vedi → rivedi → approfondisci → costi → cosa cambia.
 const PRIMARY_ITEMS = [
   { href: "/", label: "Overview", icon: "home" },
-  { href: "/review", label: "Review", icon: "approvals" },
-  { href: "/assets", label: "AI Passports", icon: "assets" },
-  { href: "/providers", label: "Providers", icon: "providers" },
+  { href: "/assets", label: "Your AI", icon: "assets" },
   { href: "/savings", label: "Savings", icon: "savings" },
-  { href: "/changes", label: "Changes", icon: "changes" },
+  { href: "/review", label: "Review", icon: "approvals" },
+  { href: "/sources", label: "Sources", icon: "connectors" },
 ];
 
 // Voci meno frequenti: nel menu a tendina del blocco utente, così la
@@ -81,6 +80,8 @@ const MENU_ITEMS = [
 ];
 
 const MORE_ITEMS = [
+  { href: "/providers", label: "Providers", icon: "providers" },
+  { href: "/changes", label: "Changes", icon: "changes" },
   { href: "/people", label: "People", icon: "people" },
   { href: "/data", label: "Data Exposure", icon: "data" },
   { href: "/governance", label: "Governance", icon: "assurance" },
@@ -150,7 +151,8 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
   // Le dashboard condivise (/share/…) sono pubbliche: niente navigazione dell'app.
   if (pathname.startsWith("/share")) return null;
 
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : href === "/sources" ? ["/sources", "/connectors", "/discover"].some((p) => pathname.startsWith(p)) : pathname.startsWith(href);
   function itemClass(active: boolean, sub = false) {
     return `flex items-center gap-3 text-[15px] transition-colors rounded-lg ${
       collapsed ? "justify-center px-0 py-2.5" : sub ? "pl-11 pr-3 py-1.5" : "px-3 py-2"
@@ -209,7 +211,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
       )}
 
       <nav className="flex flex-col gap-0.5 overflow-y-auto flex-1 min-h-0">
-        {PRIMARY_ITEMS.map((item) => (
+        {PRIMARY_ITEMS.filter((item) => item.href !== "/review" || reviewCount > 0 || isActive("/review")).map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -248,11 +250,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
       </nav>
 
       <div className="mt-3 pt-3 border-t border-white/[0.08] flex flex-col gap-0.5">
-        <Link href="/connectors" title={collapsed ? "Connections" : undefined} className={itemClass(isActive("/connectors"))}>
-          <Icon name="connectors" />
-          {!collapsed && "Connections"}
-        </Link>
-        <div ref={menuRef} className="relative mt-2">
+        <div ref={menuRef} className="relative">
           {menuOpen && (
             <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#171717] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
               {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-[#A3A19C] truncate border-b border-white/[0.08] mb-1">{userEmail}</div>}

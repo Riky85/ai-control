@@ -130,6 +130,9 @@ model Organization {
   // Token dello scanner di rete (solo hash SHA-256; il token si vede una volta).
   discoveryTokenHash String? @unique
   discoveryTokenHint String?
+
+  spendRecords     SpendRecord[]
+  savingDismissals SavingDismissal[]
 }
 
 model User {
@@ -190,6 +193,7 @@ model AiAsset {
   name   String
   vendor String?
   model  String?
+  serviceId String? // servizio del catalogo (discovery/catalog.ts): chatgpt, claude, openai-api…
 
   connectorId String?
   connector   Connector? @relation(fields: [connectorId], references: [id])
@@ -219,6 +223,7 @@ model AiAsset {
   alternatives     ModelAlternative[]
   relationsFrom    AiAssetRelationship[]    @relation("RelationSource")
   relationsTo      AiAssetRelationship[]    @relation("RelationTarget")
+  spendRecords     SpendRecord[]
 
   @@unique([organizationId, connectorId, externalId])
   @@index([organizationId, type])
@@ -252,9 +257,12 @@ model AiSystemCost {
   aiAssetId           String   @unique
   aiAsset             AiAsset  @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
   monthlyCostEstimate Float?
-  basis               String   @default("manual") // "manual" | "csv_import" (futuro) | "billing_connector" (futuro)
+  basis               String   @default("manual") // "manual" | "csv_import" | "billing_connector" | "bank" | "invoice" | "estimate"
   confidence          String   @default("MEDIUM")  // "LOW" | "MEDIUM" | "HIGH"
   notes               String?
+  planId              String?  // piano di listino riconosciuto (pricing/catalog.ts)
+  seats               Int?     // posti stimati dall'importo
+  annualBilling       Boolean  @default(false)
   updatedAt           DateTime @updatedAt
 }
 
@@ -497,4 +505,35 @@ model BackupRun {
   bytes      Int       @default(0)
   location   String?
   error      String?
+}
+
+// Un addebito riconosciuto come AI (estratto conto, fattura elettronica).
+// Solo le righe AI vengono salvate: il resto dell'estratto conto non resta.
+model SpendRecord {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiAssetId      String?
+  aiAsset        AiAsset?     @relation(fields: [aiAssetId], references: [id], onDelete: SetNull)
+  service        String
+  source         String       // "bank" | "invoice"
+  date           DateTime
+  amountEur      Float
+  description    String
+  fingerprint    String
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, fingerprint])
+  @@index([organizationId, date])
+}
+
+// Un suggerimento di risparmio che l'utente ha scartato ("non per noi").
+model SavingDismissal {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  key            String
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, key])
 }

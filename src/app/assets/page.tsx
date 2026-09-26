@@ -1,4 +1,6 @@
-import { fmtDate } from "@/lib/format";
+import { fmtDate, fmtEur } from "@/lib/format";
+import { categoryOf, monthlyOf } from "@/lib/savings";
+import { CATEGORY_LABEL, PLANS } from "@/lib/pricing/catalog";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -33,7 +35,7 @@ const RISK_LABEL: Record<string, string> = { LOW: "Low", MEDIUM: "Medium", HIGH:
 export default async function AssetsPage({
   searchParams,
 }: {
-  searchParams: { type?: string; status?: string; risk?: string; q?: string };
+  searchParams: { type?: string; status?: string; risk?: string; q?: string; category?: string };
 }) {
   const assets = await db.aiAsset.findMany({
     where: {
@@ -49,24 +51,30 @@ export default async function AssetsPage({
       riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
       assuranceReports: { orderBy: { createdAt: "desc" }, take: 1 },
       cost: true,
+      alternatives: true,
+      usages: { select: { lastSeenAt: true } },
+      activities: { where: { eventType: "discovery.seen" }, orderBy: { occurredAt: "desc" }, take: 1, select: { occurredAt: true } },
     },
     orderBy: { lastSeenAt: "desc" },
   });
 
-  const filtered = searchParams.risk
-    ? assets.filter((a) => a.riskAssessments[0]?.level === searchParams.risk)
-    : assets;
+  const filtered = assets
+    .filter((a) => !searchParams.risk || a.riskAssessments[0]?.level === searchParams.risk)
+    .filter((a) => !searchParams.category || categoryOf(a) === searchParams.category)
+    .map((a) => ({ a, m: monthlyOf(a as any) }))
+    .sort((x, y) => (y.m?.eur ?? -1) - (x.m?.eur ?? -1))
+    .map((x) => x.a);
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="AI Passports"
-        subtitle="Every AI system in your company — open one to see its living technical record."
+        title="Your AI"
+        subtitle="Every AI your company uses or pays for — open one to see its passport: who uses it, what it costs, what it touches."
         action={
           <div className="flex gap-2">
             <ExportMenu dataset="assets" />
-            <Link href="/connectors" className="btn btn-secondary">
-              + Add AI systems
+            <Link href="/sources" className="btn btn-secondary">
+              + Add sources
             </Link>
           </div>
         }
@@ -85,65 +93,41 @@ export default async function AssetsPage({
         </span>
       </div>
 
-      <Table columns={["System", "Type", "Owner", "Status", "Risk", "Assurance", "Cost/mo", "Last seen"]}>
-            {filtered.map((asset) => {
-              const risk = asset.riskAssessments[0];
-              const assurance = asset.assuranceReports[0];
-              return (
-                <tr key={asset.id} className="hover:bg-ink-100/[0.02] transition-colors">
-                  <td className="px-5 py-3">
-                    <Link href={`/assets/${asset.id}`} className="flex items-center gap-3 group">
-                      <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={32} />
-                      <span>
-                        <span className="block font-medium text-ink-100 group-hover:underline">{asset.name}</span>
-                        <span className="block text-xs text-ink-400">{asset.vendor ?? "Vendor unknown"}</span>
-                      </span>
-                    </Link>
-                  </td>
-                  <td className="px-5 py-3 text-ink-400">{asset.type.replace(/_/g, " ").toLowerCase()}</td>
-                  <td className="px-5 py-3 text-ink-400">
-                    {asset.owner?.name ?? <span className="text-ink-400">No owner</span>}
-                  </td>
-                  <td className="px-5 py-3">
-                    <Badge>{asset.status}</Badge>
-                  </td>
-                  <td className="px-5 py-3">{risk ? <Badge>{risk.level}</Badge> : "—"}</td>
-                  <td className="px-5 py-3 text-xs">
-                    {assurance ? (
-                      <span className="flex items-center gap-2">
-                        <span className="w-16 h-1.5 bg-ink rounded-full overflow-hidden">
-                          <span
-                            className={`block h-full rounded-full animate-grow ${
-                              assurance.level === "ASSURED" ? "bg-steady" : assurance.level === "NEEDS_REVIEW" ? "bg-signal" : "bg-alarm"
-                            }`}
-                            style={{ width: `${assurance.score}%` }}
-                          />
-                        </span>
-                        <span className="text-ink-400 tabular">{assurance.score}%</span>
-                      </span>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td className="px-5 py-3 text-ink-400 text-xs tabular">
-                    {asset.cost?.monthlyCostEstimate != null ? `€${asset.cost.monthlyCostEstimate.toLocaleString()}` : "—"}
-                  </td>
-                  <td className="px-5 py-3 text-ink-400 text-xs tabular">
-                    {asset.lastSeenAt ? fmtDate(asset.lastSeenAt) : "Never"}
-                  </td>
-                </tr>
-              );
-            })}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-5 py-3 text-sm text-ink-400">
-                  {assets.length === 0
-                    ? "No assets yet. Connect Microsoft 365 or GitHub to start discovery."
-                    : "No assets match this filter."}
-                </td>
-              </tr>
-            )}
-          </Table>
+      <Table columns={["AI", "Category", "Plan", { label: "Cost / month", className: "text-right" }, "Users", "Owner", "Status", "Last seen"]} empty={filtered.length === 0 && (assets.length === 0 ? "Nothing yet — add a bank statement or another source." : "Nothing matches this filter.")}>
+        {filtered.map((asset) => {
+          const m = monthlyOf(asset as any);
+          const cat = categoryOf(asset);
+          const plan = asset.cost?.planId ? PLANS.find((p) => p.id === asset.cost!.planId) : null;
+          return (
+            <tr key={asset.id} className="hover:bg-ink-100/[0.02] transition-colors">
+              <td className="px-5 py-3">
+                <Link href={`/assets/${asset.id}`} className="flex items-center gap-3 group">
+                  <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={32} />
+                  <span>
+                    <span className="block font-medium text-ink-100 group-hover:underline">{asset.name}</span>
+                    <span className="block text-xs text-ink-400">{asset.vendor ?? "Vendor unknown"}</span>
+                  </span>
+                </Link>
+              </td>
+              <td className="px-5 py-3 text-ink-400">{cat ? CATEGORY_LABEL[cat] : asset.type.replace(/_/g, " ").toLowerCase()}</td>
+              <td className="px-5 py-3 text-ink-400">{plan ? `${asset.cost?.seats && asset.cost.seats > 1 ? `${asset.cost.seats} × ` : ""}${plan.name}` : "—"}</td>
+              <td className="px-5 py-3 text-right tabular">
+                {m ? (
+                  <span className={m.estimated ? "text-ink-400" : "text-ink-100 font-medium"} title={m.estimated ? "Estimated from list prices" : undefined}>
+                    {m.estimated ? "≈ " : ""}{fmtEur(m.eur)}
+                  </span>
+                ) : (
+                  <span className="text-ink-400" title="Not paid by the company, or free">Free / personal</span>
+                )}
+              </td>
+              <td className="px-5 py-3 text-ink-400 tabular">{asset.usages.length || "—"}</td>
+              <td className="px-5 py-3 text-ink-400">{asset.owner?.name ?? asset.owner?.email ?? "—"}</td>
+              <td className="px-5 py-3"><Badge>{asset.status}</Badge></td>
+              <td className="px-5 py-3 text-ink-400 text-xs tabular">{asset.lastSeenAt ? fmtDate(asset.lastSeenAt) : "—"}</td>
+            </tr>
+          );
+        })}
+      </Table>
     </div>
   );
 }
