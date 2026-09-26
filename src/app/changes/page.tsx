@@ -6,15 +6,20 @@ import Badge from "@/components/Badge";
 import ExportMenu from "@/components/ExportMenu";
 import { VendorBadge } from "@/components/VendorIcon";
 import { PageHeader, Table, td } from "@/components/ui";
+import FilterBar from "@/components/FilterBar";
 
 export const dynamic = "force-dynamic";
 
 const FIELD_LABEL: Record<string, string> = { model: "Model", vendor: "Vendor", status: "Status" };
 const STATUS_KEYS = ["APPROVED", "UNREVIEWED", "UNAPPROVED", "UNKNOWN"];
 
-export default async function ChangesPage() {
+export default async function ChangesPage({ searchParams }: { searchParams: { q?: string; field?: string } }) {
+  const q = searchParams.q?.trim();
   const changes = await db.assetChange.findMany({
-    where: { aiAsset: { organizationId: currentOrgId() } },
+    where: {
+      aiAsset: { organizationId: currentOrgId(), ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}) },
+      ...(searchParams.field ? { field: searchParams.field } : {}),
+    },
     include: { aiAsset: true },
     orderBy: { detectedAt: "desc" },
     take: 200,
@@ -30,6 +35,11 @@ export default async function ChangesPage() {
         title="Changes"
         subtitle="What changed between syncs — model, vendor and status, before and after."
         action={<ExportMenu dataset="changes" />}
+      />
+      <FilterBar
+        search={{ placeholder: "Search AI…" }}
+        filters={[{ param: "field", label: "Change", options: Object.entries(FIELD_LABEL).map(([value, label]) => ({ value, label })) }]}
+        right={`${changes.length} change${changes.length === 1 ? "" : "s"}`}
       />
       <Table columns={["System", "Change", "Before", "After", "Detected"]} empty={changes.length === 0 && "No changes detected yet — they appear the moment a synced value differs from what was on record."}>
         {changes.map((c) => (

@@ -8,6 +8,7 @@ import { PageHeader, StatCard } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
 import { PRICES_AS_OF } from "@/lib/pricing/catalog";
 import { db } from "@/lib/db";
+import FilterBar from "@/components/FilterBar";
 
 export const dynamic = "force-dynamic";
 
@@ -18,12 +19,13 @@ const CONF: Record<string, { label: string; cls: string }> = {
 };
 
 // Risparmi calcolati da soli: nessun dato da inserire.
-export default async function SavingsPage() {
+export default async function SavingsPage({ searchParams }: { searchParams: { confidence?: string; kind?: string } }) {
   const orgId = currentOrgId();
-  const { items, totalMonthly, assets } = await computeSavings(orgId);
+  const { items: all, totalMonthly, assets } = await computeSavings(orgId);
+  const items = all.filter((i) => (!searchParams.confidence || i.confidence === searchParams.confidence) && (!searchParams.kind || i.kind === searchParams.kind));
   const dismissed = await db.savingDismissal.count({ where: { organizationId: orgId } });
   const spend = assets.reduce((s, a) => s + (monthlyOf(a)?.eur ?? 0), 0);
-  const sure = items.filter((i) => i.confidence === "HIGH").reduce((s, i) => s + i.monthlyEur, 0);
+  const sure = all.filter((i) => i.confidence === "HIGH").reduce((s, i) => s + i.monthlyEur, 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -35,7 +37,30 @@ export default async function SavingsPage() {
         <StatCard label="AI spend today" value={`${fmtEur(spend)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% could be saved` : "Add a bank statement to see it"} />
       </div>
 
-      {items.length === 0 ? (
+      {all.length > 0 && (
+        <FilterBar
+          filters={[
+            { param: "confidence", label: "Confidence", options: [{ value: "HIGH", label: "Sure" }, { value: "MEDIUM", label: "Likely" }, { value: "LOW", label: "Worth checking" }] },
+            {
+              param: "kind",
+              label: "Type",
+              options: [
+                { value: "annual", label: "Yearly billing" },
+                { value: "seats", label: "Unused seats" },
+                { value: "premium", label: "Premium seats" },
+                { value: "duplicate", label: "Duplicate tools" },
+                { value: "model", label: "Cheaper model" },
+                { value: "idle", label: "Not used" },
+              ].filter((o) => all.some((i) => i.kind === o.value)),
+            },
+          ]}
+          right={`${items.length} of ${all.length} suggestion${all.length === 1 ? "" : "s"}`}
+        />
+      )}
+
+      {items.length === 0 && all.length > 0 ? (
+        <p className="text-sm text-ink-400">No suggestions match these filters.</p>
+      ) : items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-line p-10 text-center">
           <h2 className="text-lg font-semibold text-ink-100">{spend ? "Nothing to save right now" : "angar needs to see what you pay"}</h2>
           <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">

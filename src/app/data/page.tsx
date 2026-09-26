@@ -2,6 +2,7 @@ import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import { PageHeader } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
+import FilterBar from "@/components/FilterBar";
 
 export const dynamic = "force-dynamic";
 
@@ -17,9 +18,14 @@ const SENSITIVITY_LABEL: Record<string, string> = {
 
 const SENSITIVE_TIERS = ["PII", "FINANCIAL", "SOURCE_CODE", "CONFIDENTIAL"];
 
-export default async function DataRegistryPage() {
+export default async function DataRegistryPage({ searchParams }: { searchParams: { q?: string; sensitivity?: string } }) {
+  const q = searchParams.q?.trim();
   const dataAssets = await db.dataAsset.findMany({
-    where: { organizationId: currentOrgId() },
+    where: {
+      organizationId: currentOrgId(),
+      ...(searchParams.sensitivity ? { sensitivity: searchParams.sensitivity as any } : {}),
+      ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}),
+    },
     orderBy: { name: "asc" },
     include: {
       accessedBy: { include: { aiAsset: true } },
@@ -30,10 +36,15 @@ export default async function DataRegistryPage() {
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Data Exposure"
-        subtitle={"Every category of data your AI assets have been observed touching, and which assets reach each one."}
+        subtitle="Which data your AI touches, and which AI reaches each one."
         action={<ExportMenu />}
       />
 
+      <FilterBar
+        search={{ placeholder: "Search data…" }}
+        filters={[{ param: "sensitivity", label: "Sensitivity", options: Object.entries(SENSITIVITY_LABEL).map(([value, label]) => ({ value, label })) }]}
+        right={`${dataAssets.length} data categor${dataAssets.length === 1 ? "y" : "ies"}`}
+      />
       <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
         {dataAssets.map((d) => (
           <div key={d.id} className="px-5 py-4">
