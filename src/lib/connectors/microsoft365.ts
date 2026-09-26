@@ -1,170 +1,170 @@
 /**
- * Connettore Microsoft 365 / Entra ID — PRD sezione 5.1.
+ * Microsoft 365 / Entra ID — app multi-tenant di angar con consenso
+ * dell'amministratore del cliente (un clic, sola lettura). Poi, con
+ * client-credentials sul tenant del cliente, legge:
+ *  - le app aziendali (service principal) riconosciute come AI;
+ *  - chi ha dato il consenso a quelle app e i sign-in degli ultimi 30 giorni;
+ *  - le licenze Microsoft 365 Copilot (posti acquistati e assegnati) e,
+ *    se disponibile, l'uso reale di Copilot per utente.
  *
- * Usa il flusso client-credentials (app-only) di Microsoft Graph: richiede
- * una App Registration in Entra con admin consent concesso sui permessi
- * applicativi elencati sotto. Nessuna interazione utente necessaria dopo
- * il setup iniziale.
- *
- * Variabili d'ambiente richieste:
- *   MS365_TENANT_ID
- *   MS365_CLIENT_ID
- *   MS365_CLIENT_SECRET
- *
- * Permessi applicativi da concedere in Azure AD (admin consent):
- *   Application.Read.All, AuditLog.Read.All, Directory.Read.All
- *   (Reports.Read.All opzionale, dipende dal piano del cliente — vedi §5.1)
- *
- * LIMITE NOTO (da non promettere come coperto): questo connettore vede solo
- * app/utenti/audit del tenant Microsoft gestito. Non fa network-level
- * discovery e non vede l'uso di account AI personali non collegati al
- * tenant — quello è fuori scope MVP1 (vedi PRD §5.1 e roadmap V2).
+ * Variabili d'ambiente di angar (non del cliente): MS365_CLIENT_ID, MS365_CLIENT_SECRET.
+ * Permessi applicativi dell'app (admin consent): Application.Read.All,
+ * Directory.Read.All, AuditLog.Read.All, Reports.Read.All, User.Read.All.
+ * Mai email, file o chat.
  */
-
 import type { Connector, ConnectorSyncResult, ObservedAsset } from "./types";
+import { decryptJson } from "@/lib/crypto";
+import { matchMerchant } from "@/lib/pricing/merchants";
+import { AI_SERVICES } from "@/lib/discovery/catalog";
+import { USD_TO_EUR, PLANS } from "@/lib/pricing/catalog";
 
-const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
+const GRAPH = "https://graph.microsoft.com";
 
-// Elenco di keyword usate per riconoscere, tra le Enterprise Applications del
-// tenant, quelle plausibilmente AI-related. E' una euristica configurabile,
-// non un dato che Microsoft fornisce già classificato — va mantenuta e
-// affinata nel tempo (vedi PRD §5.1: "va poi classificato... tramite una
-// lookup table interna che mantenete voi").
-const AI_VENDOR_KEYWORDS = [
-  "openai",
-  "chatgpt",
-  "anthropic",
-  "claude",
-  "gemini",
-  "perplexity",
-  "copilot",
-  "cursor",
-  "midjourney",
-  "jasper",
-  "notion ai",
-  "grammarly",
-];
-
-async function getAppOnlyToken(): Promise<string> {
-  const tenantId = process.env.MS365_TENANT_ID;
-  const clientId = process.env.MS365_CLIENT_ID;
-  const clientSecret = process.env.MS365_CLIENT_SECRET;
-
-  if (!tenantId || !clientId || !clientSecret) {
-    throw new Error(
-      "Microsoft 365 connector not configured: missing MS365_TENANT_ID / MS365_CLIENT_ID / MS365_CLIENT_SECRET"
-    );
-  }
-
-  const res = await fetch(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`, {
+export async function msToken(tenantId: string) {
+  const res = await fetch(`https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
+      client_id: process.env.MS365_CLIENT_ID ?? "",
+      client_secret: process.env.MS365_CLIENT_SECRET ?? "",
       scope: "https://graph.microsoft.com/.default",
       grant_type: "client_credentials",
     }),
+    cache: "no-store",
   });
-
-  if (!res.ok) {
-    throw new Error(`Microsoft token request fallita: ${res.status} ${await res.text()}`);
-  }
-  const data = (await res.json()) as { access_token: string };
-  return data.access_token;
+  if (!res.ok) throw new Error(`Microsoft sign-in failed (${res.status}): ${(await res.text()).slice(0, 200)}`);
+  return ((await res.json()) as { access_token: string }).access_token;
 }
 
-async function graphGet(token: string, path: string) {
-  const res = await fetch(`${GRAPH_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) {
-    throw new Error(`Graph API ${path} -> ${res.status} ${await res.text()}`);
-  }
+async function graph(token: string, path: string, version = "v1.0") {
+  const res = await fetch(path.startsWith("http") ? path : `${GRAPH}/${version}${path}`, { headers: { Authorization: `Bearer ${token}`, ConsistencyLevel: "eventual" }, cache: "no-store" });
+  if (!res.ok) throw new Error(`Graph ${path.split("?")[0]} → ${res.status} ${(await res.text()).slice(0, 160)}`);
   return res.json();
+}
+
+async function graphAll(token: string, path: string, maxPages = 10) {
+  const out: any[] = [];
+  let next: string | undefined = path;
+  for (let i = 0; next && i < maxPages; i++) {
+    const page: any = await graph(token, next);
+    out.push(...(page.value ?? []));
+    next = page["@odata.nextLink"];
+  }
+  return out;
 }
 
 export const microsoft365Connector: Connector = {
   provider: "MICROSOFT_365",
 
-  async sync(_connectorRow): Promise<ConnectorSyncResult> {
+  async sync(row): Promise<ConnectorSyncResult> {
+    const tenantId = decryptJson<{ tenantId?: string }>(row.credentialsEncrypted)?.tenantId ?? process.env.MS365_TENANT_ID;
+    if (!tenantId) throw new Error("Microsoft 365 isn't connected — an administrator needs to approve angar first.");
+    const token = await msToken(tenantId);
     const warnings: string[] = [];
-    const assets: ObservedAsset[] = [];
-    const token = await getAppOnlyToken();
+    const byService = new Map<string, ObservedAsset>();
+    const spToService = new Map<string, string>(); // service principal id → servizio
+    const appToService = new Map<string, string>(); // appId → servizio
 
-    // 1. Service principal (Enterprise Applications) — candidate AI_APPLICATION
-    // Richiede Application.Read.All
-    // Manteniamo una mappa appId (client id) -> asset osservato, perché il
-    // sign-in log (step 2) identifica l'app per appId, non per l'objectId
-    // del service principal usato come externalId.
-    const assetByAppId = new Map<string, ObservedAsset>();
+    const assetFor = (service: string, fallbackName: string, vendor?: string) => {
+      let a = byService.get(service);
+      if (!a) {
+        const svc = AI_SERVICES.find((s) => s.id === service);
+        a = { externalId: `ms:${service}`, serviceId: service, type: svc?.type ?? "AI_APPLICATION", name: svc?.name ?? fallbackName, vendor: svc?.vendor ?? vendor, users: [], activities: [], connectedSystems: [{ system: "Microsoft 365", detail: "Entra ID" }] };
+        byService.set(service, a);
+      }
+      return a;
+    };
+
+    // 1. App aziendali riconosciute come AI.
     try {
-      const apps = await graphGet(
-        token,
-        "/servicePrincipals?$select=id,appId,displayName,publisherName&$top=200"
-      );
-      for (const sp of apps.value ?? []) {
-        const nameLower = `${sp.displayName ?? ""} ${sp.publisherName ?? ""}`.toLowerCase();
-        const matched = AI_VENDOR_KEYWORDS.find((kw) => nameLower.includes(kw));
-        if (!matched) continue;
-
-        const asset: ObservedAsset = {
-          externalId: sp.id,
-          type: "AI_APPLICATION",
-          name: sp.displayName ?? "Unknown application",
-          vendor: sp.publisherName ?? undefined,
-          users: [],
-          activities: [],
-        };
-        assets.push(asset);
-        if (sp.appId) assetByAppId.set(sp.appId, asset);
+      const sps = await graphAll(token, "/servicePrincipals?$select=id,appId,displayName,publisherName&$top=999");
+      for (const sp of sps) {
+        const service = matchMerchant(`${sp.displayName ?? ""} ${sp.publisherName ?? ""}`);
+        if (!service) continue;
+        assetFor(service, sp.displayName, sp.publisherName);
+        spToService.set(sp.id, service);
+        if (sp.appId) appToService.set(sp.appId, service);
       }
     } catch (err) {
-      warnings.push(`Unable to read Enterprise Applications: ${(err as Error).message}`);
+      warnings.push(`Enterprise applications not readable: ${(err as Error).message}`);
     }
 
-    // 2. Sign-in audit log — per popolare AiAssetUsage/AiAssetActivity
-    // Richiede AuditLog.Read.All. Correlato via appId -> service principal
-    // costruito allo step 1 (assetByAppId), non più un TODO.
-    try {
-      const signIns = await graphGet(
-        token,
-        "/auditLogs/signIns?$top=200&$select=appId,appDisplayName,userPrincipalName,createdDateTime"
-      );
-      let matchedCount = 0;
-      for (const s of signIns.value ?? []) {
-        const asset = assetByAppId.get(s.appId);
-        if (!asset) continue; // sign-in di un'app non AI-related: fuori scope qui
-        matchedCount++;
-        asset.users!.push({ email: s.userPrincipalName, externalRef: s.userPrincipalName });
-        asset.activities!.push({
-          eventType: "signin",
-          actorRef: s.userPrincipalName,
-          occurredAt: s.createdDateTime ? new Date(s.createdDateTime) : new Date(),
-          payload: s,
-        });
+    // 2. Chi ha autorizzato quelle app (consenso OAuth) → utenti.
+    const userCache = new Map<string, string | null>();
+    const emailOf = async (id: string) => {
+      if (userCache.has(id)) return userCache.get(id)!;
+      try {
+        const u = await graph(token, `/users/${id}?$select=mail,userPrincipalName`);
+        userCache.set(id, (u.mail ?? u.userPrincipalName ?? null)?.toLowerCase() ?? null);
+      } catch {
+        userCache.set(id, null);
       }
-      if (matchedCount === 0 && assetByAppId.size > 0) {
-        warnings.push(
-          "No sign-ins found for the detected AI apps in the window returned by the API (normal if not used recently)."
-        );
+      return userCache.get(id)!;
+    };
+    for (const [spId, service] of spToService) {
+      try {
+        const grants = await graphAll(token, `/servicePrincipals/${spId}/oauth2PermissionGrants`, 3);
+        for (const g of grants.filter((g) => g.principalId).slice(0, 200)) {
+          const email = await emailOf(g.principalId);
+          if (email) assetFor(service, service).users!.push({ email, externalRef: g.principalId });
+        }
+      } catch {
+        /* permesso mancante: si prosegue */
+      }
+    }
+
+    // 3. Sign-in degli ultimi 30 giorni (serve Entra ID P1 per il log).
+    try {
+      const since = new Date(Date.now() - 30 * 86400000).toISOString();
+      const signIns = await graphAll(token, `/auditLogs/signIns?$filter=createdDateTime ge ${since}&$select=appId,appDisplayName,userPrincipalName,createdDateTime&$top=999`, 5);
+      for (const s of signIns) {
+        const service = appToService.get(s.appId) ?? matchMerchant(s.appDisplayName ?? "");
+        if (!service || !s.userPrincipalName) continue;
+        const a = assetFor(service, s.appDisplayName);
+        a.users!.push({ email: s.userPrincipalName.toLowerCase(), externalRef: s.userPrincipalName });
+        a.activities!.push({ eventType: "signin", actorRef: s.userPrincipalName, occurredAt: new Date(s.createdDateTime) });
       }
     } catch (err) {
-      warnings.push(`Unable to read sign-in logs: ${(err as Error).message}`);
+      warnings.push(`Sign-in log not available (needs Entra ID P1): ${(err as Error).message.slice(0, 120)}`);
     }
 
-    // 3. Report Copilot (disponibilità dipende dal piano del cliente — PRD §5.1)
+    // 4. Licenze Microsoft 365 Copilot: posti acquistati → costo stimato.
     try {
-      await graphGet(token, "/reports/getMicrosoft365CopilotUsageUserDetail(period='D7')");
-      warnings.push(
-        "Copilot report available for this tenant: parsing not implemented yet (not included in this scaffold)."
-      );
+      const skus = await graphAll(token, "/subscribedSkus");
+      const copilot = skus.filter((s) => /copilot/i.test(s.skuPartNumber ?? ""));
+      const seats = copilot.reduce((t, s) => t + (s.prepaidUnits?.enabled ?? 0), 0);
+      if (seats > 0) {
+        const plan = PLANS.find((p) => p.id === "copilot-m365")!;
+        const a = assetFor("copilot", "Microsoft 365 Copilot", "Microsoft");
+        a.name = "Microsoft 365 Copilot";
+        a.seats = seats;
+        a.planId = plan.id;
+        a.monthlyCost = seats * plan.monthlyUsd * USD_TO_EUR;
+        a.costBasis = "estimate";
+        a.costNote = `${seats} licences × list price · looks like ${seats} × ${plan.name}`;
+      }
+    } catch (err) {
+      warnings.push(`Licences not readable: ${(err as Error).message.slice(0, 120)}`);
+    }
+
+    // 5. Uso reale di Copilot per utente (report, se il tenant lo espone).
+    try {
+      const rep = await graph(token, "/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')?$format=application/json", "beta");
+      const a = byService.get("copilot");
+      for (const u of rep.value ?? []) {
+        if (!a || !u.userPrincipalName || !u.lastActivityDate) continue;
+        a.users!.push({ email: String(u.userPrincipalName).toLowerCase() });
+        a.activities!.push({ eventType: "copilot.active", actorRef: u.userPrincipalName, occurredAt: new Date(u.lastActivityDate) });
+      }
     } catch {
-      warnings.push(
-        "Copilot report not available for this tenant/plan — expected, see PRD §5.1."
-      );
+      /* report non disponibile per questo tenant */
     }
 
-    return { provider: "MICROSOFT_365", assets, syncedAt: new Date(), warnings };
+    // Utenti unici per AI.
+    for (const a of byService.values()) {
+      const seen = new Set<string>();
+      a.users = a.users!.filter((u) => (seen.has(u.email) ? false : (seen.add(u.email), true)));
+    }
+    return { provider: "MICROSOFT_365", assets: [...byService.values()], syncedAt: new Date(), warnings };
   },
 };

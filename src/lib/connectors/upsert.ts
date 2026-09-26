@@ -18,63 +18,63 @@ export async function persistSyncResult(
   const touchedAssetIds: string[] = [];
 
   for (const observed of result.assets) {
-    const existing = await db.aiAsset.findUnique({
-      where: {
-        organizationId_connectorId_externalId: {
-          organizationId,
-          connectorId,
-          externalId: observed.externalId,
-        },
-      },
+    const own = await db.aiAsset.findUnique({
+      where: { organizationId_connectorId_externalId: { organizationId, connectorId, externalId: observed.externalId } },
     });
+    // Stessa AI già nota da un'altra fonte (banca, altra connessione)? Si
+    // arricchisce quella invece di crearne un doppione.
+    const shared =
+      !own && observed.serviceId
+        ? await db.aiAsset.findFirst({ where: { organizationId, deletedAt: null, serviceId: observed.serviceId }, orderBy: { createdAt: "asc" } })
+        : null;
 
-    const asset = await db.aiAsset.upsert({
-      where: {
-        organizationId_connectorId_externalId: {
-          organizationId,
-          connectorId,
-          externalId: observed.externalId,
-        },
-      },
-      update: {
-        ...(observed.serviceId ? { serviceId: observed.serviceId } : {}),
-        name: observed.name,
-        vendor: observed.vendor,
-        model: observed.model,
-        lastSeenAt: new Date(),
-      },
-      create: {
-        organizationId,
-        connectorId,
-        externalId: observed.externalId,
-        type: observed.type,
-        serviceId: observed.serviceId,
-        name: observed.name,
-        vendor: observed.vendor,
-        model: observed.model,
-        status: "UNKNOWN", // ogni asset appena scoperto parte non revisionato
-        lastSeenAt: new Date(),
-      },
-    });
+    const asset = shared
+      ? await db.aiAsset.update({ where: { id: shared.id }, data: { lastSeenAt: new Date(), ...(observed.model && !shared.model ? { model: observed.model } : {}) } })
+      : await db.aiAsset.upsert({
+          where: { organizationId_connectorId_externalId: { organizationId, connectorId, externalId: observed.externalId } },
+          update: {
+            ...(observed.serviceId ? { serviceId: observed.serviceId } : {}),
+            name: observed.name,
+            vendor: observed.vendor,
+            model: observed.model,
+            lastSeenAt: new Date(),
+          },
+          create: {
+            organizationId,
+            connectorId,
+            externalId: observed.externalId,
+            type: observed.type,
+            serviceId: observed.serviceId,
+            name: observed.name,
+            vendor: observed.vendor,
+            model: observed.model,
+            status: "UNKNOWN", // ogni asset appena scoperto parte non revisionato
+            lastSeenAt: new Date(),
+          },
+        });
     touchedAssetIds.push(asset.id);
 
     // Costo reale dalla fatturazione del provider: sostituisce le stime.
     if (typeof observed.monthlyCost === "number" && Number.isFinite(observed.monthlyCost)) {
       const value = Math.round(observed.monthlyCost * 100) / 100;
-      await db.aiSystemCost.upsert({
-        where: { aiAssetId: asset.id },
-        update: { monthlyCostEstimate: value, basis: "billing_connector", confidence: "HIGH", notes: observed.costNote ?? null },
-        create: { aiAssetId: asset.id, monthlyCostEstimate: value, basis: "billing_connector", confidence: "HIGH", notes: observed.costNote ?? null },
-      });
+      const basis = observed.costBasis ?? "billing_connector";
+      const prev = await db.aiSystemCost.findUnique({ where: { aiAssetId: asset.id } });
+      // Una stima da licenze non sostituisce mai un costo reale (banca, fatture, fatturazione).
+      if (!(basis === "estimate" && prev && prev.basis !== "estimate" && prev.basis !== "manual")) {
+        const data = { monthlyCostEstimate: value, basis, confidence: basis === "estimate" ? "MEDIUM" : "HIGH", notes: observed.costNote ?? null, seats: observed.seats ?? prev?.seats ?? null, planId: observed.planId ?? prev?.planId ?? null };
+        await db.aiSystemCost.upsert({ where: { aiAssetId: asset.id }, update: data, create: { aiAssetId: asset.id, ...data } });
+      }
+    } else if (observed.seats) {
+      await db.aiSystemCost.updateMany({ where: { aiAssetId: asset.id }, data: { seats: observed.seats, ...(observed.planId ? { planId: observed.planId } : {}) } });
     }
 
     // Change detection: confronto diretto vecchio/nuovo su model e vendor —
     // i due campi di "dipendenza" che il sync può davvero osservare cambiare.
     // Solo per asset già esistenti: un asset appena creato non e' un cambiamento.
-    if (existing) {
+    if (own) {
       const trackedFields: [string, string | null, string | null][] = [
-        ["model", existing.model, observed.model ?? null],
-        ["vendor", existing.vendor, observed.vendor ?? null],
+        ["model", own.model, observed.model ?? null],
+        ["vendor", own.vendor, observed.vendor ?? null],
       ];
       for (const [field, oldValue, newValue] of trackedFields) {
         if (oldValue !== newValue && (oldValue || newValue)) {

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { persistSyncResult } from "./upsert";
 import { microsoft365Connector } from "./microsoft365";
+import { googleWorkspaceConnector } from "./google-workspace";
 import { githubConnector } from "./github";
 import { anthropicConnector } from "./anthropic";
 import { openaiConnector } from "./openai";
@@ -12,6 +13,7 @@ import type { ConnectorProvider } from "@prisma/client";
 
 const REGISTRY: Record<string, Connector> = {
   MICROSOFT_365: microsoft365Connector,
+  GOOGLE_WORKSPACE: googleWorkspaceConnector,
   GITHUB: githubConnector,
   ANTHROPIC: anthropicConnector,
   OPENAI: openaiConnector,

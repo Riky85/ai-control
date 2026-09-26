@@ -90,3 +90,22 @@ Come per il progetto gemello `ai-agent-governance`: **il database è sempre
 la fonte di verità** per identità, permessi, stato di approvazione e risk
 score. Claude/LLM, quando verrà integrato per la spiegazione in prosa dei
 risk assessment, non scrive mai questi valori — li legge e li racconta.
+
+## Company accounts (Microsoft 365, Google Workspace)
+
+angar uses **one** OAuth app per provider; each customer's administrator approves it once from *Sources*.
+
+**Microsoft 365** — in Entra ID (portal.azure.com) register an app, *Accounts in any organizational directory (multi-tenant)*,
+redirect URI `https://<APP_URL>/api/connectors/microsoft/callback`. Under *API permissions* add Microsoft Graph **application**
+permissions `Application.Read.All`, `Directory.Read.All`, `AuditLog.Read.All`, `Reports.Read.All`, `User.Read.All`.
+Create a client secret and set `MS365_CLIENT_ID`, `MS365_CLIENT_SECRET` on Railway.
+
+**Google Workspace** — in Google Cloud Console create an OAuth client (Web application), redirect URI
+`https://<APP_URL>/api/connectors/google/callback`, enable *Admin SDK API*, add the scopes
+`admin.reports.audit.readonly` and `admin.directory.user.readonly` to the consent screen, then set
+`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. Until Google verifies the app, admins see an "unverified app" warning.
+
+## Monthly report
+
+`POST /api/report/cron` with `Authorization: Bearer $REPORT_TOKEN` (falls back to `BACKUP_TOKEN`) emails the monthly AI
+report to owners and admins of every workspace. Schedule it once a month (e.g. `0 7 1 * *`). Needs `RESEND_API_KEY` and `EMAIL_FROM`.

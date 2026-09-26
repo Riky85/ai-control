@@ -9,7 +9,8 @@ import { db } from "@/lib/db";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const installationId = searchParams.get("installation_id");
-  const organizationId = searchParams.get("state") || currentOrgId();
+  // Sempre il workspace della sessione: mai fidarsi di un id arrivato nell'URL.
+  const organizationId = currentOrgId();
 
   if (!installationId) {
     return NextResponse.redirect(`${origin}/connectors?error=missing_installation_id`);

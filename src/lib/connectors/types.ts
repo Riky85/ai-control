@@ -43,6 +43,10 @@ export interface ObservedAsset {
   /** Spesa reale degli ultimi 30 giorni letta dalla fatturazione del provider. */
   monthlyCost?: number;
   costNote?: string;
+  /** Da dove viene il costo: "billing_connector" (fatturazione) o "estimate" (licenze × listino). */
+  costBasis?: string;
+  seats?: number;
+  planId?: string;
   /** Asset trovati per caso (rete, log): partono "da rivedere". Default: sì. */
   needsReview?: boolean;
 }
