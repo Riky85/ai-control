@@ -15,6 +15,8 @@ export interface Charge {
   description: string;
   service: string;
   source: "bank" | "invoice";
+  /** Posti dichiarati in fattura (quantità della riga o "10 seats" nel testo). */
+  seats?: number;
 }
 
 export interface ParseResult {
@@ -264,7 +266,13 @@ function parseInvoice(name: string, data: Uint8Array): ParseResult {
   const service = matchMerchant(`${supplier} ${descriptions}`);
   if (!service || !date || !(total > 0)) return out;
   const eur = currency === "USD" ? total * USD_TO_EUR : total;
-  out.charges.push({ date, amountEur: Math.round(eur * 100) / 100, description: `${supplier} — ${descriptions}`.slice(0, 200), service, source: "invoice" });
+  // Posti: la quantità delle righe (FatturaPA <Quantita>) o "10 seats/users/licenze" nella descrizione.
+  const qty = tags(xml, "DettaglioLinee")
+    .map((l) => Number(tag(l, "Quantita") ?? NaN))
+    .filter((n) => Number.isInteger(n) && n >= 1 && n <= 5000);
+  const text = descriptions.match(/(\d{1,4})\s*(seats?|users?|utent[ie]|licen[sz]e?s?|posti|members?)/i);
+  const seats = qty.length ? Math.max(...qty) : text ? Number(text[1]) : undefined;
+  out.charges.push({ date, amountEur: Math.round(eur * 100) / 100, description: `${supplier} — ${descriptions}`.slice(0, 200), service, source: "invoice", seats: seats && seats > 1 ? seats : undefined });
   return out;
 }
 
@@ -280,6 +288,7 @@ export interface ServiceSpend {
   planId: string | null;
   planName: string | null;
   seats: number | null;
+  seatsDeclared: boolean;
   annual: boolean;
   source: "bank" | "invoice";
 }
@@ -307,6 +316,8 @@ export function summarize(charges: Charge[], _periodEnd?: Date | null): ServiceS
         annual = true;
       }
     }
+    // I posti scritti in fattura valgono più di quelli dedotti dall'importo.
+    const declared = [...list].sort((a, b) => b.date.getTime() - a.date.getTime()).find((c) => c.seats)?.seats;
     return {
       service,
       monthlyEur: Math.round(monthly * 100) / 100,
@@ -316,7 +327,8 @@ export function summarize(charges: Charge[], _periodEnd?: Date | null): ServiceS
       last: new Date(last),
       planId: guess?.plan.id ?? null,
       planName: guess?.plan.name ?? null,
-      seats: guess?.seats ?? null,
+      seats: declared ?? guess?.seats ?? null,
+      seatsDeclared: Boolean(declared),
       annual: annual || !!guess?.annual,
       source: list.some((c) => c.source === "invoice") ? "invoice" : "bank",
     } satisfies ServiceSpend;

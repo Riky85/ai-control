@@ -1,12 +1,9 @@
-import { fmtDate, fmtEur } from "@/lib/format";
-import { categoryOf, monthlyOf } from "@/lib/savings";
-import { CATEGORY_LABEL, PLANS } from "@/lib/pricing/catalog";
+import { categoryOf, loadAssets, computeSavings } from "@/lib/savings";
+import AiTable from "@/components/AiTable";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import Badge from "@/components/Badge";
-import { VendorBadge } from "@/components/VendorIcon";
-import { PageHeader, Table } from "@/components/ui";
+import { PageHeader } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import AssetFilters from "@/components/AssetFilters";
 import type { AiAssetType, AiAssetStatus } from "@prisma/client";
@@ -37,33 +34,23 @@ export default async function AssetsPage({
 }: {
   searchParams: { type?: string; status?: string; risk?: string; q?: string; category?: string };
 }) {
-  const assets = await db.aiAsset.findMany({
-    where: {
-      organizationId: currentOrgId(),
-      deletedAt: null,
-      ...(searchParams.type ? { type: searchParams.type as AiAssetType } : {}),
-      ...(searchParams.status ? { status: searchParams.status as AiAssetStatus } : {}),
-      ...(searchParams.q ? { name: { contains: searchParams.q, mode: "insensitive" as const } } : {}),
-    },
-    include: {
-      owner: true,
-      connector: true,
-      riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
-      assuranceReports: { orderBy: { createdAt: "desc" }, take: 1 },
-      cost: true,
-      alternatives: true,
-      usages: { select: { lastSeenAt: true } },
-      activities: { where: { eventType: "discovery.seen" }, orderBy: { occurredAt: "desc" }, take: 1, select: { occurredAt: true } },
-    },
-    orderBy: { lastSeenAt: "desc" },
-  });
-
-  const filtered = assets
-    .filter((a) => !searchParams.risk || a.riskAssessments[0]?.level === searchParams.risk)
+  const orgId = currentOrgId();
+  const [all, { items: savings }, risks] = await Promise.all([
+    loadAssets(orgId, { includeRejected: true }),
+    computeSavings(orgId),
+    searchParams.risk
+      ? db.aiAsset.findMany({ where: { organizationId: orgId }, select: { id: true, riskAssessments: { orderBy: { createdAt: "desc" }, take: 1, select: { level: true } } } })
+      : Promise.resolve([]),
+  ]);
+  const riskOf = new Map(risks.map((r) => [r.id, r.riskAssessments[0]?.level]));
+  const q = searchParams.q?.toLowerCase();
+  const filtered = all
+    .filter((a) => !searchParams.type || a.type === searchParams.type)
+    .filter((a) => !searchParams.status || a.status === searchParams.status)
+    .filter((a) => !q || a.name.toLowerCase().includes(q) || (a.vendor ?? "").toLowerCase().includes(q))
     .filter((a) => !searchParams.category || categoryOf(a) === searchParams.category)
-    .map((a) => ({ a, m: monthlyOf(a as any) }))
-    .sort((x, y) => (y.m?.eur ?? -1) - (x.m?.eur ?? -1))
-    .map((x) => x.a);
+    .filter((a) => !searchParams.risk || riskOf.get(a.id) === searchParams.risk);
+  const assets = all;
 
   return (
     <div className="flex flex-col gap-6">
@@ -94,41 +81,7 @@ export default async function AssetsPage({
         </span>
       </div>
 
-      <Table columns={["AI", "Category", "Plan", { label: "Cost / month", className: "text-right" }, "Users", "Owner", "Status", "Last seen"]} empty={filtered.length === 0 && (assets.length === 0 ? "Nothing yet — add a bank statement or another source." : "Nothing matches this filter.")}>
-        {filtered.map((asset) => {
-          const m = monthlyOf(asset as any);
-          const cat = categoryOf(asset);
-          const plan = asset.cost?.planId ? PLANS.find((p) => p.id === asset.cost!.planId) : null;
-          return (
-            <tr key={asset.id} className="hover:bg-ink-100/[0.02] transition-colors">
-              <td className="px-5 py-3">
-                <Link href={`/assets/${asset.id}`} className="flex items-center gap-3 group">
-                  <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={32} />
-                  <span>
-                    <span className="block font-medium text-ink-100 group-hover:underline">{asset.name}</span>
-                    <span className="block text-xs text-ink-400">{asset.vendor ?? "Vendor unknown"}</span>
-                  </span>
-                </Link>
-              </td>
-              <td className="px-5 py-3 text-ink-400">{cat ? CATEGORY_LABEL[cat] : asset.type.replace(/_/g, " ").toLowerCase()}</td>
-              <td className="px-5 py-3 text-ink-400">{plan ? `${asset.cost?.seats && asset.cost.seats > 1 ? `${asset.cost.seats} × ` : ""}${plan.name}` : "—"}</td>
-              <td className="px-5 py-3 text-right tabular">
-                {m ? (
-                  <span className={m.estimated ? "text-ink-400" : "text-ink-100 font-medium"} title={m.estimated ? "Estimated from list prices" : undefined}>
-                    {m.estimated ? "≈ " : ""}{fmtEur(m.eur)}
-                  </span>
-                ) : (
-                  <span className="text-ink-400" title="Not paid by the company, or free">Free / personal</span>
-                )}
-              </td>
-              <td className="px-5 py-3 text-ink-400 tabular">{asset.usages.length || "—"}</td>
-              <td className="px-5 py-3 text-ink-400">{asset.owner?.name ?? asset.owner?.email ?? "—"}</td>
-              <td className="px-5 py-3"><Badge>{asset.status}</Badge></td>
-              <td className="px-5 py-3 text-ink-400 text-xs tabular">{asset.lastSeenAt ? fmtDate(asset.lastSeenAt) : "—"}</td>
-            </tr>
-          );
-        })}
-      </Table>
+      <AiTable assets={filtered} savings={savings} empty={assets.length === 0 ? "Nothing yet — add a bank statement or another source." : "Nothing matches this filter."} />
     </div>
   );
 }

@@ -25,9 +25,9 @@ const round = (n: number) => Math.round(n);
 
 export type AssetForSavings = Awaited<ReturnType<typeof loadAssets>>[number];
 
-export async function loadAssets(organizationId: string) {
+export async function loadAssets(organizationId: string, opts: { includeRejected?: boolean } = {}) {
   return db.aiAsset.findMany({
-    where: { organizationId, deletedAt: null, status: { not: "UNAPPROVED" } },
+    where: { organizationId, deletedAt: null, ...(opts.includeRejected ? {} : { status: { not: "UNAPPROVED" as const } }) },
     include: {
       cost: true,
       alternatives: true,

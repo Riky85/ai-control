@@ -63,7 +63,6 @@ function PanelToggleIcon() {
 // Il percorso principale: vedi → rivedi → approfondisci → costi → cosa cambia.
 const PRIMARY_ITEMS = [
   { href: "/", label: "Overview", icon: "home" },
-  { href: "/assets", label: "Your AI", icon: "assets" },
   { href: "/savings", label: "Savings", icon: "savings" },
   { href: "/review", label: "Review", icon: "approvals" },
   { href: "/sources", label: "Sources", icon: "connectors" },
@@ -153,7 +152,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
   if (pathname.startsWith("/share")) return null;
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : href === "/sources" ? ["/sources", "/connectors", "/discover"].some((p) => pathname.startsWith(p)) : pathname.startsWith(href);
+    href === "/" ? pathname === "/" || pathname.startsWith("/assets") : href === "/sources" ? ["/sources", "/connectors", "/discover"].some((p) => pathname.startsWith(p)) : pathname.startsWith(href);
   function itemClass(active: boolean, sub = false) {
     return `flex items-center gap-3 text-[15px] transition-colors rounded-lg ${
       collapsed ? "justify-center px-0 py-2.5" : sub ? "pl-11 pr-3 py-1.5" : "px-3 py-2"

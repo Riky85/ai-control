@@ -68,7 +68,7 @@ export async function ingestSpend(organizationId: string, parsed: ParseResult) {
         planId: s.planId,
         seats: s.seats,
         annualBilling: s.annual,
-        notes: `${s.count} charge${s.count === 1 ? "" : "s"} from ${s.first.toISOString().slice(0, 10)} to ${s.last.toISOString().slice(0, 10)}${s.planName ? ` · looks like ${s.seats && s.seats > 1 ? `${s.seats} × ` : ""}${s.planName}` : ""}`,
+        notes: `${s.count} charge${s.count === 1 ? "" : "s"} from ${s.first.toISOString().slice(0, 10)} to ${s.last.toISOString().slice(0, 10)}${s.seatsDeclared ? ` · ${s.seats} seats on the invoice` : ""}${s.planName ? ` · looks like ${s.seats && s.seats > 1 ? `${s.seats} × ` : ""}${s.planName}` : ""}`,
       };
       await db.aiSystemCost.upsert({ where: { aiAssetId: asset.id }, update: data, create: { aiAssetId: asset.id, ...data } });
     }
