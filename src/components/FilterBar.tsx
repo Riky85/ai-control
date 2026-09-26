@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 export interface FilterDef {
   param: string;
   label: string;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; count?: number }[];
 }
 
 /**
@@ -146,7 +146,8 @@ function FilterMenu({ def, value, onChange }: { def: FilterDef; value: string | 
                 }}
                 className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm text-left transition-colors ${on ? "bg-ink text-ink-100 font-medium" : "text-ink-100 hover:bg-ink-100/[0.04]"}`}
               >
-                {o.label}
+                <span className="flex-1">{o.label}</span>
+                {"count" in o && typeof o.count === "number" && <span className="text-xs text-ink-400 tabular">{o.count}</span>}
                 {on && (
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-accent" aria-hidden>
                     <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />

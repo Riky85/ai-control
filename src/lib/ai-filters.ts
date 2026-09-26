@@ -4,11 +4,32 @@ import type { FilterDef } from "@/components/FilterBar";
 
 export type AiFilterParams = { q?: string; category?: string; status?: string; paid?: string };
 
-export const AI_FILTERS: FilterDef[] = [
-  { param: "category", label: "Category", options: (Object.keys(CATEGORY_LABEL) as Category[]).map((c) => ({ value: c, label: CATEGORY_LABEL[c] })) },
-  { param: "status", label: "Status", options: [{ value: "APPROVED", label: "Allowed" }, { value: "TODECIDE", label: "To decide" }, { value: "UNAPPROVED", label: "Not allowed" }] },
-  { param: "paid", label: "Paid", options: [{ value: "yes", label: "Paid by the company" }, { value: "no", label: "Not paid" }] },
-];
+/** Filtri con i conteggi reali: si mostrano solo le scelte che hanno risultati. */
+export function aiFilters(all: AssetForSavings[]): FilterDef[] {
+  const count = (fn: (a: AssetForSavings) => boolean) => all.filter(fn).length;
+  const opts = (list: { value: string; label: string; fn: (a: AssetForSavings) => boolean }[]) =>
+    list.map((o) => ({ value: o.value, label: o.label, count: count(o.fn) })).filter((o) => o.count > 0);
+  return [
+    { param: "category", label: "Category", options: opts((Object.keys(CATEGORY_LABEL) as Category[]).map((c) => ({ value: c, label: CATEGORY_LABEL[c], fn: (a) => categoryOf(a) === c }))) },
+    {
+      param: "status",
+      label: "Status",
+      options: opts([
+        { value: "APPROVED", label: "Allowed", fn: (a) => a.status === "APPROVED" },
+        { value: "TODECIDE", label: "To decide", fn: (a) => a.status === "UNKNOWN" || a.status === "UNREVIEWED" },
+        { value: "UNAPPROVED", label: "Not allowed", fn: (a) => a.status === "UNAPPROVED" },
+      ]),
+    },
+    {
+      param: "paid",
+      label: "Paid",
+      options: opts([
+        { value: "yes", label: "Paid by the company", fn: (a) => Boolean(monthlyOf(a)) },
+        { value: "no", label: "Not paid", fn: (a) => !monthlyOf(a) },
+      ]),
+    },
+  ].filter((f) => f.options.length > 1);
+}
 
 export function filterAssets(all: AssetForSavings[], p: AiFilterParams) {
   const q = p.q?.toLowerCase().trim();

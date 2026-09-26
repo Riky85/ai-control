@@ -6,7 +6,7 @@ import AiTable from "@/components/AiTable";
 import { StatCard, PageHeader } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import { computeSavings, monthlyOf, loadAssets } from "@/lib/savings";
-import { AI_FILTERS, filterAssets, type AiFilterParams } from "@/lib/ai-filters";
+import { aiFilters, filterAssets, type AiFilterParams } from "@/lib/ai-filters";
 import FilterBar from "@/components/FilterBar";
 import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
@@ -93,7 +93,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
               </div>
               <Link href="/sources" className="btn btn-secondary btn-sm">+ Add sources</Link>
             </div>
-            <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={AI_FILTERS} right={`${shown.length} of ${all.length}`} />
+            <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all)} right={`${shown.length} of ${all.length}`} />
             <AiTable assets={shown} savings={savings} empty="Nothing matches these filters." />
           </div>
         </>
