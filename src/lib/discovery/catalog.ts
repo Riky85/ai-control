@@ -64,10 +64,18 @@ export const AI_SERVICES: AiService[] = [
 ];
 
 export function matchDomain(domain: string): AiService | null {
-  const d = domain.toLowerCase().replace(/^\*\./, "").replace(/\.$/, "");
+  const full = domain.toLowerCase().replace(/^\*\./, "");
+  const [host, ...rest] = full.split("/");
+  const d = host.replace(/\.$/, "");
+  const path = rest.join("/");
   for (const s of AI_SERVICES) {
     for (const pat of s.domains) {
-      if (pat.includes("/")) continue; // percorsi: solo per la cronologia browser (lo scanner li gestisce)
+      if (pat.includes("/")) {
+        // percorsi (es. notion.so/ai): arrivano solo dallo scanner, con host e percorso
+        const [ph, pp] = pat.split("/");
+        if ((d === ph || d.endsWith("." + ph)) && path.startsWith(pp)) return s;
+        continue;
+      }
       if (d === pat || d.endsWith("." + pat) || (pat.startsWith("bedrock") && d.includes(pat))) return s;
     }
   }
@@ -76,5 +84,6 @@ export function matchDomain(domain: string): AiService | null {
 
 export function matchApp(app: string): AiService | null {
   const a = app.toLowerCase();
-  return AI_SERVICES.find((s) => s.apps?.some((x) => a === x.toLowerCase() || a.startsWith(x.toLowerCase() + "-") || a.startsWith(x.toLowerCase() + "."))) ?? null;
+  const exact = AI_SERVICES.find((s) => s.apps?.some((x) => a === x.toLowerCase()));
+  return exact ?? AI_SERVICES.find((s) => s.apps?.some((x) => a.startsWith(x.toLowerCase() + "-") || a.startsWith(x.toLowerCase() + "."))) ?? null;
 }

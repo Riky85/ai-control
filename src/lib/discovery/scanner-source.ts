@@ -269,11 +269,12 @@ def main():
     by_id = {s["id"]: s for s in catalog}
     def app_service(v):
         v = v.lower()
-        for s in catalog:
-            for x in s.get("apps", []):
-                x = x.lower()
-                if v == x or v.startswith(x + "-") or v.startswith(x + "."):
-                    return s
+        for exact in (True, False):
+            for s in catalog:
+                for x in s.get("apps", []):
+                    x = x.lower()
+                    if v == x or (not exact and (v.startswith(x + "-") or v.startswith(x + "."))):
+                        return s
         return None
     kept = []
     for f in findings:
