@@ -112,7 +112,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             title={hasSpend ? "AI spend by month" : "AI in use over time"}
             subtitle={hasSpend ? (canSave > 0 ? "From your statements and invoices · dashed: what it would cost with angar's savings" : "From your statements and invoices") : "Add a bank statement to see spend over time"}
           >
-            <LineChart labels={hasSpend ? chartLabels : months.map((m) => m.label)} series={chartSeries} format={hasSpend ? (v) => fmtEur(v) : (v) => String(Math.round(v))} />
+            <LineChart labels={hasSpend ? chartLabels : months.map((m) => m.label)} series={chartSeries} unit={hasSpend ? "eur" : "count"} />
           </Panel>
 
           <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">

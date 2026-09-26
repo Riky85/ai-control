@@ -13,7 +13,9 @@ export interface LineSeries {
  * Grafico a linee semplice: una scala, linee sottili, griglia leggera,
  * etichetta diretta sull'ultimo punto, crosshair + tooltip al passaggio.
  */
-export default function LineChart({ labels, series, format = (v) => String(v), height = 220 }: { labels: string[]; series: LineSeries[]; format?: (v: number) => string; height?: number }) {
+export default function LineChart({ labels, series, unit = "count", height = 220 }: { labels: string[]; series: LineSeries[]; unit?: "eur" | "count"; height?: number }) {
+  // Il formato si decide qui: le funzioni non possono arrivare dal server.
+  const format = (v: number) => (unit === "eur" ? "€" + Math.round(v).toLocaleString("en-GB") : String(Math.round(v)));
   const ref = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<number | null>(null);
   const W = 800;
