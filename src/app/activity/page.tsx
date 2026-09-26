@@ -1,3 +1,4 @@
+import FilterBar from "@/components/FilterBar";
 import { fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
@@ -78,24 +79,7 @@ async function EventsTab({ q }: { q?: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <form className="flex gap-2">
-        <input type="hidden" name="tab" value="events" />
-        <input
-          type="text"
-          name="q"
-          defaultValue={query}
-          placeholder="Search events, actors, assets…"
-          className="border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel w-72 placeholder:text-ink-400"
-        />
-        <button type="submit" className="btn btn-secondary">
-          Search
-        </button>
-        {query && (
-          <Link href="/activity" className="text-sm px-3 py-1.5 text-ink-400 hover:text-ink-100">
-            Clear
-          </Link>
-        )}
-      </form>
+      <FilterBar search={{ placeholder: "Search events, people, AI…" }} right={`${activities.length} events`} />
 
       <Table
         columns={["System", "Event", "Actor", "Risk", "Source", "When"]}

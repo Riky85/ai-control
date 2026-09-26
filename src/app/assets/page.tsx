@@ -1,38 +1,21 @@
-import { categoryOf, loadAssets, computeSavings } from "@/lib/savings";
+import { categoryOf, loadAssets, computeSavings, monthlyOf } from "@/lib/savings";
 import AiTable from "@/components/AiTable";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
-import AssetFilters from "@/components/AssetFilters";
-import type { AiAssetType, AiAssetStatus } from "@prisma/client";
+import FilterBar from "@/components/FilterBar";
+import { CATEGORY_LABEL } from "@/lib/pricing/catalog";
 
 export const dynamic = "force-dynamic";
 
 
-const TYPE_OPTIONS: AiAssetType[] = [
-  "AI_APPLICATION",
-  "AI_AGENT",
-  "AI_API",
-  "MCP_SERVER",
-  "AI_DEV_TOOL",
-  "AI_FEATURE",
-];
-const STATUS_OPTIONS: AiAssetStatus[] = ["APPROVED", "UNREVIEWED", "UNAPPROVED", "UNKNOWN"];
-const STATUS_LABEL: Record<string, string> = {
-  APPROVED: "Approved",
-  UNREVIEWED: "Unreviewed",
-  UNAPPROVED: "Not approved",
-  UNKNOWN: "Unknown",
-};
-const RISK_OPTIONS = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
-const RISK_LABEL: Record<string, string> = { LOW: "Low", MEDIUM: "Medium", HIGH: "High", CRITICAL: "Critical" };
 
 export default async function AssetsPage({
   searchParams,
 }: {
-  searchParams: { type?: string; status?: string; risk?: string; q?: string; category?: string };
+  searchParams: { type?: string; status?: string; risk?: string; q?: string; category?: string; paid?: string };
 }) {
   const orgId = currentOrgId();
   const [all, { items: savings }, risks] = await Promise.all([
@@ -46,7 +29,8 @@ export default async function AssetsPage({
   const q = searchParams.q?.toLowerCase();
   const filtered = all
     .filter((a) => !searchParams.type || a.type === searchParams.type)
-    .filter((a) => !searchParams.status || a.status === searchParams.status)
+    .filter((a) => !searchParams.status || (searchParams.status === "TODECIDE" ? a.status === "UNKNOWN" || a.status === "UNREVIEWED" : a.status === searchParams.status))
+    .filter((a) => !searchParams.paid || (searchParams.paid === "yes") === Boolean(monthlyOf(a)))
     .filter((a) => !q || a.name.toLowerCase().includes(q) || (a.vendor ?? "").toLowerCase().includes(q))
     .filter((a) => !searchParams.category || categoryOf(a) === searchParams.category)
     .filter((a) => !searchParams.risk || riskOf.get(a.id) === searchParams.risk);
@@ -68,18 +52,15 @@ export default async function AssetsPage({
         }
       />
 
-      <div className="flex items-center justify-between gap-4">
-      <AssetFilters
-        typeOptions={TYPE_OPTIONS}
-        statusOptions={STATUS_OPTIONS}
-        statusLabels={STATUS_LABEL}
-        riskOptions={RISK_OPTIONS}
-        riskLabels={RISK_LABEL}
+      <FilterBar
+        search={{ placeholder: "Find an AI by name or provider" }}
+        filters={[
+          { param: "category", label: "Category", options: (Object.keys(CATEGORY_LABEL) as (keyof typeof CATEGORY_LABEL)[]).map((c) => ({ value: c, label: CATEGORY_LABEL[c] })) },
+          { param: "status", label: "Status", options: [{ value: "APPROVED", label: "Allowed" }, { value: "TODECIDE", label: "To decide" }, { value: "UNAPPROVED", label: "Not allowed" }] },
+          { param: "paid", label: "Paid", options: [{ value: "yes", label: "Paid by the company" }, { value: "no", label: "Not paid" }] },
+        ]}
+        right={`${filtered.length} of ${assets.length}`}
       />
-        <span className="text-sm text-ink-400 shrink-0">
-          {filtered.length} of {assets.length} systems
-        </span>
-      </div>
 
       <AiTable assets={filtered} savings={savings} empty={assets.length === 0 ? "Nothing yet — add a bank statement or another source." : "Nothing matches this filter."} />
     </div>

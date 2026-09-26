@@ -1,6 +1,7 @@
 import { fmtDateTime } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
+import FilterBar from "@/components/FilterBar";
 import { PageHeader, Table, td } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -38,10 +39,7 @@ export default async function AuditPage({ searchParams }: { searchParams: { q?: 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Audit log" subtitle="Who did what, when and from where in this workspace. Entries can't be edited or deleted." />
-      <form className="flex items-center gap-2">
-        <input name="q" defaultValue={q} placeholder="Filter by action, person or target" className="field w-80" />
-        <button className="btn btn-secondary">Filter</button>
-      </form>
+      <FilterBar search={{ placeholder: "Search action, person or target" }} right={`${rows.length} entries`} />
       <Table columns={["When", "Who", "What", "Target", "IP"]} empty={rows.length === 0 ? "Nothing recorded yet." : false}>
         {rows.map((r) => (
           <tr key={r.id}>
