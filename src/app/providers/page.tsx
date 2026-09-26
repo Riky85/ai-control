@@ -1,3 +1,4 @@
+import { fmtEur } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import {PageHeader, StatCard, Panel } from "@/components/ui";
@@ -48,10 +49,10 @@ export default async function ProvidersPage() {
 
       <div className="grid grid-cols-3 gap-4">
         <StatCard label="Providers" tone="accent" value={String(rows.length)} hint={rows.slice(0, 3).map((r) => r.vendor).join(", ")} />
-        <StatCard label="Tracked monthly spend" value={`€${totalMonthlySpend.toLocaleString()}`} hint="Manually entered on Passports" />
+        <StatCard label="Tracked monthly spend" value={fmtEur(totalMonthlySpend)} hint="From bills, billing and list prices" />
         <Panel title="Spend by provider">
           {rows.some((r) => r.hasCostData) ? (
-            <BarChart rows={rows.filter((r) => r.hasCostData).map((r) => ({ label: r.vendor, value: r.monthlySpend }))} formatValue={(v) => `€${v.toLocaleString()}`} />
+            <BarChart rows={rows.filter((r) => r.hasCostData).map((r) => ({ label: r.vendor, value: r.monthlySpend }))} formatValue={(v) => fmtEur(v)} />
           ) : (
             <p className="text-sm text-ink-400">No cost data yet — add a bank statement in Sources.</p>
           )}
@@ -81,7 +82,7 @@ export default async function ProvidersPage() {
               <div className="col-span-2">
                 {hasCostData ? (
                   <>
-                    <span className="font-medium text-ink-100">€{monthlySpend.toLocaleString()}</span>
+                    <span className="font-medium text-ink-100">{fmtEur(monthlySpend)}</span>
                     <span className="text-ink-400">/mo{costedCount < list.length ? ` (${costedCount}/${list.length} costed)` : ""}</span>
                   </>
                 ) : (

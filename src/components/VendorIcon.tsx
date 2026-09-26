@@ -22,6 +22,16 @@ const PRODUCT_RULES: [RegExp, string][] = [
   [/bedrock/i, "bedrock"],
   [/langchain/i, "langchain"],
   [/ollama/i, "ollama"],
+  [/midjourney/i, "midjourney"],
+  [/elevenlabs/i, "elevenlabs"],
+  [/runway/i, "runway"],
+  [/deepl/i, "deepl"],
+  [/notion/i, "notion"],
+  [/lovable/i, "lovable"],
+  [/^v0\b/i, "v0"],
+  [/replicate/i, "replicate"],
+  [/\bpoe\b/i, "poe"],
+  [/cline/i, "cline"],
 ];
 
 const VENDOR_RULES: [RegExp, string][] = [
@@ -43,6 +53,9 @@ const VENDOR_RULES: [RegExp, string][] = [
   [/together/i, "together"],
   [/openrouter/i, "openrouter"],
   [/gemini/i, "gemini"],
+  [/anysphere/i, "cursor"],
+  [/codeium/i, "windsurf"],
+  [/vercel/i, "v0"],
 ];
 
 export function resolveBrand(vendor?: string | null, name?: string | null): string | null {

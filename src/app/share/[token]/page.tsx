@@ -1,3 +1,4 @@
+import { fmtEur } from "@/lib/format";
 import { fmtDate } from "@/lib/format";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
@@ -59,7 +60,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
       <div className="grid grid-cols-4 gap-4">
         <StatCard label="AI systems" value={String(assets.length)} />
         <StatCard label="Providers" value={String(providers)} />
-        <StatCard label="Monthly spend" value={spend > 0 ? `€${spend.toLocaleString()}` : "—"} />
+        <StatCard label="Monthly spend" value={spend > 0 ? fmtEur(spend) : "—"} />
         <StatCard label="High risk" value={String(highRisk)} tone={highRisk > 0 ? "alarm" : undefined} />
       </div>
 
@@ -99,7 +100,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
                 <td className="px-5 py-3 text-ink-400">{a.vendor ?? "Unknown"}</td>
                 <td className="px-5 py-3"><Badge>{a.status}</Badge></td>
                 <td className="px-5 py-3">{risk(a) ? <Badge>{risk(a)!}</Badge> : "—"}</td>
-                <td className="px-5 py-3 tabular text-ink-100">{a.cost?.monthlyCostEstimate != null ? `€${a.cost.monthlyCostEstimate.toLocaleString()}` : "—"}</td>
+                <td className="px-5 py-3 tabular text-ink-100">{a.cost?.monthlyCostEstimate != null ? fmtEur(a.cost.monthlyCostEstimate) : "—"}</td>
               </tr>
             ))}
           </Table>
