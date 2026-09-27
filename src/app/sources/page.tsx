@@ -70,15 +70,12 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
                 syncAction={syncFattureInCloudAction}
               />
             </div>
-            <div className="text-xs text-ink-400 -mb-1">Or upload files once:</div>
-            <CsvDropzone accept={SPEND_ACCEPT} multiple label="Drop bank/card exports or e-invoices here" />
+            <CsvDropzone accept={SPEND_ACCEPT} multiple label="Or drop bank/card exports or e-invoices here" />
             <div className="flex items-center justify-between gap-3">
               <button className="btn btn-primary">Find my AI spend</button>
-              <a href="/api/spend/sample" className="text-xs text-ink-400 hover:text-ink-100 underline">Try with a sample statement</a>
+              <a href="/api/spend/sample" className="text-xs text-ink-400 hover:text-ink-100 underline">Try a sample</a>
             </div>
-            <p className="text-xs text-ink-400">
-              CSV or Excel from any bank or card (Revolut, Qonto, Intesa, UniCredit…), e-invoices (FatturaPA XML, .p7m, TD17 self-invoices) or the zip from your accountant. Only AI lines are kept; everything else is discarded.
-            </p>
+            <p className="text-xs text-ink-400">Any bank/card CSV or Excel, e-invoices (XML, .p7m) or your accountant's zip. Only AI lines are kept.</p>
           </form>
         </Card>
 
@@ -104,8 +101,8 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
           <Link href="/connectors" className="btn btn-secondary self-start">{keys.length ? "Manage keys" : "Add a key"}</Link>
         </Card>
 
-        <Card n={4} title="angar desktop app" finds="Who really uses each AI and for how long — any browser and desktop apps, last 30 days at once" status={network?.lastSyncedAt ? `Last data ${fmtDate(network.lastSyncedAt)}` : null}>
-          <Link href="/discover#desktop" className="btn btn-secondary self-start">{network ? "Open" : "Get the app"}</Link>
+        <Card n={4} title="angar desktop app" finds="Who uses each AI and for how long (any browser + desktop apps)" status={network?.lastSyncedAt ? `Last data ${fmtDate(network.lastSyncedAt)}` : null}>
+          <Link href="/download" className="btn btn-secondary self-start">{network ? "Open" : "Get the app"}</Link>
         </Card>
       </div>
     </div>
@@ -124,7 +121,7 @@ function Card({ n, title, finds, status, recommended, children }: { n: number; t
             <h2 className="text-base font-semibold text-ink-100">{title}</h2>
             {recommended && !status && <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Start here</span>}
           </div>
-          <p className="text-sm text-ink-400 mt-0.5">Finds: {finds}</p>
+          <p className="text-xs text-ink-400 mt-0.5">Finds: {finds}</p>
           {status && <p className="text-xs text-steady mt-1">{status}</p>}
         </div>
       </div>

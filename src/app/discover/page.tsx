@@ -54,75 +54,23 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
       />
       {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
 
-      <section id="desktop" className="rounded-xl border border-accent/50 bg-panel p-6 flex flex-col gap-5 scroll-mt-6">
+      <section id="desktop" className="rounded-xl border border-accent/50 bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-5 scroll-mt-6">
         <span id="extension" className="sr-only" />
-        <div>
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-ink-100">angar desktop app</h2>
+            <h2 className="text-base font-semibold text-ink-100">angar desktop app</h2>
             <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Recommended</span>
           </div>
           <p className="text-sm text-ink-400 mt-1">
-            One install per computer, nothing to configure. It sees Chrome, Edge, Safari, Firefox, Brave, Arc, the ChatGPT / Claude / Cursor apps and coding assistants — and reads the last 30 days at once. You see it in{" "}
-            <a href="/usage" className="underline text-ink-100">Usage</a>: who uses what, for how long, and which paid seats nobody uses.
+            One install per computer. Finds AI in every browser and desktop app, and how long it&apos;s used — you see it all in <a href="/usage" className="underline text-ink-100">Usage</a>. Only AI names and time leave the computer, never pages or prompts.
           </p>
         </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-xl border border-line p-5 flex flex-col gap-3">
-            <div className="text-sm font-semibold text-ink-100">This computer</div>
-            <ol className="text-sm text-ink-400 flex flex-col gap-2">
-              <li><span className="text-ink-100">1.</span> Download — it's already linked to {org?.name}.</li>
-              <li><span className="text-ink-100">2.</span> Open it and type your work email. That's it: it runs in the background.</li>
-              <li className="text-xs">
-                First time only — Windows: <span className="text-ink-100">More info → Run anyway</span>. Mac: unzip, then <span className="text-ink-100">right-click → Open</span> (or System Settings → Privacy &amp; Security → Open Anyway).
-              </li>
-            </ol>
-            <div className="flex flex-wrap gap-2 mt-auto">
-              {downloads.map((d, i) => (
-                <a key={d.os} href={d.href} className={`btn ${i === 0 ? "btn-primary" : "btn-secondary"}`}>
-                  Download for {d.label}
-                </a>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-xl border border-line p-5 flex flex-col gap-3">
-            <div className="text-sm font-semibold text-ink-100">Everyone in the company</div>
-            <p className="text-sm text-ink-400">Send this link. Each person downloads the app from it and types their work email — it links to {org?.name} by itself.</p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{joinUrl}</code>
-              <CopyButton text={joinUrl} label="Copy link" />
-            </div>
-            <CopyButton
-              text={`Hi! We use angar to see which AI tools we use and stop paying for seats nobody needs. It takes a minute: open ${joinUrl}, download the app and type your work email. Only the names of AI tools and the time spent are shared — never pages, prompts or anything you write. Thanks!`}
-              label="Copy invitation message"
-              className="btn btn-secondary self-start mt-auto"
-            />
-          </div>
+        <div className="flex flex-col items-stretch gap-2 shrink-0 sm:w-56">
+          {downloads.map((d, i) => (
+            <a key={d.os} href={d.href} className={`btn ${i === 0 ? "btn-primary" : "btn-secondary"}`}>Download for {d.label}</a>
+          ))}
+          <Link href="/download" className="text-xs text-center text-ink-400 hover:text-ink-100 underline">All platforms &amp; company link →</Link>
         </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-2 xl:gap-4 text-sm text-ink-400">
-          <div className="flex gap-2"><Tick />Only AI tools angar recognises leave the computer — e.g. "claude.ai, 12 visits, 40 min".</div>
-          <div className="flex gap-2"><Tick />Never URLs, page contents, prompts or the rest of the browsing.</div>
-          <div className="flex gap-2"><Tick />No admin rights needed. Remove it any time with <span className="font-mono text-xs whitespace-nowrap">angar --uninstall</span>.</div>
-        </div>
-
-        <details className="text-sm">
-          <summary className="cursor-pointer list-none text-ink-400 hover:text-ink-100 select-none">For IT: install it on every computer (Intune, Jamf, scripts)</summary>
-          <div className="mt-3 flex flex-col gap-3 text-ink-400">
-            <p>Run it as the signed-in user (not as SYSTEM/root). On Entra ID / AD computers the work email is taken from Windows; otherwise add your email domain.</p>
-            {[
-              { label: "Windows", cmd: `angar-${joinCode}.exe --silent --email-domain yourcompany.com` },
-              { label: "macOS", cmd: `"angar-${joinCode}.app/Contents/MacOS/angar" --join ${joinCode} --silent --email-domain yourcompany.com` },
-            ].map((x) => (
-              <div key={x.label} className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-ink-100">{x.label}</span>
-                <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{x.cmd}</code>
-                <CopyButton text={x.cmd} />
-              </div>
-            ))}
-            <p>Safari history needs Full Disk Access: grant it to <span className="font-mono text-xs">~/Library/Application Support/angar/angar</span> with a PPPC profile. Other browsers work without it.</p>
-          </div>
-        </details>
       </section>
 
       <DesktopDevices organizationId={s.orgId} />
