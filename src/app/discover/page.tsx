@@ -99,10 +99,10 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 text-sm text-ink-400">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-2 xl:gap-4 text-sm text-ink-400">
           <div className="flex gap-2"><Tick />Only AI tools angar recognises leave the computer — e.g. "claude.ai, 12 visits, 40 min".</div>
           <div className="flex gap-2"><Tick />Never URLs, page contents, prompts or the rest of the browsing.</div>
-          <div className="flex gap-2"><Tick />No admin rights needed. Remove it any time with <span className="font-mono text-xs">angar --uninstall</span>.</div>
+          <div className="flex gap-2"><Tick />No admin rights needed. Remove it any time with <span className="font-mono text-xs whitespace-nowrap">angar --uninstall</span>.</div>
         </div>
 
         <details className="text-sm">
