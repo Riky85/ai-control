@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
 import { PageHeader } from "@/components/ui";
 import CsvDropzone from "@/components/CsvDropzone";
+import EdgeBox from "@/components/EdgeBox";
 import { uploadSpendAction, syncFattureInCloudAction, syncBankAction, syncAccountingAction } from "@/lib/spend-actions";
 import { fmtDate } from "@/lib/format";
 import { workplaceStatus } from "@/lib/connectors/workplace";
@@ -105,6 +106,18 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
           <Link href="/download" className="btn btn-secondary self-start">{network ? "Open" : "Get the app"}</Link>
         </Card>
       </div>
+
+      <Link href="/edge" className="group rounded-xl border border-line bg-panel px-5 py-4 flex items-center gap-5 hover:border-accent/50 transition-colors">
+        <EdgeBox width={110} className="shrink-0 -my-3" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-ink-100">angar Edge</h2>
+            <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Hardware</span>
+          </div>
+          <p className="text-sm text-ink-400 mt-0.5">Prefer nothing installed on computers? A small box on your network sees every AI in use — phones and servers included.</p>
+        </div>
+        <span className="text-sm text-ink-400 group-hover:text-ink-100 shrink-0">Learn more →</span>
+      </Link>
     </div>
   );
 }

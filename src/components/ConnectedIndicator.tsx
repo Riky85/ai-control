@@ -1,27 +1,35 @@
 import Link from "next/link";
 import { listDesktopDevices } from "@/lib/discovery/devices";
 
-// Indicatore in alto a destra: un'icona "computer" con un pallino verde e il
-// numero quando ci sono computer connessi. Rimanda alla lista.
+// Indicatore in alto a destra, stessa misura del pulsante documentazione
+// (36×36), così non copre le azioni della pagina: icona computer con un
+// badge verde col numero dei computer connessi. Sempre presente: grigio se
+// nessuno è connesso (e porta al download dell'app).
 export default async function ConnectedIndicator({ organizationId }: { organizationId: string }) {
   const devices = await listDesktopDevices(organizationId);
-  if (devices.length === 0) return null;
   const online = devices.filter((d) => d.online).length;
+  const title =
+    online > 0 ? `${online} computer${online === 1 ? "" : "s"} connected` : devices.length ? `${devices.length} computer${devices.length === 1 ? "" : "s"} · not sending right now` : "No computer connected yet — get the app";
 
   return (
-    <Link
-      href="/computers"
-      title={online > 0 ? `${online} computer${online === 1 ? "" : "s"} connected` : `${devices.length} computer${devices.length === 1 ? "" : "s"} · silent`}
-      className="relative h-9 px-2.5 inline-flex items-center gap-2 rounded-lg border border-line bg-panel hover:bg-ink-100/[0.04] transition-colors"
-    >
-      <span className="relative text-ink-100">
-        <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
+    <span className="relative group/conn">
+      <Link href={devices.length ? "/computers" : "/download"} aria-label={title} className="btn btn-secondary btn-icon relative">
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden className={online > 0 ? "text-ink-100" : "text-ink-400"}>
           <rect x="2" y="3" width="14" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
           <path d="M6.5 15h5M9 12v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
-        <span className={`absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full ring-2 ring-panel ${online > 0 ? "bg-steady" : "bg-ink-400/50"} ${online > 0 ? "animate-pulse" : ""}`} />
+        {online > 0 ? (
+          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-steady text-white text-[10px] font-semibold leading-[18px] text-center tabular ring-2 ring-panel">{online}</span>
+        ) : devices.length > 0 ? (
+          <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-ink-400/60 ring-2 ring-panel" />
+        ) : null}
+      </Link>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute right-0 top-full mt-2 whitespace-nowrap rounded-md bg-ink-100 px-2 py-1 text-xs text-panel opacity-0 translate-y-[-2px] transition-all group-hover/conn:opacity-100 group-hover/conn:translate-y-0 z-50"
+      >
+        {title}
       </span>
-      {online > 0 && <span className="text-sm font-medium tabular text-ink-100">{online}</span>}
-    </Link>
+    </span>
   );
 }

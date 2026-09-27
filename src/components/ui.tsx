@@ -97,8 +97,8 @@ export function PageHeader({
         <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 truncate">{title}</h1>
         {subtitle && <p className="text-sm text-ink-400 mt-1">{subtitle}</p>}
       </div>
-      {/* Le azioni stanno a sinistra del pulsante documentazione, che è fisso nel layout. */}
-      <div className="flex items-center gap-2 shrink-0 pr-11 min-h-9">{action}</div>
+      {/* Le azioni stanno a sinistra dei due pulsanti fissi del layout (computer connessi + documentazione). */}
+      <div className="flex items-center gap-2 shrink-0 pr-[5.5rem] min-h-9">{action}</div>
     </div>
   );
 }

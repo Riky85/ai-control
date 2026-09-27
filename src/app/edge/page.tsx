@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 import { EDGE } from "@/lib/plans";
+import EdgeBox from "@/components/EdgeBox";
 
 export const dynamic = "force-dynamic";
 
@@ -25,13 +26,24 @@ export default function EdgePage() {
         }
       />
 
-      {/* Cos'è, in una riga forte. */}
-      <section className="rounded-xl border border-accent/40 bg-panel p-6">
-        <p className="text-[15px] text-ink-100 leading-relaxed max-w-3xl">
-          A small, silent box you connect to the company network. It watches which AI services the network reaches — the same detection as the desktop app, but{" "}
-          <span className="text-white font-medium">always on and for every device</span>: computers, phones, servers, even the ones where you can&apos;t install anything.
-          It never inspects content — only the names of AI services and how often they&apos;re reached.
-        </p>
+      {/* Hero: il dispositivo + cos'è in una riga forte. */}
+      <section className="rounded-2xl border border-accent/30 bg-gradient-to-br from-panel to-ink/60 p-6 md:p-8 grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-8 overflow-hidden">
+        <div className="flex flex-col gap-4 max-w-xl">
+          <span className="self-start text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Hardware · always on</span>
+          <p className="text-[17px] text-ink-100 leading-relaxed">
+            A small, silent box you connect to the company network. It watches which AI services the network reaches —{" "}
+            <span className="text-white font-medium">always on, for every device</span>: computers, phones, servers, even the ones where you can&apos;t install anything.
+          </p>
+          <p className="text-sm text-ink-400">It never inspects content — only the names of AI services and how often they&apos;re reached.</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-400">
+            <span><span className="text-ink-100 font-medium">~1 hour</span> to see the whole network</span>
+            <span><span className="text-ink-100 font-medium">0</span> installs on computers</span>
+            <span><span className="text-ink-100 font-medium">€{EDGE.pricePerDevice}</span>/device·month</span>
+          </div>
+        </div>
+        <div className="justify-self-center">
+          <EdgeBox width={360} />
+        </div>
       </section>
 
       {/* Dove si installa. */}

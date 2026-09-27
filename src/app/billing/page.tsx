@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { PageHeader, Panel } from "@/components/ui";
 import Badge from "@/components/Badge";
 import { planById, EDGE } from "@/lib/plans";
+import EdgeBox from "@/components/EdgeBox";
 import PricingCards from "@/components/PricingCards";
 import { stripeEnabled } from "@/lib/stripe";
 import { openBillingPortalAction, startEdgeCheckoutAction } from "@/lib/workspace-actions";
@@ -93,7 +94,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
 
       <section id="edge" className="rounded-xl border border-line bg-panel p-6 grid grid-cols-3 gap-8 scroll-mt-6">
         <div className="col-span-2 flex gap-6">
-          <EdgeDevice />
+          <EdgeBox width={150} className="shrink-0" />
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-semibold text-ink-100">{EDGE.name}</h2>
@@ -142,20 +143,3 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
   );
 }
 
-// Illustrazione del dispositivo: un piccolo box con led di stato.
-function EdgeDevice() {
-  return (
-    <svg width="132" height="108" viewBox="0 0 132 108" fill="none" className="shrink-0">
-      <rect x="10" y="30" width="112" height="52" rx="12" fill="#141418" />
-      <rect x="10" y="30" width="112" height="10" rx="5" fill="#26262C" />
-      <circle cx="28" cy="62" r="3.5" fill="#FF7323" />
-      <circle cx="41" cy="62" r="3.5" fill="#1F9254" />
-      <rect x="62" y="56" width="46" height="12" rx="3" fill="#26262C" />
-      <rect x="66" y="59" width="8" height="6" rx="1" fill="#3A3A42" />
-      <rect x="78" y="59" width="8" height="6" rx="1" fill="#3A3A42" />
-      <rect x="90" y="59" width="8" height="6" rx="1" fill="#3A3A42" />
-      <text x="66" y="48" fontSize="8" fill="#8C8C96" fontFamily="var(--font-brand), sans-serif">angar Edge</text>
-      <ellipse cx="66" cy="92" rx="50" ry="4" fill="#141418" opacity="0.08" />
-    </svg>
-  );
-}

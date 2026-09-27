@@ -25,6 +25,9 @@ function Icon({ name }: { name: string }) {
     case "savings":
       // Segno di percentuale: sconto / spesa che scende. Inequivocabile.
       return <svg {...common}><path {...stroke} d="M4 14L14 4" /><circle {...stroke} cx="5.2" cy="5.2" r="1.6" /><circle {...stroke} cx="12.8" cy="12.8" r="1.6" /></svg>;
+    case "edge":
+      // Scatolina di rete con led: il dispositivo angar Edge.
+      return <svg {...common}><rect {...stroke} x="2" y="6" width="14" height="7.5" rx="1.8" /><path {...stroke} d="M5 9.8h2.5" /><circle cx="12.5" cy="9.8" r="1" fill="currentColor" /><path {...stroke} d="M6 6V4.2M12 6V4.2" /></svg>;
     case "review":
       // Occhio: "guarda / rivedi ciò che abbiamo trovato".
       return <svg {...common}><path {...stroke} d="M1.8 9S4.4 4.3 9 4.3 16.2 9 16.2 9 13.6 13.7 9 13.7 1.8 9 1.8 9z" /><circle {...stroke} cx="9" cy="9" r="2.1" /></svg>;
@@ -100,6 +103,7 @@ const MORE_ITEMS = [
   { href: "/data", label: "Data Exposure", icon: "data" },
   { href: "/governance", label: "Governance", icon: "assurance" },
   { href: "/activity", label: "Activity", icon: "activity" },
+  { href: "/edge", label: "angar Edge", icon: "edge" },
 ];
 
 // Stato aperta/chiusa in un cookie: il server lo legge e rende subito la
@@ -168,7 +172,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
           </span>
         </button>
       ) : (
-        <div className="flex items-center mb-4 px-2">
+        <div className="flex items-center h-10 mb-4 px-2">
           <Link href="/" className="text-white" aria-label="angar home">
             <Wordmark size={16} logoSize={20} />
           </Link>
@@ -208,7 +212,15 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
             title={collapsed ? item.label : undefined}
             className={itemClass(isActive(item.href))}
           >
-            <Icon name={item.icon} />
+            <span className="relative shrink-0">
+              <Icon name={item.icon} />
+              {/* Da chiusa: il numero da rivedere diventa un badge sull'icona. */}
+              {collapsed && item.href === "/review" && reviewCount > 0 && (
+                <span className="absolute -top-2 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-accent text-white text-[9px] font-semibold leading-4 text-center tabular ring-2 ring-sidebar">
+                  {reviewCount > 99 ? "99+" : reviewCount}
+                </span>
+              )}
+            </span>
             {!collapsed && <span className="flex-1">{item.label}</span>}
             {!collapsed && item.href === "/review" && reviewCount > 0 && (
               <span className="text-[11px] font-semibold text-white bg-accent rounded-full px-1.5 min-w-[20px] text-center tabular">{reviewCount}</span>

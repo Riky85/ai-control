@@ -18,7 +18,8 @@ const HIDE_KEY = "angar:wizard-hidden";
 // (costi → uso → team). Ogni passo si spunta da solo dai dati reali.
 // Si può chiudere; quando i passi sono tutti fatti, sparisce comunque.
 export default function SetupWizard({ steps }: { steps: WizardStep[] }) {
-  const [hidden, setHidden] = useState(true);
+  // null finché non si legge la preferenza: niente lampeggio tra chip e wizard.
+  const [hidden, setHidden] = useState<boolean | null>(null);
   useEffect(() => {
     try {
       setHidden(localStorage.getItem(HIDE_KEY) === "1");
@@ -28,7 +29,25 @@ export default function SetupWizard({ steps }: { steps: WizardStep[] }) {
   }, []);
 
   const doneCount = steps.filter((s) => s.done).length;
-  if (hidden || doneCount === steps.length) return null;
+  if (hidden === null || doneCount === steps.length) return null;
+  // Chiuso: resta una piccola pillola per riaprirlo.
+  if (hidden)
+    return (
+      <button
+        onClick={() => {
+          try {
+            localStorage.removeItem(HIDE_KEY);
+          } catch {
+            /* best-effort */
+          }
+          setHidden(false);
+        }}
+        className="self-start inline-flex items-center gap-2 rounded-full border border-line bg-panel px-3 py-1.5 text-xs text-ink-400 hover:text-ink-100 hover:border-accent/50 transition-colors"
+      >
+        <span className="h-4 w-4 rounded-full bg-accent/15 text-accent text-[10px] font-semibold flex items-center justify-center">{doneCount}</span>
+        Setup guide · {doneCount} of {steps.length} done — show
+      </button>
+    );
   // Il primo passo non ancora completato è quello "attivo".
   const activeIdx = steps.findIndex((s) => !s.done);
 
