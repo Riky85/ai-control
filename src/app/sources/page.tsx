@@ -104,8 +104,8 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
           <Link href="/connectors" className="btn btn-secondary self-start">{keys.length ? "Manage keys" : "Add a key"}</Link>
         </Card>
 
-        <Card n={4} title="Extension & network scan" finds="Who really uses each AI, and AI nobody pays for" status={network?.lastSyncedAt ? `Last scan ${fmtDate(network.lastSyncedAt)}` : null}>
-          <Link href="/discover" className="btn btn-secondary self-start">{network ? "Open" : "Set up"}</Link>
+        <Card n={4} title="angar desktop app" finds="Who really uses each AI and for how long — any browser and desktop apps, last 30 days at once" status={network?.lastSyncedAt ? `Last data ${fmtDate(network.lastSyncedAt)}` : null}>
+          <Link href="/discover#desktop" className="btn btn-secondary self-start">{network ? "Open" : "Get the app"}</Link>
         </Card>
       </div>
     </div>

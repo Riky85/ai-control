@@ -116,7 +116,20 @@ Create an app on developers.fattureincloud.it (OAuth, scope `received_documents:
 `https://<APP_URL>/api/connectors/fattureincloud/callback`, then set `FIC_CLIENT_ID` and `FIC_CLIENT_SECRET`.
 Customers connect it from Sources; invoices sync on connect, on "Sync now" and before each monthly report.
 
-## Browser extension
+## Desktop app (main way to track usage)
+
+Source in `desktop/` (Rust, ~3 MB, no admin rights). GitHub Actions (`.github/workflows/desktop.yml`) builds Windows,
+macOS (universal) and Linux on every change to `desktop/` and publishes them to the `desktop-latest` release.
+`/api/discovery/desktop/download/<joinCode>?os=windows|mac|linux` serves the build renamed `angar-<joinCode>.exe`
+(macOS: a zipped `angar-<joinCode>.app`), so the app links itself to the company via
+`/api/discovery/desktop/join/<joinCode>`. It reads browser history locally (Chromium browsers, Firefox, Safari with
+Full Disk Access), running AI apps and editor extensions, and every 30 minutes posts only AI names, visits and minutes
+per day to `/api/discovery/usage` (`source: "desktop"`). First sync covers the last 30 days.
+Env (optional): `DESKTOP_RELEASE_REPO` (default `Riky85/ai-control`), `DESKTOP_RELEASE_TAG`, `GITHUB_RELEASE_TOKEN` if the repo is private.
+To remove the first-run warnings, sign the builds: Apple Developer ID + notarization, Windows code-signing certificate.
+Local test: `cd desktop && cargo run -- --join <code> --email me@co.com --once`.
+
+## Browser extension (fallback)
 
 `/api/discovery/extension.zip` serves the Chrome/Edge extension with this server's URL built in. For company-wide rollout,
 publish it once (Chrome Web Store / Edge Add-ons, unlisted) and force-install it with a managed policy
