@@ -36,7 +36,8 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
   // certa, e va trattato come tale in un prodotto di governance).
   const emailLocalPart = person.email.split("@")[0];
   const recentActivity = await db.aiAssetActivity.findMany({
-    where: { actorRef: { in: [person.email, emailLocalPart] } },
+    // Sempre limitato all'azienda corrente: una parte locale come "john" non deve pescare eventi di altri clienti.
+    where: { actorRef: { in: [person.email, emailLocalPart] }, aiAsset: { organizationId: currentOrgId() } },
     orderBy: { occurredAt: "desc" },
     take: 10,
     include: { aiAsset: true },

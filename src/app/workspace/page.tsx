@@ -1,5 +1,6 @@
 import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
+import { currentSession } from "@/lib/auth";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
@@ -26,7 +27,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
     db.organization.findUniqueOrThrow({ where: { id: currentOrgId() } }),
     db.workspaceMember.findMany({ where: { organizationId: currentOrgId() }, orderBy: [{ role: "asc" }, { invitedAt: "asc" }] }),
     db.shareLink.findMany({ where: { organizationId: currentOrgId() }, orderBy: { createdAt: "desc" } }),
-    db.organization.findMany({ orderBy: { createdAt: "asc" }, include: { _count: { select: { aiAssets: true, members: true } } } }),
+    // Solo i workspace di cui l'utente è membro: mai quelli di altri clienti.
+    db.organization.findMany({ where: { members: { some: { email: currentSession()!.email } } }, orderBy: { createdAt: "asc" }, include: { _count: { select: { aiAssets: true, members: true } } } }),
   ]);
   const plan = planById(org.plan);
   const h = headers();
