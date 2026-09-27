@@ -16,7 +16,7 @@ interface DocLink {
   summary: string;
 }
 
-const SUGGESTIONS = ["How does angar find my AI costs?", "How do I scan the network?", "How are savings calculated?", "How do I connect Microsoft 365?"];
+const SUGGESTIONS = ["How does angar find my AI costs?", "How do I install the desktop app?", "How are savings calculated?", "How do I connect Microsoft 365?"];
 
 // Pannello di aiuto (assistente + guide): si apre dal pulsante a libro in
 // alto a destra di ogni pagina (evento "angar:toggle-docs"), niente più

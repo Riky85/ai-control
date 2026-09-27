@@ -21,7 +21,7 @@ export const DOCS: DocArticle[] = [
     keywords: ["overview", "intro", "estate", "passport", "what"],
     body: `angar answers three questions without asking you to type anything: which AI does the company use, how much does it cost, and where can we save.
 ## How it works
-1. Sources — give angar a bank or card statement, e-invoices, company accounts (Microsoft 365, Google Workspace), provider keys or a network scan.
+1. Sources — give angar a bank or card statement, e-invoices, company accounts (Microsoft 365, Google Workspace), provider keys or the angar desktop app.
 2. Your AI — angar lists every AI with its plan, seats, real cost, who uses it and what data it touches (the AI Passport).
 3. Savings — angar compares what you pay with how the AI is used and today's prices, and tells you what to change.
 4. Radar and monthly report — angar tells you when a new AI appears or a cost goes up, and emails a monthly summary.`,
@@ -34,7 +34,7 @@ export const DOCS: DocArticle[] = [
     keywords: ["start", "setup", "onboarding", "quick", "first"],
     body: `1. On Overview, drop a bank or card statement (CSV or Excel) or your e-invoices. angar finds every AI subscription with plan, seats and monthly cost.
 2. Open Savings: suggestions are already calculated — yearly billing, unused seats, duplicate tools, oversized models.
-3. Optional: in Sources connect Microsoft 365 or Google Workspace to see who uses which AI, and run a scan to find AI nobody pays for.
+3. Optional: in Sources connect Microsoft 365 or Google Workspace to see who uses which AI, and install the desktop app to find AI nobody pays for and see how long each one is used.
 4. Nothing else is required: no costs to type, no owners to assign, no invitations. You can invite colleagues later from Workspace.`,
   },
   {
@@ -70,17 +70,44 @@ The monthly cost is the average of the charges. From the amount angar also recog
 AI found this way goes to Review, where you decide in one click whether it's allowed.`,
   },
   {
+    slug: "desktop-app",
+    section: "Sources",
+    title: "The desktop app",
+    summary: "One install per computer: angar sees which AI each person uses — in every browser and desktop app — and for how long.",
+    keywords: ["desktop", "app", "install", "download", "agent", "computer", "shadow", "usage", "silent", "intune", "jamf", "uninstall", "windows", "mac", "linux", "scan", "discover"],
+    body: `The angar desktop app is the main way to find the AI people really use, including AI nobody pays for through the company.
+## Install it
+1. Open Sources → angar desktop app → Get the app (or go straight to Download the app).
+2. Download it for Windows, macOS or Linux. The file is already linked to your company.
+3. Open it and type your work email once. It then runs in the background and starts at login.
+## The whole company
+On the download page, copy the company link and send it to your colleagues: each person downloads from it and types their email. Nothing else to configure.
+## What it sends
+- Only the names of AI tools and the time spent on each per day — e.g. "ChatGPT, 40 minutes".
+- Never URLs, pages, prompts, messages, files or anything people write.
+- AI-looking tools that aren't in angar's list yet are sent as "possible AI" and appear in Review, where you decide whether they count.
+## Silent install (IT)
+Run the app as the signed-in user (not SYSTEM/root) with --silent --email-domain yourcompany.com. On Entra ID / Active Directory computers the email is read from Windows automatically. The exact commands for Intune, Jamf or scripts are on the download page under "For IT".
+## Uninstall
+Run angar --uninstall on the computer: it stops angar and removes it from that computer.
+## See connected computers
+Connected computers lists every computer with the app and whether it's online. The computer icon at the top right of every page shows how many are connected right now.`,
+  },
+  {
     slug: "scan",
     section: "Sources",
-    title: "Scan computers and the network",
-    summary: "Find AI used without the company paying for it — one command, or a DNS/firewall log.",
-    keywords: ["scan", "scanner", "network", "shadow", "dns", "firewall", "log", "edge", "discover"],
-    body: `angar runs in the cloud and can't see inside your network, so the scan runs on your side and sends only the AI it recognises.
-1. Open Sources → Scan computers & network and create a scan token.
-2. Copy the command and run it in Terminal (macOS, Linux) or PowerShell (Windows).
+    title: "Other ways: one-off scan and network logs",
+    summary: "Can't install the desktop app? Run a one-off command-line scan, or upload a DNS/firewall log.",
+    keywords: ["scan", "scanner", "command", "cli", "network", "shadow", "dns", "firewall", "log", "edge", "discover", "extension"],
+    body: `The desktop app is the recommended way to find AI. These alternatives are for computers where you can't install it, or to cover a whole network at once.
+## One-off scan (command line)
+1. Open Find AI automatically and expand Other ways → One-off scan (command line).
+2. Copy the command and run it in Terminal (macOS, Linux) or PowerShell (Windows). The token is already in it.
 3. It shows what it found and asks before sending. --dry-run sends nothing.
 ## Whole network
-Upload a DNS or firewall log, or run the command with --sniff on a server that sees DNS traffic. angar Edge, a small device, will do this continuously.`,
+In the same section, upload a DNS or firewall log (Pi-hole, pfSense, FortiGate, Sophos, Windows DNS, Cisco Umbrella…). For an always-on view without installing anything on computers, see angar Edge.
+## Browser extension
+For computers where apps can't be installed (e.g. Chromebooks), a Chrome/Edge extension is available under Other ways. It reports only the names of AI websites.`,
   },
   {
     slug: "spend-check",
@@ -225,7 +252,7 @@ Fix a check from the Passport (e.g. assign an owner) and the status updates imme
 - Premium seats: expensive tiers where the standard plan is probably enough.
 - Duplicate tools: two AI assistants (or coding assistants) paid for the same job.
 - Oversized models: API usage on a top model where a cheaper one would do for simple requests.
-- Unused subscriptions: paid, but not seen on any computer in recent scans.
+- Unused subscriptions: paid, but not seen on any computer with the desktop app recently.
 Each suggestion says how sure angar is (Sure, Likely, Worth checking). Press ✕ to hide one that doesn't apply.
 List prices are updated regularly; check before changing a plan.`,
   },

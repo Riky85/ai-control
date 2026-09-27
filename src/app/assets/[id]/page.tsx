@@ -95,7 +95,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 pr-11 min-h-9">
+        <div className="flex items-center gap-2 shrink-0 pr-[5.5rem] min-h-9">
           <Badge>{asset.status}</Badge>
           {manage && (
             <a href={manage} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" title="Change seats, plan or cancel on the provider's site">
@@ -120,7 +120,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           value={asset.usages.length ? (seats ? `${active} / ${seats}` : String(asset.usages.length)) : seats ? `? / ${seats}` : "—"}
           hint={asset.usages.length ? (seats ? "active in 30 days / paid seats" : "people using it") : "Connect Microsoft 365 or Google to see who uses it"}
         />
-        <StatCard href={`/assets/${asset.id}`} label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} tone={canSave >= 1 ? "accent" : undefined} />
+        <StatCard href="/savings" label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} tone={canSave >= 1 ? "accent" : undefined} />
       </div>
 
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/assets/${asset.id}?tab=${t.key}` }))} />
@@ -140,7 +140,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                       <div className="text-sm font-semibold text-ink-100 tabular shrink-0">{fmtEur(i.monthlyEur)}/mo</div>
                       <form action={dismissSavingAction}>
                         <input type="hidden" name="key" value={i.key} />
-                        <button className="text-xs text-ink-400 hover:text-ink-100" title="Not for us — hide">Hide</button>
+                        <button className="btn btn-ghost btn-sm" title="Not for us — hide">Hide</button>
                       </form>
                     </div>
                   ))}
@@ -257,6 +257,9 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 subtitle={assurance ? `${assurance.passedCount} passed · ${assurance.warningCount} need attention · ${assurance.failedCount} failed` : "Not assessed yet"}
                 action={<Link href="/activity?tab=evidence" className="btn btn-secondary btn-sm">Full evidence</Link>}
               >
+                {!assurance ? (
+                  <p className="text-sm text-ink-400">No assurance report yet — it&apos;s generated after the next sync.</p>
+                ) : (
                 <div className="divide-y divide-line -mx-5 border-t border-line">
                   {((assurance?.checks as unknown as { key: string; label: string; status: "PASSED" | "WARNING" | "FAILED"; detail: string }[] | undefined) ?? []).map((ch) => (
                     <div key={ch.key} className="flex items-start gap-3 px-5 py-3">
@@ -268,6 +271,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                     </div>
                   ))}
                 </div>
+                )}
               </Panel>
             </>
           )}
@@ -303,7 +307,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                       asset.status === s ? "bg-panel text-ink-100 font-medium shadow-card cursor-default" : "text-ink-400 hover:text-ink-100"
                     }`}
                   >
-                    {s === "APPROVED" ? "Approved" : s === "UNAPPROVED" ? "Rejected" : "In review"}
+                    {s === "APPROVED" ? "Approved" : s === "UNAPPROVED" ? "Not allowed" : "Needs review"}
                   </button>
                 </form>
               ))}

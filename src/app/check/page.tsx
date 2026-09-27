@@ -23,7 +23,8 @@ export default function CheckPage() {
           </div>
         </header>
       )}
-      <main className="max-w-5xl mx-auto px-6 py-12">
+      {/* Da loggati il layout dell'app dà già il padding: niente doppio margine. */}
+      <main className={signedIn ? "max-w-5xl" : "max-w-5xl mx-auto px-6 py-12"}>
         <SpendCheck signedIn={signedIn} />
       </main>
     </div>

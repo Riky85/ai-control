@@ -34,7 +34,7 @@ export default function Onboarding({ searchParams }: { searchParams: { error?: s
         <div className="grid grid-cols-3 gap-3">
           <Option href="/sources" title="Company accounts" text="Microsoft 365 or Google Workspace — who uses which AI." />
           <Option href="/connectors" title="An AI provider key" text="Claude, OpenAI, Gemini, Mistral… exact API costs." />
-          <Option href="/discover" title="A network scan" text="AI used without the company paying for it." />
+          <Option href="/download" title="The desktop app" text="Sees who uses which AI, and for how long." />
         </div>
       </div>
 

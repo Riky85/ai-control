@@ -128,6 +128,8 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Sul telefono (o nell'app installata) la sidebar parte chiusa: resta spazio per i contenuti.
+    if (window.matchMedia("(max-width: 767px)").matches) setCollapsed(true);
     const onClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
     };

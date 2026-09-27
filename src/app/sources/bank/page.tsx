@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { PageHeader } from "@/components/ui";
+import { Notice, PageHeader } from "@/components/ui";
 import FilterBar from "@/components/FilterBar";
 import { bankConfigured, listBanks, type Bank } from "@/lib/connectors/bank";
 import { startBankAuthAction } from "@/lib/spend-actions";
@@ -28,6 +28,7 @@ export default async function BankPage({ searchParams }: { searchParams: { count
     }
   }
   const q = searchParams.q?.toLowerCase().trim();
+  const MAX_SHOWN = 90;
   const shown = banks.filter((b) => !q || b.name.toLowerCase().includes(q));
 
   return (
@@ -38,23 +39,23 @@ export default async function BankPage({ searchParams }: { searchParams: { count
         subtitle="Read-only access for 90 days, approved on your bank's own site. angar keeps only AI charges — every other movement is ignored."
       />
       {!bankConfigured() && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-400">
-          Bank connections aren't enabled on this deployment yet. Meanwhile, <Link href="/sources" className="underline text-ink-100">upload a statement</Link> — it takes a minute.
-        </div>
+        <Notice>
+          Bank connections aren&apos;t enabled on this deployment yet. Meanwhile, <Link href="/sources" className="underline">upload a statement</Link> — it takes a minute.
+        </Notice>
       )}
-      {error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{error}</div>}
-      <div className="flex items-center gap-2 flex-wrap">
-        {COUNTRIES.map(([code, name]) => (
-          <Link key={code} href={`/sources/bank?country=${code}`} className={`btn btn-sm ${code === country ? "btn-primary" : "btn-secondary"}`}>
-            {name}
-          </Link>
-        ))}
-      </div>
+      {error && <Notice tone="error">{error}</Notice>}
       {bankConfigured() && (
         <>
-          <FilterBar search={{ placeholder: "Find your bank" }} right={`${shown.length} banks`} />
+          <div className="flex items-center gap-2 flex-wrap">
+            {COUNTRIES.map(([code, name]) => (
+              <Link key={code} href={`/sources/bank?country=${code}`} className={`btn btn-sm ${code === country ? "btn-primary" : "btn-secondary"}`}>
+                {name}
+              </Link>
+            ))}
+          </div>
+          <FilterBar search={{ placeholder: "Find your bank" }} right={shown.length > MAX_SHOWN ? `Showing ${MAX_SHOWN} of ${shown.length} banks — search to find yours` : `${shown.length} bank${shown.length === 1 ? "" : "s"}`} />
           <div className="grid grid-cols-3 gap-3">
-            {shown.slice(0, 90).map((b) => (
+            {shown.slice(0, MAX_SHOWN).map((b) => (
               <form key={b.name} action={startBankAuthAction}>
                 <input type="hidden" name="name" value={b.name} />
                 <input type="hidden" name="country" value={b.country} />

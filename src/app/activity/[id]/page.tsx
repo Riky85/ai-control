@@ -40,7 +40,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
         subtitle={`${fmtDateTime(activity.occurredAt)} · ${SOURCE_LABEL[activity.source] ?? activity.source}`}
       />
 
-      <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm">
+      <div className="rounded-xl border border-line bg-panel p-5 text-sm">
         <h2 className="text-base font-semibold text-ink-100 mb-3">Event details</h2>
         <dl className="flex flex-col gap-2.5">
           <Row label="Asset">
@@ -65,7 +65,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
       </div>
 
       {activity.payload != null && (
-        <div className="rounded-xl border border-line bg-panel shadow-card p-5">
+        <div className="rounded-xl border border-line bg-panel p-5">
           <h2 className="text-base font-semibold text-ink-100 mb-3">Raw event payload</h2>
           <p className="text-xs text-ink-400 mb-3">
             Exactly what the connector imported — useful for tracing back to the source system.

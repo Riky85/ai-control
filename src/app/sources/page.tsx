@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { PageHeader } from "@/components/ui";
+import { Notice, PageHeader } from "@/components/ui";
 import CsvDropzone from "@/components/CsvDropzone";
 import EdgeBox from "@/components/EdgeBox";
 import { uploadSpendAction, syncFattureInCloudAction, syncBankAction, syncAccountingAction } from "@/lib/spend-actions";
@@ -36,7 +36,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Sources" subtitle="Connect once. angar keeps your AI list, costs and savings up to date by itself — nothing to type." />
-      {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
+      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
       <div className="grid grid-cols-2 gap-4 items-stretch">
         <Card

@@ -37,5 +37,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   // Tutto tranne file statici di Next e icone.
-  matcher: ["/((?!_next/static|_next/image|icon.svg|favicon.ico).*)"],
+  // Manifest e icone dell'app installabile restano pubblici (il browser li scarica senza cookie).
+  matcher: ["/((?!_next/static|_next/image|icon.svg|favicon.ico|manifest.webmanifest|icons/).*)"],
 };

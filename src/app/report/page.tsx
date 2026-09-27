@@ -2,7 +2,7 @@ import Link from "next/link";
 import { currentOrgId } from "@/lib/org";
 import { currentSession } from "@/lib/auth";
 import { buildReport } from "@/lib/report";
-import { PageHeader, StatCard, Panel } from "@/components/ui";
+import { Notice, PageHeader, StatCard, Panel } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
 import { sendReportNowAction } from "@/lib/spend-actions";
 import { emailEnabled } from "@/lib/mail";
@@ -28,8 +28,8 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
           </div>
         }
       />
-      {searchParams.sent && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Sent to {me?.email}.</div>}
-      {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
+      {searchParams.sent && <Notice tone="success">Sent to {me?.email}.</Notice>}
+      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
       <div className="grid grid-cols-3 gap-4">
         <StatCard href="/#your-ai" label="AI in use" value={String(r.assets.length)} tone="accent" />

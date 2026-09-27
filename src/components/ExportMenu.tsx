@@ -27,7 +27,7 @@ export default function ExportMenu({ dataset, label = "Export" }: { dataset?: st
         <div className="absolute right-0 mt-1.5 w-56 z-30 rounded-xl border border-line bg-panel shadow-lg p-1.5 text-sm">
           {dataset && (
             <a href={`/api/export/${dataset}`} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-ink-100 hover:bg-ink-100/[0.04] transition-colors">
-              <span className="h-6 w-6 rounded-md bg-[#1F7244] text-white text-[10px] font-bold flex items-center justify-center">XLS</span>
+              <span className="h-6 w-6 rounded-md bg-steady text-white text-[10px] font-bold flex items-center justify-center">XLS</span>
               <span>
                 <span className="block">Excel</span>
                 <span className="block text-xs text-ink-400">All rows, ready to filter</span>
@@ -41,7 +41,7 @@ export default function ExportMenu({ dataset, label = "Export" }: { dataset?: st
             }}
             className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left text-ink-100 hover:bg-ink-100/[0.04] transition-colors"
           >
-            <span className="h-6 w-6 rounded-md bg-[#C4433B] text-white text-[10px] font-bold flex items-center justify-center">PDF</span>
+            <span className="h-6 w-6 rounded-md bg-alarm text-white text-[10px] font-bold flex items-center justify-center">PDF</span>
             <span>
               <span className="block">PDF</span>
               <span className="block text-xs text-ink-400">This page, print-ready</span>

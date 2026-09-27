@@ -1,6 +1,6 @@
 /**
  * Grafico a barre orizzontali, minimale, senza dipendenze esterne — stesso
- * principio di AssetGraph.tsx: SVG scritto a mano, coerente con la palette
+ * principio di EstateGraph.tsx: SVG scritto a mano, coerente con la palette
  * dell'app, niente libreria di charting da aggiungere per un solo grafico.
  */
 export interface BarChartRow {

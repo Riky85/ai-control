@@ -122,8 +122,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
               Deletes AI systems (with costs, alternatives, risk, activity and changes), people, data sources, policies, evidence and connections with their saved keys. Accounts, members, plan and audit log stay. This can't be undone.
             </p>
             <div className="flex gap-2 mt-1">
-              <input name="confirm" required autoComplete="off" placeholder={`Type "${org?.name ?? ""}" to confirm`} className="flex-1 min-w-0 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 bg-panel placeholder:text-ink-400 focus:outline-none focus:border-alarm" />
-              <button className="btn border border-alarm/40 text-alarm bg-panel hover:bg-alarm/5">Reset</button>
+              <input name="confirm" required autoComplete="off" placeholder={`Type "${org?.name ?? ""}" to confirm`} className="field flex-1 min-w-0 focus:border-alarm" />
+              <button className="btn btn-danger">Reset</button>
             </div>
           </form>
           <form action={loadDemoDataAction} className="flex flex-col gap-2">

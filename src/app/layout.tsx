@@ -1,6 +1,6 @@
 import { currentSession, isPlatformAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Sidebar, { type SidebarWorkspaceProps } from "@/components/Sidebar";
@@ -24,6 +24,16 @@ const brand = Space_Grotesk({ subsets: ["latin"], weight: ["600"], variable: "--
 export const metadata: Metadata = {
   title: "angar",
   description: "Discover every AI in your company. Understand what it can access. Control what it can do.",
+  // App installabile (Android / iPhone): a tutto schermo, barra di stato scura.
+  appleWebApp: { capable: true, title: "angar", statusBarStyle: "black-translucent" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1A1C1D",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -71,9 +81,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SearchPalette />
         <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={await isPlatformAdmin(session.email)} connectedComputers={connectedComputers} reviewCount={await db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } })} />
         <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto [scrollbar-gutter:stable]">
-          <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-10 pt-12 pb-24">
+          <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-12 pb-24">
             {/* Sempre nello stesso punto, in ogni pagina. */}
-            <div className="absolute top-12 right-10 z-30 print:hidden flex items-center gap-2">
+            <div className="absolute top-12 right-4 sm:right-6 lg:right-10 z-30 print:hidden flex items-center gap-2">
               <ConnectedIndicator organizationId={session.orgId} />
               <DocsButton />
             </div>

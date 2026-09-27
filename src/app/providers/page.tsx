@@ -27,8 +27,7 @@ export default async function ProvidersPage() {
       const s = save.get(a.id);
       return t + (s === -1 ? monthlyOf(a)?.eur ?? 0 : Math.min(s ?? 0, monthlyOf(a)?.eur ?? 0));
     }, 0);
-    const people = new Set(list.flatMap((a) => a.usages.map((_, i) => `${a.id}:${i}`))).size;
-    return { vendor, list, spend, estimated, couldSave, people };
+    return { vendor, list, spend, estimated, couldSave };
   }).sort((a, b) => b.spend - a.spend || b.list.length - a.list.length);
 
   const total = rows.reduce((t, r) => t + r.spend, 0);
@@ -68,15 +67,15 @@ export default async function ProvidersPage() {
               <div
                 key={r.vendor}
                 title={`${r.vendor}: ${fmtEur(r.spend)} (${Math.round((r.spend / total) * 100)}%)`}
-                className="h-full animate-grow"
-                style={{ width: `${(r.spend / total) * 100}%`, backgroundColor: "#FF7323", opacity: Math.max(0.25, 1 - i * 0.18) }}
+                className="h-full animate-grow bg-accent"
+                style={{ width: `${(r.spend / total) * 100}%`, opacity: Math.max(0.25, 1 - i * 0.18) }}
               />
             ))}
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             {rows.filter((r) => r.spend > 0).map((r, i) => (
               <span key={r.vendor} className="flex items-center gap-2 text-ink-400">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "#FF7323", opacity: Math.max(0.25, 1 - i * 0.18) }} />
+                <span className="h-2.5 w-2.5 rounded-full bg-accent" style={{ opacity: Math.max(0.25, 1 - i * 0.18) }} />
                 <span className="text-ink-100">{r.vendor}</span>
                 <span className="tabular">{Math.round((r.spend / total) * 100)}%</span>
               </span>

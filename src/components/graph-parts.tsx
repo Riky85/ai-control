@@ -1,6 +1,6 @@
 import VendorIcon, { resolveBrand } from "@/components/VendorIcon";
 
-// Primitivi condivisi da AssetGraph (dettaglio passaporto) ed EstateGraph
+// Primitivi usati da EstateGraph
 // (Home), così i due grafi hanno esattamente lo stesso aspetto.
 export const G = {
   line: "rgb(var(--c-line))",

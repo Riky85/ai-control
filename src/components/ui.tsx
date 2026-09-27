@@ -162,3 +162,14 @@ export function Tabs({ items, active }: { items: { key: string; label: string; h
     </div>
   );
 }
+
+/** Avviso standard (errore, conferma, informazione) — stessa grafica ovunque. */
+const NOTICE_TONE = {
+  error: "rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm",
+  success: "rounded-xl bg-steady/10 px-4 py-3 text-sm text-steady",
+  info: "rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100",
+} as const;
+
+export function Notice({ tone = "info", children }: { tone?: "info" | "error" | "success"; children: React.ReactNode }) {
+  return <div className={NOTICE_TONE[tone]}>{children}</div>;
+}

@@ -5,7 +5,6 @@ import { PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
 import FilterBar from "@/components/FilterBar";
 import { VendorBadge } from "@/components/VendorIcon";
 import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
-import DesktopDevices from "@/components/DesktopDevices";
 
 export const dynamic = "force-dynamic";
 
@@ -92,7 +91,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
             <h2 className="text-base font-semibold text-ink-100">No usage data yet</h2>
             <p className="text-sm text-ink-400 mt-1">Install the angar desktop app (one minute, it also reads the last 30 days) or connect Microsoft 365 / Google Workspace. Usage appears here within a few minutes.</p>
           </div>
-          <Link href="/discover#extension" className="btn btn-primary">Get the desktop app</Link>
+          <Link href="/download" className="btn btn-primary">Get the desktop app</Link>
         </div>
       )}
 

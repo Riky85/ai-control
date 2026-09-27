@@ -1,15 +1,12 @@
-import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
-import { PageHeader, Tabs } from "@/components/ui";
+import { PageHeader, StatCard, Tabs } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import Badge from "@/components/Badge";
-import RiskGauge from "@/components/RiskGauge";
 import StatusDot from "@/components/StatusDot";
 import Link from "next/link";
 import { POLICY_LIBRARY } from "@/lib/policy-library";
 import {
-  setAssetStatusAction,
   createPolicyAction,
   addPolicyFromLibraryAction,
   togglePolicyAction,
@@ -66,59 +63,21 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
 }
 
 async function ReviewsTab() {
-  const pending = await db.aiAsset.findMany({
-    where: { organizationId: currentOrgId(), deletedAt: null, status: { in: ["UNKNOWN", "UNAPPROVED", "UNREVIEWED"] } },
-    include: { owner: true, riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 } },
-    orderBy: [{ status: "asc" }, { firstSeenAt: "desc" }],
+  // La coda di revisione vera è /review: qui solo il conteggio e il rimando.
+  const pending = await db.aiAsset.count({
+    where: { organizationId: currentOrgId(), deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } },
   });
 
   return (
-    <div className="flex flex-col gap-3">
-      {pending.map((asset) => {
-        const risk = asset.riskAssessments[0];
-        return (
-          <div key={asset.id} className="rounded-xl border border-line bg-panel shadow-card p-4 flex items-center gap-5">
-            {risk && (
-              <div className="shrink-0 scale-75 -my-3">
-                <RiskGauge score={risk.score} level={risk.level} />
-              </div>
-            )}
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <Link href={`/assets/${asset.id}`} className="text-sm font-medium text-ink-100 hover:underline">
-                  {asset.name}
-                </Link>
-                <Badge>{asset.status}</Badge>
-                {risk && <Badge>{risk.level}</Badge>}
-              </div>
-              <p className="text-xs text-ink-400 mt-1">
-                {asset.owner?.name ?? "No owner on record"} — first seen {fmtDate(asset.firstSeenAt)}
-              </p>
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <form action={setAssetStatusAction}>
-                <input type="hidden" name="assetId" value={asset.id} />
-                <input type="hidden" name="status" value="APPROVED" />
-                <button type="submit" className="btn btn-secondary btn-sm">
-                  Approve
-                </button>
-              </form>
-              <form action={setAssetStatusAction}>
-                <input type="hidden" name="assetId" value={asset.id} />
-                <input type="hidden" name="status" value="UNAPPROVED" />
-                <button type="submit" className="btn btn-secondary btn-sm">
-                  Reject
-                </button>
-              </form>
-            </div>
-          </div>
-        );
-      })}
-      {pending.length === 0 && (
-        <div className="rounded-xl border border-line bg-panel shadow-card p-6 text-sm text-ink-400">
-          Nothing waiting on review. Every known asset has been approved or rejected.
-        </div>
-      )}
+    <div className="rounded-xl border border-line bg-panel p-5 flex items-center justify-between gap-4">
+      <p className="text-sm text-ink-400">
+        {pending === 0
+          ? "Nothing waiting on review — every AI system has been marked as allowed or not allowed."
+          : `${pending} AI system${pending === 1 ? "" : "s"} need${pending === 1 ? "s" : ""} review. Decisions are made in the review queue.`}
+      </p>
+      <Link href="/review" className="btn btn-primary btn-sm shrink-0">
+        Open review queue
+      </Link>
     </div>
   );
 }
@@ -133,7 +92,7 @@ async function PoliciesTab() {
       <div>
         <h2 className="text-base font-semibold text-ink-100 mb-3">Active policies</h2>
         {policies.length === 0 && (
-          <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
+          <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400">
             No policies yet. Add one from the library below, or write a custom one.
           </div>
         )}
@@ -144,7 +103,7 @@ async function PoliciesTab() {
             return (
               <div key={category}>
                 <div className="text-xs text-ink-400 mb-2">{CATEGORY_LABEL[category]}</div>
-                <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
+                <div className="rounded-xl border border-line bg-panel divide-y divide-line">
                   {inCategory.map((p) => (
                     <div key={p.id} className="px-5 py-4 flex items-start justify-between gap-4">
                       <div>
@@ -155,18 +114,13 @@ async function PoliciesTab() {
                         <form action={togglePolicyAction}>
                           <input type="hidden" name="policyId" value={p.id} />
                           <input type="hidden" name="enabled" value={String(p.enabled)} />
-                          <button
-                            type="submit"
-                            className={`text-xs px-2.5 py-1 rounded border transition-colors ${
-                              p.enabled ? "border-line text-ink-100 hover:border-ink-400" : "border-line text-ink-400 hover:text-ink-100"
-                            }`}
-                          >
+                          <button type="submit" className={`btn btn-sm ${p.enabled ? "btn-secondary" : "btn-ghost"}`}>
                             {p.enabled ? "Enabled" : "Disabled"}
                           </button>
                         </form>
                         <form action={deletePolicyAction}>
                           <input type="hidden" name="policyId" value={p.id} />
-                          <button type="submit" className="text-xs text-ink-400 hover:text-alarm transition-colors">Remove</button>
+                          <button type="submit" className="btn btn-ghost btn-sm">Remove</button>
                         </form>
                       </div>
                     </div>
@@ -181,7 +135,7 @@ async function PoliciesTab() {
       {availableTemplates.length > 0 && (
         <div>
           <h2 className="text-base font-semibold text-ink-100 mb-3">Policy library</h2>
-          <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
+          <div className="rounded-xl border border-line bg-panel divide-y divide-line">
             {availableTemplates.map((t) => (
               <div key={t.name} className="px-5 py-4 flex items-start justify-between gap-4">
                 <div>
@@ -207,7 +161,7 @@ async function PoliciesTab() {
 
       <div>
         <h2 className="text-base font-semibold text-ink-100 mb-3">Write a custom policy</h2>
-        <form action={createPolicyAction} className="rounded-xl border border-line bg-panel shadow-card p-5 flex flex-col gap-3">
+        <form action={createPolicyAction} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-ink-400">Name</label>
             <input name="name" required placeholder="e.g. Agents cannot create discounts above 20%" className="field" />
@@ -260,28 +214,10 @@ async function AssuranceTab() {
         {withReport.length === 1 ? "" : "s"}.
       </p>
 
-      <div className="rounded-xl border border-line bg-panel shadow-card grid grid-cols-3 divide-x divide-line">
-        <div className="px-5 py-4">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-steady" />
-            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-400">Passed</span>
-          </div>
-          <div className="tabular font-display text-2xl font-semibold text-ink-100">{totalPassed}</div>
-        </div>
-        <div className="px-5 py-4">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-signal" />
-            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-400">Warnings</span>
-          </div>
-          <div className="tabular font-display text-2xl font-semibold text-ink-100">{totalWarning}</div>
-        </div>
-        <div className="px-5 py-4">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-alarm" />
-            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-400">Failed</span>
-          </div>
-          <div className={`tabular font-display text-2xl font-semibold text-ink-100`}>{totalFailed}</div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard label="Passed" value={String(totalPassed)} />
+        <StatCard label="Warnings" value={String(totalWarning)} tone={totalWarning > 0 ? "signal" : undefined} />
+        <StatCard label="Failed" value={String(totalFailed)} tone={totalFailed > 0 ? "alarm" : undefined} />
       </div>
 
       {groups.map(({ level, items }) =>
@@ -292,7 +228,7 @@ async function AssuranceTab() {
             </h2>
             <div className="flex flex-col gap-3">
               {items.map(({ asset, report }) => (
-                <div key={asset.id} className="rounded-xl border border-line bg-panel shadow-card p-4">
+                <div key={asset.id} className="rounded-xl border border-line bg-panel p-4">
                   <div className="flex items-center justify-between mb-2">
                     <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
                       {asset.name}
@@ -321,7 +257,7 @@ async function AssuranceTab() {
       )}
 
       {withReport.length === 0 && (
-        <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
+        <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400">
           No assurance reports yet — they're generated automatically after the first connector sync.
         </div>
       )}

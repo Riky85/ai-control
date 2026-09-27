@@ -16,13 +16,14 @@ export default async function JoinPage({ params, searchParams }: { params: { cod
   const token = decryptJson<{ token: string }>(org?.discoveryTokenEncrypted)?.token;
   if (!org || !token) notFound();
   const os = osFromUserAgent(headers().get("user-agent"));
-  const other: DesktopOs = os === "mac" ? "windows" : "mac";
+  // Il sistema rilevato è il pulsante principale; gli altri restano come link.
+  const others: DesktopOs[] = os === "linux" ? ["mac", "windows"] : [os === "mac" ? "windows" : "mac"];
   const href = (o: DesktopOs) => `/api/discovery/desktop/download/${params.code}?os=${o}`;
 
   return (
     <div className="min-h-screen bg-panel flex flex-col items-center justify-center px-6 py-12 gap-6">
       <div className="text-ink-100 mb-2"><Wordmark size={20} /></div>
-      <div className="w-full max-w-md rounded-xl border border-line bg-panel p-7 flex flex-col gap-6 shadow-card">
+      <div className="w-full max-w-md rounded-xl border border-line bg-panel p-7 flex flex-col gap-6">
         <div>
           <h1 className="text-xl font-semibold text-ink-100">Join {org.name} on angar</h1>
           <p className="text-sm text-ink-400 mt-1">
@@ -36,7 +37,9 @@ export default async function JoinPage({ params, searchParams }: { params: { cod
               <span className="font-medium text-ink-100">Download the angar app</span>
               <div className="flex flex-wrap items-center gap-2">
                 <a href={href(os)} className="btn btn-primary">Download for {DESKTOP_OS_LABEL[os]}</a>
-                <a href={href(other)} className="text-xs text-ink-400 hover:text-ink-100 underline">{DESKTOP_OS_LABEL[other]}</a>
+                {others.map((o) => (
+                  <a key={o} href={href(o)} className="text-xs text-ink-400 hover:text-ink-100 underline">{DESKTOP_OS_LABEL[o]}</a>
+                ))}
               </div>
             </div>
           </li>
@@ -47,6 +50,8 @@ export default async function JoinPage({ params, searchParams }: { params: { cod
               <p className="text-ink-400 mt-1">
                 {os === "mac" ? (
                   <>Unzip it, then <span className="text-ink-100">right-click → Open</span> the first time (or System Settings → Privacy &amp; Security → Open Anyway).</>
+                ) : os === "linux" ? (
+                  <>Make it executable (<span className="text-ink-100">chmod +x</span>) and run it.</>
                 ) : (
                   <>If Windows shows a blue box, click <span className="text-ink-100">More info → Run anyway</span>.</>
                 )}{" "}

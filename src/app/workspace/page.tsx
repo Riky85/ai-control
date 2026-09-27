@@ -4,7 +4,8 @@ import { currentSession } from "@/lib/auth";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { PageHeader, Panel, Tabs, Table } from "@/components/ui";
+import { Notice, PageHeader, Panel, Tabs, Table } from "@/components/ui";
+import { emailEnabled } from "@/lib/mail";
 import { planById } from "@/lib/plans";
 import CopyField from "@/components/CopyField";
 import AutoSubmitSelect from "@/components/AutoSubmitSelect";
@@ -52,20 +53,24 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
         ]}
       />
 
-      {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
+      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
       {searchParams.invited && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100 flex flex-col gap-2">
-          <span>{searchParams.emailSent === "1" ? "Member added — invitation email sent." : "Member added. Email isn't set up yet, so send them this sign-up link:"}</span>
-          {searchParams.emailSent !== "1" && searchParams.inviteLink && <CopyField value={searchParams.inviteLink} />}
-        </div>
+        <Notice>
+          <div className="flex flex-col gap-2">
+            <span>{searchParams.emailSent === "1" ? "Member added — invitation email sent." : "Member added. Email isn't set up yet, so send them this sign-up link:"}</span>
+            {searchParams.emailSent !== "1" && searchParams.inviteLink && <CopyField value={searchParams.inviteLink} />}
+          </div>
+        </Notice>
       )}
       {searchParams.resetLink && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100 flex flex-col gap-2">
-          <span>Password reset link for <b>{searchParams.resetFor}</b> — works once, expires in 1 hour. Send it only to them.</span>
-          <CopyField value={searchParams.resetLink} />
-        </div>
+        <Notice>
+          <div className="flex flex-col gap-2">
+            <span>Password reset link for <b>{searchParams.resetFor}</b> — works once, expires in 1 hour. Send it only to them.</span>
+            <CopyField value={searchParams.resetLink} />
+          </div>
+        </Notice>
       )}
-      {searchParams.shared && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Link created — copy it below and send it to whoever needs to see the dashboard.</div>}
+      {searchParams.shared && <Notice tone="success">Link created — copy it below and send it to whoever needs to see the dashboard.</Notice>}
 
       {tab === "workspaces" ? (
         <div className="grid grid-cols-3 gap-4 items-start">
@@ -147,12 +152,12 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                       {m.status === "active" && (
                         <form action={createMemberResetLinkAction}>
                           <input type="hidden" name="email" value={m.email} />
-                          <button className="text-sm text-ink-400 hover:text-ink-100 transition-colors">Reset link</button>
+                          <button className="btn btn-ghost btn-sm">Reset link</button>
                         </form>
                       )}
                       <form action={removeMemberAction}>
                         <input type="hidden" name="memberId" value={m.id} />
-                        <button className="text-sm text-ink-400 hover:text-alarm transition-colors">Remove</button>
+                        <button className="btn btn-ghost btn-sm">Remove</button>
                       </form>
                       </div>
                     </td>
@@ -180,7 +185,9 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
               </form>
             </Panel>
             <p className="text-xs text-ink-400 px-1">
-              Invited people sign up with the same email and join this workspace with their role. Invitation emails aren't sent automatically yet — share the sign-up link yourself.</p>
+              Invited people sign up with the same email and join this workspace with their role.
+              {!emailEnabled() && " Invitation emails aren't sent automatically yet — share the sign-up link yourself."}
+            </p>
           </div>
         </div>
       ) : (
@@ -203,7 +210,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                     {live && (
                       <form action={revokeShareLinkAction}>
                         <input type="hidden" name="linkId" value={l.id} />
-                        <button className="text-sm text-ink-400 hover:text-alarm transition-colors">Revoke</button>
+                        <button className="btn btn-ghost btn-sm">Revoke</button>
                       </form>
                     )}
                   </div>

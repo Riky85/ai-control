@@ -31,8 +31,8 @@ const KIND_LABEL: Record<string, string> = {
   alternative: "Cheaper provider",
 };
 const KIND_ORDER = ["seats", "annual", "idle", "duplicate", "premium", "model", "alternative"];
-// Arancione angar in testa, poi toni neutri: la barra resta leggibile su tema scuro e chiaro.
-const BAR = ["#FF7323", "#E0B44C", "#6BA368", "#5B8DB8", "#9B7DB8", "#B8737A", "#8A8884"];
+// Palette dai token del tema: arancione angar in testa, poi signal/steady e le loro varianti tenui.
+const BAR = ["bg-accent", "bg-signal", "bg-steady", "bg-accent/60", "bg-signal/60", "bg-steady/60", "bg-ink-400"];
 
 // Risparmi calcolati da soli: nessun dato da inserire.
 export default async function SavingsPage({ searchParams }: { searchParams: { confidence?: string; kind?: string } }) {
@@ -62,7 +62,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
           {/* Barra proporzionale: quanto pesa ogni leva sul totale. */}
           <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-ink-100/[0.06] mb-4">
             {breakdown.map((b, i) => (
-              <span key={b.kind} className="h-full" style={{ width: `${(b.monthly / totalMonthly) * 100}%`, backgroundColor: BAR[i % BAR.length] }} title={`${KIND_LABEL[b.kind]}: ${fmtEur(b.monthly)}/mo`} />
+              <span key={b.kind} className={`h-full ${BAR[i % BAR.length]}`} style={{ width: `${(b.monthly / totalMonthly) * 100}%` }} title={`${KIND_LABEL[b.kind]}: ${fmtEur(b.monthly)}/mo`} />
             ))}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -74,7 +74,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
                   href={activeKind ? "/savings" : `/savings?kind=${b.kind}`}
                   className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 transition-colors ${activeKind ? "border-accent/60 bg-accent/[0.06]" : "border-line hover:bg-ink-100/[0.03]"}`}
                 >
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: BAR[i % BAR.length] }} />
+                  <span className={`h-2.5 w-2.5 shrink-0 rounded-sm ${BAR[i % BAR.length]}`} />
                   <span className="flex-1 min-w-0">
                     <span className="block text-sm text-ink-100 truncate">{KIND_LABEL[b.kind]}</span>
                     <span className="block text-xs text-ink-400">{b.count} {b.count === 1 ? "item" : "items"}</span>
@@ -94,14 +94,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
             {
               param: "kind",
               label: "Type",
-              options: [
-                { value: "annual", label: "Yearly billing" },
-                { value: "seats", label: "Unused seats" },
-                { value: "premium", label: "Premium seats" },
-                { value: "duplicate", label: "Duplicate tools" },
-                { value: "model", label: "Cheaper model" },
-                { value: "idle", label: "Not used" },
-              ].filter((o) => all.some((i) => i.kind === o.value)),
+              options: KIND_ORDER.filter((k) => all.some((i) => i.kind === k)).map((k) => ({ value: k, label: KIND_LABEL[k] })),
             },
           ]}
           right={`${items.length} of ${all.length} suggestion${all.length === 1 ? "" : "s"}`}

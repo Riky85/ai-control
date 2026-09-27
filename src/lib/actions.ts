@@ -535,7 +535,7 @@ export async function restartOnboardingAction() {
     data: { onboardingCompletedAt: null },
   });
   revalidatePath("/settings");
-  redirect("/onboarding?step=1");
+  redirect("/onboarding");
 }
 
 // Revisione in un solo passaggio (coda /review): owner, costo e decisione

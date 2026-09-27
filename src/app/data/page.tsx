@@ -1,13 +1,13 @@
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
+import type { DataSensitivity } from "@prisma/client";
 import { PageHeader } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import FilterBar from "@/components/FilterBar";
 
 export const dynamic = "force-dynamic";
 
-
-const SENSITIVITY_LABEL: Record<string, string> = {
+const SENSITIVITY_LABEL: Record<DataSensitivity, string> = {
   PUBLIC: "Public",
   INTERNAL: "Internal",
   CONFIDENTIAL: "Confidential",
@@ -20,10 +20,15 @@ const SENSITIVE_TIERS = ["PII", "FINANCIAL", "SOURCE_CODE", "CONFIDENTIAL"];
 
 export default async function DataRegistryPage({ searchParams }: { searchParams: { q?: string; sensitivity?: string } }) {
   const q = searchParams.q?.trim();
+  // Valori non validi nel filtro vengono ignorati invece di far esplodere Prisma
+  const sensitivity =
+    searchParams.sensitivity && Object.prototype.hasOwnProperty.call(SENSITIVITY_LABEL, searchParams.sensitivity)
+      ? (searchParams.sensitivity as DataSensitivity)
+      : undefined;
   const dataAssets = await db.dataAsset.findMany({
     where: {
       organizationId: currentOrgId(),
-      ...(searchParams.sensitivity ? { sensitivity: searchParams.sensitivity as any } : {}),
+      ...(sensitivity ? { sensitivity } : {}),
       ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}),
     },
     orderBy: { name: "asc" },
@@ -45,7 +50,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
         filters={[{ param: "sensitivity", label: "Sensitivity", options: Object.entries(SENSITIVITY_LABEL).map(([value, label]) => ({ value, label })) }]}
         right={`${dataAssets.length} data categor${dataAssets.length === 1 ? "y" : "ies"}`}
       />
-      <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
+      <div className="rounded-xl border border-line bg-panel divide-y divide-line">
         {dataAssets.map((d) => (
           <div key={d.id} className="px-5 py-4">
             <div className="flex items-center gap-2">

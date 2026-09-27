@@ -52,7 +52,9 @@ export const categoryOf = (a: { serviceId: string | null; name: string; vendor: 
 };
 
 /** Costo mensile: reale se c'è, altrimenti stima da utenti × listino. */
-export function monthlyOf(a: AssetForSavings): { eur: number; estimated: boolean } | null {
+export function monthlyOf(
+  a: Pick<AssetForSavings, "cost" | "serviceId" | "name" | "vendor"> & { usages: readonly unknown[] }
+): { eur: number; estimated: boolean } | null {
   if (a.cost?.monthlyCostEstimate != null) return { eur: a.cost.monthlyCostEstimate, estimated: a.cost.basis === "estimate" };
   const s = serviceOf(a);
   const users = a.usages.length;

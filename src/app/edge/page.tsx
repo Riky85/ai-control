@@ -21,18 +21,18 @@ export default function EdgePage() {
         subtitle="An always-on sensor for your whole network. Plug it in and see every AI in use — nothing installed on anyone's computer."
         action={
           <div className="flex items-center gap-2">
-            <Link href={requestHref} className="btn btn-primary">Request a device</Link>
+            <a href={requestHref} className="btn btn-primary">Request a device</a>
           </div>
         }
       />
 
       {/* Hero: il dispositivo + cos'è in una riga forte. */}
-      <section className="rounded-2xl border border-accent/30 bg-gradient-to-br from-panel to-ink/60 p-6 md:p-8 grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-8 overflow-hidden">
+      <section className="rounded-xl border border-accent/50 bg-panel p-6 md:p-8 grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-8 overflow-hidden">
         <div className="flex flex-col gap-4 max-w-xl">
           <span className="self-start text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Hardware · always on</span>
           <p className="text-[17px] text-ink-100 leading-relaxed">
             A small, silent box you connect to the company network. It watches which AI services the network reaches —{" "}
-            <span className="text-white font-medium">always on, for every device</span>: computers, phones, servers, even the ones where you can&apos;t install anything.
+            <span className="text-ink-100 font-medium">always on, for every device</span>: computers, phones, servers, even the ones where you can&apos;t install anything.
           </p>
           <p className="text-sm text-ink-400">It never inspects content — only the names of AI services and how often they&apos;re reached.</p>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-400">
@@ -48,7 +48,7 @@ export default function EdgePage() {
 
       {/* Dove si installa. */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold text-ink-100">Where it goes — pick the easiest for your network</h2>
+        <h2 className="text-base font-semibold text-ink-100">Where it goes — pick the easiest for your network</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             {
@@ -114,7 +114,7 @@ export default function EdgePage() {
 
       {/* Edge + app desktop = copertura completa. */}
       <section className="rounded-xl border border-line bg-panel p-6">
-        <h2 className="text-lg font-semibold text-ink-100">Edge and the desktop app work together</h2>
+        <h2 className="text-base font-semibold text-ink-100">Edge and the desktop app work together</h2>
         <p className="text-sm text-ink-400 mt-1 mb-4 max-w-3xl">They answer different questions. Most companies use both.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Compare
@@ -153,8 +153,8 @@ export default function EdgePage() {
           <span className="text-sm text-ink-400">/device·mo</span>
         </div>
         <div className="flex flex-col gap-2 shrink-0">
-          <Link href={requestHref} className="btn btn-primary">Request a device</Link>
-          <Link href="/discover" className="text-xs text-center text-ink-400 hover:text-ink-100 underline">Or start with the desktop app</Link>
+          <a href={requestHref} className="btn btn-primary">Request a device</a>
+          <Link href="/download" className="text-xs text-center text-ink-400 hover:text-ink-100 underline">Or start with the desktop app</Link>
         </div>
       </section>
     </div>

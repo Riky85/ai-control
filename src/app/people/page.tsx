@@ -63,13 +63,6 @@ export default async function PeoplePage({ searchParams }: { searchParams: { q?:
                 </tr>
               );
             })}
-            {users.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-5 py-3 text-sm text-ink-400">
-                  No people on record yet. They appear automatically once a connector syncs, or add one from Settings.
-                </td>
-              </tr>
-            )}
           </Table>
     </div>
   );

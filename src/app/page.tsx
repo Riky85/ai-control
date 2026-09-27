@@ -3,7 +3,7 @@ import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import CsvDropzone from "@/components/CsvDropzone";
 import AiTable from "@/components/AiTable";
-import { StatCard, PageHeader, Panel } from "@/components/ui";
+import { StatCard, PageHeader } from "@/components/ui";
 import LineChart from "@/components/LineChart";
 import ExportMenu from "@/components/ExportMenu";
 import { computeSavings, monthlyOf, loadAssets } from "@/lib/savings";

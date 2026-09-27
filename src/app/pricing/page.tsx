@@ -47,7 +47,7 @@ export default function PricingPage() {
               Always-on discovery for a whole office or plant network. Runs as software on any always-on computer (Docker), or as a small pre-configured device on loan for sites without IT. Included in Growth and above as software; device €{EDGE.pricePerDevice}/month per site.
             </p>
           </div>
-          <a href={signedIn ? "/discover" : "/signup"} className="btn btn-secondary">Learn more</a>
+          <a href="/edge" className="btn btn-secondary">Learn more</a>
         </div>
         <div className="grid grid-cols-2 gap-4">
           {FAQ.map(([q, a]) => (

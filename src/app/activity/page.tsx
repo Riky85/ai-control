@@ -7,7 +7,7 @@ import Badge from "@/components/Badge";
 import StatusDot from "@/components/StatusDot";
 import ExportMenu from "@/components/ExportMenu";
 import { Table, td, PageHeader, Tabs } from "@/components/ui";
-import VendorIcon, { VendorBadge } from "@/components/VendorIcon";
+import { VendorBadge } from "@/components/VendorIcon";
 
 export const dynamic = "force-dynamic";
 
@@ -133,8 +133,8 @@ async function EvidenceTab() {
         {withReport.map((asset) => {
           const checks = asset.assuranceReports[0].checks as unknown as CheckRow[];
           return (
-            <div key={asset.id} className="rounded-xl border border-line bg-panel overflow-hidden">
-              <div className="px-5 py-3 border-b border-line flex items-center justify-between">
+            <div key={asset.id} className="flex flex-col gap-2">
+              <div className="px-1 flex items-center justify-between">
                 <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
                   {asset.name}
                 </Link>
@@ -153,7 +153,7 @@ async function EvidenceTab() {
           );
         })}
         {withReport.length === 0 && (
-          <div className="rounded-xl border border-line bg-panel shadow-card p-5 text-sm text-ink-400">
+          <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400">
             No assurance reports yet — evidence appears automatically after the first connector sync.
           </div>
         )}
@@ -161,7 +161,7 @@ async function EvidenceTab() {
 
       <div>
         <h2 className="text-base font-semibold text-ink-100 mb-3">Inventory history</h2>
-        <div className="rounded-xl border border-line bg-panel shadow-card divide-y divide-line">
+        <div className="rounded-xl border border-line bg-panel divide-y divide-line">
           {snapshots.length === 0 && (
             <div className="p-5 text-sm text-ink-400">No snapshots yet. One is recorded automatically the first time a connector syncs.</div>
           )}
@@ -174,7 +174,7 @@ async function EvidenceTab() {
                   <span className="tabular text-xs text-ink-400">{fmtDateTime(s.createdAt)}</span>
                 </div>
                 {p?.highRiskCount > 0 && (
-                  <div className="text-xs text-alarm mt-1">{p.highRiskCount} asset at high or critical risk at this point in time.</div>
+                  <div className="text-xs text-alarm mt-1">{p.highRiskCount} asset{p.highRiskCount === 1 ? "" : "s"} at high or critical risk at this point in time.</div>
                 )}
               </div>
             );

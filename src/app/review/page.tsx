@@ -3,7 +3,6 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
 import Badge from "@/components/Badge";
-import FlowSteps from "@/components/FlowSteps";
 import { VendorBadge } from "@/components/VendorIcon";
 import { reviewAssetAction } from "@/lib/actions";
 
@@ -44,7 +43,6 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
   if (!current) {
     return (
       <div className="max-w-3xl mx-auto flex flex-col gap-8 py-4">
-        <FlowSteps current={3} />
         <div className="rounded-xl border border-line bg-panel p-10 text-center">
           <div className="mx-auto h-12 w-12 rounded-full bg-steady/10 text-steady flex items-center justify-center">
             <svg width="22" height="22" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -66,7 +64,6 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
 
   return (
     <div className="flex flex-col gap-6">
-      {searchParams.from && searchParams.from !== "scan" && <FlowSteps current={2} />}
       {searchParams.found && (
         <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
           <b>Scan done — {searchParams.found} AI service{searchParams.found === "1" ? "" : "s"} found.</b> Mark each one as allowed or not; that's all.

@@ -2,7 +2,7 @@ import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import { VendorBadge } from "@/components/VendorIcon";
 import Badge from "@/components/Badge";
-import { PageHeader } from "@/components/ui";
+import { Notice, PageHeader } from "@/components/ui";
 import { syncConnectorAction, connectWithApiKeyAction, disconnectConnectorAction, addManualAssetAction, importCsvAction, connectGithubTokenAction } from "@/lib/actions";
 import { fmtDateTime } from "@/lib/format";
 import { decryptJson } from "@/lib/crypto";
@@ -62,7 +62,9 @@ export default async function ConnectorsPage({
   // "Collegato" solo se ci sono credenziali vere (i dati demo non contano).
   const githubConnected = github?.status === "CONNECTED" && Boolean(github.credentialsEncrypted);
   const githubOrg = decryptJson<{ org?: string }>(github?.credentialsEncrypted)?.org;
-  const connectedCount = rows.filter((r) => r.status === "CONNECTED" && r.credentialsEncrypted).length;
+  // Stessa definizione delle card sotto: provider AI + GitHub.
+  const providerConnected = (row?: Connector) => row?.status === "CONNECTED" || (Boolean(row?.credentialsEncrypted) && row?.status !== "DISCONNECTED");
+  const connectedCount = AI_PROVIDERS.filter((p) => providerConnected(byProvider.get(p.provider))).length + (githubConnected ? 1 : 0);
 
   return (
     <div className="flex flex-col gap-8">
@@ -74,21 +76,21 @@ export default async function ConnectorsPage({
       />
 
       {searchParams.connected && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
+        <Notice>
           <b>Connected.</b> First sync done — your systems are now in <a href="/" className="underline">Your AI</a>.
-        </div>
+        </Notice>
       )}
       {searchParams.imported && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
-          <b>{searchParams.imported} AI systems imported.</b> See them in <a href="/" className="underline">Your AI</a>.
-        </div>
+        <Notice>
+          <b>{searchParams.imported} AI system{searchParams.imported === "1" ? "" : "s"} imported.</b> See them in <a href="/" className="underline">Your AI</a>.
+        </Notice>
       )}
-      {searchParams.error && !searchParams.provider && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
+      {searchParams.error && !searchParams.provider && <Notice tone="error">{searchParams.error}</Notice>}
 
       <Section title="AI providers" subtitle="A normal API key is enough. Admin keys (Anthropic, OpenAI) also bring in users and exact costs.">
         {AI_PROVIDERS.map((p) => {
           const row = byProvider.get(p.provider);
-          const connected = row?.status === "CONNECTED" || (Boolean(row?.credentialsEncrypted) && row?.status !== "DISCONNECTED");
+          const connected = providerConnected(row);
           const mode = decryptJson<{ mode?: string }>(row?.credentialsEncrypted)?.mode;
           const error = searchParams.provider === p.provider ? searchParams.error : undefined;
           return (
@@ -112,7 +114,7 @@ export default async function ConnectorsPage({
                   </form>
                   <form action={disconnectConnectorAction}>
                     <input type="hidden" name="provider" value={p.provider} />
-                    <button className="text-sm px-3 py-2 rounded-lg text-ink-400 hover:text-alarm transition-colors">Disconnect</button>
+                    <button className="btn btn-danger">Disconnect</button>
                   </form>
                 </div>
               ) : (
@@ -164,7 +166,7 @@ export default async function ConnectorsPage({
                 </form>
                 <form action={disconnectConnectorAction}>
                   <input type="hidden" name="provider" value="GITHUB" />
-                  <button className="text-sm text-ink-400 hover:text-alarm transition-colors">Disconnect</button>
+                  <button className="btn btn-danger btn-sm">Disconnect</button>
                 </form>
               </div>
             )}
@@ -173,7 +175,7 @@ export default async function ConnectorsPage({
           <div className="col-span-3 border-l border-line pl-8">
             {githubConnected ? (
               <div className="text-sm text-ink-400">
-                Connected. New projects that add an AI library appear in <a href="/assets" className="text-ink-100 underline">Your AI</a> after each scan.
+                Connected. New projects that add an AI library appear in <a href="/" className="text-ink-100 underline">Your AI</a> after each scan.
                 {github?.lastSyncError && <p className="text-alarm mt-2">{github.lastSyncError}</p>}
               </div>
             ) : (

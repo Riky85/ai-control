@@ -1,7 +1,7 @@
 import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
-import { PageHeader, Panel } from "@/components/ui";
+import { Notice, PageHeader, Panel } from "@/components/ui";
 import Badge from "@/components/Badge";
 import { planById, EDGE } from "@/lib/plans";
 import EdgeBox from "@/components/EdgeBox";
@@ -17,7 +17,8 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
     db.aiAsset.count({ where: { organizationId: currentOrgId(), deletedAt: null } }),
     db.connector.count({ where: { organizationId: currentOrgId(), status: "CONNECTED", credentialsEncrypted: { not: null } } }),
     db.workspaceMember.count({ where: { organizationId: currentOrgId() } }),
-    db.shareLink.count({ where: { organizationId: currentOrgId(), revokedAt: null } }),
+    // Come in Workspace: contano solo i link non revocati e non scaduti.
+    db.shareLink.count({ where: { organizationId: currentOrgId(), revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } }),
   ]);
   const current = planById(org.plan);
   const payments = stripeEnabled();
@@ -45,17 +46,15 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
       />
 
       {searchParams.checkout === "success" && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Payment received — your plan updates as soon as Stripe confirms it (usually a few seconds).</div>
+        <Notice tone="success">Payment received — your plan updates as soon as Stripe confirms it (usually a few seconds).</Notice>
       )}
       {searchParams.checkout === "edge" && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Edge order received — we'll email tracking details when your devices ship.</div>
+        <Notice tone="success">Edge order received — we&apos;ll email tracking details when your devices ship.</Notice>
       )}
-      {searchParams.checkout === "cancelled" && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-400">Checkout cancelled — nothing was charged.</div>}
-      {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
+      {searchParams.checkout === "cancelled" && <Notice>Checkout cancelled — nothing was charged.</Notice>}
+      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
       {!payments && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-400">
-          Payments aren't connected on this deployment yet, so plans can be compared but not purchased.
-        </div>
+        <Notice>Payments aren&apos;t connected on this deployment yet, so plans can be compared but not purchased.</Notice>
       )}
 
       <div className="grid grid-cols-3 gap-4">
@@ -132,7 +131,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
             <button disabled={!payments} className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
               Order Edge devices
             </button>
-            <a href={`mailto:${salesEmail ?? ""}?subject=${encodeURIComponent("angar Edge — more than 20 devices")}`} className="text-xs text-ink-400 hover:text-ink-100 underline text-center">
+            <a href={`mailto:${salesEmail ?? ""}?subject=${encodeURIComponent(`angar Edge — more than ${EDGE.maxSelfServe} devices`)}`} className="text-xs text-ink-400 hover:text-ink-100 underline text-center">
               More than {EDGE.maxSelfServe} devices? Contact sales
             </a>
           </form>

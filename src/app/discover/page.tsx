@@ -2,7 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
-import { PageHeader, Table, td } from "@/components/ui";
+import { Notice, PageHeader, Table, td } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import Badge from "@/components/Badge";
 import ScannerSetup from "@/components/ScannerSetup";
@@ -24,9 +24,8 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
   const s = currentSession()!;
   const h = headers();
   const base = process.env.APP_URL?.replace(/\/$/, "") || `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
-  const [org, member, connector] = await Promise.all([
+  const [org, connector] = await Promise.all([
     db.organization.findUnique({ where: { id: s.orgId } }),
-    db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } } }),
     db.connector.findUnique({ where: { organizationId_provider: { organizationId: s.orgId, provider: "NETWORK" } } }),
   ]);
   const found = connector
@@ -36,13 +35,13 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
         orderBy: { lastSeenAt: "desc" },
       })
     : [];
-  const canCreate = member?.role === "OWNER" || member?.role === "ADMIN";
   const { token, joinCode } = await ensureWorkspaceToken(s.orgId);
   const joinUrl = `${base}/join/${joinCode}`;
   const policy = JSON.stringify({ token, server: base });
-  const first = osFromUserAgent(h.get("user-agent"));
-  const downloads = (["windows", "mac"] as DesktopOs[])
-    .sort((a, b) => (a === first ? -1 : b === first ? 1 : 0))
+  // Stesso ordine di /download: prima il sistema rilevato; Linux solo se rilevato.
+  const detected = osFromUserAgent(h.get("user-agent"));
+  const main: DesktopOs[] = ["windows", "mac"];
+  const downloads = [detected, ...main.filter((o) => o !== detected)]
     .map((os) => ({ os, label: DESKTOP_OS_LABEL[os], href: `/api/discovery/desktop/download/${joinCode}?os=${os}` }));
 
   return (
@@ -52,10 +51,9 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
         title="Find AI automatically"
         subtitle="Install the angar app on each computer: it finds the AI people use — in every browser and on the desktop — and for how long."
       />
-      {searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
+      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
       <section id="desktop" className="rounded-xl border border-accent/50 bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-5 scroll-mt-6">
-        <span id="extension" className="sr-only" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-ink-100">angar desktop app</h2>
@@ -226,7 +224,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
                     </span>
                   </Link>
                 </td>
-                <td className={`${td} text-ink-400`}>{devices.length === 1 ? devices[0] : `${devices.length} devices`}</td>
+                <td className={`${td} text-ink-400`}>{devices.length === 1 ? devices[0] : devices.length === 0 ? "—" : `${devices.length} devices`}</td>
                 <td className={`${td} text-ink-400`}>{a.lastSeenAt ? fmtDateTime(a.lastSeenAt) : "—"}</td>
                 <td className={td}>
                   <Badge>{a.status === "UNKNOWN" || a.status === "UNREVIEWED" ? "NEEDS_REVIEW" : a.status}</Badge>
@@ -238,10 +236,6 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
       </div>
     </div>
   );
-}
-
-function Step({ n }: { n: number }) {
-  return <span className="h-7 w-7 shrink-0 rounded-full border border-line text-sm font-medium text-ink-100 flex items-center justify-center">{n}</span>;
 }
 
 function Tick() {

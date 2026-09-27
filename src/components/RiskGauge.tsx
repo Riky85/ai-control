@@ -4,11 +4,12 @@
  * engine deterministico (src/lib/risk-engine.ts) ha bisogno di un posto
  * dove essere l'oggetto principale della pagina, non un dettaglio a lato.
  */
+// Stessa semantica di Badge: verde = basso, ambra = medio, rosso = alto/critico.
 const TONE: Record<string, string> = {
-  LOW: "#1F9254",
-  MEDIUM: "#C2650C",
-  HIGH: "#C4433B",
-  CRITICAL: "#C4433B",
+  LOW: "rgb(var(--c-steady))",
+  MEDIUM: "rgb(var(--c-signal))",
+  HIGH: "rgb(var(--c-alarm))",
+  CRITICAL: "rgb(var(--c-alarm))",
 };
 
 export default function RiskGauge({ score, level }: { score: number; level: string }) {
