@@ -336,6 +336,75 @@ It's billed per device per month on top of any plan, with a 12-month minimum; ha
 - angar stores metadata about AI systems (names, models, owners, costs, events) — not the content of prompts or documents.
 - Card details are handled by Stripe and never reach angar.`,
   },
+  {
+    slug: "alerts",
+    section: "Saving money",
+    title: "Alerts, renewals and Slack / Teams",
+    summary: "Every morning angar checks renewals in the next 14 days, budgets, AI that isn't allowed and seats to free — and tells you in the bell and in your team chat.",
+    keywords: ["alerts", "bell", "notifications", "renewal", "slack", "teams", "weekly", "digest"],
+    body: `The bell at the top right shows what needs a decision. angar checks every morning (Rome time), nothing to set up.
+## What you get alerts for
+- Renewals in the next 14 days, with the seats nobody used in 60 days — reduce them before you pay again.
+- Budgets at 80% and 100% of a team's monthly budget.
+- AI marked "Not allowed" being used by someone.
+- Seats ready to remove after the "do you still need it?" email.
+## Slack or Microsoft Teams
+1. Settings → Slack or Microsoft Teams.
+2. Paste an incoming webhook URL (Slack: Apps → Incoming Webhooks; Teams: channel → Workflows → "Post to a channel when a webhook request is received").
+3. angar sends a test message, then a summary every Monday and the important alerts as they happen.`,
+  },
+  {
+    slug: "seat-cleanup",
+    section: "Saving money",
+    title: "Free the seats nobody uses",
+    summary: "angar asks inactive people 'do you still need it?' and lists the seats you can remove.",
+    keywords: ["seats", "unused", "inactive", "cleanup", "remove", "license"],
+    body: `Usage → Seat clean-up.
+1. Click "Ask inactive people now": everyone who hasn't used a paid AI in 30 days gets an email with one link.
+2. They answer "I still need it" or "free it up". No answer in 7 days counts as "free it up".
+3. Remove those seats in the provider's admin page, then click "Mark removed" — angar lowers seats and cost.
+Emails need email sending set up on the deployment. Nobody is asked twice within 30 days.`,
+  },
+  {
+    slug: "budgets",
+    section: "Saving money",
+    title: "Budgets per team",
+    summary: "Set a monthly AI budget per department; angar warns at 80% and 100%.",
+    keywords: ["budget", "department", "team", "limit"],
+    body: `Budgets splits each AI's monthly cost across departments by who uses it (departments come from Microsoft 365 / Google Workspace, or you set them on People). Set a budget per team; angar alerts at 80% and 100%.`,
+  },
+  {
+    slug: "advisor",
+    section: "Saving money",
+    title: "AI Advisor — your ideal AI stack",
+    summary: "From real usage and today's prices, angar suggests one standard tool per job and how to get there.",
+    keywords: ["advisor", "recommend", "stack", "standardise", "consolidate"],
+    body: `AI Advisor looks at who really uses which AI in the last 30 days and suggests one standard tool per job (assistant, coding, search, meetings), the seats you need, personal plans to move to a business plan and yearly billing where it pays. Every step shows the saving and why.`,
+  },
+  {
+    slug: "ai-act",
+    section: "Governance",
+    title: "EU AI Act readiness",
+    summary: "Classify every AI, see your readiness score and the key dates, export the AI register for your DPO.",
+    keywords: ["ai act", "compliance", "risk", "high-risk", "dpo", "register", "literacy"],
+    body: `AI Act suggests a risk tier for each AI (minimal, limited, high) from what it is and what data it touches, and shows a readiness score with the key dates (AI literacy since February 2025, most obligations from August 2026). Apply the suggestions, record AI literacy training, and download the AI register (Excel) for your DPO. Guidance, not legal advice.`,
+  },
+  {
+    slug: "not-allowed-ai",
+    section: "Governance",
+    title: "AI that isn't allowed",
+    summary: "Mark an AI 'Not allowed' and angar alerts IT when it's used — and tells the person with a gentle message.",
+    keywords: ["policy", "blocked", "not allowed", "shadow ai", "deepseek"],
+    body: `In Review (or on the AI's passport) choose "Not allowed". When the desktop app sees someone using it, angar creates an alert for you and shows the person a short message once a day: the company hasn't approved it, please use the approved tools. angar never blocks websites and never sees content.`,
+  },
+  {
+    slug: "partner-console",
+    section: "Workspaces",
+    title: "Partner console for accountants and MSPs",
+    summary: "Manage AI spend for many client companies from one place.",
+    keywords: ["partner", "accountant", "msp", "clients", "multi"],
+    body: `If you belong to more than one workspace, the account menu shows Partner console: every client workspace with AI spend, possible savings, items to review, connected computers and alerts, sorted by savings. Create a new client workspace from there and open any client in one click.`,
+  },
 ];
 
 export const DOC_SECTIONS = Array.from(new Set(DOCS.map((d) => d.section)));

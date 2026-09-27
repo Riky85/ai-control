@@ -12,6 +12,9 @@ pub struct Config {
     pub email: Option<String>,
     /// Browser history up to this moment (unix ms) has already been sent.
     pub last_sync_ms: Option<i64>,
+    /// Company notices already shown to the person (e.g. "X isn't approved"), newest last.
+    #[serde(default)]
+    pub shown_notices: Vec<String>,
 }
 
 /// Per-user folder: config, catalog cache and the installed copy.

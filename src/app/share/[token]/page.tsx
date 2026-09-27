@@ -60,7 +60,7 @@ export default async function SharedDashboardPage({ params }: { params: { token:
 
   return (
     <div className={`flex flex-col gap-6 ${inApp ? "" : "px-10 py-8 max-w-[1400px] mx-auto"}`}>
-      <div className={`flex items-end justify-between gap-4 ${inApp ? "pr-[5.5rem]" : ""}`}>
+      <div className={`flex items-end justify-between gap-4 ${inApp ? "pr-[8.25rem]" : ""}`}>
         <div>
           <div className="text-xs text-ink-400 mb-1">
             Shared by {link.organization.name} · read-only · {fmtDate(new Date())}

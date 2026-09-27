@@ -12,4 +12,7 @@ export async function register() {
   };
   process.on("unhandledRejection", (reason) => void recordError("server", reason));
   process.on("uncaughtException", (err) => void recordError("server", err));
+  // Lavori periodici (rinnovi, posti, budget, costi, report, riepilogo Slack/Teams).
+  const { startScheduler } = await import("@/lib/jobs");
+  startScheduler();
 }

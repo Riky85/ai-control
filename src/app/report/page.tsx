@@ -7,6 +7,7 @@ import { fmtEur } from "@/lib/format";
 import { sendReportNowAction } from "@/lib/spend-actions";
 import { emailEnabled } from "@/lib/mail";
 import PrintButton from "@/components/PrintButton";
+import BenchmarkCard from "@/components/BenchmarkCard";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
           </div>
         </Panel>
       </div>
+      <BenchmarkCard orgId={currentOrgId()} variant="section" />
       <Panel title="What changed this month">
         <ul className="flex flex-col gap-2 text-sm">
           {r.events.map((e, i) => (

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { ingestFindings, orgForToken, type Finding } from "@/lib/discovery/ingest";
 import { recordDesktopDevice } from "@/lib/discovery/devices";
+import { createAlert } from "@/lib/alerts";
+import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -26,5 +28,29 @@ export async function POST(req: Request) {
   const systems = await ingestFindings(org.id, device, findings, email, desktop ? "desktop" : "extension");
   // Ricorda il computer, così l'utente vede sulla piattaforma che l'app è collegata.
   if (desktop) await recordDesktopDevice(org.id, { device, email, os: body.os, version: body.version, aiCount: systems.length });
-  return NextResponse.json({ ok: true, systems });
+
+  // Policy: AI segnate "Not allowed" usate da qualcuno → avviso all'IT e, sull'app
+  // desktop, un messaggio gentile alla persona (una volta al giorno per AI).
+  const blocked = systems.length
+    ? await db.aiAsset.findMany({ where: { organizationId: org.id, deletedAt: null, status: "UNAPPROVED", name: { in: systems } }, select: { id: true, name: true } })
+    : [];
+  const today = new Date().toISOString().slice(0, 10);
+  const notices: { key: string; title: string; message: string }[] = [];
+  for (const a of blocked) {
+    const who = email ?? device;
+    await createAlert(org.id, {
+      kind: "policy",
+      severity: "critical",
+      title: `${a.name} is not allowed — used by ${who}`,
+      body: `${who} used ${a.name}, which your company marked as not allowed. Talk to them or suggest the approved alternative.`,
+      href: `/assets/${a.id}`,
+      dedupeKey: `policy:${a.id}:${who}:${today}`,
+    });
+    notices.push({
+      key: `${a.id}:${today}`,
+      title: `${a.name} isn't approved at ${org.name}`,
+      message: `${org.name} hasn't approved ${a.name} for work. Please use the approved AI tools instead — ask your IT team which ones. (angar only sees the names of AI tools, never what you do in them.)`,
+    });
+  }
+  return NextResponse.json({ ok: true, systems, notices });
 }

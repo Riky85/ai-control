@@ -6,6 +6,9 @@ import Badge from "@/components/Badge";
 import Link from "next/link";
 import { addUserAction } from "@/lib/actions";
 import { setEmployeesAction } from "@/lib/spend-actions";
+import { setIndustryAction, setChatWebhookAction } from "@/lib/settings-actions";
+import { INDUSTRIES } from "@/lib/industries";
+import { Notice } from "@/components/ui";
 import { Panel, PageHeader } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import ThemeSelect from "@/components/ThemeSelect";
@@ -17,7 +20,7 @@ export const dynamic = "force-dynamic";
 const input = "field w-full";
 const button = "btn btn-secondary btn-sm";
 
-export default async function SettingsPage({ searchParams }: { searchParams: { error?: string; reset?: string } }) {
+export default async function SettingsPage({ searchParams }: { searchParams: { error?: string; reset?: string; chat?: string } }) {
   const [org, users, connectors] = await Promise.all([
     db.organization.findUnique({ where: { id: currentOrgId() } }),
     db.user.findMany({ where: { organizationId: currentOrgId() }, orderBy: { name: "asc" } }),
@@ -28,6 +31,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Settings" subtitle="Your organization, team and connections." />
+      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
       <div className="grid grid-cols-3 gap-4 items-start">
         <div className="col-span-2 flex flex-col gap-4">
@@ -93,7 +97,33 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
               </label>
               <button className={button}>Save</button>
             </form>
-            <p className="text-xs text-ink-400 mt-2">Used to show AI spend per employee.</p>
+            <form action={setIndustryAction} className="flex items-end gap-2 mt-3">
+              <label className="flex-1 flex flex-col gap-1.5 text-sm text-ink-400">
+                Industry
+                <select name="industry" defaultValue={org?.industry ?? ""} className={input}>
+                  <option value="">Not set</option>
+                  {INDUSTRIES.map((i) => (
+                    <option key={i} value={i}>{i}</option>
+                  ))}
+                </select>
+              </label>
+              <button className={button}>Save</button>
+            </form>
+            <p className="text-xs text-ink-400 mt-2">Employees and industry power AI spend per employee and the anonymous benchmark with similar companies.</p>
+          </Panel>
+
+          <Panel title="Slack or Microsoft Teams" subtitle={org?.chatWebhookEncrypted ? "Connected — weekly summary on Mondays + alerts" : "Get the weekly summary and alerts in your team chat"}>
+            {searchParams.chat === "ok" && <div className="mb-3"><Notice tone="success">Connected — a test message was sent.</Notice></div>}
+            <form action={setChatWebhookAction} className="flex flex-col gap-2">
+              <input name="url" type="url" placeholder={org?.chatWebhookEncrypted ? "Connected — paste a new URL to change it" : "https://hooks.slack.com/services/…"} className={input} />
+              <div className="flex items-center gap-2">
+                <button className={button}>{org?.chatWebhookEncrypted ? "Update" : "Connect"}</button>
+                {org?.chatWebhookEncrypted && (
+                  <button name="url" value="" className="btn btn-ghost btn-sm">Disconnect</button>
+                )}
+              </div>
+            </form>
+            <p className="text-xs text-ink-400 mt-2">Slack: Apps → Incoming Webhooks → Add to a channel. Teams: channel → Workflows → &ldquo;Post to a channel when a webhook request is received&rdquo;. Paste the URL here.</p>
           </Panel>
 
           <Panel title="Security">
@@ -114,7 +144,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
           Start this workspace from scratch to try the platform with your own AI, or load the sample data. Owners only.
         </p>
         {searchParams.reset && <p className="text-sm text-steady mb-4">Workspace data reset — it's empty now. Drop a bank statement on Overview to start.</p>}
-        {searchParams.error && <p className="text-sm text-alarm mb-4">{searchParams.error}</p>}
         <div className="grid grid-cols-2 gap-6">
           <form action={resetWorkspaceDataAction} className="flex flex-col gap-2">
             <div className="text-sm font-medium text-ink-100">Reset workspace data</div>

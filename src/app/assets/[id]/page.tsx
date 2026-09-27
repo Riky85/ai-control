@@ -95,7 +95,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 pr-[5.5rem] min-h-9">
+        <div className="flex items-center gap-2 shrink-0 pr-[8.25rem] min-h-9">
           <Badge>{asset.status}</Badge>
           {manage && (
             <a href={manage} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" title="Change seats, plan or cancel on the provider's site">

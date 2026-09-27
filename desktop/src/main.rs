@@ -195,6 +195,28 @@ fn main() {
     run_loop(cfg);
 }
 
+/// Messages from the company (e.g. an AI that isn't approved), shown once each
+/// in their own window so the app keeps running.
+fn show_notices(cfg: &mut Config, body: &str) {
+    let Ok(v) = serde_json::from_str::<serde_json::Value>(body) else { return };
+    let Some(list) = v["notices"].as_array() else { return };
+    for n in list {
+        let key = n["key"].as_str().unwrap_or_default().to_string();
+        let msg = n["message"].as_str().unwrap_or_default().to_string();
+        if key.is_empty() || msg.is_empty() || cfg.shown_notices.contains(&key) {
+            continue;
+        }
+        cfg.shown_notices.push(key);
+        let title = n["title"].as_str().unwrap_or("angar").to_string();
+        std::thread::spawn(move || ui::message(&format!("{title}\n\n{msg}")));
+    }
+    let len = cfg.shown_notices.len();
+    if len > 200 {
+        cfg.shown_notices.drain(..len - 200);
+    }
+    cfg.save();
+}
+
 fn valid_email(e: &str) -> Option<String> {
     let e = e.trim().to_lowercase();
     let (user, domain) = e.split_once('@')?;
@@ -261,7 +283,12 @@ fn run_loop(mut cfg: Config) {
             let started = now_ms();
             let since = cfg.last_sync_ms.unwrap_or(started - FIRST_LOOKBACK_MS);
             let findings = detect::scan(&catalog, since, &usage);
-            let ok = findings.is_empty() || send(&cfg, &findings).is_ok();
+            // Always send (also empty): it tells the company the computer is still connected.
+            let reply = send(&cfg, &findings);
+            let ok = reply.is_ok();
+            if let Ok(body) = &reply {
+                show_notices(&mut cfg, body);
+            }
             if ok {
                 cfg.last_sync_ms = Some(started);
                 cfg.save();

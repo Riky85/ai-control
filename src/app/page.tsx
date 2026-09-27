@@ -13,6 +13,7 @@ import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
 import SetupWizard from "@/components/SetupWizard";
+import BenchmarkCard from "@/components/BenchmarkCard";
 
 export const dynamic = "force-dynamic";
 
@@ -140,6 +141,8 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"} →` : "Nothing found yet"} href="/savings" />
             <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/discover"} />
           </div>
+
+          <BenchmarkCard orgId={orgId} />
 
           <section className="rounded-xl border border-line bg-panel p-5 grid grid-cols-[240px_1fr] gap-6 items-center animate-rise">
             <div className="flex flex-col gap-3">

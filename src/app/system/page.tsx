@@ -1,4 +1,4 @@
-import { fmtDateTime } from "@/lib/format";
+import { fmtDateTime, fmtEur } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requirePlatformAdmin } from "@/lib/auth";
 import { PageHeader, Panel, Table, td } from "@/components/ui";
@@ -16,10 +16,12 @@ export default async function SystemPage() {
   } catch {
     dbOk = false;
   }
-  const [errors, backups, errors24h] = await Promise.all([
+  const [errors, backups, errors24h, leads, jobs] = await Promise.all([
     db.errorEvent.findMany({ orderBy: { createdAt: "desc" }, take: 50 }),
     db.backupRun.findMany({ orderBy: { startedAt: "desc" }, take: 14 }),
     db.errorEvent.count({ where: { createdAt: { gt: new Date(Date.now() - 86400_000) } } }),
+    db.lead.findMany({ orderBy: { createdAt: "desc" }, take: 50 }),
+    db.jobRun.findMany({ orderBy: { ranAt: "desc" }, take: 5 }),
   ]);
   const lastOkBackup = backups.find((b) => b.status === "ok");
   const backupFresh = lastOkBackup && lastOkBackup.startedAt > new Date(Date.now() - 36 * 3600_000);
@@ -32,6 +34,7 @@ export default async function SystemPage() {
     ["Email (invites, password reset)", emailEnabled(), emailEnabled() ? "Sending via Resend" : "Not set up — needs RESEND_API_KEY and EMAIL_FROM"],
     ["Payments", stripeEnabled(), stripeEnabled() ? "Stripe connected" : "Not set up — needs Stripe keys"],
     ["Error tracking", true, `${errors24h} error${errors24h === 1 ? "" : "s"} in the last 24 h`],
+    ["Scheduler (alerts, costs, reports)", jobs.length > 0, jobs[0] ? `Last run: ${jobs[0].name} ${jobs[0].key} at ${fmtDateTime(jobs[0].ranAt)}` : "Waiting for the first daily run (after 7:00 Rome time)"],
   ];
 
   return (
@@ -67,6 +70,22 @@ export default async function SystemPage() {
               <td className={`${td} tabular`}>{b.rows.toLocaleString()}</td>
               <td className={`${td} tabular`}>{(b.bytes / 1024).toFixed(0)} KB</td>
               <td className={`${td} text-ink-400 font-mono text-xs truncate max-w-[260px]`}>{b.error ?? b.location ?? "—"}</td>
+            </tr>
+          ))}
+        </Table>
+      </div>
+
+      <div>
+        <h2 className="text-base font-semibold text-ink-100 mb-3">Leads from the free AI spend check</h2>
+        <Table columns={["When", "Email", "Company", { label: "AI", className: "text-right" }, { label: "Yearly spend", className: "text-right" }, { label: "Yearly savings", className: "text-right" }]} empty={leads.length === 0 ? "No leads yet — share /check." : false}>
+          {leads.map((l) => (
+            <tr key={l.id}>
+              <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(l.createdAt)}</td>
+              <td className={`${td} text-ink-100`}><a href={`mailto:${l.email}`} className="hover:underline">{l.email}</a></td>
+              <td className={`${td} text-ink-400`}>{l.company ?? "—"}</td>
+              <td className={`${td} text-right tabular`}>{l.aiCount ?? "—"}</td>
+              <td className={`${td} text-right tabular`}>{l.annualSpend != null ? fmtEur(l.annualSpend) : "—"}</td>
+              <td className={`${td} text-right tabular text-accent`}>{l.savings != null ? fmtEur(l.savings) : "—"}</td>
             </tr>
           ))}
         </Table>

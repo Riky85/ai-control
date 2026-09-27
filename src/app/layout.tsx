@@ -8,6 +8,7 @@ import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 import AskDocs from "@/components/AskDocs";
 import SearchPalette from "@/components/SearchPalette";
 import ConnectedIndicator from "@/components/ConnectedIndicator";
+import AlertsBell from "@/components/AlertsBell";
 import { listDesktopDevices } from "@/lib/discovery/devices";
 import DocsButton from "@/components/DocsButton";
 import { DOCS } from "@/lib/docs";
@@ -84,6 +85,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-12 pb-24">
             {/* Sempre nello stesso punto, in ogni pagina. */}
             <div className="absolute top-12 right-4 sm:right-6 lg:right-10 z-30 print:hidden flex items-center gap-2">
+              <AlertsBell organizationId={session.orgId} />
               <ConnectedIndicator organizationId={session.orgId} />
               <DocsButton />
             </div>

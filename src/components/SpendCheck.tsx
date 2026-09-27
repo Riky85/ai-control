@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { checkSpendAction, type CheckResult } from "@/lib/check-actions";
 import { VendorBadge } from "@/components/VendorIcon";
+import EmailReport from "@/components/check/EmailReport";
+import { saveSnapshot, type CheckSnapshot } from "@/components/check/report-data";
 
 const eur = (n: number) => "€" + Math.round(n).toLocaleString("en-GB");
 
@@ -10,6 +12,17 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
   const [result, setResult] = useState<CheckResult | null>(null);
   const [names, setNames] = useState<string>("");
   const [pending, start] = useTransition();
+  // Riepilogo aggregato per il report PDF e l'email (mai le righe dell'estratto conto).
+  const snapshot: CheckSnapshot | null = result?.ok
+    ? {
+        createdAt: new Date().toISOString(),
+        months: result.months,
+        spend: result.report.spend,
+        save: result.report.save,
+        lines: result.report.lines.map(({ service, name, vendor, category, plan, seats, monthlyEur }) => ({ service, name, vendor, category, plan, seats, monthlyEur })),
+        savings: result.report.savings,
+      }
+    : null;
 
   return (
     <div className="flex flex-col gap-10">
@@ -100,6 +113,28 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
                   <div className="text-right font-semibold text-ink-100 tabular">{eur(s.monthlyEur)}<span className="text-xs text-ink-400 font-normal">/mo</span></div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {snapshot && (
+            <div className="rounded-xl border border-line bg-panel p-5 grid grid-cols-[1fr_auto] gap-x-6 gap-y-4 items-start">
+              <div>
+                <div className="text-base font-semibold text-ink-100">Take the report with you</div>
+                <div className="text-sm text-ink-400 mt-0.5">A clean PDF to share with your CFO or management — or get it by email.</div>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  saveSnapshot(snapshot);
+                  window.open("/check/report", "_blank");
+                }}
+              >
+                Download your report (PDF)
+              </button>
+              <div className="col-span-2">
+                <EmailReport snapshot={snapshot} />
+              </div>
             </div>
           )}
 

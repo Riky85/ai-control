@@ -5,6 +5,9 @@ import { PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
 import FilterBar from "@/components/FilterBar";
 import { VendorBadge } from "@/components/VendorIcon";
 import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
+import { Notice } from "@/components/ui";
+import { cleanupRows } from "@/lib/seats";
+import { askAllInactiveAction, markSeatRemovedAction } from "@/lib/seat-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +21,11 @@ const SOURCE_LABEL = (e: string) =>
 
 // Chi usa quale AI e quanto: dai dati dell'estensione, di Microsoft 365 e di
 // Google Workspace. Da qui si vedono i posti pagati che nessuno usa.
-export default async function UsagePage({ searchParams }: { searchParams: { view?: string; q?: string; ai?: string } }) {
+export default async function UsagePage({ searchParams }: { searchParams: { view?: string; q?: string; ai?: string; asked?: string; error?: string } }) {
   const orgId = currentOrgId();
-  const view = ["ai", "people", "log"].includes(searchParams.view ?? "") ? searchParams.view! : "ai";
+  const view = ["ai", "people", "log", "cleanup"].includes(searchParams.view ?? "") ? searchParams.view! : "ai";
+  const cleanup = await cleanupRows(orgId);
+  const toRemove = cleanup.filter((c) => c.state === "release" || c.state === "no_reply");
   const since = new Date(Date.now() - 30 * DAY);
   const [events, assets, users] = await Promise.all([
     db.aiAssetActivity.findMany({
@@ -108,8 +113,62 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
           { key: "ai", label: "By AI", href: "/usage?view=ai" },
           { key: "people", label: "By person", href: "/usage?view=people", count: people.size },
           { key: "log", label: "Connection log", href: "/usage?view=log" },
+          { key: "cleanup", label: "Seat clean-up", href: "/usage?view=cleanup", count: toRemove.length || undefined },
         ]}
       />
+
+      {view === "cleanup" && (
+        <div className="flex flex-col gap-4">
+          {searchParams.asked && <Notice tone="success">Asked {searchParams.asked} {searchParams.asked === "1" ? "person" : "people"} by email. Their answers appear here.</Notice>}
+          {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
+          <section className="rounded-xl border border-line bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1">
+              <h2 className="text-base font-semibold text-ink-100">Free the seats nobody uses</h2>
+              <p className="text-sm text-ink-400 mt-0.5">
+                angar emails everyone who hasn&apos;t used a paid AI in 30 days: &ldquo;do you still need it?&rdquo;. No answer in 7 days, or &ldquo;no&rdquo;, and the seat lands here, ready to remove.
+              </p>
+            </div>
+            <form action={askAllInactiveAction}>
+              <button className="btn btn-primary">Ask inactive people now</button>
+            </form>
+          </section>
+          <Table
+            columns={["AI", "Person", "Asked", "Answer", { label: "Saves", className: "text-right" }, ""]}
+            empty={cleanup.length === 0 && "Nobody has been asked yet."}
+          >
+            {cleanup.map((c) => (
+              <tr key={c.id}>
+                <td className={td}>
+                  <Link href={`/assets/${c.assetId}?tab=people`} className="flex items-center gap-2 text-ink-100 hover:underline">
+                    <VendorBadge vendor={c.vendor ?? ""} name={c.assetName} size={24} />
+                    {c.assetName}
+                  </Link>
+                </td>
+                <td className={`${td} text-ink-100`}>{c.email}</td>
+                <td className={`${td} text-ink-400 tabular`}>{fmtDate(c.sentAt)}</td>
+                <td className={td}>
+                  <span
+                    className={`text-xs font-medium rounded-full px-2 py-0.5 ${
+                      c.state === "keep" ? "text-steady bg-steady/10" : c.state === "release" || c.state === "no_reply" ? "text-signal bg-signal/10" : c.state === "removed" ? "text-ink-400 bg-ink-400/10" : "text-ink-400 bg-ink-400/10"
+                    }`}
+                  >
+                    {c.state === "keep" ? "Still needs it" : c.state === "release" ? "Doesn't need it" : c.state === "no_reply" ? "No answer in 7 days" : c.state === "removed" ? "Removed" : "Waiting"}
+                  </span>
+                </td>
+                <td className={`${td} text-right tabular text-ink-100`}>{c.perSeatEur && c.state !== "keep" ? `${fmtEur(c.perSeatEur)}/mo` : "—"}</td>
+                <td className={`${td} text-right`}>
+                  {(c.state === "release" || c.state === "no_reply") && (
+                    <form action={markSeatRemovedAction}>
+                      <input type="hidden" name="id" value={c.id} />
+                      <button className="btn btn-secondary btn-sm" title="Remove the seat in the provider's admin page first, then mark it here">Mark removed</button>
+                    </form>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </Table>
+        </div>
+      )}
 
       {view === "ai" && (
         <Table columns={["AI", { label: "Active people", className: "text-right" }, { label: "Paid seats", className: "text-right" }, { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, { label: "Unused seats", className: "text-right" }, { label: "Could save", className: "text-right" }]} empty={byAi.length === 0 && "No usage yet."}>

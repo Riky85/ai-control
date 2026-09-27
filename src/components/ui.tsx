@@ -98,7 +98,7 @@ export function PageHeader({
         {subtitle && <p className="text-sm text-ink-400 mt-1">{subtitle}</p>}
       </div>
       {/* Le azioni stanno a sinistra dei due pulsanti fissi del layout (computer connessi + documentazione). */}
-      <div className="flex items-center gap-2 shrink-0 pr-[5.5rem] min-h-9">{action}</div>
+      <div className="flex items-center gap-2 shrink-0 pr-[8.25rem] min-h-9">{action}</div>
     </div>
   );
 }

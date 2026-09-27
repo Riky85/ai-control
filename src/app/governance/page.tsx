@@ -53,6 +53,13 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
         action={<ExportMenu dataset="assets" />}
       />
 
+      <Link href="/compliance" className="rounded-xl border border-line bg-panel px-5 py-3 flex items-center justify-between gap-4 hover:border-ink-400 transition-colors">
+        <span className="text-sm text-ink-400">
+          <span className="font-medium text-ink-100">EU AI Act readiness</span> — risk class for every AI, owners, key dates and your AI register.
+        </span>
+        <span className="text-sm text-accent shrink-0">Open AI Act →</span>
+      </Link>
+
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/governance?tab=${t.key}` }))} />
 
       {tab === "reviews" && <ReviewsTab />}
