@@ -42,7 +42,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
   const month = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", month: "long" }).format(new Date());
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <PageHeader title="Budgets" subtitle="Monthly AI budget per team — angar warns you at 80% and 100%." />
 
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
@@ -54,16 +54,19 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
       </div>
 
       {named.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line p-10 text-center">
-          <h2 className="text-lg font-semibold text-ink-100">No teams yet</h2>
-          <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">
-            Teams come from each person&apos;s department in Microsoft 365 or Google Workspace. You can also set the department on each person — angar then splits every AI&apos;s cost by the people who use it.
-          </p>
-          <div className="flex items-center justify-center gap-2 mt-5">
-            <Link href="/people" className="btn btn-primary">Set departments on people</Link>
-            <Link href="/sources" className="btn btn-secondary">Connect Microsoft 365 or Google</Link>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-xl border border-dashed border-line p-5">
+            <h2 className="text-base font-semibold text-ink-100">No teams yet</h2>
+            <p className="text-sm text-ink-400 mt-1">
+              Teams come from each person&apos;s department (Microsoft 365, Google Workspace, or set by hand on People). angar splits every AI&apos;s cost by who uses it.
+              {rows.length > 0 && <> Right now {fmtEur(totalSpend)}/mo isn&apos;t assigned to a team.</>}
+            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              <Link href="/people" className="btn btn-primary btn-sm">Set departments on people</Link>
+              <Link href="/sources" className="btn btn-secondary btn-sm">Connect Microsoft 365 or Google</Link>
+            </div>
           </div>
-          {rows.length > 0 && <p className="text-xs text-ink-400 mt-4">{fmtEur(totalSpend)}/mo of AI spend is not assigned to a team yet.</p>}
+          <AddBudget named={named.map((r) => r.department)} />
         </div>
       ) : (
         <Table columns={["Team", { label: "Spend vs budget", className: "w-[30%]" }, "Top AI", { label: "People", className: "text-right" }, { label: "Monthly budget", className: "w-[260px]" }]}>
@@ -115,24 +118,27 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
         </Table>
       )}
 
-      <section className="rounded-xl border border-line bg-panel p-5">
-        <h2 className="text-base font-semibold text-ink-100">Add a team budget</h2>
-        <p className="text-sm text-ink-400 mt-0.5 mb-4">Use the same name as the department in your directory. Leave the amount empty or 0 to remove a budget.</p>
-        <form action={setBudgetAction} className="flex flex-wrap items-center gap-2">
-          <input name="department" placeholder="Team, e.g. Marketing" className="field w-56" list="budget-depts" required />
-          <datalist id="budget-depts">
-            {named.map((r) => (
-              <option key={r.department} value={r.department} />
-            ))}
-          </datalist>
-          <input name="monthlyEur" inputMode="decimal" placeholder="€ / month" className="field w-32 tabular" required />
-          <button className="btn btn-primary btn-sm">Save budget</button>
-        </form>
-      </section>
-
-      <p className="text-xs text-ink-400">
-        Each AI&apos;s monthly cost is split across teams by how many of its known users are in each team. AI with no known users go to the team set on the AI, otherwise to Unassigned. Alerts go to the bell and, if connected, to Slack or Teams.
-      </p>
+      {named.length > 0 && <AddBudget named={named.map((r) => r.department)} />}
+      <p className="text-xs text-ink-400">Cost is split by how many of each AI&apos;s users are in each team. Alerts go to the bell and, if connected, to Slack or Teams.</p>
     </div>
+  );
+}
+
+function AddBudget({ named }: { named: string[] }) {
+  return (
+    <section className="rounded-xl border border-line bg-panel p-5">
+      <h2 className="text-base font-semibold text-ink-100">Add a team budget</h2>
+      <p className="text-sm text-ink-400 mt-1 mb-4">Same name as the department in your directory. Empty or 0 removes it.</p>
+      <form action={setBudgetAction} className="flex flex-wrap items-center gap-2">
+        <input name="department" placeholder="Team, e.g. Marketing" className="field w-48" list="budget-depts" required />
+        <datalist id="budget-depts">
+          {named.map((d) => (
+            <option key={d} value={d} />
+          ))}
+        </datalist>
+        <input name="monthlyEur" inputMode="decimal" placeholder="€ / month" className="field w-28 tabular" required />
+        <button className="btn btn-primary btn-sm">Save budget</button>
+      </form>
+    </section>
   );
 }

@@ -1,4 +1,5 @@
 import { fmtDateTime } from "@/lib/format";
+import GovernanceNav from "@/components/GovernanceNav";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -31,6 +32,7 @@ export default async function ChangesPage({ searchParams }: { searchParams: { q?
 
   return (
     <div className="flex flex-col gap-6">
+      <GovernanceNav active="/changes" />
       <PageHeader
         title="Changes"
         subtitle="What changed between syncs — model, vendor and status, before and after."

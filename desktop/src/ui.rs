@@ -61,3 +61,45 @@ pub fn ask(text: &str, default: &str) -> Option<String> {
         _ => None,
     }
 }
+
+/// Two-button question. Some(true) = first button, Some(false) = second, None = closed.
+#[cfg(windows)]
+pub fn choose(text: &str, yes: &str, no: &str) -> Option<bool> {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{MessageBoxW, IDNO, IDYES, MB_ICONQUESTION, MB_SETFOREGROUND, MB_TOPMOST, MB_YESNOCANCEL};
+    let wide = |s: &str| s.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
+    let body = format!("{text}\n\nYes = {yes}\nNo = {no}");
+    let (t, c) = (wide(&body), wide("angar"));
+    let r = unsafe { MessageBoxW(std::ptr::null_mut(), t.as_ptr(), c.as_ptr(), MB_YESNOCANCEL | MB_ICONQUESTION | MB_SETFOREGROUND | MB_TOPMOST) };
+    if r == IDYES {
+        Some(true)
+    } else if r == IDNO {
+        Some(false)
+    } else {
+        None
+    }
+}
+
+#[cfg(not(windows))]
+pub fn choose(text: &str, yes: &str, no: &str) -> Option<bool> {
+    if cfg!(target_os = "macos") {
+        let (ok, out) = output(
+            Command::new("osascript")
+                .args(["-e", "button returned of (display dialog (system attribute \"ANGAR_MSG\") buttons {\"Cancel\", (system attribute \"ANGAR_NO\"), (system attribute \"ANGAR_YES\")} default button 3 cancel button 1 with title \"angar\")"])
+                .env("ANGAR_MSG", text)
+                .env("ANGAR_YES", yes)
+                .env("ANGAR_NO", no),
+        )?;
+        if !ok {
+            return None;
+        }
+        return Some(out == yes);
+    }
+    match output(Command::new("zenity").args(["--question", "--title=angar", &format!("--text={text}"), &format!("--ok-label={yes}"), &format!("--cancel-label={no}")])) {
+        Some((ok, _)) => Some(ok),
+        None => {
+            // No GUI: keep the current settings.
+            println!("{text} [{yes}]");
+            Some(true)
+        }
+    }
+}

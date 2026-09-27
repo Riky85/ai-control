@@ -25,6 +25,10 @@ function Icon({ name }: { name: string }) {
     case "savings":
       // Segno di percentuale: sconto / spesa che scende. Inequivocabile.
       return <svg {...common}><path {...stroke} d="M4 14L14 4" /><circle {...stroke} cx="5.2" cy="5.2" r="1.6" /><circle {...stroke} cx="12.8" cy="12.8" r="1.6" /></svg>;
+    case "computer":
+      return <svg {...common}><rect {...stroke} x="2" y="3" width="14" height="9" rx="1.5" /><path {...stroke} d="M6.5 15h5M9 12v3" /></svg>;
+    case "download":
+      return <svg {...common}><path {...stroke} d="M9 2.8v8.4M5.6 7.9L9 11.2l3.4-3.3" /><path {...stroke} d="M3 12.8v1.4c0 .8.6 1.3 1.3 1.3h9.4c.7 0 1.3-.5 1.3-1.3v-1.4" /></svg>;
     case "advisor":
       // Scintilla: suggerimenti intelligenti.
       return <svg {...common}><path {...stroke} d="M9 2.5l1.6 4.4 4.4 1.6-4.4 1.6L9 14.5l-1.6-4.4L3 8.5l4.4-1.6L9 2.5z" /><path {...stroke} d="M14.5 13v3M13 14.5h3" /></svg>;
@@ -96,6 +100,7 @@ const PRIMARY_ITEMS = [
 // Voci meno frequenti: nel menu a tendina del blocco utente, così la
 // sidebar aperta non ha bisogno di scroll.
 const MENU_ITEMS = [
+  { href: "/download", label: "Download the app", icon: "download" },
   { href: "/workspace", label: "Workspace", icon: "people" },
   { href: "/report", label: "Monthly report", icon: "report" },
   { href: "/billing", label: "Plan & billing", icon: "billing" },
@@ -104,18 +109,18 @@ const MENU_ITEMS = [
   { href: "/docs", label: "Documentation", icon: "evidence" },
 ];
 
+// Poche voci: le pagine di dettaglio (AI Act, dati, attività, modifiche) stanno
+// dentro Governance; angar Edge dentro Plan & billing.
 const MORE_ITEMS = [
-  { href: "/providers", label: "Providers", icon: "providers" },
-  { href: "/changes", label: "Changes", icon: "changes" },
-  { href: "/people", label: "People", icon: "people" },
-  { href: "/data", label: "Data Exposure", icon: "data" },
-  { href: "/governance", label: "Governance", icon: "assurance" },
-  { href: "/activity", label: "Activity", icon: "activity" },
   { href: "/advisor", label: "AI Advisor", icon: "advisor" },
   { href: "/budgets", label: "Budgets", icon: "budget" },
-  { href: "/compliance", label: "AI Act", icon: "assurance" },
-  { href: "/edge", label: "angar Edge", icon: "edge" },
+  { href: "/providers", label: "Providers", icon: "providers" },
+  { href: "/people", label: "People", icon: "people" },
+  { href: "/computers", label: "Computers", icon: "computer" },
+  { href: "/governance", label: "Governance", icon: "assurance" },
 ];
+// Pagine che accendono la voce Governance.
+const GOVERNANCE_PATHS = ["/governance", "/compliance", "/data", "/activity", "/changes"];
 
 // Stato aperta/chiusa in un cookie: il server lo legge e rende subito la
 // sidebar nello stato giusto, senza flash al refresh.
@@ -162,7 +167,17 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
   if (pathname.startsWith("/share")) return null;
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" || pathname.startsWith("/assets") : href === "/sources" ? ["/sources", "/connectors", "/discover"].some((p) => pathname.startsWith(p)) : pathname.startsWith(href);
+    href === "/"
+      ? pathname === "/" || pathname.startsWith("/assets")
+      : href === "/sources"
+        ? ["/sources", "/connectors", "/discover"].some((p) => pathname.startsWith(p))
+        : href === "/governance"
+          ? GOVERNANCE_PATHS.some((p) => pathname.startsWith(p))
+          : href === "/computers"
+            ? ["/computers", "/download"].some((p) => pathname.startsWith(p))
+            : href === "/billing"
+              ? ["/billing", "/edge"].some((p) => pathname.startsWith(p))
+              : pathname.startsWith(href);
   function itemClass(active: boolean, sub = false) {
     return `flex items-center gap-3 text-[15px] transition-colors rounded-lg ${
       collapsed ? "justify-center h-10 w-10 mx-auto shrink-0" : sub ? "pl-11 pr-3 py-1.5" : "px-3 py-2"
@@ -258,28 +273,22 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
         {(collapsed || moreOpen) &&
           MORE_ITEMS.map((item) => (
             <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href), !collapsed)}>
-              {collapsed && <Icon name={item.icon} />}
-              {!collapsed && item.label}
+              {collapsed && (
+                <span className="relative shrink-0">
+                  <Icon name={item.icon} />
+                  {item.href === "/computers" && connectedComputers > 0 && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-steady ring-2 ring-sidebar" />}
+                </span>
+              )}
+              {!collapsed && <span className="flex-1">{item.label}</span>}
+              {!collapsed && item.href === "/computers" && connectedComputers > 0 && (
+                <span className="flex items-center gap-1 text-[11px] text-steady tabular">
+                  <span className="h-1.5 w-1.5 rounded-full bg-steady" />
+                  {connectedComputers}
+                </span>
+              )}
             </Link>
           ))}
       </nav>
-
-      <Link
-        href="/computers"
-        title={collapsed ? `${connectedComputers} connected` : undefined}
-        className={`mt-2 flex items-center rounded-lg text-[13px] transition-colors ${collapsed ? "justify-center h-9 w-9 mx-auto" : "gap-2.5 px-3 py-2"} ${connectedComputers > 0 ? "text-[#C8C6C1] hover:text-white hover:bg-white/[0.05]" : "text-[#8A8884] hover:text-white hover:bg-white/[0.05]"}`}
-      >
-        <span className="relative shrink-0">
-          <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-            <rect x="2" y="3" width="14" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-            <path d="M6.5 15h5M9 12v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-          </svg>
-          <span className={`absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full ring-2 ring-sidebar ${connectedComputers > 0 ? "bg-steady" : "bg-[#8A8884]"}`} />
-        </span>
-        {!collapsed && (
-          <span className="flex-1 min-w-0 truncate">{connectedComputers > 0 ? `${connectedComputers} computer${connectedComputers === 1 ? "" : "s"} connected` : "No computer connected"}</span>
-        )}
-      </Link>
 
       <div className="mt-3 pt-3 border-t border-white/[0.08] flex flex-col gap-0.5">
         <div ref={menuRef} className="relative">

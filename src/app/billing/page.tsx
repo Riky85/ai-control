@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
@@ -93,13 +94,16 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
 
       <section id="edge" className="rounded-xl border border-line bg-panel p-6 grid grid-cols-3 gap-8 scroll-mt-6">
         <div className="col-span-2 flex gap-6">
-          <EdgeBox width={150} className="shrink-0" />
+          <Link href="/edge" aria-label="About angar Edge" className="shrink-0 hover:opacity-90 transition-opacity">
+            <EdgeBox width={150} />
+          </Link>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-ink-100">{EDGE.name}</h2>
+              <Link href="/edge" className="text-base font-semibold text-ink-100 hover:underline">{EDGE.name}</Link>
               <Badge>EARLY_ACCESS</Badge>
             </div>
             <p className="text-sm text-ink-400 mt-1">{EDGE.tagline}</p>
+            <Link href="/edge" className="inline-block text-sm text-accent hover:underline mt-2">How it works, where it goes, what it sees →</Link>
             <ul className="flex flex-col gap-2 text-sm text-ink-100 mt-4">
               {EDGE.features.map((f) => (
                 <li key={f} className="flex gap-2">

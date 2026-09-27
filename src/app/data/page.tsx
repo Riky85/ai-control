@@ -1,4 +1,5 @@
 import { currentOrgId } from "@/lib/org";
+import GovernanceNav from "@/components/GovernanceNav";
 import { db } from "@/lib/db";
 import type { DataSensitivity } from "@prisma/client";
 import { PageHeader } from "@/components/ui";
@@ -39,6 +40,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
 
   return (
     <div className="flex flex-col gap-5">
+      <GovernanceNav active="/data" />
       <PageHeader
         title="Data Exposure"
         subtitle="Which data your AI touches, and which AI reaches each one."

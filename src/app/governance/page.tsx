@@ -1,4 +1,5 @@
 import { currentOrgId } from "@/lib/org";
+import GovernanceNav from "@/components/GovernanceNav";
 import { db } from "@/lib/db";
 import { PageHeader, StatCard, Tabs } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
@@ -47,18 +48,12 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
 
   return (
     <div className="flex flex-col gap-5">
+      <GovernanceNav active="/governance" />
       <PageHeader
         title="Governance"
-        subtitle={"Reviews, policies and assurance — the secondary layer that keeps the estate accountable."}
+        subtitle="Reviews, policies and assurance for every AI."
         action={<ExportMenu dataset="assets" />}
       />
-
-      <Link href="/compliance" className="rounded-xl border border-line bg-panel px-5 py-3 flex items-center justify-between gap-4 hover:border-ink-400 transition-colors">
-        <span className="text-sm text-ink-400">
-          <span className="font-medium text-ink-100">EU AI Act readiness</span> — risk class for every AI, owners, key dates and your AI register.
-        </span>
-        <span className="text-sm text-accent shrink-0">Open AI Act →</span>
-      </Link>
 
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/governance?tab=${t.key}` }))} />
 

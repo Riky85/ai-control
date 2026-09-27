@@ -113,6 +113,28 @@ fn main() {
 
     // Setup: company (join code) and work email.
     let code = args.join.clone().or_else(install::join_code_from_file_name);
+    // Already set up and the person opened a new download: update (keep the
+    // link) or set it up again with another email / company.
+    let mut updating = false;
+    if !silent && !args.run && !args.once && args.join.is_none() && cfg.token.is_some() && cfg.email.is_some() {
+        let company = cfg.company.clone().unwrap_or_else(|| "your company".into());
+        let email = cfg.email.clone().unwrap_or_default();
+        match ui::choose(
+            &format!("angar is already set up on this computer.\n\nCompany: {company}\nEmail: {email}\n\nUpdate to version {VERSION} and keep these settings?"),
+            "Update",
+            "Set up again",
+        ) {
+            None => return,
+            Some(true) => updating = true,
+            Some(false) => {
+                // Start over: forget company and email, keep the history already sent.
+                cfg.token = None;
+                cfg.company = None;
+                cfg.email = None;
+                cfg.save();
+            }
+        }
+    }
     if cfg.token.is_none() || code.is_some() && args.join.is_some() {
         let Some(code) = code else {
             if !silent {
@@ -180,10 +202,14 @@ fn main() {
         // First launch from the download: install, start in the background, say so.
         match install::install_and_start() {
             Ok(()) => {
-                if !silent {
+                if !silent && updating {
+                    let company = cfg.company.clone().unwrap_or_else(|| "your company".into());
+                    let email = cfg.email.clone().unwrap_or_default();
+                    ui::message(&format!("angar updated to version {VERSION} ✓\n\nStill linked to {company} as {email}. It keeps running in the background.\n\nYou can close this window."));
+                } else if !silent {
                     let company = cfg.company.clone().unwrap_or_else(|| "your company".into());
                     let who = cfg.email.as_deref().map(|e| format!("\n\nSigned in as {e}.")).unwrap_or_default();
-                    ui::message(&format!("Welcome to angar 👋\n\nYou're all set — angar is now on and runs quietly in the background. It tells {company} which AI tools are used at work and for how long, so nobody pays for seats they don't need.\n\nIt only ever shares the names of AI tools and the time spent — never the pages you open, what you type, or anything else you do.{who}\n\nYou can close this window."));
+                    ui::message(&format!("Welcome to angar 👋 (version {VERSION})\n\nYou're all set — angar is now on and runs quietly in the background. It tells {company} which AI tools are used at work and for how long, so nobody pays for seats they don't need.\n\nIt only ever shares the names of AI tools and the time spent — never the pages you open, what you type, or anything else you do.{who}\n\nYou can close this window."));
                 }
                 return;
             }

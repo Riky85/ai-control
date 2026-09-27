@@ -1,4 +1,5 @@
 import Link from "next/link";
+import GovernanceNav from "@/components/GovernanceNav";
 import { currentOrgId } from "@/lib/org";
 import { readiness, suggestionFor, timeline, TIER_LABEL } from "@/lib/compliance";
 import { applySuggestedTierAction, applyAllSuggestionsAction, recordLiteracyAction } from "@/lib/compliance-actions";
@@ -35,6 +36,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
 
   return (
     <div className="flex flex-col gap-6">
+      <GovernanceNav active="/compliance" />
       <PageHeader
         title="AI Act"
         subtitle="EU AI Act readiness for every AI your company uses."

@@ -9,6 +9,7 @@ import AskDocs from "@/components/AskDocs";
 import SearchPalette from "@/components/SearchPalette";
 import ConnectedIndicator from "@/components/ConnectedIndicator";
 import AlertsBell from "@/components/AlertsBell";
+import ScrollReset from "@/components/ScrollReset";
 import { listDesktopDevices } from "@/lib/discovery/devices";
 import DocsButton from "@/components/DocsButton";
 import { DOCS } from "@/lib/docs";
@@ -81,7 +82,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`flex h-screen overflow-hidden bg-sidebar text-ink-100 font-body`}>
         <SearchPalette />
         <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={await isPlatformAdmin(session.email)} connectedComputers={connectedComputers} reviewCount={await db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } })} />
-        <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto [scrollbar-gutter:stable]">
+        <div id="app-scroll" className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto [scrollbar-gutter:stable]">
+          <ScrollReset targetId="app-scroll" />
           <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-12 pb-24">
             {/* Sempre nello stesso punto, in ogni pagina. */}
             <div className="absolute top-12 right-4 sm:right-6 lg:right-10 z-30 print:hidden flex items-center gap-2">
