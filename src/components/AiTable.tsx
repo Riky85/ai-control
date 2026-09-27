@@ -51,7 +51,7 @@ export default function AiTable({ assets, savings, empty }: { assets: AssetForSa
                 <span className="min-w-0">
                   <span className="flex items-center gap-2">
                     <span className="font-medium text-ink-100 group-hover:underline truncate">{a.name}</span>
-                    {isNew && <span className="text-[10px] font-medium text-accent border border-accent/40 rounded-full px-1.5 py-px">New</span>}
+                    {isNew && <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-accent bg-accent/10 rounded px-1.5 py-0.5 leading-none">New</span>}
                   </span>
                   <span className="block text-xs text-ink-400 truncate">{[a.vendor, cat ? CATEGORY_LABEL[cat] : null].filter(Boolean).join(" · ") || "—"}</span>
                 </span>

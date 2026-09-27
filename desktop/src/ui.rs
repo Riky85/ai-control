@@ -18,10 +18,19 @@ fn output(cmd: &mut Command) -> Option<(bool, String)> {
     Some((o.status.success(), String::from_utf8_lossy(&o.stdout).trim().to_string()))
 }
 
+#[cfg(windows)]
 pub fn message(text: &str) {
-    if cfg!(windows) {
-        let _ = output(Command::new("powershell").args(["-NoProfile", "-NonInteractive", "-Command", "Add-Type -AssemblyName System.Windows.Forms; [void][System.Windows.Forms.MessageBox]::Show($env:ANGAR_MSG, 'angar')"]).env("ANGAR_MSG", text));
-    } else if cfg!(target_os = "macos") {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_ICONINFORMATION, MB_OK, MB_SETFOREGROUND};
+    let wide = |s: &str| s.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
+    let (t, c) = (wide(text), wide("angar"));
+    unsafe {
+        MessageBoxW(std::ptr::null_mut(), t.as_ptr(), c.as_ptr(), MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND);
+    }
+}
+
+#[cfg(not(windows))]
+pub fn message(text: &str) {
+    if cfg!(target_os = "macos") {
         let _ = output(Command::new("osascript").args(["-e", "display dialog (system attribute \"ANGAR_MSG\") buttons {\"OK\"} default button 1 with title \"angar\""]).env("ANGAR_MSG", text));
     } else if output(Command::new("zenity").args(["--info", "--title=angar", "--no-wrap", &format!("--text={text}")])).is_none() {
         println!("{text}");

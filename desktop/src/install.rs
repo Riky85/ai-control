@@ -41,18 +41,15 @@ mod tests {
 
 /// Work email without asking, when the computer knows it.
 pub fn os_email(domain: Option<&str>) -> Option<String> {
-    if cfg!(windows) {
-        // Entra ID / Active Directory joined PCs: the sign-in name is the work email.
-        let mut cmd = Command::new("whoami");
-        cmd.arg("/upn");
-        #[cfg(windows)]
-        {
-            use std::os::windows::process::CommandExt;
-            cmd.creation_flags(0x0800_0000);
-        }
-        if let Ok(o) = cmd.output() {
-            let s = String::from_utf8_lossy(&o.stdout).trim().to_lowercase();
-            if o.status.success() && s.contains('@') && s.contains('.') {
+    #[cfg(windows)]
+    {
+        // Entra ID / Active Directory joined PCs: the sign-in name (UPN) is the work email.
+        use windows_sys::Win32::Security::Authentication::Identity::{GetUserNameExW, NameUserPrincipal};
+        let mut buf = [0u16; 512];
+        let mut len = buf.len() as u32;
+        if unsafe { GetUserNameExW(NameUserPrincipal, buf.as_mut_ptr(), &mut len) } != 0 {
+            let s = String::from_utf16_lossy(&buf[..len as usize]).trim().to_lowercase();
+            if s.contains('@') && s.contains('.') {
                 return Some(s);
             }
         }
@@ -86,7 +83,7 @@ pub fn install_and_start() -> Result<(), String> {
     }
     let t = target.display().to_string();
     if cfg!(windows) {
-        run(Command::new("reg").args(["add", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", "angar", "/t", "REG_SZ", "/d", &format!("\"{t}\" --run"), "/f"]))?;
+        set_run_key(Some(&format!("\"{t}\" --run")))?;
         spawn_background(&target)?;
     } else if cfg!(target_os = "macos") {
         let _ = Command::new("xattr").args(["-d", "com.apple.quarantine", &t]).output();
@@ -116,6 +113,22 @@ pub fn install_and_start() -> Result<(), String> {
     Ok(())
 }
 
+/// Start at sign-in: HKCU\\...\\Run (per user, no admin rights).
+#[cfg(windows)]
+fn set_run_key(value: Option<&str>) -> Result<(), String> {
+    use winreg::{enums::HKEY_CURRENT_USER, RegKey};
+    let (key, _) = RegKey::predef(HKEY_CURRENT_USER).create_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Run").map_err(|e| e.to_string())?;
+    match value {
+        Some(v) => key.set_value("angar", &v.to_string()).map_err(|e| e.to_string()),
+        None => key.delete_value("angar").map_err(|e| e.to_string()),
+    }
+}
+#[cfg(not(windows))]
+fn set_run_key(_value: Option<&str>) -> Result<(), String> {
+    Ok(())
+}
+
+#[allow(dead_code)]
 fn run(cmd: &mut Command) -> Result<(), String> {
     #[cfg(windows)]
     {
@@ -179,7 +192,7 @@ pub fn single_instance() -> bool {
 
 pub fn uninstall() {
     if cfg!(windows) {
-        let _ = run(Command::new("reg").args(["delete", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", "angar", "/f"]));
+        let _ = set_run_key(None);
     } else if cfg!(target_os = "macos") {
         if let Some(h) = dirs::home_dir() {
             let p = h.join("Library/LaunchAgents").join(format!("{LAUNCH_AGENT}.plist"));

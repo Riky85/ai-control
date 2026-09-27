@@ -143,7 +143,7 @@ fn main() {
     }
     if cfg.email.is_none() && !silent {
         let company = cfg.company.clone().unwrap_or_else(|| "your company".into());
-        let mut prompt = format!("angar tells {company} which AI tools are used at work — only AI names and time, never what you write.\n\nYour work email:");
+        let mut prompt = format!("Welcome to angar 👋\n\n{company} uses angar to see which AI tools are used at work — only the AI names and the time spent, never what you type.\n\nEnter your work email to finish:");
         loop {
             match ui::ask(&prompt, "") {
                 None => std::process::exit(0),
@@ -182,7 +182,8 @@ fn main() {
             Ok(()) => {
                 if !silent {
                     let company = cfg.company.clone().unwrap_or_else(|| "your company".into());
-                    ui::message(&format!("angar is on.\n\nIt runs in the background and tells {company} which AI tools you use and for how long — never pages, prompts or anything you write.\n\nYou can close this window."));
+                    let who = cfg.email.as_deref().map(|e| format!("\n\nSigned in as {e}.")).unwrap_or_default();
+                    ui::message(&format!("Welcome to angar 👋\n\nYou're all set — angar is now on and runs quietly in the background. It tells {company} which AI tools are used at work and for how long, so nobody pays for seats they don't need.\n\nIt only ever shares the names of AI tools and the time spent — never the pages you open, what you type, or anything else you do.{who}\n\nYou can close this window."));
                 }
                 return;
             }

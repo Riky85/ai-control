@@ -1,8 +1,10 @@
 [package]
 name = "angar"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
-description = "angar desktop agent: tells your company which AI tools are used at work (names and time only)."
+description = "angar - AI usage for your company"
+authors = ["angar"]
+build = "build.rs"
 license = "Proprietary"
 
 [[bin]]
@@ -23,3 +25,12 @@ lto = true
 codegen-units = 1
 strip = true
 panic = "abort"
+
+# Windows: native APIs instead of child processes (reg.exe, PowerShell, whoami),
+# so the app doesn't look like a script dropper to antivirus heuristics.
+[target.'cfg(windows)'.dependencies]
+winreg = "0.52"
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_Security_Authentication_Identity", "Win32_System_Threading"] }
+
+[build-dependencies]
+winresource = "0.1"
