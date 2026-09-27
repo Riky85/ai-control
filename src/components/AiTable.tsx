@@ -41,7 +41,8 @@ export default function AiTable({ assets, savings, empty }: { assets: AssetForSa
           seats && a.usages.length ? `${active} of ${seats} active` : seats ? `${seats} paid · usage unknown` : a.usages.length ? `${a.usages.length}` : "—";
         const s = save.get(a.id);
         const couldSave = s === FULL ? m?.eur ?? 0 : Math.min(s ?? 0, m?.eur ?? Infinity);
-        const isNew = now - a.firstSeenAt.getTime() < 30 * DAY;
+        // "New" = trovata da angar e non ancora decisa: sparisce appena la approvi o la segni come non consentita.
+        const isNew = a.status === "UNKNOWN" || a.status === "UNREVIEWED";
         const needsDecision = a.status === "UNKNOWN" || a.status === "UNREVIEWED";
         return (
           <tr key={a.id} className="hover:bg-ink-100/[0.02] transition-colors">
@@ -51,7 +52,11 @@ export default function AiTable({ assets, savings, empty }: { assets: AssetForSa
                 <span className="min-w-0">
                   <span className="flex items-center gap-2">
                     <span className="font-medium text-ink-100 group-hover:underline truncate">{a.name}</span>
-                    {isNew && <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-accent bg-accent/10 rounded px-1.5 py-0.5 leading-none">New</span>}
+                    {isNew && (
+                      <span title="Found automatically — not reviewed yet. Approve it or mark it not allowed in Review." className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-accent bg-accent/10 rounded px-1.5 py-0.5 leading-none">
+                        New
+                      </span>
+                    )}
                   </span>
                   <span className="block text-xs text-ink-400 truncate">{[a.vendor, cat ? CATEGORY_LABEL[cat] : null].filter(Boolean).join(" · ") || "—"}</span>
                 </span>
