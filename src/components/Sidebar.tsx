@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { signOutAction } from "@/lib/auth-actions";
 import Logo, { Wordmark } from "./Logo";
+import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 import WorkspaceSwitcher, { type WorkspaceOption } from "./WorkspaceSwitcher";
 
 // Icone minimali, un solo stroke-width, coerenti tra loro — niente set di
@@ -99,7 +100,6 @@ const MORE_ITEMS = [
 
 // Stato aperta/chiusa in un cookie: il server lo legge e rende subito la
 // sidebar nello stato giusto, senza flash al refresh.
-export const SIDEBAR_COOKIE = "angar_sidebar";
 
 // Sidebar in stile Claude Console: nome del prodotto in serif, selettore
 // organizzazione, ricerca con scorciatoia, voci principali, gruppo "More"
