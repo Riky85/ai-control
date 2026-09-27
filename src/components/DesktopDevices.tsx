@@ -18,13 +18,20 @@ export default async function DesktopDevices({ organizationId, compact = false }
   const online = devices.filter((d) => d.online).length;
 
   return (
-    <section className="rounded-xl border border-line bg-panel overflow-hidden">
-      <div className="px-5 pt-4 pb-3 flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-semibold text-ink-100">Computers with the app</h2>
-          <p className="text-sm text-ink-400">{online > 0 ? `${online} connected and sending data` : "Installed — waiting for the next update"}</p>
+    <section className={`rounded-xl border bg-panel overflow-hidden ${online > 0 ? "border-steady/40" : "border-line"}`}>
+      <div className="px-5 pt-4 pb-3 flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold text-ink-100">Connected computers</h2>
+          <p className="text-sm text-ink-400">People sending AI usage to angar right now.</p>
         </div>
-        <span className="text-sm tabular text-ink-400">{devices.length} {devices.length === 1 ? "computer" : "computers"}</span>
+        {online > 0 ? (
+          <span className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-steady bg-steady/10 rounded-full px-2.5 py-1">
+            <span className="h-2 w-2 rounded-full bg-steady animate-pulse" />
+            {online} connected
+          </span>
+        ) : (
+          <span className="shrink-0 text-sm tabular text-ink-400">{devices.length} installed · waiting</span>
+        )}
       </div>
       <div className="divide-y divide-line border-t border-line">
         {devices.map((d) => (

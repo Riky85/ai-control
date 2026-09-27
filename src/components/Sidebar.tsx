@@ -23,7 +23,11 @@ function Icon({ name }: { name: string }) {
     case "data":
       return <svg {...common}><ellipse {...stroke} cx="9" cy="4" rx="5.5" ry="1.8" /><path {...stroke} d="M3.5 4v10c0 1 2.5 1.8 5.5 1.8s5.5-.8 5.5-1.8V4" /><path {...stroke} d="M3.5 9c0 1 2.5 1.8 5.5 1.8s5.5-.8 5.5-1.8" /></svg>;
     case "savings":
-      return <svg {...common}><path {...stroke} d="M2.5 5.5l4.5 4.5 3-3 5.5 5.5" /><path {...stroke} d="M11.5 12.5h4v-4" /></svg>;
+      // Segno di percentuale: sconto / spesa che scende. Inequivocabile.
+      return <svg {...common}><path {...stroke} d="M4 14L14 4" /><circle {...stroke} cx="5.2" cy="5.2" r="1.6" /><circle {...stroke} cx="12.8" cy="12.8" r="1.6" /></svg>;
+    case "review":
+      // Occhio: "guarda / rivedi ciò che abbiamo trovato".
+      return <svg {...common}><path {...stroke} d="M1.8 9S4.4 4.3 9 4.3 16.2 9 16.2 9 13.6 13.7 9 13.7 1.8 9 1.8 9z" /><circle {...stroke} cx="9" cy="9" r="2.1" /></svg>;
     case "report":
       return <svg {...common}><rect {...stroke} x="3" y="2.5" width="12" height="13" rx="1.5" /><path {...stroke} d="M6 12.5v-2.5M9 12.5V7.5M12 12.5v-4" /></svg>;
     case "billing":
@@ -74,7 +78,7 @@ const PRIMARY_ITEMS = [
   { href: "/", label: "Overview", icon: "home" },
   { href: "/savings", label: "Savings", icon: "savings" },
   { href: "/usage", label: "Usage", icon: "usage" },
-  { href: "/review", label: "Review", icon: "approvals" },
+  { href: "/review", label: "Review", icon: "review" },
   { href: "/sources", label: "Sources", icon: "connectors" },
 ];
 
@@ -120,20 +124,11 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setCollapsed(false);
-        setTimeout(() => document.getElementById("sidebar-search")?.focus(), 50);
-      }
-    };
     const onClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
     };
-    window.addEventListener("keydown", onKey);
     window.addEventListener("mousedown", onClick);
     return () => {
-      window.removeEventListener("keydown", onKey);
       window.removeEventListener("mousedown", onClick);
     };
   }, []);
@@ -190,21 +185,18 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
       {!collapsed && (
         <>
           {workspace && <WorkspaceSwitcher {...workspace} />}
-          <form action="/search" method="GET" className="mb-4">
-            <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/[0.12] text-[#A3A19C] focus-within:border-white/30">
-              <svg width="15" height="15" viewBox="0 0 14 14" fill="none" className="shrink-0">
-                <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.3" />
-                <path d="M9.2 9.2L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-              </svg>
-              <input
-                id="sidebar-search"
-                name="q"
-                placeholder="Search AI systems…"
-                className="flex-1 min-w-0 bg-transparent text-sm text-white placeholder:text-[#8A8884] outline-none"
-              />
-              <kbd className="text-[10px] text-[#A3A19C] border border-white/[0.15] rounded px-1 shrink-0">Ctrl K</kbd>
-            </label>
-          </form>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("angar:search-open"))}
+            className="mb-4 w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-white/[0.12] text-[#A3A19C] hover:border-white/30 transition-colors"
+          >
+            <svg width="15" height="15" viewBox="0 0 14 14" fill="none" className="shrink-0">
+              <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.3" />
+              <path d="M9.2 9.2L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            </svg>
+            <span className="flex-1 min-w-0 text-left text-sm text-[#8A8884]">Search…</span>
+            <kbd className="text-[10px] text-[#A3A19C] border border-white/[0.15] rounded px-1 shrink-0">Ctrl K</kbd>
+          </button>
         </>
       )}
 

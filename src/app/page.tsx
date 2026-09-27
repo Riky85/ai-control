@@ -11,12 +11,23 @@ import { aiFilters, filterAssets, type AiFilterParams } from "@/lib/ai-filters";
 import FilterBar from "@/components/FilterBar";
 import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
+import { currentSession } from "@/lib/auth";
+import DesktopDevices from "@/components/DesktopDevices";
 
 export const dynamic = "force-dynamic";
+
+// "Welcome, Riccardo" / "Good morning, Riccardo" a seconda dell'ora di Roma.
+function greeting(name?: string | null) {
+  const h = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hour12: false }).format(new Date()));
+  const part = h < 5 ? "Good night" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  const first = name?.trim().split(/\s+/)[0];
+  return first ? `${part}, ${first}` : "Welcome to angar";
+}
 
 // Home = i numeri (cliccabili), l'andamento nel tempo e la tabella delle AI.
 export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string; spend?: string } & AiFilterParams }) {
   const orgId = currentOrgId();
+  const session = currentSession();
   const [org, { items: savings, totalMonthly: canSave, assets }, all, broken, toReview] = await Promise.all([
     db.organization.findUnique({ where: { id: orgId } }),
     computeSavings(orgId),
@@ -62,7 +73,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Overview" subtitle={`${org?.name ?? ""} — your AI at a glance.`} action={
+      <PageHeader title={greeting(session?.name)} subtitle={`${org?.name ?? ""} — your AI at a glance.`} action={
           assets.length ? (
             <div className="flex items-center gap-2">
               <a href="/api/export/register" className="btn btn-secondary" title="AI register for the EU AI Act and GDPR records (Excel)">AI register</a>
@@ -109,6 +120,8 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         </div>
       ) : (
         <>
+          <DesktopDevices organizationId={orgId} compact />
+
           <div className="grid grid-cols-4 gap-4">
             <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} found by the scan to decide` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} tone="accent" href={toReview ? "/review" : "/providers"} />
             <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (org?.employees ? `${fmtEur(spend / org.employees, { decimals: true })} per employee` : estimated ? `${estimated} estimated from list prices` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
