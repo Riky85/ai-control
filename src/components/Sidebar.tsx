@@ -116,7 +116,7 @@ export interface SidebarWorkspaceProps {
   limit: number | null;
 }
 
-export default function Sidebar({ initialCollapsed = false, orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0 }: { initialCollapsed?: boolean; orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number }) {
+export default function Sidebar({ initialCollapsed = false, orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0, connectedComputers = 0 }: { initialCollapsed?: boolean; orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number; connectedComputers?: number }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [moreOpen, setMoreOpen] = useState(true);
@@ -238,6 +238,23 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
             </Link>
           ))}
       </nav>
+
+      <Link
+        href="/computers"
+        title={collapsed ? `${connectedComputers} connected` : undefined}
+        className={`mt-2 flex items-center rounded-lg text-[13px] transition-colors ${collapsed ? "justify-center h-9 w-9 mx-auto" : "gap-2.5 px-3 py-2"} ${connectedComputers > 0 ? "text-[#C8C6C1] hover:text-white hover:bg-white/[0.05]" : "text-[#8A8884] hover:text-white hover:bg-white/[0.05]"}`}
+      >
+        <span className="relative shrink-0">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+            <rect x="2" y="3" width="14" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+            <path d="M6.5 15h5M9 12v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+          <span className={`absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full ring-2 ring-sidebar ${connectedComputers > 0 ? "bg-steady" : "bg-[#8A8884]"}`} />
+        </span>
+        {!collapsed && (
+          <span className="flex-1 min-w-0 truncate">{connectedComputers > 0 ? `${connectedComputers} computer${connectedComputers === 1 ? "" : "s"} connected` : "No computer connected"}</span>
+        )}
+      </Link>
 
       <div className="mt-3 pt-3 border-t border-white/[0.08] flex flex-col gap-0.5">
         <div ref={menuRef} className="relative">

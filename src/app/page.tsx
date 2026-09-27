@@ -12,7 +12,6 @@ import FilterBar from "@/components/FilterBar";
 import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
-import DesktopDevices from "@/components/DesktopDevices";
 import SetupWizard from "@/components/SetupWizard";
 
 export const dynamic = "force-dynamic";
@@ -134,7 +133,6 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       ) : (
         <>
           <SetupWizard steps={wizardSteps} />
-          <DesktopDevices organizationId={orgId} compact />
 
           <div className="grid grid-cols-4 gap-4">
             <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} found by the scan to decide` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} tone="accent" href={toReview ? "/review" : "/providers"} />

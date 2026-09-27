@@ -7,6 +7,8 @@ import Sidebar, { type SidebarWorkspaceProps } from "@/components/Sidebar";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 import AskDocs from "@/components/AskDocs";
 import SearchPalette from "@/components/SearchPalette";
+import ConnectedIndicator from "@/components/ConnectedIndicator";
+import { listDesktopDevices } from "@/lib/discovery/devices";
 import DocsButton from "@/components/DocsButton";
 import { DOCS } from "@/lib/docs";
 import { planById } from "@/lib/plans";
@@ -51,6 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (!member) redirect("/api/auth/signout?reason=" + encodeURIComponent("You no longer have access to that workspace."));
 
   const org = await db.organization.findUnique({ where: { id: session.orgId } });
+  const connectedComputers = (await listDesktopDevices(session.orgId)).filter((d) => d.online).length;
   const memberships = await db.workspaceMember.findMany({ where: { email: session.email }, include: { organization: { select: { id: true, name: true } } }, orderBy: { invitedAt: "asc" } });
   const plan = planById(org?.plan ?? "STARTER");
   const workspace: SidebarWorkspaceProps = {
@@ -66,11 +69,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {head}
       <body className={`flex h-screen overflow-hidden bg-sidebar text-ink-100 font-body`}>
         <SearchPalette />
-        <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={await isPlatformAdmin(session.email)} reviewCount={await db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } })} />
+        <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={await isPlatformAdmin(session.email)} connectedComputers={connectedComputers} reviewCount={await db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } })} />
         <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto [scrollbar-gutter:stable]">
           <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-10 pt-8 pb-24">
             {/* Sempre nello stesso punto, in ogni pagina. */}
-            <div className="absolute top-8 right-10 z-30 print:hidden">
+            <div className="absolute top-8 right-10 z-30 print:hidden flex items-center gap-2">
+              <ConnectedIndicator organizationId={session.orgId} />
               <DocsButton />
             </div>
             {children}

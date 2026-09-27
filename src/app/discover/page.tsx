@@ -193,7 +193,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
               </p>
             </div>
           </div>
-          <Link href="/billing#edge" className="btn btn-secondary self-start mt-auto">Request a device</Link>
+          <Link href="/edge" className="btn btn-secondary self-start mt-auto">Learn about Edge</Link>
         </section>
       </div>
 

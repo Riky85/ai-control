@@ -24,6 +24,9 @@ export const NAV_PAGES: NavPage[] = [
   { href: "/settings", label: "Settings", keywords: "preferences theme account configuration" },
   { href: "/docs", label: "Documentation", keywords: "help guide how to docs" },
   { href: "/pricing", label: "Pricing", keywords: "plans price cost tiers compare" },
+  { href: "/edge", label: "angar Edge", keywords: "device hardware network sensor dns appliance box always on" },
+  { href: "/computers", label: "Connected computers", keywords: "devices desktop app installed status connected agents" },
+  { href: "/download", label: "Download the app", keywords: "install desktop app agent get windows mac" },
 ];
 
 /**
