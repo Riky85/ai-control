@@ -139,6 +139,27 @@ model Organization {
 
   spendRecords     SpendRecord[]
   savingDismissals SavingDismissal[]
+  desktopDevices   DesktopDevice[]
+}
+
+// Un computer su cui è installata l'app desktop angar. Serve a mostrare, sulla
+// piattaforma, che l'app è collegata e sta inviando dati (chi, quale sistema,
+// quale versione, ultimo contatto). Chiave = azienda + host + email.
+model DesktopDevice {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deviceKey      String // host normalizzato + email, univoco per azienda
+  host           String
+  email          String?
+  os             String?
+  appVersion     String?
+  aiCount        Int          @default(0)
+  syncCount      Int          @default(0)
+  firstSeenAt    DateTime     @default(now())
+  lastSeenAt     DateTime     @default(now())
+
+  @@unique([organizationId, deviceKey])
 }
 
 model User {

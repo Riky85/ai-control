@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ingestFindings, orgForToken, type Finding } from "@/lib/discovery/ingest";
+import { recordDesktopDevice } from "@/lib/discovery/devices";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,7 @@ export async function POST(req: Request) {
   if (!org) return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   const raw = await req.text();
   if (raw.length > 500_000) return NextResponse.json({ error: "Too much data." }, { status: 413 });
-  let body: { user?: string | null; findings?: Finding[]; source?: string; device?: string };
+  let body: { user?: string | null; findings?: Finding[]; source?: string; device?: string; os?: string; version?: string };
   try {
     body = JSON.parse(raw);
   } catch {
@@ -23,5 +24,7 @@ export async function POST(req: Request) {
   const findings = (Array.isArray(body.findings) ? body.findings : []).filter((f) => f && kinds.includes(f.kind)).slice(0, 2000);
   const device = desktop ? (typeof body.device === "string" && body.device.trim() ? body.device.trim().slice(0, 120) : "Desktop app") : "Browser extension";
   const systems = await ingestFindings(org.id, device, findings, email, desktop ? "desktop" : "extension");
+  // Ricorda il computer, così l'utente vede sulla piattaforma che l'app è collegata.
+  if (desktop) await recordDesktopDevice(org.id, { device, email, os: body.os, version: body.version, aiCount: systems.length });
   return NextResponse.json({ ok: true, systems });
 }

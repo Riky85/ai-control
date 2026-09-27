@@ -22,6 +22,20 @@ export function fmtDateTime(d: DateInput) {
   return x ? `${dateFmt.format(x)}, ${timeFmt.format(x)}` : "—";
 }
 
+/** "just now", "3 min ago", "2 h ago", "yesterday", altrimenti la data. */
+export function fmtAgo(d: DateInput) {
+  const x = toDate(d);
+  if (!x) return "—";
+  const s = Math.max(0, (Date.now() - x.getTime()) / 1000);
+  if (s < 90) return "just now";
+  const m = s / 60;
+  if (m < 60) return `${Math.round(m)} min ago`;
+  const h = m / 60;
+  if (h < 24) return `${Math.round(h)} h ago`;
+  if (h < 48) return "yesterday";
+  return fmtDate(x);
+}
+
 /** Euro senza decimali (o con, per importi piccoli): €1,234 · €24.40 */
 export function fmtEur(n: number, opts: { decimals?: boolean } = {}) {
   n = Math.round(n * 100) / 100;

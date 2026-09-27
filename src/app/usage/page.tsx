@@ -5,6 +5,7 @@ import { PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
 import FilterBar from "@/components/FilterBar";
 import { VendorBadge } from "@/components/VendorIcon";
 import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
+import DesktopDevices from "@/components/DesktopDevices";
 
 export const dynamic = "force-dynamic";
 

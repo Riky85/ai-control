@@ -12,6 +12,7 @@ import CsvDropzone from "@/components/CsvDropzone";
 import { uploadNetworkLogAction, revokeDiscoveryTokenAction } from "@/lib/discovery-actions";
 import { fmtDateTime } from "@/lib/format";
 import { DESKTOP_OS_LABEL, osFromUserAgent, type DesktopOs } from "@/lib/desktop";
+import DesktopDevices from "@/components/DesktopDevices";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +124,8 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
           </div>
         </details>
       </section>
+
+      <DesktopDevices organizationId={s.orgId} />
 
       <details className="group rounded-xl border border-line bg-panel">
         <summary className="cursor-pointer list-none px-5 py-4 flex items-center justify-between select-none">
