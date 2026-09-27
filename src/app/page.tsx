@@ -13,6 +13,7 @@ import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
 import DesktopDevices from "@/components/DesktopDevices";
+import SetupWizard from "@/components/SetupWizard";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,18 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
     db.connector.count({ where: { organizationId: orgId, status: "ERROR", credentialsEncrypted: { not: null }, provider: { notIn: ["NETWORK"] } } }),
     db.aiAsset.count({ where: { organizationId: orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } }),
   ]);
+  // Stato del wizard di avvio: costi collegati, uso rilevato, team invitato.
+  const [spendCount, devicesCount, memberCount] = await Promise.all([
+    db.spendRecord.count({ where: { organizationId: orgId } }),
+    db.desktopDevice.count({ where: { organizationId: orgId } }),
+    db.workspaceMember.count({ where: { organizationId: orgId } }),
+  ]);
+  const wizardSteps = [
+    { key: "costs", title: "See what you pay for AI", desc: "Drop a bank statement or connect your bank — angar lists every AI subscription and cost.", href: "/sources", cta: "Add costs", done: spendCount > 0 },
+    { key: "usage", title: "See who really uses each AI", desc: "Install the desktop app on your computers to see real usage and unused paid seats.", href: "/download", cta: "Get the app", done: devicesCount > 0 },
+    { key: "team", title: "Invite your team", desc: "Add colleagues so usage is counted per person across the company.", href: "/workspace", cta: "Invite", done: memberCount > 1 },
+  ];
+
   const costed = assets.map((a) => monthlyOf(a)).filter((m): m is NonNullable<typeof m> => !!m && m.eur > 0);
   const spend = costed.reduce((s, m) => s + m.eur, 0);
   const estimated = costed.filter((m) => m.estimated).length;
@@ -120,6 +133,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         </div>
       ) : (
         <>
+          <SetupWizard steps={wizardSteps} />
           <DesktopDevices organizationId={orgId} compact />
 
           <div className="grid grid-cols-4 gap-4">
