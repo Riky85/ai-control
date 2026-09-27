@@ -208,7 +208,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
         </>
       )}
 
-      <nav className="flex flex-col gap-0.5 overflow-y-auto flex-1 min-h-0">
+      <nav className={`flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden flex-1 min-h-0 ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>
         {PRIMARY_ITEMS.filter((item) => item.href !== "/review" || reviewCount > 0 || isActive("/review")).map((item) => (
           <Link
             key={item.href}
