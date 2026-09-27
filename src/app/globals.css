@@ -19,7 +19,9 @@
   --c-node-strong: 189 189 198;
   --c-alarm-soft: 253 241 240;
 }
-html.dark {
+/* .force-dark: pagine sempre scure a prescindere dal tema (accesso, registrazione). */
+html.dark,
+.force-dark {
   color-scheme: dark;
   --c-subtle: 40 43 48;
   --c-text: 237 237 239;

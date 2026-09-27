@@ -71,9 +71,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SearchPalette />
         <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={await isPlatformAdmin(session.email)} connectedComputers={connectedComputers} reviewCount={await db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } })} />
         <div className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto [scrollbar-gutter:stable]">
-          <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-10 pt-8 pb-24">
+          <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-10 pt-12 pb-24">
             {/* Sempre nello stesso punto, in ogni pagina. */}
-            <div className="absolute top-8 right-10 z-30 print:hidden flex items-center gap-2">
+            <div className="absolute top-12 right-10 z-30 print:hidden flex items-center gap-2">
               <ConnectedIndicator organizationId={session.orgId} />
               <DocsButton />
             </div>

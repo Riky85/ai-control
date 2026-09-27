@@ -1,34 +1,34 @@
 import Link from "next/link";
-import AuthShell, { authInput } from "@/components/AuthShell";
+import AuthShell, { authInput, authButton } from "@/components/AuthShell";
 import { signUpAction } from "@/lib/auth-actions";
 
 export const dynamic = "force-dynamic";
 
 export default function SignupPage({ searchParams }: { searchParams: { error?: string; email?: string; name?: string; company?: string } }) {
   return (
-    <AuthShell title="Create your account" subtitle="If you were invited, use the same email and you'll join that workspace.">
-      <form action={signUpAction} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1.5 text-sm text-ink-100">
+    <AuthShell title="Create your account" subtitle="See every AI your company uses in minutes. Invited? Use the same email to join that workspace.">
+      <form action={signUpAction} className="flex flex-col gap-4">
+        <label className="flex flex-col gap-2 text-sm text-ink-400">
           Full name
           <input name="name" required autoComplete="name" defaultValue={searchParams.name} className={authInput} />
         </label>
-        <label className="flex flex-col gap-1.5 text-sm text-ink-100">
+        <label className="flex flex-col gap-2 text-sm text-ink-400">
           Work email
           <input name="email" type="email" required autoComplete="email" defaultValue={searchParams.email} className={authInput} />
         </label>
-        <label className="flex flex-col gap-1.5 text-sm text-ink-100">
+        <label className="flex flex-col gap-2 text-sm text-ink-400">
           Company
           <input name="company" autoComplete="organization" defaultValue={searchParams.company} placeholder="Not needed if you were invited" className={authInput} />
         </label>
-        <label className="flex flex-col gap-1.5 text-sm text-ink-100">
+        <label className="flex flex-col gap-2 text-sm text-ink-400">
           Password
           <input name="password" type="password" required minLength={10} autoComplete="new-password" placeholder="At least 10 characters, letters and numbers" className={authInput} />
         </label>
-        {searchParams.error && <p className="text-sm text-alarm">{searchParams.error}</p>}
-        <button className="btn btn-primary w-full mt-2">Create account</button>
+        {searchParams.error && <p className="rounded-xl bg-alarm/10 px-3.5 py-2.5 text-sm text-alarm">{searchParams.error}</p>}
+        <button className={`${authButton} mt-1`}>Create account</button>
       </form>
-      <p className="text-sm text-ink-400 mt-5 text-center">
-        Already have an account? <Link href="/login" className="text-ink-100 font-medium underline">Sign in</Link>
+      <p className="text-sm text-ink-400 mt-8">
+        Already have an account? <Link href="/login" className="text-ink-100 font-medium hover:underline">Sign in</Link>
       </p>
     </AuthShell>
   );

@@ -15,11 +15,11 @@ export function StatCard({
   tone?: "signal" | "alarm" | "accent";
 }) {
   const color = tone === "accent" ? "text-accent" : "text-ink-100";
-  const dot = tone === "signal" ? "bg-signal" : tone === "alarm" ? "bg-alarm" : null;
+  const dot = tone === "signal" ? "bg-signal ring-signal/25" : tone === "alarm" ? "bg-alarm ring-alarm/25" : null;
   const inner = (
     <>
-      <div className="text-sm text-ink-400 flex items-center gap-1.5">
-        {dot && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />}
+      <div className="text-sm text-ink-400 flex items-center gap-2">
+        {dot && <span className={`h-2.5 w-2.5 shrink-0 rounded-full ring-4 ${dot}`} />}
         {label}
       </div>
       <div>
