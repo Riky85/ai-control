@@ -20,10 +20,10 @@ export default function Logo({ size = 18, className }: { size?: number; classNam
 }
 
 /** Logo + nome: usato nelle intestazioni. */
-export function Wordmark({ size = 18, className = "" }: { size?: number; className?: string }) {
+export function Wordmark({ size = 18, logoSize, className = "" }: { size?: number; logoSize?: number; className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
-      <Logo size={size} />
+      <Logo size={logoSize ?? size} />
       <span className="font-brand leading-none tracking-tight" style={{ fontSize: size + 2 }}>angar</span>
     </span>
   );

@@ -97,9 +97,9 @@ const MORE_ITEMS = [
   { href: "/activity", label: "Activity", icon: "activity" },
 ];
 
-// Chiave nuova: chi aveva la sidebar chiusa con la versione precedente la
-// ritrova aperta (default richiesto), poi la sua scelta viene ricordata.
-const STORAGE_KEY = "angar:sidebar-collapsed-v2";
+// Stato aperta/chiusa in un cookie: il server lo legge e rende subito la
+// sidebar nello stato giusto, senza flash al refresh.
+export const SIDEBAR_COOKIE = "angar_sidebar";
 
 // Sidebar in stile Claude Console: nome del prodotto in serif, selettore
 // organizzazione, ricerca con scorciatoia, voci principali, gruppo "More"
@@ -112,21 +112,14 @@ export interface SidebarWorkspaceProps {
   limit: number | null;
 }
 
-export default function Sidebar({ orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0 }: { orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number }) {
+export default function Sidebar({ initialCollapsed = false, orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0 }: { initialCollapsed?: boolean; orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [moreOpen, setMoreOpen] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      setCollapsed(window.localStorage.getItem(STORAGE_KEY) === "1");
-    } catch {
-      // localStorage non disponibile: resta aperta.
-    }
-    setReady(true);
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -148,11 +141,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
   function toggle() {
     setCollapsed((prev) => {
       const next = !prev;
-      try {
-        window.localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
-      } catch {
-        // best-effort
-      }
+      document.cookie = `${SIDEBAR_COOKIE}=${next ? "1" : "0"}; path=/; max-age=31536000; samesite=lax`;
       return next;
     });
   }
@@ -164,20 +153,20 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
     href === "/" ? pathname === "/" || pathname.startsWith("/assets") : href === "/sources" ? ["/sources", "/connectors", "/discover"].some((p) => pathname.startsWith(p)) : pathname.startsWith(href);
   function itemClass(active: boolean, sub = false) {
     return `flex items-center gap-3 text-[15px] transition-colors rounded-lg ${
-      collapsed ? "justify-center px-0 py-2.5" : sub ? "pl-11 pr-3 py-1.5" : "px-3 py-2"
+      collapsed ? "justify-center h-10 w-10 mx-auto shrink-0" : sub ? "pl-11 pr-3 py-1.5" : "px-3 py-2"
     } ${active ? "text-white bg-white/[0.09] font-medium" : "text-[#C8C6C1] hover:text-white hover:bg-white/[0.05]"}`;
   }
 
   return (
     <aside
       className={`shrink-0 bg-sidebar border-r border-white/[0.08] h-full py-3 flex flex-col transition-[width] duration-150 ${
-        collapsed ? "w-[68px] px-2.5" : "w-64 px-3"
-      } ${ready ? "" : "invisible"}`}
+        collapsed ? "w-[60px] px-2.5" : "w-64 px-3"
+      }`}
     >
       {collapsed ? (
-        <button onClick={toggle} aria-label="Expand sidebar" className="group relative h-9 w-9 mx-auto mb-4 flex items-center justify-center rounded-lg hover:bg-white/[0.08] transition-colors">
+        <button onClick={toggle} aria-label="Expand sidebar" className="group relative h-10 w-10 mx-auto mb-4 flex items-center justify-center rounded-lg hover:bg-white/[0.08] transition-colors">
           <span className="text-white transition-opacity group-hover:opacity-0">
-            <Logo size={16} />
+            <Logo size={20} />
           </span>
           <span className="absolute inset-0 flex items-center justify-center text-[#A3A19C] opacity-0 group-hover:opacity-100 group-hover:text-white transition-opacity">
             <PanelToggleIcon />
@@ -186,7 +175,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
       ) : (
         <div className="flex items-center mb-4 px-2">
           <Link href="/" className="text-white" aria-label="angar home">
-            <Wordmark size={16} />
+            <Wordmark size={16} logoSize={20} />
           </Link>
           <button
             onClick={toggle}
@@ -281,7 +270,7 @@ export default function Sidebar({ orgName, workspace, userName, userEmail, platf
           <button
             onClick={() => setMenuOpen((v) => !v)}
             aria-expanded={menuOpen}
-            className={`w-full flex items-center gap-3 rounded-lg hover:bg-white/[0.05] transition-colors ${menuOpen ? "bg-white/[0.05]" : ""} ${collapsed ? "justify-center py-1.5" : "px-2 py-2"}`}
+            className={`w-full flex items-center gap-3 rounded-lg hover:bg-white/[0.05] transition-colors ${menuOpen ? "bg-white/[0.05]" : ""} ${collapsed ? "justify-center py-1" : "px-2 py-2"}`}
           >
             <span className="h-9 w-9 rounded-lg bg-white/[0.08] flex items-center justify-center text-sm text-white shrink-0">
               {(userName ?? orgName ?? "A").charAt(0).toUpperCase()}
