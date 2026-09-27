@@ -1,18 +1,8 @@
-// Avvio del server (solo runtime Node): gli errori che Next registra con
-// console.error e le eccezioni non gestite finiscono anche nel registro
-// errori visibile nella pagina System. Restano comunque nei log di Railway.
+// Avvio del server: solo nel runtime Node si caricano registro errori e
+// scheduler (il confronto su NEXT_RUNTIME viene risolto in compilazione, così
+// il bundle edge non include moduli Node).
 export async function register() {
-  if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  const { recordError } = await import("@/lib/errors");
-  const original = console.error.bind(console);
-  console.error = (...args: unknown[]) => {
-    original(...args);
-    const err = args.find((a) => a instanceof Error);
-    if (err) void recordError("server", err);
-  };
-  process.on("unhandledRejection", (reason) => void recordError("server", reason));
-  process.on("uncaughtException", (err) => void recordError("server", err));
-  // Lavori periodici (rinnovi, posti, budget, costi, report, riepilogo Slack/Teams).
-  const { startScheduler } = await import("@/lib/jobs");
-  startScheduler();
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("./instrumentation-node");
+  }
 }
