@@ -1,0 +1,25 @@
+[package]
+name = "angar"
+version = "0.1.0"
+edition = "2021"
+description = "angar desktop agent: tells your company which AI tools are used at work (names and time only)."
+license = "Proprietary"
+
+[[bin]]
+name = "angar"
+path = "src/main.rs"
+
+[dependencies]
+rusqlite = { version = "0.32", features = ["bundled"] }
+ureq = { version = "2", default-features = false, features = ["tls", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "5"
+sysinfo = { version = "0.32", default-features = false, features = ["system"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

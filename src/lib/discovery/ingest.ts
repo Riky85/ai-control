@@ -9,6 +9,7 @@ export interface Finding {
   kind: "domain" | "app" | "env" | "port";
   value: string;
   hits?: number;
+  minutes?: number; // tempo d'uso stimato (app desktop)
   lastSeen?: string;
   via?: string; // "browser history", "dns cache", "dns log", "installed app"…
 }
@@ -44,8 +45,11 @@ export function domainsFromText(text: string): Finding[] {
  * Trasforma ciò che lo scanner (o un log) ha visto in sistemi AI.
  * Tutto ciò che arriva da qui parte "da rivedere": nessuno lo ha dichiarato.
  */
-export async function ingestFindings(organizationId: string, device: string, findings: Finding[], userEmail?: string | null) {
-  const byService = new Map<string, { svc: AiService; hits: number; evidence: Set<string>; last?: Date }>();
+export async function ingestFindings(organizationId: string, device: string, findings: Finding[], userEmail?: string | null, source: "extension" | "desktop" | "scanner" = "extension") {
+  // Una riga di attività per AI e per giorno: così "giorni attivi" è vero
+  // anche quando l'app desktop manda in una volta gli ultimi 30 giorni.
+  type Day = { hits: number; minutes: number; evidence: Set<string>; last?: Date };
+  const byService = new Map<string, { svc: AiService; days: Map<string, Day> }>();
   for (const f of findings.slice(0, 5000)) {
     const value = String(f.value ?? "").slice(0, 300);
     let svc: AiService | null = null;
@@ -54,31 +58,35 @@ export async function ingestFindings(organizationId: string, device: string, fin
     else if (f.kind === "env") svc = AI_SERVICES.find((s) => s.id === value) ?? null;
     else if (f.kind === "port") svc = AI_SERVICES.find((s) => s.id === value) ?? null;
     if (!svc) continue;
-    const cur = byService.get(svc.id) ?? { svc, hits: 0, evidence: new Set<string>() };
-    cur.hits += Math.max(1, Math.min(Number(f.hits) || 1, 1_000_000));
-    cur.evidence.add(`${f.via ?? f.kind}: ${value}`);
-    const seen = f.lastSeen ? new Date(f.lastSeen) : undefined;
-    if (seen && !isNaN(seen.getTime()) && (!cur.last || seen > cur.last)) cur.last = seen;
+    const cur = byService.get(svc.id) ?? { svc, days: new Map<string, Day>() };
+    let seen = f.lastSeen ? new Date(f.lastSeen) : undefined;
+    if (seen && (isNaN(seen.getTime()) || seen.getTime() > Date.now() + 86400000)) seen = undefined;
+    const key = seen ? seen.toISOString().slice(0, 10) : "now";
+    const day = cur.days.get(key) ?? { hits: 0, minutes: 0, evidence: new Set<string>() };
+    day.hits += Math.max(1, Math.min(Number(f.hits) || 1, 1_000_000));
+    day.minutes += Math.max(0, Math.min(Number(f.minutes) || 0, 24 * 60));
+    day.evidence.add(`${f.via ?? f.kind}: ${value}`);
+    if (seen && (!day.last || seen > day.last)) day.last = seen;
+    cur.days.set(key, day);
     byService.set(svc.id, cur);
   }
 
-  const assets: ObservedAsset[] = [...byService.values()].map(({ svc, hits, evidence, last }) => ({
+  const eventType = !userEmail ? "discovery.seen" : source === "desktop" ? "desktop.active" : "extension.active";
+  const assets: ObservedAsset[] = [...byService.values()].map(({ svc, days }) => ({
     externalId: `net:${svc.id}`,
     type: svc.type,
     serviceId: svc.id,
     name: svc.name,
     vendor: svc.vendor,
     connectedSystems: [{ system: "Seen on", detail: device.slice(0, 120) }],
-    // Con l'estensione del browser si sa anche chi la usa (email aziendale).
+    // Con l'estensione o l'app desktop si sa anche chi la usa (email aziendale).
     users: userEmail ? [{ email: userEmail }] : [],
-    activities: [
-      {
-        eventType: userEmail ? "extension.active" : "discovery.seen",
-        actorRef: (userEmail ?? device).slice(0, 120),
-        occurredAt: last ?? new Date(),
-        payload: { device, hits, evidence: [...evidence].slice(0, 10) },
-      },
-    ],
+    activities: [...days.values()].slice(0, 60).map(({ hits, minutes, evidence, last }) => ({
+      eventType,
+      actorRef: (userEmail ?? device).slice(0, 120),
+      occurredAt: last ?? new Date(),
+      payload: { device, hits, minutes: Math.round(minutes), evidence: [...evidence].slice(0, 10) },
+    })),
   }));
 
   const connector = await db.connector.upsert({

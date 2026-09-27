@@ -9,10 +9,12 @@ import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 const DAY = 86400000;
-const PERSON_EVENTS = ["extension.active", "signin", "copilot.active"];
+const fmtMinutes = (m: number) => (m < 1 ? "—" : m < 60 ? `${Math.round(m)}m` : `${Math.floor(m / 60)}h ${String(Math.round(m % 60)).padStart(2, "0")}m`);
+const PERSON_EVENTS = ["desktop.active", "extension.active", "signin", "copilot.active"];
+const COUNTED = ["desktop.active", "extension.active"];
 
 const SOURCE_LABEL = (e: string) =>
-  e === "extension.active" ? "Browser extension" : e === "signin" ? "Microsoft 365" : e === "copilot.active" ? "Copilot report" : e.startsWith("oauth.") ? "Google Workspace" : e;
+  e === "desktop.active" ? "Desktop app" : e === "extension.active" ? "Browser extension" : e === "signin" ? "Microsoft 365" : e === "copilot.active" ? "Copilot report" : e.startsWith("oauth.") ? "Google Workspace" : e;
 
 // Chi usa quale AI e quanto: dai dati dell'estensione, di Microsoft 365 e di
 // Google Workspace. Da qui si vedono i posti pagati che nessuno usa.
@@ -37,16 +39,19 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const who = new Map(users.map((u) => [u.email.toLowerCase(), u]));
   const nameOf = (email: string) => who.get(email.toLowerCase())?.name ?? email;
   const hitsOf = (p: unknown) => Math.max(1, Math.min(Number((p as { hits?: number } | null)?.hits) || 1, 100000));
+  const minutesOf = (p: unknown) => Math.max(0, Math.min(Number((p as { minutes?: number } | null)?.minutes) || 0, 24 * 60));
+  const visitsOf = (e: { eventType: string; payload: unknown }) => (COUNTED.includes(e.eventType) ? hitsOf(e.payload) : 1);
 
   // Persona × AI
-  type Row = { email: string; assetId: string; name: string; vendor: string | null; visits: number; days: Set<string>; last: Date; sources: Set<string> };
+  type Row = { email: string; assetId: string; name: string; vendor: string | null; visits: number; minutes: number; days: Set<string>; last: Date; sources: Set<string> };
   const pair = new Map<string, Row>();
   for (const e of events) {
     const email = (e.actorRef ?? "").toLowerCase();
     if (!email.includes("@")) continue;
     const k = `${email}|${e.aiAssetId}`;
-    const r = pair.get(k) ?? { email, assetId: e.aiAssetId, name: e.aiAsset.name, vendor: e.aiAsset.vendor, visits: 0, days: new Set(), last: e.occurredAt, sources: new Set() };
-    r.visits += e.eventType === "extension.active" ? hitsOf(e.payload) : 1;
+    const r = pair.get(k) ?? { email, assetId: e.aiAssetId, name: e.aiAsset.name, vendor: e.aiAsset.vendor, visits: 0, minutes: 0, days: new Set(), last: e.occurredAt, sources: new Set() };
+    r.visits += visitsOf(e);
+    r.minutes += minutesOf(e.payload);
     r.days.add(e.occurredAt.toISOString().slice(0, 10));
     if (e.occurredAt > r.last) r.last = e.occurredAt;
     r.sources.add(SOURCE_LABEL(e.eventType));
@@ -63,7 +68,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       const monthly = a.cost?.monthlyCostEstimate ?? null;
       const idle = seats && active > 0 && seats > active ? seats - active : 0;
       const save = idle && monthly && seats ? (monthly / seats) * idle : 0;
-      return { a, active, seats, visits: rows.reduce((t, r) => t + r.visits, 0), idle, save };
+      return { a, active, seats, visits: rows.reduce((t, r) => t + r.visits, 0), minutes: rows.reduce((t, r) => t + r.minutes, 0), idle, save };
     })
     .filter((x) => x.active > 0 || x.seats)
     .sort((x, y) => y.save - x.save || y.active - x.active);
@@ -84,9 +89,9 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         <div className="rounded-xl border border-accent/50 bg-panel p-6 flex items-center gap-6">
           <div className="flex-1">
             <h2 className="text-base font-semibold text-ink-100">No usage data yet</h2>
-            <p className="text-sm text-ink-400 mt-1">Install the angar browser extension (one minute) or connect Microsoft 365 / Google Workspace. Usage appears here within 30 minutes.</p>
+            <p className="text-sm text-ink-400 mt-1">Install the angar desktop app (one minute, it also reads the last 30 days) or connect Microsoft 365 / Google Workspace. Usage appears here within a few minutes.</p>
           </div>
-          <Link href="/discover#extension" className="btn btn-primary">Set up the extension</Link>
+          <Link href="/discover#extension" className="btn btn-primary">Get the desktop app</Link>
         </div>
       )}
 
@@ -107,8 +112,8 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       />
 
       {view === "ai" && (
-        <Table columns={["AI", { label: "Active people", className: "text-right" }, { label: "Paid seats", className: "text-right" }, { label: "Visits", className: "text-right" }, { label: "Unused seats", className: "text-right" }, { label: "Could save", className: "text-right" }]} empty={byAi.length === 0 && "No usage yet."}>
-          {byAi.map(({ a, active, seats, visits, idle, save }) => (
+        <Table columns={["AI", { label: "Active people", className: "text-right" }, { label: "Paid seats", className: "text-right" }, { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, { label: "Unused seats", className: "text-right" }, { label: "Could save", className: "text-right" }]} empty={byAi.length === 0 && "No usage yet."}>
+          {byAi.map(({ a, active, seats, visits, minutes, idle, save }) => (
             <tr key={a.id} className="hover:bg-ink-100/[0.02] transition-colors">
               <td className={td}>
                 <Link href={`/assets/${a.id}?tab=people`} className="flex items-center gap-3 group">
@@ -119,6 +124,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
               <td className={`${td} text-right tabular text-ink-100`}>{active}</td>
               <td className={`${td} text-right tabular text-ink-400`}>{seats ?? "—"}</td>
               <td className={`${td} text-right tabular text-ink-400`}>{visits || "—"}</td>
+              <td className={`${td} text-right tabular text-ink-400`}>{fmtMinutes(minutes)}</td>
               <td className={`${td} text-right tabular ${idle ? "text-signal font-medium" : "text-ink-400"}`}>{seats ? idle : "—"}</td>
               <td className={`${td} text-right tabular`}>{save >= 1 ? <Link href={`/assets/${a.id}?tab=people`} className="font-medium text-accent hover:underline">{fmtEur(save)}/mo</Link> : <span className="text-ink-400">—</span>}</td>
             </tr>
@@ -129,7 +135,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       {view === "people" && (
         <>
           <FilterBar search={{ placeholder: "Search a person or AI" }} filters={aiOptions.length > 1 ? [{ param: "ai", label: "AI", options: aiOptions }] : []} />
-          <Table columns={["Person", "AI", { label: "Visits", className: "text-right" }, { label: "Active days", className: "text-right" }, "Last used", "Seen by"]} empty={pairs.length === 0 && "No usage yet."}>
+          <Table columns={["Person", "AI", { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, { label: "Active days", className: "text-right" }, "Last used", "Seen by"]} empty={pairs.length === 0 && "No usage yet."}>
             {pairs
               .filter((p) => match(p.email, p.name))
               .sort((x, y) => y.last.getTime() - x.last.getTime())
@@ -146,6 +152,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                     </Link>
                   </td>
                   <td className={`${td} text-right tabular text-ink-100`}>{p.visits}</td>
+                  <td className={`${td} text-right tabular text-ink-400`}>{fmtMinutes(p.minutes)}</td>
                   <td className={`${td} text-right tabular text-ink-400`}>{p.days.size} / 30</td>
                   <td className={`${td} text-ink-400 tabular`}>{fmtDate(p.last)}</td>
                   <td className={`${td} text-xs text-ink-400`}>{[...p.sources].join(", ")}</td>
@@ -158,7 +165,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       {view === "log" && (
         <>
           <FilterBar search={{ placeholder: "Search a person or AI" }} filters={aiOptions.length > 1 ? [{ param: "ai", label: "AI", options: aiOptions }] : []} />
-          <Table columns={["When", "Person", "AI", { label: "Visits", className: "text-right" }, "Source"]} empty={events.length === 0 && "No connections recorded yet."}>
+          <Table columns={["When", "Person", "AI", { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, "Source"]} empty={events.length === 0 && "No connections recorded yet."}>
             {events
               .filter((e) => (e.actorRef ?? "").includes("@") && match((e.actorRef ?? "").toLowerCase(), e.aiAsset.name))
               .slice(0, 300)
@@ -167,7 +174,8 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                   <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(e.occurredAt)}</td>
                   <td className={`${td} text-ink-100`}>{nameOf(e.actorRef ?? "")}</td>
                   <td className={`${td} text-ink-100`}>{e.aiAsset.name}</td>
-                  <td className={`${td} text-right tabular text-ink-400`}>{e.eventType === "extension.active" ? hitsOf(e.payload) : 1}</td>
+                  <td className={`${td} text-right tabular text-ink-400`}>{visitsOf(e)}</td>
+                  <td className={`${td} text-right tabular text-ink-400`}>{fmtMinutes(minutesOf(e.payload))}</td>
                   <td className={`${td} text-xs text-ink-400`}>{SOURCE_LABEL(e.eventType)}</td>
                 </tr>
               ))}

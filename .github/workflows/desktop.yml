@@ -1,0 +1,80 @@
+name: Desktop app
+
+# Builds the angar desktop agent for Windows, macOS (Intel + Apple Silicon)
+# and Linux, and publishes it to the "desktop-latest" release. The web app
+# downloads it from there and names it after each company's link.
+on:
+  push:
+    branches: [main]
+    paths: ["desktop/**", ".github/workflows/desktop.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            asset: angar-windows-x64.exe
+          - os: macos-latest
+            asset: angar-macos-universal
+          - os: ubuntu-22.04
+            asset: angar-linux-x64
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: desktop
+      - name: Test
+        run: cargo test --release
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cargo build --release
+          mkdir -p dist && cp target/release/angar.exe dist/${{ matrix.asset }}
+      - name: Build (macOS universal)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cargo build --release --target aarch64-apple-darwin
+          cargo build --release --target x86_64-apple-darwin
+          mkdir -p dist
+          lipo -create -output dist/${{ matrix.asset }} target/aarch64-apple-darwin/release/angar target/x86_64-apple-darwin/release/angar
+          codesign --force --sign - dist/${{ matrix.asset }}
+      - name: Build (Linux)
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          cargo build --release
+          mkdir -p dist && cp target/release/angar dist/${{ matrix.asset }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: desktop/dist/${{ matrix.asset }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish to the desktop-latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ls -l dist
+          gh release view desktop-latest >/dev/null 2>&1 || gh release create desktop-latest --title "angar desktop app" --notes "Built automatically from desktop/. Download it from your angar workspace (Sources → Desktop app), not from here." --latest=false --target "$GITHUB_SHA"
+          gh release upload desktop-latest dist/* --clobber
