@@ -218,9 +218,16 @@ export async function computeSavings(organizationId: string) {
   // Più suggerimenti sulla stessa AI non si sommano oltre il suo costo.
   const cap = new Map<string, number>();
   let total = 0;
+  // Ripartizione per tipo di leva, che somma esattamente al totale (stesso cap).
+  const byKind = new Map<Saving["kind"], { monthly: number; count: number }>();
+  const addKind = (k: Saving["kind"], eur: number) => {
+    const cur = byKind.get(k) ?? { monthly: 0, count: 0 };
+    byKind.set(k, { monthly: cur.monthly + eur, count: cur.count + 1 });
+  };
   for (const s of items) {
     if (s.kind === "duplicate") {
       total += s.monthlyEur;
+      addKind(s.kind, s.monthlyEur);
       continue;
     }
     const id = s.assets[0]?.id ?? s.key;
@@ -230,6 +237,7 @@ export async function computeSavings(organizationId: string) {
     const add = Math.max(0, Math.min(s.monthlyEur, limit - used));
     cap.set(id, used + add);
     total += add;
+    addKind(s.kind, add);
   }
-  return { items, totalMonthly: total, assets };
+  return { items, totalMonthly: total, assets, byKind };
 }
