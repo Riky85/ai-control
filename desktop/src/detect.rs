@@ -87,6 +87,8 @@ pub struct Finding {
 #[derive(Default)]
 pub struct Usage {
     minutes: HashMap<String, u64>,
+    /// Running apps that look like AI but aren't in the catalog.
+    candidate_minutes: HashMap<String, u64>,
     last: HashMap<String, i64>,
 }
 
@@ -95,17 +97,26 @@ impl Usage {
         let mut sys = sysinfo::System::new();
         sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
         let mut seen: Vec<String> = Vec::new();
+        let mut maybe: Vec<String> = Vec::new();
         for p in sys.processes().values() {
             let name = p.name().to_string_lossy();
             if let Some(app) = catalog.match_app(&name) {
                 if !seen.contains(&app) {
                     seen.push(app);
                 }
+            } else if let Some(app) = ai_candidate_app(&name) {
+                if !maybe.contains(&app) {
+                    maybe.push(app);
+                }
             }
         }
         let now = crate::now_ms();
         for app in seen {
             *self.minutes.entry(app.clone()).or_default() += 1;
+            self.last.insert(app, now);
+        }
+        for app in maybe {
+            *self.candidate_minutes.entry(app.clone()).or_default() += 1;
             self.last.insert(app, now);
         }
     }
@@ -140,6 +151,8 @@ struct Agg {
 pub fn scan(catalog: &Catalog, since_ms: i64, usage: &Usage) -> Vec<Finding> {
     // One entry per AI and per day, so the dashboard knows on how many days it was used.
     let mut domains: HashMap<(String, String), Agg> = HashMap::new();
+    // AI not in the catalog: domains that look like AI, reported for review.
+    let mut candidates: HashMap<String, Agg> = HashMap::new();
     for (browser, file, kind) in history_files() {
         let visits = match read_history(&file, kind, since_ms) {
             Ok(v) => v,
@@ -147,7 +160,18 @@ pub fn scan(catalog: &Catalog, since_ms: i64, usage: &Usage) -> Vec<Finding> {
         };
         for (url, at_ms, dur_ms) in visits {
             let Some((host, path)) = split_url(&url) else { continue };
-            let Some(value) = catalog.match_url_host(&host, &path) else { continue };
+            let Some(value) = catalog.match_url_host(&host, &path) else {
+                if let Some(domain) = ai_candidate_domain(&host) {
+                    let a = candidates.entry(domain).or_default();
+                    a.hits += 1;
+                    a.minutes += if dur_ms > 0 { (dur_ms as f64 / 60000.0).min(30.0) } else { 1.0 };
+                    a.last = a.last.max(at_ms);
+                    if !a.via.contains(&browser) {
+                        a.via.push(browser.clone());
+                    }
+                }
+                continue;
+            };
             let day = iso(at_ms)[..10].to_string();
             let a = domains.entry((value, day)).or_default();
             a.hits += 1;
@@ -170,6 +194,22 @@ pub fn scan(catalog: &Catalog, since_ms: i64, usage: &Usage) -> Vec<Finding> {
             via: format!("desktop app · {}", a.via.join(", ")),
         })
         .collect();
+    // Only candidates seen at least twice: a single visit is often just a link someone clicked.
+    let mut cands: Vec<(String, Agg)> = candidates.into_iter().filter(|(_, a)| a.hits >= 2).collect();
+    cands.sort_by(|a, b| b.1.hits.cmp(&a.1.hits));
+    for (value, a) in cands.into_iter().take(40) {
+        out.push(Finding {
+            kind: "candidate",
+            value,
+            hits: a.hits,
+            minutes: a.minutes.round().max(1.0) as u64,
+            last_seen: if a.last > 0 { Some(iso(a.last)) } else { None },
+            via: format!("desktop app · possible AI · {}", a.via.join(", ")),
+        });
+    }
+    for (app, minutes) in &usage.candidate_minutes {
+        out.push(Finding { kind: "candidate_app", value: app.clone(), hits: *minutes, minutes: *minutes, last_seen: usage.last.get(app).map(|t| iso(*t)), via: "desktop app · possible AI app".into() });
+    }
     for (app, minutes) in &usage.minutes {
         out.push(Finding { kind: "app", value: app.clone(), hits: *minutes, minutes: *minutes, last_seen: usage.last.get(app).map(|t| iso(*t)), via: "desktop app · running app".into() });
     }
@@ -180,6 +220,54 @@ pub fn scan(catalog: &Catalog, since_ms: i64, usage: &Usage) -> Vec<Finding> {
         out.push(Finding { kind: "app", value: name, hits: 1, minutes: 0, last_seen: None, via });
     }
     out
+}
+
+/// Words that almost only appear in AI product names/domains.
+const AI_WORDS: &[&str] = &["gpt", "llm", "copilot", "chatbot", "genai", "aichat", "openai", "anthropic", "ollama", "huggingface", "diffusion", "deepseek", "mistral", "gemini", "claude", "perplexity", "neural", "agentic"];
+
+/// Registrable domain ("chat.foo.co.uk" → "foo.co.uk").
+fn registrable(host: &str) -> String {
+    let labels: Vec<&str> = host.trim_end_matches('.').split('.').collect();
+    let n = labels.len();
+    if n <= 2 {
+        return host.to_string();
+    }
+    let second = labels[n - 2];
+    let take = if labels[n - 1].len() == 2 && ["co", "com", "org", "net", "ac", "gov", "edu"].contains(&second) { 3 } else { 2 };
+    labels[n.saturating_sub(take)..].join(".")
+}
+
+/// A domain that looks like an AI service but isn't in the catalog. Returns
+/// the registrable domain only (never the full host or the page).
+pub fn ai_candidate_domain(host: &str) -> Option<String> {
+    let host = host.trim_end_matches('.');
+    if host.parse::<std::net::IpAddr>().is_ok() || !host.contains('.') || host.ends_with(".local") || host == "localhost" {
+        return None;
+    }
+    let reg = registrable(host);
+    let labels: Vec<&str> = host.split('.').collect();
+    let tld = labels.last().copied().unwrap_or("");
+    let is_ai = |l: &&str| *l == "ai" || l.starts_with("ai-") || l.ends_with("-ai") || AI_WORDS.iter().any(|w| l.contains(w));
+    // The signal is in the registrable domain itself (genspark.ai, supergpt.io): report that.
+    let reg_labels: Vec<&str> = reg.split('.').collect();
+    if tld == "ai" || reg_labels[..reg_labels.len() - 1].iter().any(is_ai) {
+        return Some(reg);
+    }
+    // Only in a subdomain (ai.acme.com): report the host, so it isn't mistaken for the whole company site.
+    labels[..labels.len() - 1].iter().any(is_ai).then(|| host.to_string())
+}
+
+/// A running app whose name suggests AI ("SuperGPT", "Local LLM Studio"…).
+pub fn ai_candidate_app(name: &str) -> Option<String> {
+    let n = name.trim_end_matches(".exe").trim_end_matches(".app");
+    let l = n.to_lowercase();
+    // Skip helpers/system noise and very short names.
+    if l.len() < 3 || l.contains("helper") || l.contains("crashpad") || l.contains("update") {
+        return None;
+    }
+    let tokens: Vec<&str> = l.split(|c: char| !c.is_ascii_alphanumeric()).filter(|t| !t.is_empty()).collect();
+    let hit = AI_WORDS.iter().any(|w| l.contains(w)) || tokens.iter().any(|t| *t == "ai");
+    hit.then(|| n.to_string())
 }
 
 /// "https://user@chat.openai.com:443/c/123?x" → ("chat.openai.com", "/c/123")
@@ -422,6 +510,21 @@ mod tests {
         assert_eq!(c.match_app("LM Studio Helper"), Some("LM Studio".into()));
         assert!(c.match_app("github.copilot-chat").is_some());
         assert_eq!(c.match_app("chrome"), None);
+    }
+
+    #[test]
+    fn candidates() {
+        assert_eq!(ai_candidate_domain("app.genspark.ai").as_deref(), Some("genspark.ai"));
+        assert_eq!(ai_candidate_domain("www.supergpt.io").as_deref(), Some("supergpt.io"));
+        assert_eq!(ai_candidate_domain("ai.acme.co.uk").as_deref(), Some("ai.acme.co.uk"));
+        assert_eq!(ai_candidate_domain("docs-ai.example.com").as_deref(), Some("docs-ai.example.com"));
+        assert_eq!(ai_candidate_domain("www.google.com"), None);
+        assert_eq!(ai_candidate_domain("mail.airbnb.com"), None);
+        assert_eq!(ai_candidate_domain("192.168.1.10"), None);
+        assert_eq!(ai_candidate_app("SuperGPT.exe").as_deref(), Some("SuperGPT"));
+        assert_eq!(ai_candidate_app("Notes AI").as_deref(), Some("Notes AI"));
+        assert_eq!(ai_candidate_app("chrome"), None);
+        assert_eq!(ai_candidate_app("Airtable"), None);
     }
 
     #[test]

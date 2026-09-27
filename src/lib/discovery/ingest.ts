@@ -6,7 +6,8 @@ import type { ObservedAsset } from "@/lib/connectors/types";
 import { AI_SERVICES, matchApp, matchDomain, type AiService } from "./catalog";
 
 export interface Finding {
-  kind: "domain" | "app" | "env" | "port";
+  // "candidate" / "candidate_app": sembra un'AI ma non è nel catalogo (solo app desktop).
+  kind: "domain" | "app" | "env" | "port" | "candidate" | "candidate_app";
   value: string;
   hits?: number;
   minutes?: number; // tempo d'uso stimato (app desktop)
@@ -42,6 +43,22 @@ export function domainsFromText(text: string): Finding[] {
 }
 
 /**
+ * Un dominio o un'app che "sembra AI" ma non è nel catalogo diventa un
+ * servizio provvisorio, da rivedere: così si scoprono anche le AI nuove che
+ * nessuno ha ancora inserito. Solo nomi validi e brevi, mai URL.
+ */
+function candidateService(kind: "candidate" | "candidate_app", raw: string): AiService | null {
+  const v = raw.trim().toLowerCase();
+  if (kind === "candidate") {
+    if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(v) || v.length > 80) return null;
+    return { id: `cand:${v}`, name: v, vendor: v, type: "AI_APPLICATION", domains: [v] };
+  }
+  const name = raw.trim().replace(/\.(exe|app)$/i, "").slice(0, 60);
+  if (!/^[\w .+-]{2,60}$/.test(name)) return null;
+  return { id: `cand-app:${name.toLowerCase()}`, name, vendor: name, type: "AI_APPLICATION", domains: [], apps: [name] };
+}
+
+/**
  * Trasforma ciò che lo scanner (o un log) ha visto in sistemi AI.
  * Tutto ciò che arriva da qui parte "da rivedere": nessuno lo ha dichiarato.
  */
@@ -49,16 +66,25 @@ export async function ingestFindings(organizationId: string, device: string, fin
   // Una riga di attività per AI e per giorno: così "giorni attivi" è vero
   // anche quando l'app desktop manda in una volta gli ultimi 30 giorni.
   type Day = { hits: number; minutes: number; evidence: Set<string>; last?: Date };
-  const byService = new Map<string, { svc: AiService; days: Map<string, Day> }>();
+  const byService = new Map<string, { svc: AiService; days: Map<string, Day>; candidate: boolean }>();
   for (const f of findings.slice(0, 5000)) {
     const value = String(f.value ?? "").slice(0, 300);
     let svc: AiService | null = null;
+    let candidate = false;
     if (f.kind === "domain") svc = matchDomain(value);
     else if (f.kind === "app") svc = matchApp(value);
     else if (f.kind === "env") svc = AI_SERVICES.find((s) => s.id === value) ?? null;
     else if (f.kind === "port") svc = AI_SERVICES.find((s) => s.id === value) ?? null;
+    else if (f.kind === "candidate" || f.kind === "candidate_app") {
+      // Prima si riprova col catalogo (magari nel frattempo l'abbiamo aggiunta).
+      svc = f.kind === "candidate" ? matchDomain(value) : matchApp(value);
+      if (!svc) {
+        svc = candidateService(f.kind, value);
+        candidate = !!svc;
+      }
+    }
     if (!svc) continue;
-    const cur = byService.get(svc.id) ?? { svc, days: new Map<string, Day>() };
+    const cur = byService.get(svc.id) ?? { svc, days: new Map<string, Day>(), candidate };
     let seen = f.lastSeen ? new Date(f.lastSeen) : undefined;
     if (seen && (isNaN(seen.getTime()) || seen.getTime() > Date.now() + 86400000)) seen = undefined;
     const key = seen ? seen.toISOString().slice(0, 10) : "now";
@@ -72,10 +98,11 @@ export async function ingestFindings(organizationId: string, device: string, fin
   }
 
   const eventType = !userEmail ? "discovery.seen" : source === "desktop" ? "desktop.active" : "extension.active";
-  const assets: ObservedAsset[] = [...byService.values()].map(({ svc, days }) => ({
+  const assets: ObservedAsset[] = [...byService.values()].map(({ svc, days, candidate }) => ({
     externalId: `net:${svc.id}`,
     type: svc.type,
-    serviceId: svc.id,
+    // Le AI "possibili" non sono nel catalogo: niente serviceId (costi e risparmi non si applicano).
+    serviceId: candidate ? undefined : svc.id,
     name: svc.name,
     vendor: svc.vendor,
     connectedSystems: [{ system: "Seen on", detail: device.slice(0, 120) }],

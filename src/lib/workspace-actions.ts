@@ -60,13 +60,14 @@ export async function setMemberRoleAction(formData: FormData) {
   const id = String(formData.get("memberId"));
   const role = formData.get("role") as MemberRole;
   if (!ROLES.includes(role)) return;
-  // Deve restare almeno un Owner.
-  const member = await db.workspaceMember.findUnique({ where: { id } });
-  if (member?.role === "OWNER" && role !== "OWNER") {
+  // Solo membri di questo workspace; deve restare almeno un Owner.
+  const member = await db.workspaceMember.findFirst({ where: { id, organizationId: currentOrgId() } });
+  if (!member) return;
+  if (member.role === "OWNER" && role !== "OWNER") {
     const owners = await db.workspaceMember.count({ where: { organizationId: currentOrgId(), role: "OWNER" } });
     if (owners <= 1) redirect(`/workspace?error=${encodeURIComponent("A workspace needs at least one owner.")}`);
   }
-  await db.workspaceMember.update({ where: { id }, data: { role } });
+  await db.workspaceMember.update({ where: { id: member.id }, data: { role } });
   await audit("member.role_change", member?.email, { from: member?.role, to: role });
   revalidatePath("/workspace");
 }
@@ -74,7 +75,7 @@ export async function setMemberRoleAction(formData: FormData) {
 export async function removeMemberAction(formData: FormData) {
   await requireRole("ADMIN", "/workspace");
   const id = String(formData.get("memberId"));
-  const member = await db.workspaceMember.findUnique({ where: { id } });
+  const member = await db.workspaceMember.findFirst({ where: { id, organizationId: currentOrgId() } });
   if (member?.role === "OWNER") {
     const owners = await db.workspaceMember.count({ where: { organizationId: currentOrgId(), role: "OWNER" } });
     if (owners <= 1) redirect(`/workspace?error=${encodeURIComponent("You can't remove the last owner.")}`);

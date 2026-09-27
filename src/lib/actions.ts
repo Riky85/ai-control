@@ -312,10 +312,24 @@ export async function disconnectConnectorAction(formData: FormData) {
   revalidatePath("/connectors");
 }
 
+// Un id arrivato da un form è valido solo se appartiene all'azienda corrente.
+async function ownAsset(orgId: string, assetId: string) {
+  const a = await db.aiAsset.findFirst({ where: { id: assetId, organizationId: orgId }, select: { id: true, status: true } });
+  if (!a) throw new Error("Not found");
+  return a;
+}
+async function ownPolicy(orgId: string, policyId: string) {
+  const p = await db.policy.findFirst({ where: { id: policyId, organizationId: orgId }, select: { id: true } });
+  if (!p) throw new Error("Not found");
+  return p;
+}
+
 export async function setAssetOwnerAction(formData: FormData) {
-  await guard("EDITOR", "asset.set_owner", formData, "/assets");
+  const s = await guard("EDITOR", "asset.set_owner", formData, "/assets");
   const assetId = formData.get("assetId") as string;
   const ownerId = formData.get("ownerId") as string;
+  await ownAsset(s.orgId, assetId);
+  if (ownerId && !(await db.user.findFirst({ where: { id: ownerId, organizationId: s.orgId }, select: { id: true } }))) throw new Error("Not found");
   await db.aiAsset.update({
     where: { id: assetId },
     data: { ownerId: ownerId || null },
@@ -329,10 +343,10 @@ export async function setAssetOwnerAction(formData: FormData) {
 }
 
 export async function setAssetStatusAction(formData: FormData) {
-  await guard("EDITOR", "asset.set_status", formData, "/assets");
+  const s = await guard("EDITOR", "asset.set_status", formData, "/assets");
   const assetId = formData.get("assetId") as string;
   const status = formData.get("status") as AiAssetStatus;
-  const before = await db.aiAsset.findUnique({ where: { id: assetId }, select: { status: true } });
+  const before = await ownAsset(s.orgId, assetId);
   await db.aiAsset.update({
     where: { id: assetId },
     data: { status },
@@ -351,9 +365,10 @@ export async function setAssetStatusAction(formData: FormData) {
 }
 
 export async function setAssetEuAiActTierAction(formData: FormData) {
-  await guard("EDITOR", "asset.set_eu_ai_act", formData, "/assets");
+  const s = await guard("EDITOR", "asset.set_eu_ai_act", formData, "/assets");
   const assetId = formData.get("assetId") as string;
   const tier = formData.get("tier") as EuAiActTier;
+  await ownAsset(s.orgId, assetId);
   await db.aiAsset.update({
     where: { id: assetId },
     data: { euAiActTier: tier },
@@ -453,8 +468,9 @@ export async function addPolicyFromLibraryAction(formData: FormData) {
 }
 
 export async function togglePolicyAction(formData: FormData) {
-  await guard("ADMIN", "policy.toggle", formData, "/governance");
+  const s = await guard("ADMIN", "policy.toggle", formData, "/governance");
   const policyId = formData.get("policyId") as string;
+  await ownPolicy(s.orgId, policyId);
   const enabled = formData.get("enabled") === "true";
   await db.policy.update({
     where: { id: policyId },
@@ -464,8 +480,9 @@ export async function togglePolicyAction(formData: FormData) {
 }
 
 export async function deletePolicyAction(formData: FormData) {
-  await guard("ADMIN", "policy.delete", formData, "/governance");
+  const s = await guard("ADMIN", "policy.delete", formData, "/governance");
   const policyId = formData.get("policyId") as string;
+  await ownPolicy(s.orgId, policyId);
   await db.policy.delete({ where: { id: policyId } });
   revalidatePath("/governance");
 }
@@ -527,6 +544,17 @@ export async function reviewAssetAction(formData: FormData) {
   const s = await guard("EDITOR", "asset.review", formData, "/review");
   const assetId = String(formData.get("assetId"));
   const decision = String(formData.get("decision"));
+  // Sempre e solo asset della propria azienda.
+  const owned = await db.aiAsset.findFirst({ where: { id: assetId, organizationId: s.orgId }, select: { id: true, status: true, name: true } });
+  if (!owned) redirect("/review");
+  // "Non è un'AI" (falso positivo dell'app desktop): si toglie e resta tolto
+  // anche ai sync successivi (l'upsert non azzera deletedAt).
+  if (decision === "notai") {
+    await db.aiAsset.update({ where: { id: assetId }, data: { deletedAt: new Date() } });
+    await db.assetChange.create({ data: { aiAssetId: assetId, field: "status", oldValue: owned.status, newValue: "NOT_AI" } });
+    const skip = String(formData.get("skip") ?? "");
+    redirect(`/review${skip ? `?skip=${encodeURIComponent(skip)}` : ""}`);
+  }
   const status = decision === "approve" ? "APPROVED" : decision === "reject" ? "UNAPPROVED" : null;
   if (!status) redirect("/review");
 
@@ -540,7 +568,7 @@ export async function reviewAssetAction(formData: FormData) {
     });
     ownerId = u.id;
   }
-  const before = await db.aiAsset.findUniqueOrThrow({ where: { id: assetId } });
+  const before = owned!;
   await db.aiAsset.update({ where: { id: assetId }, data: { status: status as AiAssetStatus, ...(ownerId ? { ownerId } : {}) } });
   if (before.status !== status) {
     await db.assetChange.create({ data: { aiAssetId: assetId, field: "status", oldValue: before.status, newValue: status } });

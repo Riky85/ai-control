@@ -105,9 +105,16 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
           <div className="flex items-start gap-4">
             <VendorBadge vendor={current.vendor ?? ""} name={current.name} size={48} />
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-semibold text-ink-100">{current.name}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-semibold text-ink-100">{current.name}</h2>
+                {current.externalId?.startsWith("net:cand") && (
+                  <span className="text-[11px] font-medium text-signal bg-signal/10 rounded-full px-2 py-0.5">Possible AI</span>
+                )}
+              </div>
               <p className="text-sm text-ink-400">
-                {[current.vendor ?? "Unknown vendor", current.type.replace(/_/g, " ").toLowerCase(), current.model].filter(Boolean).join(" · ")}
+                {current.externalId?.startsWith("net:cand")
+                  ? "Not in angar's list yet: the desktop app saw people use it and it looks like an AI tool. Approve it, mark it not allowed, or dismiss it if it isn't AI."
+                  : [current.vendor ?? "Unknown vendor", current.type.replace(/_/g, " ").toLowerCase(), current.model].filter(Boolean).join(" · ")}
               </p>
             </div>
             {risk && <Badge>{risk.level}</Badge>}
@@ -170,6 +177,9 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
             <div className="flex items-center gap-3">
               <button name="decision" value="approve" className="btn btn-primary">Approve</button>
               <button name="decision" value="reject" className="btn btn-secondary">Not allowed</button>
+              {current.externalId?.startsWith("net:cand") && (
+                <button name="decision" value="notai" className="btn btn-secondary">Not AI — remove</button>
+              )}
               <Link href={`/review?skip=${nextSkip}`} className="ml-auto text-sm text-ink-400 hover:text-ink-100">Decide later →</Link>
             </div>
           </form>

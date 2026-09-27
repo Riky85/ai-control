@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   }
   const email = typeof body.user === "string" && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.user) ? body.user.toLowerCase().slice(0, 200) : null;
   const desktop = body.source === "desktop";
-  const kinds = desktop ? ["domain", "app"] : ["domain"];
+  const kinds = desktop ? ["domain", "app", "candidate", "candidate_app"] : ["domain"];
   const findings = (Array.isArray(body.findings) ? body.findings : []).filter((f) => f && kinds.includes(f.kind)).slice(0, 2000);
   const device = desktop ? (typeof body.device === "string" && body.device.trim() ? body.device.trim().slice(0, 120) : "Desktop app") : "Browser extension";
   const systems = await ingestFindings(org.id, device, findings, email, desktop ? "desktop" : "extension");
