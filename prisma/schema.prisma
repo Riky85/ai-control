@@ -140,6 +140,89 @@ model Organization {
   spendRecords     SpendRecord[]
   savingDismissals SavingDismissal[]
   desktopDevices   DesktopDevice[]
+  alerts           Alert[]
+  budgets          Budget[]
+  seatReminders    SeatReminder[]
+
+  // Settore e fascia per il benchmark anonimo tra aziende simili.
+  industry              String?
+  // Webhook Slack o Microsoft Teams (cifrato): riepilogo settimanale e avvisi.
+  chatWebhookEncrypted  String?
+}
+
+// Avvisi della piattaforma (campanella in alto a destra): rinnovi in arrivo,
+// budget superati, AI non consentite usate, posti da liberare.
+model Alert {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  kind           String // "renewal" | "budget" | "policy" | "seats" | "new_ai" | "info"
+  severity       String       @default("info") // "info" | "warning" | "critical"
+  title          String
+  body           String
+  href           String?
+  // Evita doppioni: lo stesso avviso (es. rinnovo di X il giorno Y) si crea una volta sola.
+  dedupeKey      String
+  createdAt      DateTime     @default(now())
+  readAt         DateTime?
+
+  @@unique([organizationId, dedupeKey])
+  @@index([organizationId, createdAt])
+}
+
+// Budget AI mensile per reparto (department delle persone).
+model Budget {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  department     String
+  monthlyEur     Float
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, department])
+}
+
+// "Ti serve ancora il posto?": email alla persona inattiva con due link
+// (tengo / libera). Senza risposta in 7 giorni il posto va in "da togliere".
+model SeatReminder {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiAssetId      String
+  email          String
+  token          String       @unique
+  sentAt         DateTime     @default(now())
+  respondedAt    DateTime?
+  response       String? // "keep" | "release"
+  removedAt      DateTime? // l'amministratore ha tolto il posto
+
+  @@unique([aiAssetId, email])
+  @@index([organizationId])
+}
+
+// Lavori periodici già eseguiti (scheduler interno): uno per nome + chiave (es. giorno).
+model JobRun {
+  id    String   @id @default(cuid())
+  name  String
+  key   String
+  ranAt DateTime @default(now())
+
+  @@unique([name, key])
+}
+
+// Contatti dal controllo gratuito della spesa AI (/check): per il commerciale.
+model Lead {
+  id          String   @id @default(cuid())
+  email       String
+  company     String?
+  annualSpend Float?
+  savings     Float?
+  aiCount     Int?
+  summary     Json?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 // Un computer su cui è installata l'app desktop angar. Serve a mostrare, sulla

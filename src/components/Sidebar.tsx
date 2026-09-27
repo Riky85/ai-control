@@ -25,6 +25,14 @@ function Icon({ name }: { name: string }) {
     case "savings":
       // Segno di percentuale: sconto / spesa che scende. Inequivocabile.
       return <svg {...common}><path {...stroke} d="M4 14L14 4" /><circle {...stroke} cx="5.2" cy="5.2" r="1.6" /><circle {...stroke} cx="12.8" cy="12.8" r="1.6" /></svg>;
+    case "advisor":
+      // Scintilla: suggerimenti intelligenti.
+      return <svg {...common}><path {...stroke} d="M9 2.5l1.6 4.4 4.4 1.6-4.4 1.6L9 14.5l-1.6-4.4L3 8.5l4.4-1.6L9 2.5z" /><path {...stroke} d="M14.5 13v3M13 14.5h3" /></svg>;
+    case "budget":
+      // Salvadanaio stilizzato: cerchio con fessura e tacca.
+      return <svg {...common}><circle {...stroke} cx="9" cy="9.5" r="5.5" /><path {...stroke} d="M7 7.2h4M9 9.5v3" /><path {...stroke} d="M9 2.2v1.8" /></svg>;
+    case "partner":
+      return <svg {...common}><rect {...stroke} x="2.5" y="3" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="10" y="3" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="6.2" y="10" width="5.5" height="5.5" rx="1" /></svg>;
     case "edge":
       // Scatolina di rete con led: il dispositivo angar Edge.
       return <svg {...common}><rect {...stroke} x="2" y="6" width="14" height="7.5" rx="1.8" /><path {...stroke} d="M5 9.8h2.5" /><circle cx="12.5" cy="9.8" r="1" fill="currentColor" /><path {...stroke} d="M6 6V4.2M12 6V4.2" /></svg>;
@@ -103,6 +111,9 @@ const MORE_ITEMS = [
   { href: "/data", label: "Data Exposure", icon: "data" },
   { href: "/governance", label: "Governance", icon: "assurance" },
   { href: "/activity", label: "Activity", icon: "activity" },
+  { href: "/advisor", label: "AI Advisor", icon: "advisor" },
+  { href: "/budgets", label: "Budgets", icon: "budget" },
+  { href: "/compliance", label: "AI Act", icon: "assurance" },
   { href: "/edge", label: "angar Edge", icon: "edge" },
 ];
 
@@ -275,7 +286,11 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
           {menuOpen && (
             <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#25282B] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
               {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-[#A3A19C] truncate border-b border-white/[0.08] mb-1">{userEmail}</div>}
-              {[...MENU_ITEMS, ...(platformAdmin ? [{ href: "/system", label: "System", icon: "assurance" }] : [])].map((item) => (
+              {[
+                ...((workspace?.workspaces.length ?? 0) > 1 ? [{ href: "/partner", label: "Partner console", icon: "partner" }] : []),
+                ...MENU_ITEMS,
+                ...(platformAdmin ? [{ href: "/system", label: "System", icon: "assurance" }] : []),
+              ].map((item) => (
                 <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive(item.href) ? "text-white bg-white/[0.09]" : "text-[#C8C6C1] hover:text-white hover:bg-white/[0.06]"}`}>
                   <Icon name={item.icon} />
                   {item.label}
