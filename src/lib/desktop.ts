@@ -16,7 +16,7 @@ const ASSET: Record<DesktopOs, string> = {
 };
 
 // Versione dell'app desktop pubblicata (desktop/Cargo.toml).
-export const DESKTOP_VERSION = "0.5.2";
+export const DESKTOP_VERSION = "0.5.3";
 
 export const DESKTOP_OS_LABEL: Record<DesktopOs, string> = { windows: "Windows", mac: "macOS", linux: "Linux" };
 
