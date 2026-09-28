@@ -138,7 +138,7 @@ export interface SidebarWorkspaceProps {
   limit: number | null;
 }
 
-export default function Sidebar({ initialCollapsed = false, orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0, connectedComputers = 0 }: { initialCollapsed?: boolean; orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number; connectedComputers?: number }) {
+export default function Sidebar({ initialCollapsed = false, orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0, connectedComputers = 0, trial = null }: { initialCollapsed?: boolean; orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number; connectedComputers?: number; trial?: SidebarTrial | null }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [moreOpen, setMoreOpen] = useState(true);
@@ -292,6 +292,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
           ))}
       </nav>
 
+      {trial && <TrialCard trial={trial} collapsed={collapsed} />}
       <div className="mt-3 pt-3 border-t border-white/[0.08] flex flex-col gap-0.5">
         <div ref={menuRef} className="relative">
           {menuOpen && (
@@ -335,6 +336,49 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
         </div>
       </div>
     </aside>
+  );
+}
+
+export interface SidebarTrial {
+  trialing: boolean;
+  daysLeft: number;
+  totalDays: number;
+  endsAt: string | null;
+}
+
+/** Prova Growth: giorni rimasti con barra; aperta = scheda, chiusa = anello con i giorni. */
+function TrialCard({ trial, collapsed }: { trial: SidebarTrial; collapsed: boolean }) {
+  const urgent = !trial.trialing || trial.daysLeft <= 3;
+  const pct = trial.trialing ? Math.max(4, Math.min(100, (trial.daysLeft / trial.totalDays) * 100)) : 0;
+  const color = urgent ? "#D9A928" : "#FF7323";
+  if (collapsed) {
+    const r = 13;
+    const c = 2 * Math.PI * r;
+    return (
+      <Link href="/billing" title={trial.trialing ? `Growth trial · ${trial.daysLeft} days left` : "Trial ended — choose a plan"} className="mx-auto mt-2 h-10 w-10 rounded-lg flex items-center justify-center hover:bg-white/[0.06] transition-colors relative">
+        <svg width="32" height="32" viewBox="0 0 32 32" className="-rotate-90">
+          <circle cx="16" cy="16" r={r} fill="none" strokeWidth="2.5" stroke="rgba(255,255,255,0.1)" />
+          <circle cx="16" cy="16" r={r} fill="none" strokeWidth="2.5" strokeLinecap="round" stroke={color} strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} />
+        </svg>
+        <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-white tabular">{trial.trialing ? trial.daysLeft : "!"}</span>
+      </Link>
+    );
+  }
+  return (
+    <Link href="/billing" className="group mt-2 block rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] px-3 py-2.5 transition-colors">
+      <div className="flex items-baseline justify-between gap-2 text-xs">
+        <span className="font-medium text-white">{trial.trialing ? "Growth trial" : "Trial ended"}</span>
+        <span className="tabular" style={{ color: urgent ? color : "#A3A19C" }}>
+          {trial.trialing ? `${trial.daysLeft} day${trial.daysLeft === 1 ? "" : "s"} left` : "Free limits"}
+        </span>
+      </div>
+      {trial.trialing && (
+        <div className="mt-2 h-1 rounded-full bg-white/[0.08] overflow-hidden">
+          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+        </div>
+      )}
+      <div className="mt-2 text-xs text-[#A3A19C] group-hover:text-white transition-colors">Choose a plan →</div>
+    </Link>
   );
 }
 

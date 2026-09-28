@@ -12,7 +12,8 @@ import AlertsBell from "@/components/AlertsBell";
 import ScrollReset from "@/components/ScrollReset";
 import { desktopDeviceCounts } from "@/lib/discovery/devices";
 import UrlNotice from "@/components/UrlNotice";
-import PlanBanner from "@/components/PlanBanner";
+import { TRIAL_DAYS } from "@/lib/plans";
+import { fmtDate } from "@/lib/format";
 import { getPlanState } from "@/lib/plan-gate";
 import VerifyEmailBanner from "@/components/VerifyEmailBanner";
 import { Suspense } from "react";
@@ -85,7 +86,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ]);
   if (!member || member.status !== "active") redirect("/api/auth/signout?reason=" + encodeURIComponent("You no longer have access to that workspace."));
 
-  const plan = planById((await getPlanState(session.orgId)).effectivePlan);
+  const planState = await getPlanState(session.orgId);
+  const plan = planById(planState.effectivePlan);
+  // Prova in corso o scaduta: una scheda piccola in fondo alla sidebar (niente striscia sopra la pagina).
+  const trial = planState.trialing || planState.expired ? { trialing: planState.trialing, daysLeft: planState.trialDaysLeft ?? 0, totalDays: TRIAL_DAYS, endsAt: planState.trialEndsAt ? fmtDate(planState.trialEndsAt) : null } : null;
   const workspace: SidebarWorkspaceProps = {
     current: org ? { id: org.id, name: org.name } : null,
     workspaces: memberships.map((m) => m.organization),
@@ -99,10 +103,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {head}
       <body className={`flex h-screen overflow-hidden bg-sidebar text-ink-100 font-body`}>
         <SearchPalette />
-        <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={platformAdmin} connectedComputers={connectedComputers} reviewCount={reviewCount} />
+        <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={platformAdmin} connectedComputers={connectedComputers} reviewCount={reviewCount} trial={trial} />
         <div id="app-scroll" className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto [scrollbar-gutter:stable]">
           <ScrollReset targetId="app-scroll" />
-          <PlanBanner orgId={session.orgId} />
           <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-12 pb-24">
             {/* Sempre nello stesso punto, in ogni pagina. */}
             <div className="relative lg:absolute lg:top-12 lg:right-10 z-30 print:hidden flex items-center justify-end gap-2 mb-4 lg:mb-0">

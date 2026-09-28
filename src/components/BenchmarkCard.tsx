@@ -46,7 +46,7 @@ export function Locked({ b }: { b: Benchmark }) {
             </p>
           </div>
           {!b.employeesSet && (
-            <Link href="/settings#employees" className="btn btn-primary btn-sm self-start">
+            <Link href="/settings?tab=general#employees" className="btn btn-primary btn-sm self-start">
               Add number of employees
             </Link>
           )}

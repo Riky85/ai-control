@@ -23,7 +23,7 @@ export async function erasePastNamesAction() {
   const s = await requireRole("OWNER", "/settings");
   const orgId = s.orgId;
   const ids = await identitiesFor(orgId);
-  if (ids.people) redirect(`/settings?error=${encodeURIComponent("Switch employee privacy to per department or company totals first.")}#privacy`);
+  if (ids.people) redirect(`/settings?tab=privacy&error=${encodeURIComponent("Switch employee privacy to per department or company totals first.")}#privacy`);
   const person = (v: string) => (isPseudonym(v) || NOT_A_PERSON.test(v) ? v : ids.person(v));
   const counts = { activities: 0, usages: 0, people: 0, computers: 0, alerts: 0, edge: 0 };
 
@@ -120,7 +120,7 @@ export async function erasePastNamesAction() {
 
   await audit("privacy.erase_names", ids.mode, counts);
   revalidatePath("/", "layout");
-  redirect(`/settings?privacy=erased#privacy`);
+  redirect(`/settings?tab=privacy&privacy=erased`);
 }
 
 /** Sposta l'uso di una persona su un'altra; se entrambe usano la stessa AI resta l'ultimo uso. */

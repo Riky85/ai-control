@@ -89,7 +89,7 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-400">
           <span>
-            Privacy mode: <span className="text-ink-100">{privacyModeLabel(mode)}</span> — <Link href="/settings#privacy" className="underline hover:text-ink-100">change</Link>
+            Privacy mode: <span className="text-ink-100">{privacyModeLabel(mode)}</span> — <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">change</Link>
           </span>
           <span>
             {NOTICE_LANGS.map((l, i) => (

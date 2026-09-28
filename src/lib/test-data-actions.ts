@@ -20,7 +20,7 @@ export async function resetWorkspaceDataAction(formData: FormData) {
   const s = await requireRole("OWNER", "/settings");
   const org = await db.organization.findUniqueOrThrow({ where: { id: s.orgId } });
   if (String(formData.get("confirm") ?? "").trim() !== org.name) {
-    redirect(`/settings?error=${encodeURIComponent(`Type the workspace name exactly ("${org.name}") to confirm the reset.`)}#test-data`);
+    redirect(`/settings?tab=data&error=${encodeURIComponent(`Type the workspace name exactly ("${org.name}") to confirm the reset.`)}#test-data`);
   }
   const where = { organizationId: s.orgId };
   const counts = await db.$transaction(async (tx) => {
@@ -39,7 +39,7 @@ export async function resetWorkspaceDataAction(formData: FormData) {
   });
   await audit("workspace.reset_data", org.name, counts);
   revalidatePath("/", "layout");
-  redirect("/settings?reset=1#test-data");
+  redirect("/settings?tab=data&reset=1");
 }
 
 /** Carica i dati di esempio nel workspace corrente. */

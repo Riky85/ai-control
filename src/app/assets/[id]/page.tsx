@@ -2,7 +2,6 @@ import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { AssetLimitNotice } from "@/components/PlanBanner";
 import { db } from "@/lib/db";
-import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
 import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, setAssetCostAction } from "@/lib/actions";
 import { setNetworkBlockAction, setInsteadAssetAction } from "@/lib/edge-actions";
@@ -94,7 +93,30 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           <div className="flex items-center gap-4">
             <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={56} />
             <div className="min-w-0">
-              <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 truncate">{asset.name}</h1>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 truncate">{asset.name}</h1>
+                {/* Stato accanto al nome: si cambia con un clic. */}
+                <div className="inline-flex items-center gap-0.5 rounded-lg bg-ink p-0.5">
+                  {(["APPROVED", "UNREVIEWED", "UNAPPROVED"] as const).map((st) => {
+                    const on = asset.status === st || (st === "UNREVIEWED" && asset.status === "UNKNOWN");
+                    const dot = st === "APPROVED" ? "bg-steady" : st === "UNAPPROVED" ? "bg-alarm" : "bg-signal";
+                    return (
+                      <form key={st} action={setAssetStatusAction}>
+                        <input type="hidden" name="assetId" value={asset.id} />
+                        <input type="hidden" name="status" value={st} />
+                        <button
+                          type="submit"
+                          disabled={on}
+                          className={`flex items-center gap-1.5 text-xs px-2.5 h-7 rounded-md transition-colors ${on ? "bg-panel text-ink-100 font-medium shadow-card cursor-default" : "text-ink-400 hover:text-ink-100"}`}
+                        >
+                          {on && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />}
+                          {st === "APPROVED" ? "Approved" : st === "UNAPPROVED" ? "Not allowed" : "Needs review"}
+                        </button>
+                      </form>
+                    );
+                  })}
+                </div>
+              </div>
               <p className="text-sm text-ink-400 mt-0.5">
                 {[asset.vendor ?? "Vendor unknown", cat ? CATEGORY_LABEL[cat] : asset.type.replace(/_/g, " ").toLowerCase(), sources.length ? `found via ${sources.join(", ")}` : null].filter(Boolean).join(" · ")}
               </p>
@@ -102,7 +124,6 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0 pr-[8.25rem] min-h-9">
-          <Badge>{asset.status}</Badge>
           {manage && (
             <a href={manage} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" title="Change seats, plan or cancel on the provider's site">
               Manage plan ↗
@@ -269,27 +290,6 @@ export default async function AssetDetailPage({ params, searchParams }: { params
 
         <aside className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-5">
           <h2 className="text-base font-semibold text-ink-100">Manage</h2>
-
-          <div className="flex flex-col gap-2">
-            <span className="text-sm text-ink-400">Status</span>
-            <div className="grid grid-cols-3 gap-1 bg-ink rounded-lg p-1">
-              {(["APPROVED", "UNREVIEWED", "UNAPPROVED"] as const).map((s) => (
-                <form key={s} action={setAssetStatusAction}>
-                  <input type="hidden" name="assetId" value={asset.id} />
-                  <input type="hidden" name="status" value={s} />
-                  <button
-                    type="submit"
-                    disabled={asset.status === s}
-                    className={`w-full text-sm py-1.5 rounded-md transition-colors ${
-                      asset.status === s ? "bg-panel text-ink-100 font-medium shadow-card cursor-default" : "text-ink-400 hover:text-ink-100"
-                    }`}
-                  >
-                    {s === "APPROVED" ? "Approved" : s === "UNAPPROVED" ? "Not allowed" : "Needs review"}
-                  </button>
-                </form>
-              ))}
-            </div>
-          </div>
 
           <NetworkBlock asset={asset} orgId={orgId} error={tab !== "people" ? searchParams.error : undefined} />
 

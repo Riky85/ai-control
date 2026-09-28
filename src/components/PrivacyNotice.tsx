@@ -25,7 +25,7 @@ export default function PrivacyNotice({ mode, what }: { mode: PrivacyMode; what?
             <b>Employee privacy: company totals only.</b> {what ?? "This page"} shows company-wide totals only — no names, devices or departments.
           </>
         )}{" "}
-        <Link href="/settings#privacy" className="underline text-ink-400 hover:text-ink-100">Privacy settings</Link>
+        <Link href="/settings?tab=privacy" className="underline text-ink-400 hover:text-ink-100">Privacy settings</Link>
       </div>
     </div>
   );

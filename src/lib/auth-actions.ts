@@ -411,8 +411,8 @@ export async function cancelMfaEnrolAction() {
 // ── Sicurezza d'accesso del workspace (Owner) ───────────────────────────
 
 export async function setSignInSecurityAction(formData: FormData) {
-  const s = await requireRole("OWNER", "/settings#sign-in-security");
-  const back = (q: string) => redirect(`/settings?${q}#sign-in-security`);
+  const s = await requireRole("OWNER", "/settings?tab=security");
+  const back = (q: string) => redirect(`/settings?tab=security&${q}`);
   const ssoRequired = formData.get("ssoRequired") === "on";
   const mfaRequired = formData.get("mfaRequired") === "on";
   const rawDomain = String(formData.get("ssoDomain") ?? "").trim().toLowerCase().replace(/^@/, "");

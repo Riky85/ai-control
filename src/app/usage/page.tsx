@@ -157,7 +157,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
             To free a paid seat, angar has to know <i>who</i> hasn&apos;t used it and ask them by email. With employee privacy set to {mode === "department" ? "per department" : "company totals only"}, angar doesn&apos;t show or use names, so reminders are switched off.
           </p>
           <p className="text-sm text-ink-400">
-            You still see how many paid seats are unused for each AI in <Link href="/usage?view=ai" className="underline hover:text-ink-100">By AI</Link>. To clean up by person, an admin can switch to &ldquo;Per person&rdquo; in <Link href="/settings#privacy" className="underline hover:text-ink-100">Settings → Employee privacy</Link> — in Italy and Germany, only with a works-council agreement or after informing employees (<Link href="/compliance/employee-notice" className="underline hover:text-ink-100">employee notice</Link>).
+            You still see how many paid seats are unused for each AI in <Link href="/usage?view=ai" className="underline hover:text-ink-100">By AI</Link>. To clean up by person, an admin can switch to &ldquo;Per person&rdquo; in <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">Settings → Employee privacy</Link> — in Italy and Germany, only with a works-council agreement or after informing employees (<Link href="/compliance/employee-notice" className="underline hover:text-ink-100">employee notice</Link>).
           </p>
         </section>
       )}
