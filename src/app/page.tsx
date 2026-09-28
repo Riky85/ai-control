@@ -147,8 +147,11 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/download"} />
           </div>
 
-          <SavedSoFar orgId={orgId} />
-          <BenchmarkCard orgId={orgId} />
+          {/* Affiancati; se uno manca l'altro prende tutta la riga. */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:[&>*:only-child]:col-span-2 empty:hidden">
+            <SavedSoFar orgId={orgId} />
+            <BenchmarkCard orgId={orgId} />
+          </div>
 
           <section className="rounded-xl border border-line bg-panel p-5 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6 items-center animate-rise">
             <div className="flex flex-col gap-3">

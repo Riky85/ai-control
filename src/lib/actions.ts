@@ -494,6 +494,22 @@ export async function deletePolicyAction(formData: FormData) {
   revalidatePath("/governance");
 }
 
+/** Modifica nome e reparto di una persona (solo nel workspace corrente). */
+export async function updateUserAction(formData: FormData) {
+  const userId = String(formData.get("userId") ?? "");
+  const back = `/people/${userId}`;
+  const s = await guard("EDITOR", "people.update", formData, back);
+  const person = await db.user.findFirst({ where: { id: userId, organizationId: s.orgId } });
+  if (!person) redirect(`/people?error=${encodeURIComponent("That person isn't in this workspace.")}`);
+  const name = String(formData.get("name") ?? "").trim().slice(0, 120);
+  const department = String(formData.get("department") ?? "").trim().slice(0, 80);
+  await db.user.update({ where: { id: person.id }, data: { name: name || null, department: department || null } });
+  await audit("people.update", person.email, { name: name || null, department: department || null });
+  revalidatePath("/people");
+  revalidatePath(back);
+  redirect(`${back}?notice=${encodeURIComponent("Saved.")}`);
+}
+
 export async function addUserAction(formData: FormData) {
   await guard("EDITOR", "people.add", formData, "/settings");
   const email = (formData.get("email") as string)?.trim();

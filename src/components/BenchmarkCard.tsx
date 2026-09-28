@@ -37,13 +37,11 @@ export function Locked({ b }: { b: Benchmark }) {
       icon={<svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 14.5h12M5 14.5V9M9 14.5V5M13 14.5v-7" /></svg>}
       title="Benchmark"
       value={b.employeesSet && you ? <>{you}<span className="text-xs text-ink-400 font-normal">/employee</span></> : undefined}
-      text={b.employeesSet ? `compared with similar companies when ${b.minCompanies}+ use angar` : `compare your AI spend with similar companies (opens at ${b.minCompanies}+)`}
+      text={b.employeesSet ? `vs similar companies at ${b.minCompanies}+` : `compare with similar companies (opens at ${b.minCompanies}+)`}
       action={
-        !b.employeesSet ? (
-          <Link href="/settings?tab=general#employees" className="btn btn-secondary btn-sm shrink-0">
-            Add employees
-          </Link>
-        ) : undefined
+        <Link href="/settings?tab=general#employees" className={`btn btn-sm shrink-0 ${b.employeesSet ? "btn-ghost" : "btn-secondary"}`} title="Number of employees and industry">
+          {b.employeesSet ? "Edit" : "Add employees"}
+        </Link>
       }
     />
   );

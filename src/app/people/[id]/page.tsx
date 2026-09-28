@@ -6,6 +6,7 @@ import Badge from "@/components/Badge";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
+import { updateUserAction } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,24 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
         crumbs={[{ label: "People", href: "/people" }]}
         title={person.name ?? person.email}
         subtitle={`${person.email}${person.department ? ` · ${person.department}` : ""}`}
+        action={
+          <details className="relative">
+            <summary className="btn btn-secondary list-none cursor-pointer">Edit</summary>
+            <form action={updateUserAction} className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-line bg-panel p-4 shadow-card flex flex-col gap-3">
+              <input type="hidden" name="userId" value={person.id} />
+              <label className="flex flex-col gap-1.5 text-xs text-ink-400">
+                Name
+                <input name="name" defaultValue={person.name ?? ""} placeholder="Full name" className="field" />
+              </label>
+              <label className="flex flex-col gap-1.5 text-xs text-ink-400">
+                Department
+                <input name="department" defaultValue={person.department ?? ""} placeholder="e.g. Sales" className="field" />
+              </label>
+              <p className="text-xs text-ink-400">The email comes from the company account and can&apos;t be changed here.</p>
+              <button className="btn btn-primary btn-sm">Save</button>
+            </form>
+          </details>
+        }
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
