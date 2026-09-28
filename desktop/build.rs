@@ -13,7 +13,7 @@ fn main() {
             .set("InternalName", "angar")
             .set_manifest(
                 r#"<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity type="win32" name="ai.angar.agent" version="0.4.1.0"/>
+  <assemblyIdentity type="win32" name="ai.angar.agent" version="0.5.0.0"/>
   <description>angar - AI usage for your company</description>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3"><security><requestedPrivileges>
     <requestedExecutionLevel level="asInvoker" uiAccess="false"/>

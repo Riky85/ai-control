@@ -10,6 +10,7 @@
 
 mod config;
 mod detect;
+mod gui;
 mod install;
 mod ui;
 
@@ -39,6 +40,7 @@ struct Args {
     uninstall: bool,
     status: bool,
     no_install: bool,
+    notice: bool,
 }
 
 fn parse_args() -> Args {
@@ -61,6 +63,7 @@ fn parse_args() -> Args {
             "uninstall" => a.uninstall = true,
             "status" => a.status = true,
             "no-install" => a.no_install = true,
+            "notice" => a.notice = true,
             "version" => {
                 println!("angar {VERSION}");
                 std::process::exit(0);
@@ -99,9 +102,18 @@ fn main() {
         cfg.server = DEFAULT_SERVER.to_string();
     }
 
+    if args.notice {
+        // Company notice, opened by the background copy in its own process.
+        let title = std::env::var("ANGAR_NOTICE_TITLE").unwrap_or_else(|_| "angar".into());
+        let body = std::env::var("ANGAR_NOTICE_BODY").unwrap_or_default();
+        if gui::message(&title, &body, gui::Tone::Warning).is_err() {
+            ui::message(&format!("{title}\n\n{body}"));
+        }
+        return;
+    }
     if args.uninstall {
         install::uninstall();
-        if !silent {
+        if !silent && gui::message("angar was removed", "It no longer runs on this computer. You can install it again at any time from your company's angar link.", gui::Tone::Success).is_err() {
             ui::message("angar was removed from this computer.");
         }
         return;
@@ -113,6 +125,22 @@ fn main() {
 
     // Setup: company (join code) and work email.
     let code = args.join.clone().or_else(install::join_code_from_file_name);
+    if !silent && !args.once {
+        let input = gui::SetupInput {
+            cfg: cfg.clone(),
+            code: code.clone(),
+            join_explicit: args.join.is_some(),
+            email_arg: args.email.clone(),
+            email_domain: args.email_domain.clone(),
+            no_install: args.no_install,
+        };
+        match gui::setup(input) {
+            Ok(gui::Outcome::Exit) => return,
+            Ok(gui::Outcome::RunForeground(c)) => return run_loop(c),
+            // No window possible here (e.g. no OpenGL): plain system dialogs below.
+            Err(e) => eprintln!("window unavailable ({e}); using system dialogs"),
+        }
+    }
     // Already set up and the person opened a new download: update (keep the
     // link) or set it up again with another email / company.
     let mut updating = false;
@@ -234,7 +262,13 @@ fn show_notices(cfg: &mut Config, body: &str) {
         }
         cfg.shown_notices.push(key);
         let title = n["title"].as_str().unwrap_or("angar").to_string();
-        std::thread::spawn(move || ui::message(&format!("{title}\n\n{msg}")));
+        // Own process: the window needs the main thread, this one keeps scanning.
+        let spawned = std::env::current_exe().and_then(|exe| {
+            std::process::Command::new(exe).arg("--notice").env("ANGAR_NOTICE_TITLE", &title).env("ANGAR_NOTICE_BODY", &msg).spawn()
+        });
+        if spawned.is_err() {
+            std::thread::spawn(move || ui::message(&format!("{title}\n\n{msg}")));
+        }
     }
     let len = cfg.shown_notices.len();
     if len > 200 {
