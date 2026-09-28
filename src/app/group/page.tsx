@@ -25,7 +25,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
         <div className="rounded-xl border border-dashed border-line bg-panel p-8 flex flex-col gap-3 animate-rise">
           <h2 className="text-base font-semibold text-ink-100">Create a group for your companies</h2>
           <p className="text-sm text-ink-400 max-w-2xl">
-            Holding companies use one workspace per legal entity. A group adds them up: total AI spend, savings, AI in use, budgets per entity and an intercompany
+            Holding companies use one workspace for each legal entity. A group adds them up: total AI spend, savings, AI in use, budgets for each entity and an intercompany
             chargeback file. You only see the workspaces where you are an owner or admin.
           </p>
           {current ? (

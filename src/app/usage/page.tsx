@@ -154,10 +154,10 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-2">
           <h2 className="text-base font-semibold text-ink-100">Seat clean-up needs per-person data</h2>
           <p className="text-sm text-ink-400">
-            To free a paid seat, angar has to know <i>who</i> hasn&apos;t used it and ask them by email. With employee privacy set to {mode === "department" ? "per department" : "company totals only"}, angar doesn&apos;t show or use names, so reminders are switched off.
+            To free a paid seat, angar has to know <i>who</i> hasn&apos;t used it and ask them by email. With employee privacy set to {mode === "department" ? "“By department”" : "“Company totals only”"}, angar doesn&apos;t show or use names, so reminders are switched off.
           </p>
           <p className="text-sm text-ink-400">
-            You still see how many paid seats are unused for each AI in <Link href="/usage?view=ai" className="underline hover:text-ink-100">By AI</Link>. To clean up by person, an admin can switch to &ldquo;Per person&rdquo; in <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">Settings → Employee privacy</Link> — in Italy and Germany, only with a works-council agreement or after informing employees (<Link href="/compliance/employee-notice" className="underline hover:text-ink-100">employee notice</Link>).
+            You still see how many paid seats are unused for each AI in <Link href="/usage?view=ai" className="underline hover:text-ink-100">By AI</Link>. To clean up by person, an admin can switch to &ldquo;By person&rdquo; in <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">Settings → Employee privacy</Link> — in Italy and Germany, only with a works-council agreement or after informing employees (<Link href="/compliance/employee-notice" className="underline hover:text-ink-100">employee notice</Link>).
           </p>
         </section>
       )}
@@ -168,7 +168,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
             {departments.map((d) =>
               d.suppressed ? (
                 <tr key="suppressed">
-                  <td className={`${td} text-ink-400`} colSpan={5}>Fewer than {MIN_GROUP} people used AI — nothing can be shown per department.</td>
+                  <td className={`${td} text-ink-400`} colSpan={5}>Fewer than {MIN_GROUP} people used AI — nothing can be shown by department.</td>
                 </tr>
               ) : (
                 <tr key={d.department}>

@@ -17,9 +17,9 @@ export async function POST(req: Request) {
   const sensor = await sensorForToken(tokenFrom(req, true));
   if (!sensor) return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   const len = Number(req.headers.get("content-length") ?? 0);
-  if (len > MAX_BODY) return NextResponse.json({ error: "Too much data (max 5 MB per request)." }, { status: 413 });
+  if (len > MAX_BODY) return NextResponse.json({ error: "Too much data (max 5 MB in each request)." }, { status: 413 });
   const buf = Buffer.from(await req.arrayBuffer());
-  if (buf.length > MAX_BODY) return NextResponse.json({ error: "Too much data (max 5 MB per request)." }, { status: 413 });
+  if (buf.length > MAX_BODY) return NextResponse.json({ error: "Too much data (max 5 MB in each request)." }, { status: 413 });
 
   let data = buf;
   const gz = /gzip/i.test(req.headers.get("content-encoding") ?? "") || (buf[0] === 0x1f && buf[1] === 0x8b);

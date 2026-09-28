@@ -34,7 +34,7 @@ const CLOUD_NOTES: [string, string][] = [
   ["Cloudflare Gateway", "Logpush → Create job → HTTP destination. Dataset: Gateway DNS (and Gateway HTTP). Paste the push URL."],
   ["Zscaler", "Cloud NSS feed → HTTPS endpoint = push URL, JSON output with clientip/cintip, hostname and reqsize."],
   ["Cisco Umbrella", "Forward the DNS or proxy CSV logs (e.g. from your S3 export) with any shipper, gzip allowed."],
-  ["Any SIEM", "Splunk, Sentinel, Elastic, Graylog: an HTTP output of raw lines or NDJSON. Up to 5 MB per request."],
+  ["Any SIEM", "Splunk, Sentinel, Elastic, Graylog: an HTTP output of raw lines or NDJSON. Up to 5 MB in each request."],
 ];
 
 export function SetupSteps({ created, appUrl, edgeImage }: { created: Created; appUrl: string; edgeImage: string }) {

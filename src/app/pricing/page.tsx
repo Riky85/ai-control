@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const FAQ = [
   ["How does angar find our AI?", "From your bank statements and e-invoices (costs), Microsoft 365 or Google Workspace (who uses what), the angar desktop app (who uses which AI and for how long, even AI nobody pays for)."],
-  ["Do we need to install anything?", "No, to start. Drop a bank statement and you see results in seconds. The desktop app (one-minute install, no admin rights) is optional, for real usage per person."],
+  ["Do we need to install anything?", "No, to start. Drop a bank statement and you see results in seconds. The desktop app (one-minute install, no admin rights) is optional, for real usage for each person."],
   ["What does 'employees' mean?", "The size of the company using angar. You can change plan at any time; limits never lock your data."],
   ["Where is our data?", "In the EU (Railway, europe-west4). Only AI charges are kept from statements; keys are encrypted; access is read-only."],
 ];

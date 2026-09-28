@@ -75,8 +75,8 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
 
         <section className="grid grid-cols-4 mt-8 border border-[#DCDCE1] rounded-lg overflow-hidden">
           <Kpi label={toDate ? `${qLabel} to date` : `${qLabel} spend`} value={quarterSpend != null ? eur(quarterSpend) : eur(s.monthlyRunRate * 3)} hint={quarterSpend != null ? "From charges" : "Current cost × 3"} />
-          <Kpi label="Annual run rate" value={eur(s.annualRunRate)} hint={`${eur(s.monthlyRunRate)} per month`} border />
-          <Kpi label="Per employee / month" value={b.yours != null ? eur2(b.yours) : "—"} hint={b.peers ? `Median ${eur2(b.peers.median)}` : b.employeesSet ? "Benchmark not ready" : "Set employee count"} border />
+          <Kpi label="Annual run rate" value={eur(s.annualRunRate)} hint={`${eur(s.monthlyRunRate)} a month`} border />
+          <Kpi label="Each employee / month" value={b.yours != null ? eur2(b.yours) : "—"} hint={b.peers ? `Median ${eur2(b.peers.median)}` : b.employeesSet ? "Benchmark not ready" : "Set employee count"} border />
           <Kpi label="Savings realised / month" value={eur(saved)} hint={p.savings.realisedMonthly > 0 ? `${eur(p.savings.realisedMonthly)} verified on charges` : "Verified on the next charge"} border accent />
         </section>
 
@@ -87,20 +87,20 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
             <span className="inline-block h-2.5 w-2.5 bg-[#141418] align-middle mr-1" /> Charges (bank and invoices)
             <span className="inline-block h-2.5 w-2.5 bg-[#FF7323]/40 border border-dashed border-[#FF7323] align-middle ml-4 mr-1" /> <b>Estimate</b> —{" "}
             {s.method === "regression"
-              ? `linear trend on the last ${s.fittedMonths} months of charges (${s.slopePerMonth >= 0 ? "+" : "−"}${eur(Math.abs(s.slopePerMonth))} per month).`
+              ? `linear trend on the last ${s.fittedMonths} months of charges (${s.slopePerMonth >= 0 ? "+" : "−"}${eur(Math.abs(s.slopePerMonth))} a month).`
               : "current monthly cost of each AI; a trend needs at least 3 months of charges."}{" "}
             Next 4 quarters ≈ {eur(s.nextYearEstimate)}. Estimates are indicative, not a budget.
           </p>
         </section>
 
         <section className="mt-10 avoid-break">
-          <H2 n={2}>Spend per employee vs similar companies</H2>
+          <H2 n={2}>Spend for each employee vs similar companies</H2>
           <p className="text-sm mt-3">
             {b.yours == null
-              ? "Add the number of employees in Settings to compare AI spend per employee."
+              ? "Add the number of employees in Settings to compare AI spend for each employee."
               : b.peers
-                ? <>You spend <b>{eur2(b.yours)}</b> per employee per month. The median for {scopeLabel(b)} is <b>{eur2(b.peers.median)}</b> (middle 50%: {eur2(b.peers.p25)}–{eur2(b.peers.p75)}){benchDiff != null && Math.abs(benchDiff) >= 5 ? <> — you are <b>{Math.abs(benchDiff)}% {benchDiff > 0 ? "above" : "below"}</b> the median</> : null}.</>
-                : <>You spend <b>{eur2(b.yours)}</b> per employee per month. The benchmark appears when {b.minCompanies}+ comparable companies use angar.</>}
+                ? <>You spend <b>{eur2(b.yours)}</b> a month for each employee. The median for {scopeLabel(b)} is <b>{eur2(b.peers.median)}</b> (middle 50%: {eur2(b.peers.p25)}–{eur2(b.peers.p75)}){benchDiff != null && Math.abs(benchDiff) >= 5 ? <> — you are <b>{Math.abs(benchDiff)}% {benchDiff > 0 ? "above" : "below"}</b> the median</> : null}.</>
+                : <>You spend <b>{eur2(b.yours)}</b> a month for each employee. The benchmark appears when {b.minCompanies}+ comparable companies use angar.</>}
           </p>
           <p className="text-xs text-[#5F5F69] mt-1">Anonymous and aggregated across angar customers.</p>
         </section>
@@ -134,8 +134,8 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wider text-[#5F5F69] border-b border-[#141418]">
                 <th className="py-2 font-semibold">AI tool</th>
-                <th className="py-2 font-semibold text-right">Per month</th>
-                <th className="py-2 font-semibold text-right">Per year</th>
+                <th className="py-2 font-semibold text-right">Monthly</th>
+                <th className="py-2 font-semibold text-right">Yearly</th>
                 <th className="py-2 font-semibold text-right">Share</th>
               </tr>
             </thead>
@@ -200,7 +200,7 @@ function TrendChart({ bars }: { bars: QuarterBar[] }) {
   const slot = W / bars.length;
   const bw = Math.min(56, slot * 0.6);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-4" role="img" aria-label="AI spend per quarter, with estimate">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-4" role="img" aria-label="AI spend by quarter, with estimate">
       <line x1={0} x2={W} y1={base} y2={base} stroke="#DCDCE1" />
       {bars.map((b, i) => {
         const h = ((base - top) * b.eur) / max;

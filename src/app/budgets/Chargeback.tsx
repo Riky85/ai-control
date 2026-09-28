@@ -48,7 +48,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
           <summary className="btn btn-secondary list-none cursor-pointer [&::-webkit-details-marker]:hidden">Export</summary>
           <div className="absolute right-0 mt-1.5 w-64 z-30 rounded-xl border border-line bg-panel shadow-lg p-1.5 text-sm">
             <ExportLink href={exportHref("xlsx")} tag="XLS" title="Excel" hint="By cost centre and by AI" />
-            <ExportLink href={exportHref("csv")} tag="CSV" title="CSV" hint="One row per team and AI" />
+            <ExportLink href={exportHref("csv")} tag="CSV" title="CSV" hint="One row for each team and AI" />
             <ExportLink href={exportHref("datev")} tag="DAT" title="DATEV (EXTF)" hint={accountsSet ? "Buchungsstapel with KOST1" : "Set the accounts below first"} />
             <ExportLink href={exportHref("teamsystem")} tag="TS" title="TeamSystem" hint="Prima nota CSV with centro di costo" />
           </div>

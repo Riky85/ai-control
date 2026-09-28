@@ -139,7 +139,7 @@ export default async function AssetPeople({
           {groupByDepartment(usages, (u) => u.user?.email ?? u.externalUserRef, (u) => u.user?.department).map((g) =>
             g.suppressed ? (
               <tr key="suppressed">
-                <td className={`${td} text-ink-400`} colSpan={3}>Fewer than {MIN_GROUP} people use {asset.name} — nothing can be shown per department.</td>
+                <td className={`${td} text-ink-400`} colSpan={3}>Fewer than {MIN_GROUP} people use {asset.name} — nothing can be shown by department.</td>
               </tr>
             ) : (
               <tr key={g.department}>

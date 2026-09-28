@@ -51,7 +51,7 @@ export default async function AdvisorPage() {
       <section className="flex flex-col gap-3">
         <div>
           <h2 className="text-base font-semibold text-ink-100">Recommended stack</h2>
-          <p className="text-sm text-ink-400">One tool per job — the one most of your people already use.</p>
+          <p className="text-sm text-ink-400">One tool for each job — the one most of your people already use.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {stack.map((s) => (

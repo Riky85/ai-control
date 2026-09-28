@@ -9,7 +9,7 @@ export interface NavPage {
 export const NAV_PAGES: NavPage[] = [
   { href: "/", label: "Overview", keywords: "home dashboard start" },
   { href: "/savings", label: "Savings", keywords: "save money risparmi cut costs waste unused seats" },
-  { href: "/usage", label: "Usage", keywords: "who uses people activity seats active per person" },
+  { href: "/usage", label: "Usage", keywords: "who uses people activity seats active for each person" },
   { href: "/review", label: "Review", keywords: "approve pending new found shadow ai decide" },
   { href: "/sources", label: "Sources", keywords: "connect bank invoices microsoft google integrations" },
   { href: "/download?view=other", label: "Other ways to find AI (extension, scan, logs)", keywords: "desktop app scan install computers agent download shadow ai" },

@@ -50,7 +50,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   const wizardSteps = [
     { key: "costs", title: "See what you pay for AI", desc: "Drop a bank statement or connect your bank — angar lists every AI subscription and cost.", href: "/sources", cta: "Add costs", done: spendCount > 0 },
     { key: "usage", title: "See who really uses each AI", desc: "Install the desktop app on your computers to see real usage and unused paid seats.", href: "/download", cta: "Get the app", done: devicesCount > 0 },
-    { key: "team", title: "Invite your team", desc: "Add colleagues so usage is counted per person across the company.", href: "/workspace", cta: "Invite", done: memberCount > 1 },
+    { key: "team", title: "Invite your team", desc: "Add colleagues so usage is counted for each person across the company.", href: "/workspace", cta: "Invite", done: memberCount > 1 },
   ];
 
   const costed = assets.map((a) => monthlyOf(a)).filter((m): m is NonNullable<typeof m> => !!m && m.eur > 0);
@@ -142,7 +142,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} found by the scan to decide` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} tone="accent" href={toReview ? "/review" : "/providers"} />
-            <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (org?.employees ? `${fmtEur(spend / org.employees, { decimals: true })} per employee` : estimated ? `${estimated} estimated from list prices` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
+            <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (org?.employees ? `${fmtEur(spend / org.employees, { decimals: true })} for each employee` : estimated ? `${estimated} estimated from list prices` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
             <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"} →` : "Nothing found yet"} href="/savings" />
             <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/download"} />
           </div>

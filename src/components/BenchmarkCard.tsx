@@ -20,7 +20,7 @@ export default async function BenchmarkCard({ orgId, variant = "compact" }: { or
         <div className="text-sm text-ink-100">
           <Sentence b={b} />
         </div>
-        <div className="text-xs text-ink-400 mt-0.5">AI spend per employee per month · anonymous, aggregated across angar customers</div>
+        <div className="text-xs text-ink-400 mt-0.5">AI spend a month for each employee · anonymous, aggregated across angar customers</div>
       </div>
       <RangeBar b={b} className="relative w-full md:w-64 shrink-0" />
     </section>
@@ -30,49 +30,23 @@ export default async function BenchmarkCard({ orgId, variant = "compact" }: { or
 export function Locked({ b }: { b: Benchmark }) {
   const you = b.yours !== null ? per(b.yours) : null;
   return (
-    <section className="relative overflow-hidden rounded-xl border border-line bg-panel grid grid-cols-1 md:grid-cols-[1fr_300px] animate-rise">
-      <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
-      <div className="relative p-5 flex items-start gap-4 min-w-0">
-        <span className="h-10 w-10 shrink-0 rounded-xl border border-line bg-ink-100/[0.04] flex items-center justify-center text-accent">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M3 14.5h12M5 14.5V9M9 14.5V5M13 14.5v-7" /></svg>
+    <section className="relative overflow-hidden rounded-xl border border-line bg-panel px-4 py-3 flex items-center gap-3 animate-rise">
+      <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
+      <span className="relative h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] flex items-center justify-center text-accent">
+        <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 14.5h12M5 14.5V9M9 14.5V5M13 14.5v-7" /></svg>
+      </span>
+      <div className="relative flex-1 min-w-0 text-sm">
+        <span className="text-ink-100 font-medium">Benchmark</span>
+        <span className="text-ink-400">
+          {" · "}
+          {b.employeesSet ? `you spend ${you ?? "—"} a month for each employee — the comparison opens when ${b.minCompanies}+ similar companies use angar.` : `compare your AI spend for each employee with similar companies (opens at ${b.minCompanies}+ companies).`}
         </span>
-        <div className="min-w-0 flex flex-col gap-2">
-          <div>
-            <div className="text-sm font-semibold text-ink-100">Compare your AI spend with similar companies</div>
-            <p className="text-sm text-ink-400 mt-0.5">
-              {b.employeesSet
-                ? `You spend ${you ?? "—"} per employee each month. The comparison appears as soon as ${b.minCompanies}+ similar companies use angar.`
-                : `See your AI spend per employee next to companies of your size and industry — anonymous. It unlocks when ${b.minCompanies}+ similar companies use angar.`}
-            </p>
-          </div>
-          {!b.employeesSet && (
-            <Link href="/settings?tab=general#employees" className="btn btn-primary btn-sm self-start">
-              Add number of employees
-            </Link>
-          )}
-        </div>
       </div>
-      <div className="relative hidden md:flex flex-col justify-center gap-2 px-6 py-5 border-l border-line/60" aria-hidden>
-        <div className="flex items-center justify-between text-[11px] text-ink-400">
-          <span>You</span>
-          <span className="rounded-full border border-line px-1.5 py-0.5 flex items-center gap-1">
-            <svg width="9" height="10" viewBox="0 0 9 10" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="1" y="4.5" width="7" height="5" rx="1" /><path d="M2.5 4.5V3a2 2 0 014 0v1.5" /></svg>
-            Locked
-          </span>
-        </div>
-        <div className="blur-[2px] opacity-70 flex flex-col gap-2">
-          <div className="relative h-2 rounded-full bg-ink">
-            <div className="absolute inset-y-0 left-[28%] w-[34%] rounded-full bg-ink-400/30" />
-            <div className="absolute -top-1 left-[45%] h-4 w-0.5 bg-ink-100" />
-            <div className="absolute top-1/2 left-[58%] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent ring-2 ring-panel" />
-          </div>
-          <div className="flex justify-between text-[11px] text-ink-400 tabular">
-            <span>€0</span>
-            <span>median €24</span>
-            <span>€60</span>
-          </div>
-        </div>
-      </div>
+      {!b.employeesSet && (
+        <Link href="/settings?tab=general#employees" className="relative btn btn-secondary btn-sm shrink-0">
+          Add employees
+        </Link>
+      )}
     </section>
   );
 }
@@ -82,20 +56,20 @@ function Sentence({ b }: { b: Benchmark }) {
     return (
       <>
         Benchmark unlocks when 5+ similar companies use angar.{" "}
-        <Link href="/settings" className="underline hover:text-accent">Add number of employees</Link> to compare your AI spend per employee.
+        <Link href="/settings" className="underline hover:text-accent">Add number of employees</Link> to compare your AI spend for each employee.
       </>
     );
   const you = b.yours !== null ? per(b.yours) : "—";
   if (!b.peers)
     return (
       <>
-        Benchmark unlocks when {b.minCompanies}+ similar companies use angar — you: <b className="tabular">{you}</b> per employee/month
+        Benchmark unlocks when {b.minCompanies}+ similar companies use angar — you: <b className="tabular">{you}</b> a month for each employee
       </>
     );
   const diff = b.yours !== null && b.peers.median > 0 ? Math.round(((b.yours - b.peers.median) / b.peers.median) * 100) : null;
   return (
     <>
-      You spend <b className="tabular">{you}</b> per employee/month — median for {scopeLabel(b)} is <b className="tabular">{per(b.peers.median)}</b>
+      You spend <b className="tabular">{you}</b> a month for each employee — median for {scopeLabel(b)} is <b className="tabular">{per(b.peers.median)}</b>
       {diff !== null && Math.abs(diff) >= 5 && (
         <span className={`ml-1.5 text-xs font-medium rounded-full px-1.5 py-0.5 tabular ${diff > 0 ? "text-signal bg-signal/10" : "text-steady bg-steady/10"}`}>
           {diff > 0 ? `${diff}% above` : `${Math.abs(diff)}% below`}
@@ -136,7 +110,7 @@ function Section({ b }: { b: Benchmark }) {
     <div className="rounded-xl border border-line bg-panel p-5 animate-rise">
       <div className="mb-4">
         <h2 className="text-base font-semibold text-ink-100">Benchmark vs similar companies</h2>
-        <p className="text-sm text-ink-400 mt-0.5">AI spend per employee per month — anonymous, aggregated across angar customers. Shown only when {b.minCompanies}+ comparable companies exist.</p>
+        <p className="text-sm text-ink-400 mt-0.5">AI spend a month for each employee — anonymous, aggregated across angar customers. Shown only when {b.minCompanies}+ comparable companies exist.</p>
       </div>
       {b.peers && b.yours !== null ? (
         <div className="grid grid-cols-[1fr_320px] gap-8 items-center">

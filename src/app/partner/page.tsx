@@ -71,7 +71,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
         <div className="rounded-xl border border-dashed border-line bg-panel p-8 flex flex-col gap-3 animate-rise">
           <h2 className="text-base font-semibold text-ink-100">Manage AI spend for all your clients</h2>
           <p className="text-sm text-ink-400 max-w-2xl">
-            Accountants, consultants and MSPs use angar to look after AI spend for many client companies at once. Create one workspace per client, drop their bank
+            Accountants, consultants and MSPs use angar to look after AI spend for many client companies at once. Create one workspace for each client, drop their bank
             statement or invite them, and this console shows every client side by side — spend, possible savings, AI to review and alerts — sorted by where you can save
             the most.
           </p>

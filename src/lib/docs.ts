@@ -73,7 +73,7 @@ AI found this way goes to Review, where you decide in one click whether it's all
     slug: "desktop-app",
     section: "Sources",
     title: "The desktop app",
-    summary: "One install per computer: angar sees which AI each person uses — in every browser and desktop app — and for how long.",
+    summary: "One install on each computer: angar sees which AI each person uses — in every browser and desktop app — and for how long.",
     keywords: ["desktop", "app", "install", "download", "agent", "computer", "shadow", "usage", "silent", "intune", "jamf", "uninstall", "windows", "mac", "linux", "scan", "discover"],
     body: `The angar desktop app is the main way to find the AI people really use, including AI nobody pays for through the company.
 ## Install it
@@ -83,7 +83,7 @@ AI found this way goes to Review, where you decide in one click whether it's all
 ## The whole company
 On the download page, copy the company link and send it to your colleagues: each person downloads from it and types their email. Nothing else to configure.
 ## What it sends
-- Only the names of AI tools and the time spent on each per day — e.g. "ChatGPT, 40 minutes".
+- Only the names of AI tools and the time spent on each each day — e.g. "ChatGPT, 40 minutes".
 - Never URLs, pages, prompts, messages, files or anything people write.
 - AI-looking tools that aren't in angar's list yet are sent as "possible AI" and appear in Review, where you decide whether they count.
 ## Silent install (IT)
@@ -179,10 +179,10 @@ The provider card shows "Admin key" when one is in use.`,
     slug: "import-csv",
     section: "Sources",
     title: "Import from a spreadsheet (CSV)",
-    summary: "Upload a CSV with one row per AI system — works for any tool, even without an API.",
+    summary: "Upload a CSV with one row for each AI system — works for any tool, even without an API.",
     keywords: ["csv", "excel", "import", "spreadsheet", "upload", "template", "bulk"],
     body: `1. In Sources → AI provider keys → Import, click Download template.
-2. Fill one row per AI system. Columns: name (required), vendor, type, model, owner_email, department, monthly_cost.
+2. Fill one row for each AI system. Columns: name (required), vendor, type, model, owner_email, department, monthly_cost.
 3. Save as CSV (in Excel: File → Save as → CSV) and drop it in the upload area, then press Import CSV.
 Rows with the same name update the existing system instead of duplicating it. Owners are created automatically from their email.
 Valid types: AI_APPLICATION, AI_AGENT, AI_API, AI_FEATURE, AI_DEV_TOOL, MCP_SERVER.`,
@@ -262,7 +262,7 @@ List prices are updated regularly; check before changing a plan.`,
     title: "Changes",
     summary: "What changed between syncs: model, vendor and status, before and after.",
     keywords: ["changes", "history", "model change", "before", "after"],
-    body: `Every time a sync finds a different model or vendor, or someone changes a status, angar records a change with the old and new value and the time it was detected. See them all in Changes, the latest on Overview, and per system in its Passport export.`,
+    body: `Every time a sync finds a different model or vendor, or someone changes a status, angar records a change with the old and new value and the time it was detected. See them all in Changes, the latest on Overview, and for each system in its Passport export.`,
   },
   {
     slug: "export",
@@ -301,7 +301,7 @@ You can see how many times it was opened and revoke it at any time.`,
     slug: "workspaces",
     section: "Workspace",
     title: "Multiple workspaces",
-    summary: "One workspace per company, plant or client — switch from the top of the sidebar.",
+    summary: "One workspace for each company, plant or client — switch from the top of the sidebar.",
     keywords: ["workspace", "workspaces", "switch", "create workspace", "multiple", "company", "client"],
     body: `Click the workspace name at the top of the sidebar to switch, create or manage workspaces. Each workspace has its own AI systems, connections, members and shared dashboards. Starter includes 1 workspace, Growth up to 3, Enterprise unlimited. Rename workspaces from Workspace → Workspaces.`,
   },
@@ -323,7 +323,7 @@ Upgrade from Plan & billing. Payments are processed by Stripe; invoices and paym
     summary: "A small appliance on your network that detects AI traffic no connector can see.",
     keywords: ["edge", "device", "hardware", "appliance", "network", "shadow ai"],
     body: `angar Edge is a plug-and-play device for your office or plant network. It detects traffic to AI services (ChatGPT, Claude, Gemini, Copilot…) without inspecting content, finds shadow AI and feeds AI Passports, the estate map and Changes.
-It's billed per device per month on top of any plan, with a 12-month minimum; hardware and replacement are included. angar Edge is in early access — order from Plan & billing.`,
+It's billed a month for each device on top of any plan, with a 12-month minimum; hardware and replacement are included. angar Edge is in early access — order from Plan & billing.`,
   },
   {
     slug: "security",
@@ -368,18 +368,18 @@ Emails need email sending set up on the deployment. Nobody is asked twice within
   {
     slug: "budgets",
     section: "Saving money",
-    title: "Budgets per team",
-    summary: "Set a monthly AI budget per department; angar warns at 80% and 100%.",
+    title: "Budgets for each team",
+    summary: "Set a monthly AI budget by department; angar warns at 80% and 100%.",
     keywords: ["budget", "department", "team", "limit"],
-    body: `Budgets splits each AI's monthly cost across departments by who uses it (departments come from Microsoft 365 / Google Workspace, or you set them on People). Set a budget per team; angar alerts at 80% and 100%.`,
+    body: `Budgets splits each AI's monthly cost across departments by who uses it (departments come from Microsoft 365 / Google Workspace, or you set them on People). Set a budget for each team; angar alerts at 80% and 100%.`,
   },
   {
     slug: "advisor",
     section: "Saving money",
     title: "AI Advisor — your ideal AI stack",
-    summary: "From real usage and today's prices, angar suggests one standard tool per job and how to get there.",
+    summary: "From real usage and today's prices, angar suggests one standard tool for each job and how to get there.",
     keywords: ["advisor", "recommend", "stack", "standardise", "consolidate"],
-    body: `AI Advisor looks at who really uses which AI in the last 30 days and suggests one standard tool per job (assistant, coding, search, meetings), the seats you need, personal plans to move to a business plan and yearly billing where it pays. Every step shows the saving and why.`,
+    body: `AI Advisor looks at who really uses which AI in the last 30 days and suggests one standard tool for each job (assistant, coding, search, meetings), the seats you need, personal plans to move to a business plan and yearly billing where it pays. Every step shows the saving and why.`,
   },
   {
     slug: "ai-act",

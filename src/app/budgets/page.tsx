@@ -20,7 +20,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
   if (searchParams.view === "chargeback")
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="Budgets" subtitle="AI cost per team and cost centre each month — for chargeback or showback." />
+        <PageHeader title="Budgets" subtitle="AI cost for each team and cost centre each month — for chargeback or showback." />
         <Tabs items={VIEW_TABS} active="chargeback" />
         {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
         {searchParams.saved && <Notice tone="success">Accounts saved.</Notice>}
@@ -62,7 +62,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Budgets" subtitle="Monthly AI budget per team — angar warns you at 80% and 100%." />
+      <PageHeader title="Budgets" subtitle="Monthly AI budget for each team — angar warns you at 80% and 100%." />
       <Tabs items={VIEW_TABS} active="budgets" />
 
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}

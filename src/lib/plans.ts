@@ -55,7 +55,7 @@ export const PLANS: PlanDef[] = [
     employees: "Up to 250 employees",
     tagline: "Who really uses each AI, unused seats and shadow AI.",
     limits: { aiSystems: 250, connections: null, members: 15, sharedDashboards: null, workspaces: 3 },
-    features: ["Everything in Starter", "Microsoft 365 & Google Workspace", "Browser extension: real usage per person", "Unused seats & reminders", "Network scans & angar Edge software", "AI register export", "15 members, 3 workspaces"],
+    features: ["Everything in Starter", "Microsoft 365 & Google Workspace", "Browser extension: real usage for each person", "Unused seats & reminders", "Network scans & angar Edge software", "AI register export", "15 members, 3 workspaces"],
     stripePriceEnv: "STRIPE_PRICE_GROWTH",
     stripeAnnualPriceEnv: "STRIPE_PRICE_GROWTH_ANNUAL",
   },

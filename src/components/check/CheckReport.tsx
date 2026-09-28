@@ -66,8 +66,8 @@ export default function CheckReport() {
 
         <section className="grid grid-cols-3 gap-0 mt-8 border border-[#DCDCE1] rounded-lg overflow-hidden">
           <Kpi label="AI services found" value={String(snap.lines.length)} />
-          <Kpi label="AI spend per year" value={eur(snap.spend * 12)} hint={`${eur(snap.spend)} per month`} border />
-          <Kpi label="Possible savings per year" value={eur(snap.save * 12)} hint={`${eur(snap.save)} per month`} border accent />
+          <Kpi label="AI spend a year" value={eur(snap.spend * 12)} hint={`${eur(snap.spend)} a month`} border />
+          <Kpi label="Possible savings a year" value={eur(snap.save * 12)} hint={`${eur(snap.save)} a month`} border accent />
         </section>
 
         <section className="mt-10">
@@ -79,8 +79,8 @@ export default function CheckReport() {
                 <th className="py-2 font-semibold">Category</th>
                 <th className="py-2 font-semibold">Plan</th>
                 <th className="py-2 font-semibold text-right">Seats</th>
-                <th className="py-2 font-semibold text-right">Per month</th>
-                <th className="py-2 font-semibold text-right">Per year</th>
+                <th className="py-2 font-semibold text-right">Monthly</th>
+                <th className="py-2 font-semibold text-right">Yearly</th>
               </tr>
             </thead>
             <tbody>
@@ -137,7 +137,7 @@ export default function CheckReport() {
           <div className="mt-6 rounded-lg bg-[#141418] text-white px-6 py-5 flex items-center gap-6">
             <div className="flex-1">
               <div className="font-semibold">Keep this report up to date — automatically</div>
-              <div className="text-sm text-white/70 mt-0.5">Create a free angar account: connect your bank or invoices, see real usage per person and get alerts before renewals.</div>
+              <div className="text-sm text-white/70 mt-0.5">Create a free angar account: connect your bank or invoices, see real usage for each person and get alerts before renewals.</div>
             </div>
             <a href="/signup" className="shrink-0 rounded-lg bg-[#FF7323] px-4 py-2.5 text-sm font-semibold text-white">Create a free account →</a>
           </div>

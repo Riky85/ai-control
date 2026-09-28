@@ -107,7 +107,7 @@ export default function EdgePage() {
             ["Invisible AI", "Servers, scripts and agents calling OpenAI, Anthropic & co. directly — often on personal API keys."],
             ["Local models", "Finds Ollama and LM Studio servers on the LAN (opt-in scan)."],
             ["Large uploads", "Alerts when a device sends lots of data to a non-approved AI — from firewall byte counts, never content."],
-            ["Privacy modes", "Per person, per department (groups ≥ 5) or company totals only — for Statuto dei lavoratori art. 4 and the Betriebsrat."],
+            ["Privacy modes", "By person, by department (groups ≥ 5) or company totals only — for Statuto dei lavoratori art. 4 and the Betriebsrat."],
             ["AI Act / NIS2 evidence", "Tamper-evident evidence pack of what AI runs where, and what was blocked."],
             ["Feeds angar", "Your AI, Savings, alerts and the monthly report update themselves."],
           ].map(([t, d]) => (
@@ -147,10 +147,10 @@ export default function EdgePage() {
             <div className="px-3 py-2 border-b border-line font-semibold text-ink-100 text-sm">angar Edge</div>
             <div className="px-3 py-2 border-b border-line font-semibold text-ink-100 text-sm">Desktop app</div>
             {[
-              ["Install", "One sensor per network, or cloud logs", "One download per computer, no admin rights"],
+              ["Install", "One sensor for each network, or cloud logs", "One download on each computer, no admin rights"],
               ["Covers", "Whole network: phones, servers, scripts", "That computer, anywhere it goes"],
               ["Blocks", "Yes, at DNS for everyone", "Shows the person the approved AI"],
-              ["Per person", "Via hostname, AD/DHCP or the app", "Yes, tied to the work email"],
+              ["By person", "Via hostname, AD/DHCP or the app", "Yes, tied to the work email"],
               ["Best for", "Invisible AI, unmanaged devices, NIS2", "Who uses what, unused seats, remote work"],
             ].map(([k, a, b]) => (
               <Row key={k} k={k} a={a} b={b} />
@@ -164,7 +164,7 @@ export default function EdgePage() {
       <section className="rounded-xl border border-line bg-panel p-4 flex flex-col md:flex-row md:items-center gap-4">
         <div className="flex-1 text-sm text-ink-400">
           <span className="text-ink-100 font-medium">Software and cloud logs are included from {fromPlan}</span> — as many sensors as you need. Prefer hardware? The angar
-          device is <span className="text-ink-100">€{EDGE.pricePerDevice}</span> per device / month, {EDGE.minMonths}-month minimum, shipping and replacement included.
+          device is <span className="text-ink-100">€{EDGE.pricePerDevice}</span> a month for each device, {EDGE.minMonths}-month minimum, shipping and replacement included.
           MSPs and resellers get {EDGE.partnerDiscountPct}% off — see the{" "}
           <Link href="/partner" className="underline hover:text-ink-100">
             partner console

@@ -206,7 +206,7 @@ export async function computeAdvice(organizationId: string) {
         kind: "business",
         title: `Move ${personalCount} personal ${std.name} plans to ${biz.name}`,
         why:
-          `${plural(personalCount, "personal plan")} cost ${eurTxt(personalEur)}/mo today; ${biz.name} is $${biz.monthlyUsd}/seat per month (${eurTxt(bizCost)}/mo). ` +
+          `${plural(personalCount, "personal plan")} cost ${eurTxt(personalEur)}/mo today; ${biz.name} is $${biz.monthlyUsd}/seat a month (${eurTxt(bizCost)}/mo). ` +
           (diff >= 0 ? "Cheaper, and the company controls the accounts and data." : "It costs a little more, but the company controls the accounts and data."),
         monthlySaving: r2(diff),
         confidence: "MEDIUM",
@@ -244,7 +244,7 @@ export async function computeAdvice(organizationId: string) {
           key: `yearly:${std.key}`,
           kind: "yearly",
           title: `Pay ${std.name} yearly`,
-          why: `${curPlan.name} is $${curPlan.annualMonthlyUsd}/seat per month billed yearly vs $${curPlan.monthlyUsd} monthly — ${Math.round(pct * 100)}% less. Do it after right-sizing, for seats you're sure to keep.`,
+          why: `${curPlan.name} is $${curPlan.annualMonthlyUsd}/seat a month billed yearly vs $${curPlan.monthlyUsd} monthly — ${Math.round(pct * 100)}% less. Do it after right-sizing, for seats you're sure to keep.`,
           monthlySaving: r2(save),
           confidence: "HIGH",
           assets: [ref(stdAsset)],

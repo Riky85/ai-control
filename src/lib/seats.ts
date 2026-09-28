@@ -53,7 +53,7 @@ export async function seatStats(assetIds: string[], windowDays = SEAT_WINDOW_DAY
 export async function sendSeatReminders(organizationId: string, assetId: string, askedBy: string) {
   // Privacy per reparto / solo totali: niente promemoria per persona.
   if (!showsPeople(await orgPrivacyMode(organizationId))) {
-    return { asked: 0, sent: 0, reason: "Seat reminders are off: employee privacy isn't set to per person (Settings → Employee privacy)." };
+    return { asked: 0, sent: 0, reason: "Seat reminders are off: employee privacy isn't set to “By person” (Settings → Employee privacy)." };
   }
   const { sendEmail, emailEnabled } = await import("@/lib/mail");
   const asset = await db.aiAsset.findFirst({

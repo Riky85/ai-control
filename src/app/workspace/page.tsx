@@ -104,7 +104,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
           </div>
           <Panel
             title="Create a workspace"
-            subtitle={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on the ${plan.name} plan — e.g. one per company, plant or client`}
+            subtitle={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on the ${plan.name} plan — e.g. one for each company, plant or client`}
           >
             {plan.limits.workspaces === null || allWorkspaces.length < plan.limits.workspaces ? (
               <form action={createWorkspaceAction} className="flex flex-col gap-2">

@@ -443,5 +443,5 @@ function costSource(c: { basis: string; seats: number | null; planId: string | n
   const plan = c.notes?.match(/looks like (.+)$/)?.[1];
   const from =
     c.basis === "bank" ? "From your bank statement" : c.basis === "invoice" ? "From your invoices" : c.basis === "billing_connector" ? "From provider billing" : c.basis === "estimate" ? "Estimated from list prices" : "Entered by hand";
-  return plan ? `${from} · ${plan}` : `${from} · per month`;
+  return plan ? `${from} · ${plan}` : `${from} · a month`;
 }

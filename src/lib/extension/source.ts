@@ -174,7 +174,7 @@ INSTALL ON EVERY COMPUTER (IT)
 Publish the extension once (Chrome Web Store and Edge Add-ons, "unlisted"), then force-install it with your device management
 (Google Admin, Intune/GPO: ExtensionInstallForcelist) and push this managed configuration:
   { "token": "YOUR_TOKEN", "server": "${server}" }
-The user's email comes from the signed-in browser profile; set "email" per user if profiles aren't managed.
+The user's email comes from the signed-in browser profile; set "email" for each user if profiles aren't managed.
 
 WHAT IS SENT
 Only AI service names from angar's list, visit counts, last visit time and the work email. Nothing else.`;

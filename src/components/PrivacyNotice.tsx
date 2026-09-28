@@ -18,7 +18,7 @@ export default function PrivacyNotice({ mode, what }: { mode: PrivacyMode; what?
       <div className="flex-1">
         {mode === "department" ? (
           <>
-            <b>Employee privacy: per department.</b> {what ?? "This page"} shows totals per department only — groups of at least {MIN_GROUP} people, smaller teams merged into &ldquo;Other (small teams)&rdquo;. No names, emails or devices.
+            <b>Employee privacy: by department.</b> {what ?? "This page"} shows totals by department only — groups of at least {MIN_GROUP} people, smaller teams merged into &ldquo;Other (small teams)&rdquo;. No names, emails or devices.
           </>
         ) : (
           <>

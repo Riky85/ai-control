@@ -53,7 +53,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
           <Row title="Organization" hint={org?.country ? `Country: ${org.country}` : undefined}>
             <span className="text-sm text-ink-100">{org?.name ?? "—"}</span>
           </Row>
-          <Row title="Employees" hint="For AI spend per employee and the benchmark." id="employees">
+          <Row title="Employees" hint="For AI spend for each employee and the benchmark." id="employees">
             <form action={setEmployeesAction} className="flex gap-2">
               <input name="employees" type="number" min="1" defaultValue={org?.employees ?? ""} placeholder="e.g. 120" className="field w-32" />
               <button className="btn btn-secondary btn-sm">Save</button>

@@ -211,7 +211,7 @@ export default async function ConnectorsPage({
         </div>
       </section>
 
-      <Section title="Import" subtitle="Works for any AI — including tools without an API. One row per AI system.">
+      <Section title="Import" subtitle="Works for any AI — including tools without an API. One row for each AI system.">
         <div id="import" className={`${card} col-span-2`}>
           <div className="text-sm font-medium text-ink-100">Upload a spreadsheet (CSV)</div>
           <p className="text-xs text-ink-400">

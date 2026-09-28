@@ -7,8 +7,8 @@
 export type PrivacyMode = "individual" | "department" | "anonymous";
 
 export const PRIVACY_MODES: { id: PrivacyMode; label: string; description: string }[] = [
-  { id: "individual", label: "Per person", description: "See who uses which AI — best for seat clean-up and licences." },
-  { id: "department", label: "Per department", description: "Only totals per department (groups of at least 5 people). No names." },
+  { id: "individual", label: "By person", description: "See who uses which AI — best for seat clean-up and licences." },
+  { id: "department", label: "By department", description: "Only totals by department (groups of at least 5 people). No names." },
   { id: "anonymous", label: "Company totals only", description: "Only company-wide totals. No names, no devices, no departments." },
 ];
 

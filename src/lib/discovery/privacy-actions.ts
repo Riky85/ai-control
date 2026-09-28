@@ -23,7 +23,7 @@ export async function erasePastNamesAction() {
   const s = await requireRole("OWNER", "/settings");
   const orgId = s.orgId;
   const ids = await identitiesFor(orgId);
-  if (ids.people) redirect(`/settings?tab=privacy&error=${encodeURIComponent("Switch employee privacy to per department or company totals first.")}#privacy`);
+  if (ids.people) redirect(`/settings?tab=privacy&error=${encodeURIComponent("Switch employee privacy to “By department” or “Company totals only” first.")}#privacy`);
   const person = (v: string) => (isPseudonym(v) || NOT_A_PERSON.test(v) ? v : ids.person(v));
   const counts = { activities: 0, usages: 0, people: 0, computers: 0, alerts: 0, edge: 0 };
 

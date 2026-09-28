@@ -101,7 +101,7 @@ async function PeopleAggregate({ mode }: { mode: PrivacyMode }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="People" subtitle={mode === "department" ? "AI use per department — no names." : "AI use across the company — no names."} action={<ExportMenu dataset="people" />} />
+      <PageHeader title="People" subtitle={mode === "department" ? "AI use by department — no names." : "AI use across the company — no names."} action={<ExportMenu dataset="people" />} />
       <PrivacyNotice mode={mode} what="People" />
 
       <div className="grid grid-cols-3 gap-4">
@@ -116,7 +116,7 @@ async function PeopleAggregate({ mode }: { mode: PrivacyMode }) {
             g.suppressed ? (
               <tr key="suppressed">
                 <td className={`${td} text-ink-400`} colSpan={4}>
-                  Fewer than {MIN_GROUP} people in total — nothing can be shown per department.
+                  Fewer than {MIN_GROUP} people in total — nothing can be shown by department.
                 </td>
               </tr>
             ) : (

@@ -80,7 +80,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
                   <th className="px-5 py-2.5 font-medium">AI</th>
                   <th className="px-5 py-2.5 font-medium">Category</th>
                   <th className="px-5 py-2.5 font-medium">Looks like</th>
-                  <th className="px-5 py-2.5 font-medium text-right">Per month</th>
+                  <th className="px-5 py-2.5 font-medium text-right">Monthly</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">

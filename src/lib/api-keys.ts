@@ -50,7 +50,7 @@ export async function authenticateApi(req: Request, scope: (typeof API_SCOPES)[n
     return json(401, { error: "Invalid or revoked API key" });
   }
   if (!row.scopes.includes(scope)) return json(403, { error: `This key has no "${scope}" scope` });
-  if (!rateLimit(`api-key:${row.id}`, LIMIT, WINDOW)) return json(429, { error: `Rate limit: ${LIMIT} requests per minute` }, { "Retry-After": String(retryAfter(LIMIT, WINDOW)) });
+  if (!rateLimit(`api-key:${row.id}`, LIMIT, WINDOW)) return json(429, { error: `Rate limit: ${LIMIT} requests a minute` }, { "Retry-After": String(retryAfter(LIMIT, WINDOW)) });
   // lastUsedAt al massimo una volta al minuto (niente scrittura a ogni richiesta).
   if (!row.lastUsedAt || Date.now() - row.lastUsedAt.getTime() > WINDOW) {
     void db.apiKey.update({ where: { id: row.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
