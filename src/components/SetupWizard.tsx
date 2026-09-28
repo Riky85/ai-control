@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export interface WizardStep {
   key: string;
@@ -12,34 +12,18 @@ export interface WizardStep {
   done: boolean;
 }
 
-const HIDE_KEY = "angar:wizard-hidden";
 
 // Wizard di avvio: guida l'utente nei 3 passi che rendono angar utile
 // (costi → uso → team). Ogni passo si spunta da solo dai dati reali.
 // Aperto: come il blocco Download (bagliore arancio, anteprima a destra).
 // Chiuso: una barra sottile con l'avanzamento e il prossimo passo.
 export default function SetupWizard({ steps }: { steps: WizardStep[] }) {
-  // null finché non si legge la preferenza: niente lampeggio tra barra e wizard.
-  const [hidden, setHidden] = useState<boolean | null>(null);
-  useEffect(() => {
-    try {
-      setHidden(localStorage.getItem(HIDE_KEY) === "1");
-    } catch {
-      setHidden(false);
-    }
-  }, []);
-  const store = (v: boolean) => {
-    try {
-      if (v) localStorage.setItem(HIDE_KEY, "1");
-      else localStorage.removeItem(HIDE_KEY);
-    } catch {
-      /* best-effort */
-    }
-    setHidden(v);
-  };
+  // Sempre aperto quando si arriva sulla home; "chiudi" lo riduce solo per questa visita.
+  const [hidden, setHidden] = useState(false);
+  const store = (v: boolean) => setHidden(v);
 
   const doneCount = steps.filter((s) => s.done).length;
-  if (hidden === null || doneCount === steps.length) return null;
+  if (doneCount === steps.length) return null;
   const activeIdx = steps.findIndex((s) => !s.done);
   const next = steps[activeIdx];
 

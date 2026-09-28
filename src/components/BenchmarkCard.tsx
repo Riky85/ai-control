@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { InfoStrip } from "@/components/ui";
 import { getBenchmark, scopeLabel, type Benchmark } from "@/lib/benchmark";
 import { fmtEur } from "@/lib/format";
 
@@ -14,8 +15,10 @@ export default async function BenchmarkCard({ orgId, variant = "compact" }: { or
   // Bloccato (mancano i dipendenti o le aziende simili): blocco con bagliore e anteprima sfocata.
   if (!b.peers || b.yours === null) return <Locked b={b} />;
   return (
-    <section className="relative overflow-hidden rounded-xl border border-line bg-panel px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-6 animate-rise">
-      <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
+    <section className="rounded-xl border border-line bg-panel px-4 py-3 flex flex-col md:flex-row md:items-center gap-3 md:gap-6 animate-rise">
+      <span className="hidden md:flex h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] items-center justify-center text-accent">
+        <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 14.5h12M5 14.5V9M9 14.5V5M13 14.5v-7" /></svg>
+      </span>
       <div className="relative flex-1 min-w-0">
         <div className="text-sm text-ink-100">
           <Sentence b={b} />
@@ -30,24 +33,19 @@ export default async function BenchmarkCard({ orgId, variant = "compact" }: { or
 export function Locked({ b }: { b: Benchmark }) {
   const you = b.yours !== null ? per(b.yours) : null;
   return (
-    <section className="relative overflow-hidden rounded-xl border border-line bg-panel px-4 py-3 flex items-center gap-3 animate-rise">
-      <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
-      <span className="relative h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] flex items-center justify-center text-accent">
-        <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 14.5h12M5 14.5V9M9 14.5V5M13 14.5v-7" /></svg>
-      </span>
-      <div className="relative flex-1 min-w-0 text-sm">
-        <span className="text-ink-100 font-medium">Benchmark</span>
-        <span className="text-ink-400">
-          {" · "}
-          {b.employeesSet ? `you spend ${you ?? "—"} a month for each employee — the comparison opens when ${b.minCompanies}+ similar companies use angar.` : `compare your AI spend for each employee with similar companies (opens at ${b.minCompanies}+ companies).`}
-        </span>
-      </div>
-      {!b.employeesSet && (
-        <Link href="/settings?tab=general#employees" className="relative btn btn-secondary btn-sm shrink-0">
-          Add employees
-        </Link>
-      )}
-    </section>
+    <InfoStrip
+      icon={<svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 14.5h12M5 14.5V9M9 14.5V5M13 14.5v-7" /></svg>}
+      title="Benchmark"
+      value={b.employeesSet && you ? <>{you}<span className="text-xs text-ink-400 font-normal">/employee</span></> : undefined}
+      text={b.employeesSet ? `compared with similar companies when ${b.minCompanies}+ use angar` : `compare your AI spend with similar companies (opens at ${b.minCompanies}+)`}
+      action={
+        !b.employeesSet ? (
+          <Link href="/settings?tab=general#employees" className="btn btn-secondary btn-sm shrink-0">
+            Add employees
+          </Link>
+        ) : undefined
+      }
+    />
   );
 }
 

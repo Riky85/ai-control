@@ -174,3 +174,45 @@ const NOTICE_TONE = {
 export function Notice({ tone = "info", children }: { tone?: "info" | "error" | "success"; children: React.ReactNode }) {
   return <div className={NOTICE_TONE[tone]}>{children}</div>;
 }
+
+/**
+ * Riga informativa della home (Saved so far, Benchmark…): stessa grafica per
+ * tutte — riquadro icona, titolo, valore opzionale, testo, azione o freccia.
+ */
+export function InfoStrip({
+  icon,
+  tone = "accent",
+  title,
+  value,
+  text,
+  href,
+  action,
+}: {
+  icon: React.ReactNode;
+  tone?: "accent" | "steady";
+  title: string;
+  value?: React.ReactNode;
+  text?: React.ReactNode;
+  href?: string;
+  action?: React.ReactNode;
+}) {
+  const inner = (
+    <>
+      <span className={`h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] flex items-center justify-center ${tone === "steady" ? "text-steady" : "text-accent"}`}>{icon}</span>
+      <span className="flex-1 min-w-0 flex items-baseline gap-2 text-sm">
+        <span className="font-medium text-ink-100 shrink-0">{title}</span>
+        {value && <span className="font-display font-semibold tabular text-ink-100 shrink-0">{value}</span>}
+        {text && <span className="text-ink-400 truncate">{text}</span>}
+      </span>
+      {action ?? (href ? <span className="text-sm text-ink-400 shrink-0">→</span> : null)}
+    </>
+  );
+  const cls = "rounded-xl border border-line bg-panel px-4 py-3 flex items-center gap-3 animate-rise";
+  return href && !action ? (
+    <Link href={href} className={`${cls} hover:border-ink-400 transition-colors`}>
+      {inner}
+    </Link>
+  ) : (
+    <section className={cls}>{inner}</section>
+  );
+}

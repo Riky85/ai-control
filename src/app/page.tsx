@@ -89,7 +89,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   const delta = prevValue > 0 ? Math.round(((lastValue - prevValue) / prevValue) * 100) : null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title={greeting(session?.name)} subtitle={`${org?.name ?? ""} — your AI at a glance.`} action={
           assets.length ? (
             <div className="flex items-center gap-2">

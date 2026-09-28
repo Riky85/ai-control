@@ -10,12 +10,12 @@ export default function AuthShell({ title, subtitle, children }: { title: string
   return (
     <div className="force-dark min-h-screen w-full bg-sidebar text-ink-100 grid lg:grid-cols-[1fr_1.05fr] font-body">
       <div className="flex flex-col px-6 sm:px-12 py-8 min-h-screen">
+        {/* Logo sempre in alto a sinistra, nome centrato sul logo. */}
+        <Link href="/login" className="self-start inline-flex text-ink-100" aria-label="angar">
+          <Wordmark size={24} />
+        </Link>
         <div className="flex-1 flex items-center justify-center py-10">
           <div className="w-full max-w-[380px] animate-rise">
-            {/* Logo allineato al modulo (stesso bordo sinistro del titolo e dei campi), nome centrato sul logo. */}
-            <Link href="/login" className="inline-flex text-ink-100 mb-10" aria-label="angar">
-              <Wordmark size={24} />
-            </Link>
             <h1 className="font-display text-[34px] leading-[1.1] font-semibold tracking-tight text-ink-100">{title}</h1>
             <p className="text-[15px] text-ink-400 mt-2.5 mb-8">{subtitle}</p>
             {children}
