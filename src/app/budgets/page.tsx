@@ -5,11 +5,14 @@ import { departmentSpend, UNASSIGNED } from "@/lib/budgets";
 import { setBudgetAction, deleteBudgetAction } from "@/lib/budget-actions";
 import { PageHeader, StatCard, Table, td, Notice } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
+import { maskCount, orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
 export default async function BudgetsPage({ searchParams }: { searchParams: { error?: string } }) {
   const orgId = currentOrgId();
+  // Privacy per reparto / solo totali: i gruppi sotto le 5 persone mostrano "<5".
+  const people = showsPeople(await orgPrivacyMode(orgId));
   const [spend, budgets, userDepts] = await Promise.all([
     departmentSpend(orgId),
     db.budget.findMany({ where: { organizationId: orgId } }),
@@ -92,7 +95,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
                 <td className={`${td} text-ink-400`}>
                   {r.topAi.length ? r.topAi.map((a) => `${a.name} (${fmtEur(a.eur)})`).join(", ") : "—"}
                 </td>
-                <td className={`${td} text-right tabular text-ink-100`}>{r.people || "—"}</td>
+                <td className={`${td} text-right tabular text-ink-100`}>{r.people ? (people ? r.people : maskCount(r.people)) : "—"}</td>
                 <td className={td}>
                   {r.department === UNASSIGNED ? (
                     <Link href="/people" className="text-xs text-ink-400 underline hover:text-ink-100">Assign people to teams</Link>

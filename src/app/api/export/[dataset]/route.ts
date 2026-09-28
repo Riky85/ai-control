@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
 import { computeSavings, categoryOf } from "@/lib/savings";
+import { groupByDepartment, maskCount, orgPrivacyMode, showsPeople, type PrivacyMode } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,10 @@ const eur = (n?: number | null) => (n == null ? null : Math.round(n * 100) / 100
 const day = (d?: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
 const label = (s?: string | null) => (s ? s.replace(/_/g, " ").toLowerCase().replace(/^\w/, (m) => m.toUpperCase()) : null);
 
-async function build(dataset: string, orgId: string): Promise<{ title: string; sheets: Sheet[] } | null> {
+async function build(dataset: string, orgId: string, mode: PrivacyMode = "individual"): Promise<{ title: string; sheets: Sheet[] } | null> {
+  const people = showsPeople(mode);
+  // Attori delle attività (email, username): nascosti con la privacy per reparto / solo totali.
+  const actor = (ref: string | null) => (ref && !people ? "Hidden (employee privacy)" : ref);
   if (dataset === "assets") {
     const assets = await db.aiAsset.findMany({
       where: { organizationId: orgId, deletedAt: null },
@@ -108,13 +112,22 @@ async function build(dataset: string, orgId: string): Promise<{ title: string; s
       sheets: [{ name: "Changes", rows: changes.map((c) => ({ Detected: c.detectedAt.toISOString().replace("T", " ").slice(0, 16), System: c.aiAsset.name, Field: label(c.field), Before: c.oldValue, After: c.newValue })) }],
     };
   }
+  if (dataset === "people" && !people) {
+    const users = await db.user.findMany({ where: { organizationId: orgId }, select: { id: true, department: true } });
+    if (mode === "anonymous") return { title: "People", sheets: [{ name: "Company", rows: [{ "People known": users.length }] }] };
+    const groups = groupByDepartment(users, (u) => u.id, (u) => u.department);
+    return {
+      title: "People",
+      sheets: [{ name: "Departments", rows: groups.map((g) => ({ Department: g.suppressed ? "Hidden (fewer than 5 people)" : g.department, People: g.suppressed ? maskCount(g.people) : g.people })) }],
+    };
+  }
   if (dataset === "people") {
     const users = await db.user.findMany({ where: { organizationId: orgId }, include: { ownedAssets: true }, orderBy: { name: "asc" } });
     return { title: "People", sheets: [{ name: "People", rows: users.map((u) => ({ Name: u.name, Email: u.email, Department: u.department, "AI systems owned": u.ownedAssets.length, Systems: u.ownedAssets.map((a) => a.name).join(", ") })) }] };
   }
   if (dataset === "activity") {
     const acts = await db.aiAssetActivity.findMany({ where: { aiAsset: { organizationId: orgId } }, include: { aiAsset: true }, orderBy: { occurredAt: "desc" }, take: 5000 });
-    return { title: "Activity", sheets: [{ name: "Events", rows: acts.map((a) => ({ When: a.occurredAt.toISOString().replace("T", " ").slice(0, 16), System: a.aiAsset.name, Event: a.eventType, Actor: a.actorRef, Source: label(a.source) })) }] };
+    return { title: "Activity", sheets: [{ name: "Events", rows: acts.map((a) => ({ When: a.occurredAt.toISOString().replace("T", " ").slice(0, 16), System: a.aiAsset.name, Event: a.eventType, Actor: actor(a.actorRef), Source: label(a.source) })) }] };
   }
   if (dataset.startsWith("passport-")) {
     const a = await db.aiAsset.findFirst({
@@ -145,7 +158,7 @@ async function build(dataset: string, orgId: string): Promise<{ title: string; s
         { name: "Risk & assurance", rows: [...((risk?.reasons as string[] | undefined) ?? []).map((r) => ({ Kind: "Risk factor", Item: r, Result: null })), ...checks.map((c) => ({ Kind: "Control", Item: c.label, Result: `${label(c.status)} — ${c.detail}` }))] },
         { name: "Alternatives", rows: a.alternatives.map((x) => ({ Provider: x.provider, Model: x.model, "€/month": eur(x.estimatedMonthlyCost), "Migration days": x.migrationEffortDays, Quality: label(x.qualityConfidence), Notes: x.reasoning })) },
         { name: "Changes", rows: a.changes.map((c) => ({ Detected: day(c.detectedAt), Field: label(c.field), Before: c.oldValue, After: c.newValue })) },
-        { name: "Activity", rows: a.activities.map((x) => ({ When: x.occurredAt.toISOString().replace("T", " ").slice(0, 16), Event: x.eventType, Actor: x.actorRef, Source: label(x.source) })) },
+        { name: "Activity", rows: a.activities.map((x) => ({ When: x.occurredAt.toISOString().replace("T", " ").slice(0, 16), Event: x.eventType, Actor: actor(x.actorRef), Source: label(x.source) })) },
       ],
     };
   }
@@ -154,7 +167,7 @@ async function build(dataset: string, orgId: string): Promise<{ title: string; s
 
 export async function GET(_req: Request, { params }: { params: { dataset: string } }) {
   const orgId = currentOrgId();
-  const [org, data] = await Promise.all([db.organization.findUnique({ where: { id: orgId } }), build(params.dataset, orgId)]);
+  const [org, data] = await Promise.all([db.organization.findUnique({ where: { id: orgId } }), orgPrivacyMode(orgId).then((mode) => build(params.dataset, orgId, mode))]);
   if (!data) return new Response("Unknown export", { status: 404 });
 
   const wb = new ExcelJS.Workbook();

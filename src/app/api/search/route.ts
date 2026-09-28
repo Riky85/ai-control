@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
 import { NAV_PAGES, fuzzyScore } from "@/lib/search-index";
+import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +16,11 @@ export async function GET(req: Request) {
   if (q.length < 1) return NextResponse.json({ hits: [] });
   const orgId = currentOrgId();
 
+  // Le persone si cercano solo con la privacy "per persona".
+  const people = showsPeople(await orgPrivacyMode(orgId));
   const [assets, users] = await Promise.all([
     db.aiAsset.findMany({ where: { organizationId: orgId, deletedAt: null }, select: { id: true, name: true, vendor: true }, take: 2000 }),
-    db.user.findMany({ where: { organizationId: orgId }, select: { id: true, name: true, email: true, department: true }, take: 2000 }),
+    people ? db.user.findMany({ where: { organizationId: orgId }, select: { id: true, name: true, email: true, department: true }, take: 2000 }) : Promise.resolve([]),
   ]);
 
   const scored: (SearchHit & { score: number })[] = [];

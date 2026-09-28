@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ingestFindings, orgForToken, type Finding } from "@/lib/discovery/ingest";
-import { db } from "@/lib/db";
+import { writeAuditEntry } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +22,6 @@ export async function POST(req: Request) {
   const findings = Array.isArray(body.findings) ? body.findings : [];
   const device = String(body.device ?? "Unknown device").slice(0, 120);
   const systems = await ingestFindings(org.id, device, findings);
-  await db.auditLog.create({ data: { organizationId: org.id, actorEmail: `scanner:${device}`, action: "discovery.ingest", target: `${systems.length} systems` } }).catch(() => {});
+  await writeAuditEntry({ orgId: org.id, actorEmail: `scanner:${device}`, action: "discovery.ingest", target: `${systems.length} systems` }).catch(() => {});
   return NextResponse.json({ ok: true, systems });
 }

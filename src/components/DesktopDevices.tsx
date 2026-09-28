@@ -1,5 +1,6 @@
 import { listDesktopDevices } from "@/lib/discovery/devices";
 import { fmtAgo } from "@/lib/format";
+import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 const OS_LABEL: Record<string, string> = { windows: "Windows", macos: "macOS", linux: "Linux" };
 
@@ -16,6 +17,35 @@ export default async function DesktopDevices({ organizationId, compact = false }
     );
   }
   const online = devices.filter((d) => d.online).length;
+  // Privacy per reparto / solo totali: niente nomi di persone o di computer, solo conteggi.
+  if (!showsPeople(await orgPrivacyMode(organizationId))) {
+    const count = (xs: (string | null)[]) => [...xs.reduce((m, x) => m.set(x ?? "Unknown", (m.get(x ?? "Unknown") ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1]);
+    const os = count(devices.map((d) => (d.os ? OS_LABEL[d.os] ?? d.os : null)));
+    const versions = count(devices.map((d) => (d.appVersion ? `v${d.appVersion}` : null)));
+    return (
+      <section className={`rounded-xl border bg-panel p-5 ${online > 0 ? "border-steady/40" : "border-line"}`}>
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold text-ink-100">Connected computers</h2>
+            <p className="text-sm text-ink-400">Totals only — names of people and computers are hidden by the employee privacy mode.</p>
+          </div>
+          <span className={`shrink-0 text-sm font-medium rounded-full px-2.5 py-1 tabular ${online > 0 ? "text-steady bg-steady/10" : "text-ink-400 bg-ink-400/10"}`}>
+            {online} of {devices.length} connected
+          </span>
+        </div>
+        <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <dt className="text-xs text-ink-400 mb-1">Operating system</dt>
+            {os.map(([k, n]) => <dd key={k} className="flex justify-between text-ink-100"><span>{k}</span><span className="tabular text-ink-400">{n}</span></dd>)}
+          </div>
+          <div>
+            <dt className="text-xs text-ink-400 mb-1">App version</dt>
+            {versions.map(([k, n]) => <dd key={k} className="flex justify-between text-ink-100"><span>{k}</span><span className="tabular text-ink-400">{n}</span></dd>)}
+          </div>
+        </dl>
+      </section>
+    );
+  }
 
   return (
     <section className={`rounded-xl border bg-panel overflow-hidden ${online > 0 ? "border-steady/40" : "border-line"}`}>

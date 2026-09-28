@@ -4,11 +4,14 @@ import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
 export default async function PersonDetailPage({ params }: { params: { id: string } }) {
+  // Nelle modalità privacy per reparto / solo totali non esiste una pagina per persona.
+  if (!showsPeople(await orgPrivacyMode(currentOrgId()))) redirect("/people");
   const person = await db.user.findFirst({
     where: { id: params.id, organizationId: currentOrgId() },
     include: {

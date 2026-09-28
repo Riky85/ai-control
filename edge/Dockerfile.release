@@ -1,0 +1,14 @@
+# angar Edge — image used by CI: copies the prebuilt static binary for the
+# target platform (no compilation and no RUN steps, so multi-arch needs no QEMU).
+# Build context layout: <ctx>/amd64/angar-edge, <ctx>/arm64/angar-edge
+FROM gcr.io/distroless/static-debian12
+ARG TARGETARCH
+COPY ${TARGETARCH}/angar-edge /usr/local/bin/angar-edge
+ENV ANGAR_STATE_DIR=/var/lib/angar-edge
+WORKDIR /var/lib/angar-edge
+VOLUME ["/var/lib/angar-edge"]
+EXPOSE 53/udp 53/tcp 514/udp 514/tcp 5514/udp 5514/tcp
+LABEL org.opencontainers.image.title="angar Edge" \
+      org.opencontainers.image.description="angar network sensor: DNS forwarder + firewall syslog receiver for AI usage" \
+      org.opencontainers.image.source="https://github.com/Riky85/ai-control"
+ENTRYPOINT ["/usr/local/bin/angar-edge"]

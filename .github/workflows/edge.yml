@@ -1,0 +1,136 @@
+name: angar Edge
+
+# Builds the angar Edge network sensor (edge/) as static musl binaries for
+# Linux x86_64 and aarch64, publishes them to the "edge-latest" release (used by
+# edge/install.sh) and pushes a multi-arch image to ghcr.io/riky85/angar-edge.
+on:
+  push:
+    branches: [main]
+    paths: ["edge/**", ".github/workflows/edge.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: edge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: edge
+      - name: Test
+        run: cargo test --release
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Installer served by the web app matches edge/install.sh
+        working-directory: .
+        run: |
+          node --experimental-strip-types -e '
+            const fs = require("node:fs");
+            import("./src/lib/edge/install-script.ts").then((m) => {
+              if (m.EDGE_INSTALL_SCRIPT !== fs.readFileSync("edge/install.sh", "utf8")) {
+                console.error("src/lib/edge/install-script.ts is out of sync with edge/install.sh");
+                process.exit(1);
+              }
+            });'
+      - name: Shell syntax
+        run: sh -n install.sh
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            asset: angar-edge-linux-x86_64
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            asset: angar-edge-linux-aarch64
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: edge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: edge
+          key: ${{ matrix.target }}
+      - name: Install musl tools
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - name: Build (static)
+        env:
+          # ring's C/asm parts: use musl-gcc (Ubuntu's musl-tools has no <arch>-linux-musl-gcc)
+          CC_x86_64_unknown_linux_musl: musl-gcc
+          CC_aarch64_unknown_linux_musl: musl-gcc
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/angar-edge dist/${{ matrix.asset }}
+          file dist/${{ matrix.asset }}
+          ./dist/${{ matrix.asset }} --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: edge/dist/${{ matrix.asset }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish to the edge-latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ls -l dist
+          gh release view edge-latest >/dev/null 2>&1 || gh release create edge-latest --title "angar Edge sensor" --notes "Built automatically from edge/. Install it from your angar workspace (Edge → Sensors), not from here." --latest=false --target "$GITHUB_SHA"
+          gh release upload edge-latest dist/* --clobber
+
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Arrange binaries per Docker platform
+        run: |
+          mkdir -p ctx/amd64 ctx/arm64
+          cp dist/angar-edge-linux-x86_64 ctx/amd64/angar-edge
+          cp dist/angar-edge-linux-aarch64 ctx/arm64/angar-edge
+          chmod 0755 ctx/*/angar-edge
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ctx
+          file: edge/Dockerfile.release
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/riky85/angar-edge:latest
+            ghcr.io/riky85/angar-edge:${{ github.sha }}

@@ -4,7 +4,9 @@ import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
 import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, setAssetCostAction } from "@/lib/actions";
-import { dismissSavingAction, remindInactiveAction } from "@/lib/spend-actions";
+import { setNetworkBlockAction, setInsteadAssetAction } from "@/lib/edge-actions";
+import { dismissSavingAction } from "@/lib/spend-actions";
+import AssetPeople from "@/components/AssetPeople";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
@@ -63,7 +65,6 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const seats = asset.cost?.seats ?? null;
   const active = asset.usages.filter((u) => u.lastSeenAt && Date.now() - u.lastSeenAt.getTime() < 30 * DAY).length;
   // Per un doppione, il suggerimento compare solo sulle AI da togliere.
-  const inactive = asset.usages.filter((u) => u.user?.email && (!u.lastSeenAt || Date.now() - u.lastSeenAt.getTime() > 30 * DAY)).map((u) => u.user!.email);
   const manage = asset.serviceId ? MANAGE_URL[asset.serviceId] : undefined;
   const mine = items.filter((i) => (i.kind === "duplicate" ? i.assets.slice(1) : i.assets).some((a) => a.id === asset.id));
   const canSave = mine.reduce((t, i) => t + (i.kind === "duplicate" ? (i.assets[0]?.id === asset.id ? 0 : m?.eur ?? 0) : i.monthlyEur), 0);
@@ -72,6 +73,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
     spend.some((r) => r.source === "invoice") && "Invoices",
     asset.connector && asset.connector.provider !== "NETWORK" && asset.connector.provider.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
     asset.activities.some((a) => a.eventType === "discovery.seen") && "Scan",
+    asset.activities.some((a) => a.eventType === "edge.seen") && "angar Edge",
     asset.activities.some((a) => a.eventType === "signin" || a.eventType === "copilot.active") && "Microsoft 365",
     asset.activities.some((a) => a.eventType.startsWith("oauth.")) && "Google Workspace",
   ].filter(Boolean) as string[];
@@ -186,38 +188,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             </Table>
           )}
 
-          {tab === "people" && inactive.length > 0 && (
-            <div className="rounded-xl border border-line bg-panel px-5 py-4 flex items-center gap-4">
-              <div className="flex-1">
-                <div className="text-sm font-medium text-ink-100">{inactive.length} {inactive.length === 1 ? "person hasn't" : "people haven't"} used {asset.name} in 30 days</div>
-                <div className="text-sm text-ink-400">Ask if they still need the seat — the ones who don't reply can be removed.</div>
-              </div>
-              <a
-                href={`mailto:?bcc=${encodeURIComponent(inactive.join(","))}&subject=${encodeURIComponent(`Do you still need your ${asset.name} seat?`)}&body=${encodeURIComponent(`Hi,\n\nyou have a company ${asset.name} seat but haven't used it in the last 30 days. If you still need it, just reply. Otherwise we'll free it up.\n\nThanks!`)}`}
-                className="btn btn-secondary btn-sm"
-              >
-                Write the email yourself
-              </a>
-              <form action={remindInactiveAction}>
-                <input type="hidden" name="assetId" value={asset.id} />
-                <button className="btn btn-primary btn-sm">Ask them</button>
-              </form>
-            </div>
-          )}
-          {tab === "people" && searchParams.reminded && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Sent to {searchParams.reminded} {searchParams.reminded === "1" ? "person" : "people"}.</div>}
-          {tab === "people" && searchParams.error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{searchParams.error}</div>}
-
-          {tab === "people" && (
-            <Table columns={["Person", "Department", "Last active"]} empty={asset.usages.length === 0 ? "Nobody known yet — connect Microsoft 365, Google Workspace or an Admin key to see who uses it." : false}>
-              {asset.usages.map((u) => (
-                <tr key={u.id}>
-                  <td className={`${td} text-ink-100`}>{u.user?.name ?? u.user?.email ?? u.externalUserRef ?? "Unknown"}{u.user?.name && <span className="block text-xs text-ink-400">{u.user.email}</span>}</td>
-                  <td className={`${td} text-ink-400`}>{u.user?.department ?? "—"}</td>
-                  <td className={`${td} text-ink-400 tabular`}>{u.lastSeenAt ? fmtDate(u.lastSeenAt) : "—"}</td>
-                </tr>
-              ))}
-            </Table>
-          )}
+          {tab === "people" && <AssetPeople asset={{ id: asset.id, name: asset.name }} usages={asset.usages} reminded={searchParams.reminded} error={searchParams.error} />}
 
           {tab === "risk" && (
             <>
@@ -314,6 +285,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             </div>
           </div>
 
+          <NetworkBlock asset={asset} orgId={orgId} error={tab !== "people" ? searchParams.error : undefined} />
+
           <form action={setAssetOwnerAction} className="flex flex-col gap-2">
             <input type="hidden" name="assetId" value={asset.id} />
             <label className="text-sm text-ink-400" htmlFor="ownerId">Owner</label>
@@ -367,6 +340,52 @@ export default async function AssetDetailPage({ params, searchParams }: { params
 }
 
 const INPUT = "field";
+
+// angar Edge: bloccare l'AI sulla rete aziendale (DNS) e suggerire l'alternativa approvata.
+async function NetworkBlock({ asset, orgId, error }: { asset: { id: string; blockOnNetwork: boolean; insteadAssetId: string | null; status: string }; orgId: string; error?: string }) {
+  const [approved, blockingSensors] = await Promise.all([
+    db.aiAsset.findMany({ where: { organizationId: orgId, deletedAt: null, status: "APPROVED", id: { not: asset.id } }, select: { id: true, name: true }, orderBy: { name: "asc" }, take: 200 }),
+    db.edgeSensor.count({ where: { organizationId: orgId, blockEnabled: true } }),
+  ]);
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm text-ink-400">Block on the company network <span className="text-xs">(angar Edge)</span></span>
+        <form action={setNetworkBlockAction}>
+          <input type="hidden" name="assetId" value={asset.id} />
+          <input type="hidden" name="block" value={asset.blockOnNetwork ? "off" : "on"} />
+          <button
+            type="submit"
+            role="switch"
+            aria-checked={asset.blockOnNetwork}
+            title={asset.blockOnNetwork ? "Unblock" : "Block"}
+            className={`relative h-5 w-9 rounded-full transition-colors ${asset.blockOnNetwork ? "bg-alarm" : "bg-ink-400/40"}`}
+          >
+            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${asset.blockOnNetwork ? "left-[18px]" : "left-0.5"}`} />
+          </button>
+        </form>
+      </div>
+      {error && <p className="text-xs text-alarm">{error}</p>}
+      {asset.blockOnNetwork && blockingSensors === 0 && (
+        <p className="text-xs text-signal">
+          No sensor has blocking turned on yet — <Link href="/edge/sensors" className="underline">turn on Block</Link>.
+        </p>
+      )}
+      {(asset.blockOnNetwork || asset.status === "UNAPPROVED" || asset.insteadAssetId) && (
+        <form action={setInsteadAssetAction} className="flex gap-2">
+          <input type="hidden" name="assetId" value={asset.id} />
+          <select name="insteadAssetId" defaultValue={asset.insteadAssetId ?? ""} className={`${INPUT} flex-1 min-w-0`} aria-label="Suggest instead">
+            <option value="">Suggest instead: nothing</option>
+            {approved.map((a) => (
+              <option key={a.id} value={a.id}>Suggest {a.name}</option>
+            ))}
+          </select>
+          <button type="submit" className="btn btn-secondary">Save</button>
+        </form>
+      )}
+    </div>
+  );
+}
 const SENSITIVE = ["PII", "FINANCIAL", "SOURCE_CODE"];
 const EU_LABEL: Record<string, string> = {
   UNCLASSIFIED: "Not classified yet",

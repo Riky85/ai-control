@@ -148,6 +148,17 @@ model Organization {
   industry              String?
   // Webhook Slack o Microsoft Teams (cifrato): riepilogo settimanale e avvisi.
   chatWebhookEncrypted  String?
+
+  // angar Edge: sensori di rete (software, dispositivo o log dal cloud).
+  edgeSensors  EdgeSensor[]
+  edgeEvents   EdgeEvent[]
+  // Privacy per i dipendenti: "individual" (per persona), "department"
+  // (solo per reparto, gruppi di almeno 5), "anonymous" (solo totali azienda).
+  privacyMode  String @default("individual")
+  // Avviso quando un dispositivo carica più di N MB al giorno su un'AI non approvata.
+  uploadAlertMb Int   @default(100)
+  // Partner (MSP / integratore) che gestisce questo workspace, se c'è.
+  managedByPartnerId String?
 }
 
 // Avvisi della piattaforma (campanella in alto a destra): rinnovi in arrivo,
@@ -239,6 +250,8 @@ model DesktopDevice {
   appVersion     String?
   aiCount        Int          @default(0)
   syncCount      Int          @default(0)
+  // IP locali del computer: angar Edge li usa per sapere di chi è il traffico.
+  ips            String[]     @default([])
   firstSeenAt    DateTime     @default(now())
   lastSeenAt     DateTime     @default(now())
 
@@ -314,6 +327,9 @@ model AiAsset {
   department String?
 
   status AiAssetStatus @default(UNKNOWN)
+  // Bloccata sulla rete aziendale da angar Edge (DNS), con l'AI approvata da suggerire.
+  blockOnNetwork Boolean @default(false)
+  insteadAssetId String?
   euAiActTier EuAiActTier @default(UNCLASSIFIED)
 
   firstSeenAt DateTime  @default(now())
@@ -576,6 +592,9 @@ model AuditLog {
   meta           Json?
   ip             String?
   createdAt      DateTime      @default(now())
+  // Catena di hash (registro a prova di manomissione per AI Act / NIS2).
+  prevHash       String?
+  hash           String?
 
   @@index([organizationId, createdAt])
 }
@@ -648,4 +667,56 @@ model SavingDismissal {
   createdAt      DateTime     @default(now())
 
   @@unique([organizationId, key])
+}
+
+// angar Edge: un sensore di rete. kind: "software" (Docker / Linux / Raspberry),
+// "hardware" (dispositivo angar), "cloud" (log inviati da Cloudflare, Zscaler…).
+model EdgeSensor {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  kind           String       @default("software")
+  tokenHash      String       @unique
+  tokenHint      String
+  // Impostazioni scelte sulla piattaforma e lette dal sensore.
+  dnsEnabled     Boolean      @default(true)
+  syslogEnabled  Boolean      @default(true)
+  blockEnabled   Boolean      @default(false)
+  scanLan        Boolean      @default(false)
+  // Riportati dal sensore.
+  version        String?
+  os             String?
+  hostIp         String?
+  stats          Json?
+  lastSeenAt     DateTime?
+  createdAt      DateTime     @default(now())
+  createdBy      String?
+  events         EdgeEvent[]
+
+  @@index([organizationId])
+}
+
+// Traffico verso le AI visto da un sensore, aggregato per giorno, AI e dispositivo.
+// Mai URL o contenuti: solo il servizio, quante richieste, quanti byte in uscita.
+model EdgeEvent {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sensorId       String
+  sensor         EdgeSensor   @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+  day            String       // YYYY-MM-DD
+  serviceId      String       // id del catalogo, "cand:<dominio>" o "local:<runtime>"
+  serviceName    String
+  kind           String       // "web" | "api" | "local-model"
+  client         String       // IP del dispositivo, oppure "*" in modalità anonima
+  clientLabel    String?      // nome host o persona (se nota)
+  hits           Int          @default(0)
+  bytesUp        BigInt       @default(0)
+  blocked        Int          @default(0)
+  source         String       // "dns" | "syslog:<vendor>" | "cloud:<vendor>" | "scan"
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([sensorId, day, serviceId, client, source])
+  @@index([organizationId, day])
 }

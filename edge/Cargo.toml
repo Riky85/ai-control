@@ -1,0 +1,22 @@
+[package]
+name = "angar-edge"
+version = "0.1.0"
+edition = "2021"
+description = "angar Edge - network sensor for AI usage (DNS forwarder + firewall syslog receiver)"
+authors = ["angar"]
+license = "Proprietary"
+
+[[bin]]
+name = "angar-edge"
+path = "src/main.rs"
+
+[dependencies]
+ureq = { version = "2", default-features = false, features = ["tls", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true

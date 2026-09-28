@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,8 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
 
   if (!activity) notFound();
   const risk = activity.aiAsset.riskAssessments[0];
+  // Il payload grezzo può contenere email, username o nomi di dispositivi.
+  const people = showsPeople(await orgPrivacyMode(currentOrgId()));
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
@@ -49,7 +52,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
             </Link>
           </Row>
           <Row label="Actor">
-            <span className="text-ink-100">{activity.actorRef ?? "Unknown"}</span>
+            <span className="text-ink-100">{!activity.actorRef ? "Unknown" : people ? activity.actorRef : "Hidden by the employee privacy mode"}</span>
           </Row>
           <Row label="Event type">
             <span className="text-ink-100">{activity.eventType}</span>
@@ -64,7 +67,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
         </dl>
       </div>
 
-      {activity.payload != null && (
+      {activity.payload != null && people && (
         <div className="rounded-xl border border-line bg-panel p-5">
           <h2 className="text-base font-semibold text-ink-100 mb-3">Raw event payload</h2>
           <p className="text-xs text-ink-400 mb-3">

@@ -62,7 +62,7 @@ function candidateService(kind: "candidate" | "candidate_app", raw: string): AiS
  * Trasforma ciò che lo scanner (o un log) ha visto in sistemi AI.
  * Tutto ciò che arriva da qui parte "da rivedere": nessuno lo ha dichiarato.
  */
-export async function ingestFindings(organizationId: string, device: string, findings: Finding[], userEmail?: string | null, source: "extension" | "desktop" | "scanner" = "extension") {
+export async function ingestFindings(organizationId: string, device: string, findings: Finding[], userEmail?: string | null, source: "extension" | "desktop" | "scanner" | "edge" = "extension") {
   // Una riga di attività per AI e per giorno: così "giorni attivi" è vero
   // anche quando l'app desktop manda in una volta gli ultimi 30 giorni.
   type Day = { hits: number; minutes: number; evidence: Set<string>; last?: Date };
@@ -97,7 +97,8 @@ export async function ingestFindings(organizationId: string, device: string, fin
     byService.set(svc.id, cur);
   }
 
-  const eventType = !userEmail ? "discovery.seen" : source === "desktop" ? "desktop.active" : "extension.active";
+  // angar Edge (rete): sempre "edge.seen", anche quando si sa di chi è il dispositivo.
+  const eventType = source === "edge" ? "edge.seen" : !userEmail ? "discovery.seen" : source === "desktop" ? "desktop.active" : "extension.active";
   const assets: ObservedAsset[] = [...byService.values()].map(({ svc, days, candidate }) => ({
     externalId: `net:${svc.id}`,
     type: svc.type,

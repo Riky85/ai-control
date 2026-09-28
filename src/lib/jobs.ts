@@ -4,6 +4,7 @@ import { upcomingRenewals } from "@/lib/renewals";
 import { checkBudgets } from "@/lib/budgets";
 import { computeSavings, monthlyOf } from "@/lib/savings";
 import { fmtEur, fmtDate } from "@/lib/format";
+import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 /**
  * Lavori periodici, eseguiti dal server stesso (niente cron esterno): ogni ora
@@ -60,6 +61,8 @@ export async function renewalAlerts(orgId: string) {
 
 // ── Posti: senza risposta da 7 giorni → "da togliere" ──────────────────────
 export async function seatFollowups(orgId: string) {
+  // Il giro di pulizia posti è per persona: spento con la privacy per reparto / solo totali.
+  if (!showsPeople(await orgPrivacyMode(orgId))) return 0;
   const stale = await db.seatReminder.findMany({ where: { organizationId: orgId, respondedAt: null, removedAt: null, sentAt: { lt: new Date(Date.now() - 7 * DAY) } } });
   const released = await db.seatReminder.findMany({ where: { organizationId: orgId, response: "release", removedAt: null } });
   const byAsset = new Map<string, number>();
@@ -140,6 +143,20 @@ export async function monthlyReports() {
   return sent;
 }
 
+/** Mesi di conservazione dei dati d'uso (come scritto nell'informativa ai dipendenti). */
+export const USAGE_RETENTION_MONTHS = 12;
+
+/** Conservazione: cancella i dati d'uso più vecchi di USAGE_RETENTION_MONTHS (attività e traffico Edge). */
+export async function purgeOldUsage(now = new Date()) {
+  const cutoff = new Date(now);
+  cutoff.setMonth(cutoff.getMonth() - USAGE_RETENTION_MONTHS);
+  const [activities, edge] = await Promise.all([
+    db.aiAssetActivity.deleteMany({ where: { occurredAt: { lt: cutoff } } }),
+    db.edgeEvent.deleteMany({ where: { day: { lt: cutoff.toISOString().slice(0, 10) } } }),
+  ]);
+  return activities.count + edge.count;
+}
+
 /** Tutti i lavori dovuti adesso, per tutte le aziende. Idempotente. */
 export async function runDueJobs(now = new Date()) {
   const { day, weekday, hour } = romeParts(now);
@@ -148,6 +165,7 @@ export async function runDueJobs(now = new Date()) {
   // Giornalieri: dalle 7 in poi (ora di Roma), una volta al giorno. Prima i costi, poi gli avvisi.
   if (hour >= 7 && (await claim("daily", day))) {
     summary.synced = await syncCosts().catch(() => 0);
+    await purgeOldUsage(now).catch((err) => console.error("[jobs] retention failed", err));
     for (const o of orgs) {
       try {
         summary.renewals += await renewalAlerts(o.id);

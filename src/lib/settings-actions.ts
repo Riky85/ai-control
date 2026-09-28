@@ -8,6 +8,7 @@ import { encryptJson } from "@/lib/crypto";
 import { postToChat } from "@/lib/alerts";
 import { audit } from "@/lib/audit";
 import { INDUSTRIES } from "@/lib/industries";
+import { isPrivacyMode, privacyModeOf } from "@/lib/privacy";
 
 
 export async function setIndustryAction(formData: FormData) {
@@ -42,4 +43,22 @@ export async function setChatWebhookAction(formData: FormData) {
   const ok = await postToChat(s.orgId, "✅ angar is connected. You'll get a weekly summary every Monday and alerts for renewals, budgets and AI that isn't allowed.").catch(() => false);
   await audit("chat.connect", host);
   redirect(ok ? "/settings?chat=ok" : `/settings?error=${encodeURIComponent("Saved, but the test message failed — check the webhook URL.")}`);
+}
+
+/**
+ * Privacy dei dipendenti: per persona, per reparto (gruppi ≥ 5) o solo totali.
+ * Solo admin e owner; il cambio resta nel registro di audit.
+ */
+export async function setPrivacyModeAction(formData: FormData) {
+  const s = await requireRole("ADMIN", "/settings");
+  const mode = String(formData.get("mode") ?? "");
+  if (!isPrivacyMode(mode)) redirect(`/settings?error=${encodeURIComponent("Choose one of the privacy modes.")}#privacy`);
+  const org = await db.organization.findUnique({ where: { id: s.orgId }, select: { privacyMode: true } });
+  const from = privacyModeOf(org);
+  if (from !== mode) {
+    await db.organization.update({ where: { id: s.orgId }, data: { privacyMode: mode } });
+    await audit("privacy.mode_change", mode, { from, to: mode });
+  }
+  revalidatePath("/", "layout");
+  redirect(`/settings?privacy=${from === mode ? "same" : "ok"}#privacy`);
 }

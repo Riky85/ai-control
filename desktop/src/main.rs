@@ -314,6 +314,7 @@ fn send(cfg: &Config, findings: &[detect::Finding]) -> Result<String, String> {
         "source": "desktop",
         "version": VERSION,
         "os": std::env::consts::OS,
+        "ips": local_ips(),
         "findings": findings,
     });
     let r = agent()
@@ -322,6 +323,22 @@ fn send(cfg: &Config, findings: &[detect::Finding]) -> Result<String, String> {
         .send_json(body)
         .map_err(|e| e.to_string())?;
     Ok(r.into_string().unwrap_or_default())
+}
+
+/// Local IPs of this computer (primary IPv4/IPv6 via the UDP-connect trick: no packet is sent).
+/// angar Edge uses them to tell whose computer a network address belongs to.
+fn local_ips() -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for (bind, target) in [("0.0.0.0:0", "8.8.8.8:80"), ("[::]:0", "[2001:4860:4860::8888]:80")] {
+        let ip = std::net::UdpSocket::bind(bind).and_then(|s| s.connect(target).and_then(|_| s.local_addr()));
+        if let Ok(addr) = ip {
+            let ip = addr.ip();
+            if !ip.is_unspecified() && !ip.is_loopback() && !out.contains(&ip.to_string()) {
+                out.push(ip.to_string());
+            }
+        }
+    }
+    out
 }
 
 fn run_loop(mut cfg: Config) {
@@ -360,5 +377,18 @@ fn run_loop(mut cfg: Config) {
             }
         }
         std::thread::sleep(SAMPLE_EVERY);
+    }
+}
+
+#[cfg(test)]
+mod ip_tests {
+    #[test]
+    fn local_ips_are_valid() {
+        let ips = super::local_ips();
+        assert!(ips.len() <= 2);
+        for ip in ips {
+            let p: std::net::IpAddr = ip.parse().unwrap();
+            assert!(!p.is_loopback() && !p.is_unspecified());
+        }
     }
 }

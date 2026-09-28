@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { appUrl } from "@/lib/alerts";
+import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 const DAY = 86400000;
 
@@ -11,6 +12,10 @@ const DAY = 86400000;
  * alla stessa persona per 30 giorni.
  */
 export async function sendSeatReminders(organizationId: string, assetId: string, askedBy: string) {
+  // Privacy per reparto / solo totali: niente promemoria per persona.
+  if (!showsPeople(await orgPrivacyMode(organizationId))) {
+    return { asked: 0, sent: 0, reason: "Seat reminders are off: employee privacy isn't set to per person (Settings → Employee privacy)." };
+  }
   const { sendEmail, emailEnabled } = await import("@/lib/mail");
   const asset = await db.aiAsset.findFirst({
     where: { id: assetId, organizationId, deletedAt: null },

@@ -9,6 +9,7 @@ import StatusDot from "@/components/StatusDot";
 import ExportMenu from "@/components/ExportMenu";
 import { Table, td, PageHeader, Tabs } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
+import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,8 @@ export default async function ActivityPage({ searchParams }: { searchParams: { q
 
 async function EventsTab({ q }: { q?: string }) {
   const query = q?.trim();
+  // Privacy per reparto / solo totali: niente attori (email, username) né ricerca per persona.
+  const people = showsPeople(await orgPrivacyMode(currentOrgId()));
   const activities = await db.aiAssetActivity.findMany({
     where: {
       aiAsset: { organizationId: currentOrgId() },
@@ -68,7 +71,7 @@ async function EventsTab({ q }: { q?: string }) {
         ? {
             OR: [
               { eventType: { contains: query, mode: "insensitive" } },
-              { actorRef: { contains: query, mode: "insensitive" } },
+              ...(people ? [{ actorRef: { contains: query, mode: "insensitive" as const } }] : []),
               { aiAsset: { name: { contains: query, mode: "insensitive" } } },
             ],
           }
@@ -81,7 +84,7 @@ async function EventsTab({ q }: { q?: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <FilterBar search={{ placeholder: "Search events, people, AI…" }} right={`${activities.length} events`} />
+      <FilterBar search={{ placeholder: people ? "Search events, people, AI…" : "Search events, AI…" }} right={`${activities.length} events`} />
 
       <Table
         columns={["System", "Event", "Actor", "Risk", "Source", "When"]}
@@ -98,7 +101,7 @@ async function EventsTab({ q }: { q?: string }) {
                 </Link>
               </td>
               <td className={`${td} text-ink-100`}>{a.eventType}</td>
-              <td className={`${td} text-ink-400`}>{a.actorRef ?? "—"}</td>
+              <td className={`${td} text-ink-400`}>{!a.actorRef ? "—" : people ? a.actorRef : <span title="Hidden by the employee privacy mode">Hidden</span>}</td>
               <td className={td}>{risk ? <Badge>{risk.level}</Badge> : <span className="text-ink-400">—</span>}</td>
               <td className={`${td} text-ink-400`}>{SOURCE_LABEL[a.source] ?? a.source}</td>
               <td className={`${td} text-ink-400 tabular`}>{fmtDateTime(a.occurredAt)}</td>

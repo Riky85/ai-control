@@ -8,6 +8,8 @@ import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
 import { Notice } from "@/components/ui";
 import { cleanupRows } from "@/lib/seats";
 import { askAllInactiveAction, markSeatRemovedAction } from "@/lib/seat-actions";
+import PrivacyNotice from "@/components/PrivacyNotice";
+import { groupByDepartment, maskCount, orgPrivacyMode, showsPeople, MIN_GROUP } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +25,12 @@ const SOURCE_LABEL = (e: string) =>
 // Google Workspace. Da qui si vedono i posti pagati che nessuno usa.
 export default async function UsagePage({ searchParams }: { searchParams: { view?: string; q?: string; ai?: string; asked?: string; error?: string } }) {
   const orgId = currentOrgId();
-  const view = ["ai", "people", "log", "cleanup"].includes(searchParams.view ?? "") ? searchParams.view! : "ai";
-  const cleanup = await cleanupRows(orgId);
+  const mode = await orgPrivacyMode(orgId);
+  const individual = showsPeople(mode);
+  // Le viste per persona esistono solo in modalità "individual"; per reparto solo in "department".
+  const views = individual ? ["ai", "people", "log", "cleanup"] : mode === "department" ? ["ai", "departments", "cleanup"] : ["ai", "cleanup"];
+  const view = views.includes(searchParams.view ?? "") ? searchParams.view! : "ai";
+  const cleanup = individual ? await cleanupRows(orgId) : [];
   const toRemove = cleanup.filter((c) => c.state === "release" || c.state === "no_reply");
   const since = new Date(Date.now() - 30 * DAY);
   const [events, assets, users] = await Promise.all([
@@ -85,10 +91,27 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const match = (email: string, ai: string) => (!q || email.includes(q) || nameOf(email).toLowerCase().includes(q) || ai.toLowerCase().includes(q)) && (!searchParams.ai || searchParams.ai === ai);
   const aiOptions = [...new Set(pairs.map((p) => p.name))].sort().map((n) => ({ value: n, label: n, count: pairs.filter((p) => p.name === n).length }));
   const hasData = events.length > 0;
+  const count = (n: number) => (individual ? String(n) : maskCount(n));
+
+  // Per reparto (k-anonimato: gruppi di almeno MIN_GROUP persone).
+  const departments =
+    mode === "department"
+      ? groupByDepartment(pairs, (p) => p.email, (p) => who.get(p.email)?.department).map((g) => {
+          const perAi = new Map<string, Set<string>>();
+          for (const p of g.rows) perAi.set(p.name, (perAi.get(p.name) ?? new Set()).add(p.email));
+          return {
+            ...g,
+            visits: g.rows.reduce((t, r) => t + r.visits, 0),
+            minutes: g.rows.reduce((t, r) => t + r.minutes, 0),
+            top: [...perAi.entries()].map(([name, set]) => [name, set.size] as const).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])),
+          };
+        })
+      : [];
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Usage" subtitle="Who uses which AI and how often, in the last 30 days — and which paid seats nobody uses." />
+      <PageHeader title="Usage" subtitle={individual ? "Who uses which AI and how often, in the last 30 days — and which paid seats nobody uses." : "How much each AI is used in the last 30 days — and which paid seats nobody uses."} />
+      <PrivacyNotice mode={mode} what="Usage" />
 
       {!hasData && (
         <div className="rounded-xl border border-accent/50 bg-panel p-6 flex items-center gap-6">
@@ -101,7 +124,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       )}
 
       <div className="grid grid-cols-4 gap-4">
-        <StatCard label="People using AI" value={String(people.size)} hint="Last 30 days" tone="accent" href="/usage?view=people" />
+        <StatCard label="People using AI" value={count(people.size)} hint="Last 30 days" tone="accent" href={individual ? "/usage?view=people" : mode === "department" ? "/usage?view=departments" : "/usage?view=ai"} />
         <StatCard label="AI used" value={String(new Set(pairs.map((p) => p.assetId)).size)} hint={`${events.length} connections recorded`} href="/usage?view=ai" />
         <StatCard label="Paid seats not used" value={String(idleSeats)} hint={idleSeats ? "Nobody used them in 30 days" : "Every paid seat is used"} tone={idleSeats ? "signal" : undefined} href="/usage?view=ai" />
         <StatCard label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} href="/savings?kind=seats" />
@@ -112,12 +135,48 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         items={[
           { key: "ai", label: "By AI", href: "/usage?view=ai" },
           { key: "people", label: "By person", href: "/usage?view=people", count: people.size },
+          { key: "departments", label: "By department", href: "/usage?view=departments" },
           { key: "log", label: "Connection log", href: "/usage?view=log" },
           { key: "cleanup", label: "Seat clean-up", href: "/usage?view=cleanup", count: toRemove.length || undefined },
-        ]}
+        ].filter((t) => views.includes(t.key))}
       />
 
-      {view === "cleanup" && (
+      {view === "cleanup" && !individual && (
+        <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-2">
+          <h2 className="text-base font-semibold text-ink-100">Seat clean-up needs per-person data</h2>
+          <p className="text-sm text-ink-400">
+            To free a paid seat, angar has to know <i>who</i> hasn&apos;t used it and ask them by email. With employee privacy set to {mode === "department" ? "per department" : "company totals only"}, angar doesn&apos;t show or use names, so reminders are switched off.
+          </p>
+          <p className="text-sm text-ink-400">
+            You still see how many paid seats are unused for each AI in <Link href="/usage?view=ai" className="underline hover:text-ink-100">By AI</Link>. To clean up by person, an admin can switch to &ldquo;Per person&rdquo; in <Link href="/settings#privacy" className="underline hover:text-ink-100">Settings → Employee privacy</Link> — in Italy and Germany, only with a works-council agreement or after informing employees (<Link href="/compliance/employee-notice" className="underline hover:text-ink-100">employee notice</Link>).
+          </p>
+        </section>
+      )}
+
+      {view === "departments" && (
+        <>
+          <Table columns={["Department", { label: "People using AI", className: "text-right" }, { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, "Most used AI"]} empty={departments.length === 0 && "No usage yet."}>
+            {departments.map((d) =>
+              d.suppressed ? (
+                <tr key="suppressed">
+                  <td className={`${td} text-ink-400`} colSpan={5}>Fewer than {MIN_GROUP} people used AI — nothing can be shown per department.</td>
+                </tr>
+              ) : (
+                <tr key={d.department}>
+                  <td className={`${td} font-medium ${d.merged ? "text-ink-400" : "text-ink-100"}`}>{d.department}</td>
+                  <td className={`${td} text-right tabular text-ink-100`}>{d.people}</td>
+                  <td className={`${td} text-right tabular text-ink-400`}>{d.visits || "—"}</td>
+                  <td className={`${td} text-right tabular text-ink-400`}>{fmtMinutes(d.minutes)}</td>
+                  <td className={`${td} text-ink-400`}>{d.top.slice(0, 4).map(([n, c]) => `${n} (${maskCount(c)})`).join(", ") || "—"}</td>
+                </tr>
+              ),
+            )}
+          </Table>
+          <p className="text-xs text-ink-400">Only groups of at least {MIN_GROUP} people are shown; smaller teams are merged. Counts under {MIN_GROUP} show as &ldquo;&lt;{MIN_GROUP}&rdquo;.</p>
+        </>
+      )}
+
+      {view === "cleanup" && individual && (
         <div className="flex flex-col gap-4">
           {searchParams.asked && <Notice tone="success">Asked {searchParams.asked} {searchParams.asked === "1" ? "person" : "people"} by email. Their answers appear here.</Notice>}
           {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
@@ -180,7 +239,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                   <span className="font-medium text-ink-100 group-hover:underline">{a.name}</span>
                 </Link>
               </td>
-              <td className={`${td} text-right tabular text-ink-100`}>{active}</td>
+              <td className={`${td} text-right tabular text-ink-100`}>{count(active)}</td>
               <td className={`${td} text-right tabular text-ink-400`}>{seats ?? "—"}</td>
               <td className={`${td} text-right tabular text-ink-400`}>{visits || "—"}</td>
               <td className={`${td} text-right tabular text-ink-400`}>{fmtMinutes(minutes)}</td>

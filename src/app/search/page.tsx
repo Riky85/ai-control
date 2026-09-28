@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
 import { NAV_PAGES, fuzzyScore } from "@/lib/search-index";
+import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,8 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
   const [assets, people] = q
     ? await Promise.all([
         db.aiAsset.findMany({ where: { organizationId: orgId, deletedAt: null }, select: { id: true, name: true, vendor: true }, take: 2000 }),
-        db.user.findMany({ where: { organizationId: orgId }, select: { id: true, name: true, email: true, department: true }, take: 2000 }),
+        // Le persone si cercano solo con la privacy "per persona".
+        showsPeople(await orgPrivacyMode(orgId)) ? db.user.findMany({ where: { organizationId: orgId }, select: { id: true, name: true, email: true, department: true }, take: 2000 }) : Promise.resolve([]),
       ])
     : [[], []];
 

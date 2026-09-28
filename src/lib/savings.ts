@@ -32,7 +32,7 @@ export async function loadAssets(organizationId: string, opts: { includeRejected
       cost: true,
       alternatives: true,
       usages: { select: { lastSeenAt: true } },
-      activities: { where: { eventType: "discovery.seen" }, orderBy: { occurredAt: "desc" }, take: 1, select: { occurredAt: true } },
+      activities: { where: { eventType: { in: ["discovery.seen", "edge.seen"] } }, orderBy: { occurredAt: "desc" }, take: 1, select: { occurredAt: true } },
       connector: { select: { provider: true, credentialsEncrypted: true } },
     },
     orderBy: { name: "asc" },

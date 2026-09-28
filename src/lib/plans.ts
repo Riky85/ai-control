@@ -71,9 +71,10 @@ export const PLANS: PlanDef[] = [
 export const GUARANTEE = "If angar doesn't find savings at least equal to your subscription in the first 90 days, we refund you.";
 
 /**
- * angar Edge — dispositivo fisico in abbonamento, per dispositivo al mese,
- * aggiuntivo a qualunque piano (stesso modello per-device di Exein).
- * Hardware incluso in comodato, sostituzione in caso di guasto.
+ * angar Edge — sensore di rete. Tre modi: software (Docker/VM/Raspberry Pi,
+ * incluso da Growth), log dal cloud (nessuna installazione, incluso da Growth)
+ * o dispositivo angar in abbonamento per dispositivo al mese (hardware in
+ * comodato, sostituzione in caso di guasto). Prezzi partner/MSP qui sotto.
  */
 export const EDGE = {
   name: "angar Edge",
@@ -81,15 +82,27 @@ export const EDGE = {
   minMonths: 12,
   maxSelfServe: 20,
   stripePriceEnv: "STRIPE_PRICE_EDGE",
-  tagline: "Always-on discovery for a whole network: software for any always-on computer, or a small device on loan.",
+  /** Da quale piano software e log dal cloud sono inclusi. */
+  softwareFromPlan: "GROWTH" as Plan,
+  /** Sconto per MSP / integratori sul canone angar e sui dispositivi. */
+  partnerDiscountPct: 30,
+  /** Per i clienti gestiti da un partner su Growth+ il software Edge resta gratuito. */
+  partnerSoftwareFree: true,
+  /** Un sensore è online se ha fatto check-in negli ultimi N minuti. */
+  onlineMinutes: 15,
+  tagline: "Network sensor: sees every AI on the network, blocks the ones you don't approve and finds AI running in the background.",
   features: [
-    "Software (Docker) included in Growth and above — or a pre-configured device on loan",
-    "Detects traffic to AI services (ChatGPT, Claude, Gemini, Copilot…) — no content inspected",
-    "Finds shadow AI and unmanaged tools automatically",
-    "Feeds Your AI, Savings and the monthly report",
-    "Hardware included, free replacement if it fails",
+    "Software (Docker, VM, Raspberry Pi) or cloud logs — included in Growth and above",
+    "Sees every AI on the network, incl. phones and servers — never content",
+    "Blocks non-approved AI and suggests the approved one",
+    "Finds invisible AI: scripts and agents calling AI APIs, local models",
+    "Privacy modes for works councils; AI Act / NIS2 evidence",
+    "angar device: plug & play, hardware and replacement included",
   ],
 };
+
+/** Prezzo mensile al partner (sconto MSP applicato). */
+export const partnerPrice = (listPrice: number) => Math.round(listPrice * (100 - EDGE.partnerDiscountPct)) / 100;
 
 export const planById = (id: Plan) => PLANS.find((p) => p.id === id)!;
 

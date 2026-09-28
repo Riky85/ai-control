@@ -68,6 +68,23 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
         <StatCard label="Missing owners" value={String(r.missingOwners)} hint="Allowed or high-risk AI without an owner" tone={r.missingOwners ? "signal" : undefined} href="/assets" />
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Link href="/compliance/evidence" className="rounded-xl border border-line bg-panel p-5 flex items-start gap-4 hover:border-ink-400 transition-colors">
+          <div className="flex-1">
+            <div className="text-sm font-semibold text-ink-100">Evidence pack (AI Act / NIS2)</div>
+            <div className="text-xs text-ink-400 mt-0.5">Inventory, readiness, training, policies, AI suppliers, critical incidents and a tamper-evident audit log — print it or download JSON with a SHA-256 fingerprint.</div>
+          </div>
+          <span className="btn btn-secondary btn-sm shrink-0">Open</span>
+        </Link>
+        <Link href="/compliance/employee-notice" className="rounded-xl border border-line bg-panel p-5 flex items-start gap-4 hover:border-ink-400 transition-colors">
+          <div className="flex-1">
+            <div className="text-sm font-semibold text-ink-100">Employee notice</div>
+            <div className="text-xs text-ink-400 mt-0.5">Ready-to-use GDPR notice for staff in English, Italian (art. 4 Statuto dei lavoratori) or German (§87 BetrVG) — from what angar really collects.</div>
+          </div>
+          <span className="btn btn-secondary btn-sm shrink-0">Open</span>
+        </Link>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <section className="rounded-xl border border-line bg-panel p-5">
           <h2 className="text-base font-semibold text-ink-100">What counts towards the score</h2>

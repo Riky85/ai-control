@@ -6,7 +6,9 @@ import Badge from "@/components/Badge";
 import Link from "next/link";
 import { addUserAction } from "@/lib/actions";
 import { setEmployeesAction } from "@/lib/spend-actions";
-import { setIndustryAction, setChatWebhookAction } from "@/lib/settings-actions";
+import { setIndustryAction, setChatWebhookAction, setPrivacyModeAction } from "@/lib/settings-actions";
+import { PRIVACY_MODES, privacyModeOf, showsPeople, MIN_GROUP } from "@/lib/privacy";
+import { currentSession } from "@/lib/auth";
 import { INDUSTRIES } from "@/lib/industries";
 import { Notice } from "@/components/ui";
 import { Panel, PageHeader } from "@/components/ui";
@@ -20,13 +22,16 @@ export const dynamic = "force-dynamic";
 const input = "field w-full";
 const button = "btn btn-secondary btn-sm";
 
-export default async function SettingsPage({ searchParams }: { searchParams: { error?: string; reset?: string; chat?: string } }) {
+export default async function SettingsPage({ searchParams }: { searchParams: { error?: string; reset?: string; chat?: string; privacy?: string } }) {
   const [org, users, connectors] = await Promise.all([
     db.organization.findUnique({ where: { id: currentOrgId() } }),
     db.user.findMany({ where: { organizationId: currentOrgId() }, orderBy: { name: "asc" } }),
     db.connector.findMany({ where: { organizationId: currentOrgId(), status: "CONNECTED" } }),
   ]);
   const encryptionOn = Boolean(process.env.CREDENTIALS_SECRET);
+  const privacy = privacyModeOf(org);
+  const role = currentSession()?.role;
+  const canSetPrivacy = role === "ADMIN" || role === "OWNER";
 
   return (
     <div className="flex flex-col gap-6">
@@ -36,6 +41,13 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
       <div className="grid grid-cols-3 gap-4 items-start">
         <div className="col-span-2 flex flex-col gap-4">
           <Panel title="People" subtitle={`${users.length} ${users.length === 1 ? "person" : "people"} — added automatically from company accounts and provider keys`}>
+            {!showsPeople(privacy) ? (
+              <div className="mb-4">
+                <Notice>
+                  Names are hidden: employee privacy is set to <b>{PRIVACY_MODES.find((m) => m.id === privacy)!.label.toLowerCase()}</b>. <a href="#privacy" className="underline">Change it below</a>.
+                </Notice>
+              </div>
+            ) : (
             <div className="divide-y divide-line -mx-5 border-y border-line mb-4">
               {users.map((u) => (
                 <Link key={u.id} href={`/people/${u.id}`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-ink-100/[0.02] transition-colors">
@@ -51,6 +63,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
               ))}
               {users.length === 0 && <p className="px-5 py-3 text-sm text-ink-400">No people yet.</p>}
             </div>
+            )}
             <details>
               <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none">Add someone by hand (optional)</summary>
               <form action={addUserAction} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 mt-3">
@@ -61,6 +74,36 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
               </form>
             </details>
           </Panel>
+
+          <div id="privacy" className="scroll-mt-6">
+            <Panel
+              title="Employee privacy"
+              subtitle="How much angar shows about the people who use AI. Built for Statuto dei lavoratori art. 4 (Italy), works councils (§87 BetrVG, Germany) and GDPR."
+              action={<Link href="/compliance/employee-notice" className={button}>Employee notice</Link>}
+            >
+              {searchParams.privacy === "ok" && <div className="mb-3"><Notice tone="success">Privacy mode changed — every page, export and report now follows it.</Notice></div>}
+              <form action={setPrivacyModeAction} className="flex flex-col gap-3">
+                <fieldset disabled={!canSetPrivacy} className="flex flex-col gap-2">
+                  {PRIVACY_MODES.map((m) => (
+                    <label key={m.id} className={`flex items-start gap-3 rounded-lg border px-4 py-3 cursor-pointer transition-colors ${privacy === m.id ? "border-accent bg-accent/[0.04]" : "border-line hover:border-ink-400"}`}>
+                      <input type="radio" name="mode" value={m.id} defaultChecked={privacy === m.id} className="mt-1 accent-accent" />
+                      <span className="flex-1">
+                        <span className="block text-sm font-medium text-ink-100">{m.label}{m.id === "individual" && <span className="ml-2 text-xs font-normal text-ink-400">default</span>}</span>
+                        <span className="block text-xs text-ink-400 mt-0.5">{PRIVACY_DETAIL[m.id]}</span>
+                      </span>
+                    </label>
+                  ))}
+                </fieldset>
+                <div className="flex items-center gap-3">
+                  <button className="btn btn-primary btn-sm" disabled={!canSetPrivacy}>Save privacy mode</button>
+                  <span className="text-xs text-ink-400">{canSetPrivacy ? "Changes are recorded in the audit log." : "Only admins and owners can change this."}</span>
+                </div>
+              </form>
+              <p className="text-xs text-ink-400 mt-3">
+                angar never records what people type, read or generate in an AI tool — only which AI tools are used, when and how much. Hand out the <Link href="/compliance/employee-notice" className="underline hover:text-ink-100">employee notice</Link> before you start.
+              </p>
+            </Panel>
+          </div>
 
           <Panel
             title="Sources"
@@ -167,6 +210,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
     </div>
   );
 }
+
+const PRIVACY_DETAIL: Record<string, string> = {
+  individual: "Names, emails and devices of the people using each AI. Needed for seat clean-up (asking inactive people if they still need a paid seat). In Italy and Germany use it only with a works-council / union agreement or after the employee notice.",
+  department: `Usage only as totals per department, and only for groups of at least ${MIN_GROUP} people — smaller teams are merged into "Other (small teams)". No names, emails or devices anywhere, including exports and reports. Seat reminders are switched off.`,
+  anonymous: "Only company-wide totals: how many people use AI and which tools. No names, no devices, no departments. The strictest option — good while an agreement with the works council is pending.",
+};
 
 function Row({ label, value, badge }: { label: string; value?: string; badge?: string }) {
   return (

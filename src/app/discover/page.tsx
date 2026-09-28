@@ -31,7 +31,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: { e
   const found = connector
     ? await db.aiAsset.findMany({
         where: { connectorId: connector.id, deletedAt: null },
-        include: { connectedSystems: true, activities: { where: { eventType: "discovery.seen" }, orderBy: { occurredAt: "desc" }, take: 1 } },
+        include: { connectedSystems: true, activities: { where: { eventType: { in: ["discovery.seen", "edge.seen"] } }, orderBy: { occurredAt: "desc" }, take: 1 } },
         orderBy: { lastSeenAt: "desc" },
       })
     : [];

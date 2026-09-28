@@ -1,4 +1,23 @@
+import { isIP } from "net";
 import { db } from "@/lib/db";
+
+/** Fino a 8 IPv4/IPv6 validi, in forma canonica, senza doppioni. */
+export function cleanIps(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  const out: string[] = [];
+  for (const x of v.slice(0, 32)) {
+    if (typeof x !== "string" || x.length > 45) continue;
+    let ip = x.trim();
+    const m = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(ip);
+    if (m) ip = m[1];
+    if (!isIP(ip)) continue;
+    ip = ip.toLowerCase();
+    if (ip === "127.0.0.1" || ip === "::1" || ip === "0.0.0.0" || ip === "::" || out.includes(ip)) continue;
+    out.push(ip);
+    if (out.length >= 8) break;
+  }
+  return out;
+}
 
 // Un computer con l'app desktop, identificato da host + email (una persona può
 // avere due PC; due persone possono condividerne uno raro). "device" arriva
@@ -10,7 +29,7 @@ function hostFrom(device: string): string {
 
 export async function recordDesktopDevice(
   organizationId: string,
-  { device, email, os, version, aiCount }: { device: string; email: string | null; os?: string; version?: string; aiCount: number }
+  { device, email, os, version, aiCount, ips }: { device: string; email: string | null; os?: string; version?: string; aiCount: number; ips?: string[] }
 ) {
   const host = hostFrom(device);
   const deviceKey = `${host.toLowerCase()}|${email ?? ""}`.slice(0, 220);
@@ -20,6 +39,8 @@ export async function recordDesktopDevice(
     os: typeof os === "string" ? os.slice(0, 40) : undefined,
     appVersion: typeof version === "string" ? version.slice(0, 40) : undefined,
     aiCount,
+    // IP locali (angar Edge): solo se l'app li manda (le versioni vecchie no).
+    ...(ips ? { ips: cleanIps(ips) } : {}),
     lastSeenAt: new Date(),
   };
   await db.desktopDevice.upsert({
