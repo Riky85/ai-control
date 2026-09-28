@@ -6,7 +6,7 @@ name: angar Edge
 on:
   push:
     branches: [main]
-    paths: ["edge/**", ".github/workflows/edge.yml"]
+    paths: ["edge/**", ".github/workflows/edge.yml", "src/lib/edge/install-script.ts"]
   workflow_dispatch:
 
 permissions:
