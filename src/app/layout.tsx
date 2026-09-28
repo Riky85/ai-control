@@ -28,7 +28,15 @@ export const metadata: Metadata = {
   description: "Discover every AI in your company. Understand what it can access. Control what it can do.",
   // App installabile (Android / iPhone): a tutto schermo, barra di stato scura.
   appleWebApp: { capable: true, title: "angar", statusBarStyle: "black-translucent" },
-  icons: { apple: "/icons/apple-touch-icon.png" },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
