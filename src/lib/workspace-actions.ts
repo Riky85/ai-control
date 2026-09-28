@@ -38,17 +38,20 @@ export async function inviteMemberAction(formData: FormData) {
   if (!withinLimit(planById(o.plan).limits.members, count)) {
     redirect(`/workspace?error=${encodeURIComponent(`Your ${planById(o.plan).name} plan includes ${planById(o.plan).limits.members} members. Upgrade to add more.`)}`);
   }
+  const existing = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: currentOrgId(), email } } });
+  // Nuovo link d'invito a ogni invio (solo per chi non è ancora entrato).
+  const inviteToken = existing?.status === "active" ? undefined : randomBytes(24).toString("base64url");
   await db.workspaceMember.upsert({
     where: { organizationId_email: { organizationId: currentOrgId(), email } },
-    update: { role, name: name ?? undefined },
-    create: { organizationId: currentOrgId(), email, name, role },
+    update: { role, name: name ?? undefined, ...(inviteToken ? { inviteToken } : {}) },
+    create: { organizationId: currentOrgId(), email, name, role, inviteToken },
   });
   const inviter = currentSession();
-  const signupLink = `${appOrigin(headers())}/signup?email=${encodeURIComponent(email)}`;
+  const signupLink = inviteToken ? `${appOrigin(headers())}/api/invite/${inviteToken}` : `${appOrigin(headers())}/login`;
   const mail = await sendEmail({
     to: email,
     subject: `${inviter?.name ?? inviter?.email ?? "Someone"} invited you to ${o.name} on angar`,
-    text: `You've been invited to the ${o.name} workspace on angar as ${role.toLowerCase()}.\n\nCreate your account with this email to join:\n${signupLink}`,
+    text: `You've been invited to the ${o.name} workspace on angar as ${role.toLowerCase()}.\n\nOpen this link to join (it's personal — don't forward it):\n${signupLink}`,
   });
   await audit("member.invite", email, { role, emailSent: mail.sent });
   revalidatePath("/workspace");
@@ -198,7 +201,7 @@ export async function switchWorkspaceAction(formData: FormData) {
   if (!s) redirect("/login");
   const account = await db.account.findUnique({ where: { id: s.accountId } });
   const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: id, email: s.email } } });
-  if (account && member) {
+  if (account && member?.status === "active") {
     await issueSession(account, id);
     await audit("workspace.switch", id, undefined, { orgId: id });
   }

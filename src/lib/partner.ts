@@ -140,6 +140,8 @@ export interface FleetSensor {
   version: string | null;
   lastSeenAt: Date | null;
   blockEnabled: boolean;
+  /** Dispositivo angar collegato (solo sensori "device"). */
+  device: { serial: string; model: string } | null;
 }
 
 /** Tutti i sensori Edge nei workspace cliente dell'utente (stesso filtro di partnerClients). */
@@ -155,6 +157,7 @@ export async function partnerFleet(email: string, currentOrgId: string): Promise
       lastSeenAt: true,
       blockEnabled: true,
       organization: { select: { id: true, name: true } },
+      device: { select: { serial: true, model: true } },
     },
     orderBy: [{ lastSeenAt: { sort: "desc", nulls: "last" } }],
     take: 500,
@@ -166,10 +169,12 @@ export async function partnerFleet(email: string, currentOrgId: string): Promise
       clientName: x.organization.name,
       name: x.name,
       kind: x.kind,
-      online: !!x.lastSeenAt && x.lastSeenAt >= since,
+      // Un sensore "device" senza box (reso) non riceve più dati: offline.
+      online: !!x.lastSeenAt && x.lastSeenAt >= since && !(x.kind === "device" && !x.device),
       version: x.version,
       lastSeenAt: x.lastSeenAt,
       blockEnabled: x.blockEnabled,
+      device: x.device,
     }))
     .sort((a, b) => Number(a.online) - Number(b.online) || a.clientName.localeCompare(b.clientName) || a.name.localeCompare(b.name));
 }

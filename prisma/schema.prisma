@@ -152,6 +152,7 @@ model Organization {
   // angar Edge: sensori di rete (software, dispositivo o log dal cloud).
   edgeSensors  EdgeSensor[]
   edgeEvents   EdgeEvent[]
+  edgeHardware EdgeDevice[]
   // Privacy per i dipendenti: "individual" (per persona), "department"
   // (solo per reparto, gruppi di almeno 5), "anonymous" (solo totali azienda).
   privacyMode  String @default("individual")
@@ -549,6 +550,8 @@ model WorkspaceMember {
   role           MemberRole   @default(VIEWER)
   status         String       @default("invited") // invited | active
   invitedAt      DateTime     @default(now())
+  // Link d'invito (inviato per email): solo chi lo apre entra nel workspace.
+  inviteToken    String?      @unique
 
   @@unique([organizationId, email])
 }
@@ -693,8 +696,31 @@ model EdgeSensor {
   createdAt      DateTime     @default(now())
   createdBy      String?
   events         EdgeEvent[]
+  device         EdgeDevice?
 
   @@index([organizationId])
+}
+
+// Registro di fabbrica dei dispositivi angar (box fisici): seriale sull'etichetta,
+// hash del segreto di claim, stato e sensore collegato. Protocollo: docs/edge-protocol.md.
+model EdgeDevice {
+  id              String        @id @default(cuid())
+  serial          String        @unique // AE-XXXX-XXXX
+  claimSecretHash String        // SHA-256 hex del segreto scritto nel device
+  model           String        // "n100" | "pi5"
+  status          String        @default("stock") // stock | claimed | returned | retired
+  organizationId  String?
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  sensorId        String?       @unique
+  sensor          EdgeSensor?   @relation(fields: [sensorId], references: [id], onDelete: SetNull)
+  batch           String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  claimedAt       DateTime?
+  lastClaimCallAt DateTime?
+
+  @@index([organizationId])
+  @@index([status])
 }
 
 // Traffico verso le AI visto da un sensore, aggregato per giorno, AI e dispositivo.

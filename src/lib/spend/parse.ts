@@ -40,15 +40,35 @@ function merge(a: ParseResult, b: ParseResult): ParseResult {
   };
 }
 
-export async function parseSpendFile(name: string, data: Uint8Array): Promise<ParseResult> {
+// Limiti per gli zip (anche dalla pagina pubblica /check): niente "zip bomb".
+const ZIP_MAX_FILES = 300;
+const ZIP_MAX_BYTES = 60 * 1024 * 1024;
+
+export async function parseSpendFile(name: string, data: Uint8Array, depth = 0): Promise<ParseResult> {
   const lower = name.toLowerCase();
   if (lower.endsWith(".zip")) {
     let out = empty();
+    if (depth > 0) return { ...out, warnings: [`${name}: zip files inside zip files are skipped.`] };
     try {
-      const files = unzipSync(data);
+      let count = 0;
+      let total = 0;
+      let tooBig = false;
+      const files = unzipSync(data, {
+        filter: (f) => {
+          if (f.name.endsWith("/") || f.name.startsWith("__MACOSX")) return false;
+          count++;
+          total += f.originalSize;
+          if (count > ZIP_MAX_FILES || total > ZIP_MAX_BYTES) {
+            tooBig = true;
+            return false;
+          }
+          return true;
+        },
+      });
+      if (tooBig) out.warnings.push(`${name}: too big — up to ${ZIP_MAX_FILES} files and ${ZIP_MAX_BYTES / 1024 / 1024} MB unzipped. Only part of it was read.`);
       for (const [n, d] of Object.entries(files)) {
         if (n.endsWith("/") || n.startsWith("__MACOSX")) continue;
-        out = merge(out, await parseSpendFile(n, d));
+        out = merge(out, await parseSpendFile(n, d, depth + 1));
       }
     } catch {
       out.warnings.push(`${name}: could not open the zip file.`);

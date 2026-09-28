@@ -1,0 +1,19 @@
+[Unit]
+Description=angar device status strip (LED hook for /run/angar-edge/state)
+Documentation=https://github.com/Riky85/ai-control/tree/main/edge/hardware
+After=angar-edge.service
+
+[Service]
+Type=simple
+# LED_MODE=sysfs|gpio, LED_NAME=ACT, LED_GPIO_CHIP=gpiochip0, LED_GPIO_LINE=17
+EnvironmentFile=-/etc/default/angar-edge-led
+ExecStart=/usr/local/lib/angar-edge/led.sh
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectHome=true
+PrivateTmp=true
+PrivateNetwork=true
+
+[Install]
+WantedBy=multi-user.target

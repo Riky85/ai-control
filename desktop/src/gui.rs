@@ -189,9 +189,10 @@ fn header(ui: &mut egui::Ui) {
         ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
     }
     let p = ui.painter();
-    let mark_h = 17.0;
+    // Stesse proporzioni della piattaforma: nome al 90% del logo, spazio al 40%, centrati.
+    let mark_h = 20.0;
     logo(p, pos2(bar.left() + 22.0, bar.center().y - mark_h / 2.0), mark_h, TEXT);
-    p.text(pos2(bar.left() + 22.0 + mark_h * 1.16 + 8.0, bar.center().y), Align2::LEFT_CENTER, "angar", font_of("brand", 18.0), TEXT);
+    p.text(pos2(bar.left() + 22.0 + mark_h * 1.146 + mark_h * 0.4, bar.center().y), Align2::LEFT_CENTER, "angar", font_of("brand", mark_h * 0.9), TEXT);
 
     let close = Rect::from_center_size(pos2(bar.right() - 26.0, bar.center().y), vec2(32.0, 32.0));
     let r = ui.interact(close, ui.id().with("close"), Sense::click()).on_hover_cursor(egui::CursorIcon::PointingHand);

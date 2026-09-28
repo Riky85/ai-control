@@ -7,7 +7,8 @@ import { EDGE_IMAGE } from "@/lib/edge/install-script";
 import { CAND_PREFIX } from "@/lib/edge/config";
 import { fmtAgo, fmtDate } from "@/lib/format";
 import { PageHeader, Table, td, Tabs, Notice, StatCard } from "@/components/ui";
-import { toggleSensorAction, renameSensorAction, deleteSensorAction, setUploadAlertAction } from "@/lib/edge-actions";
+import { toggleSensorAction, renameSensorAction, deleteSensorAction, setUploadAlertAction, replaceDeviceAction, returnDeviceAction } from "@/lib/edge-actions";
+import { MODEL_LABEL } from "@/lib/edge/device-id";
 import { AddSensor, RotateToken, ConfirmSubmit } from "./SensorClient";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ const n = (x: number) => x.toLocaleString("en-GB");
 const dayStr = (d: string) => (d === new Date().toISOString().slice(0, 10) ? "Today" : fmtDate(`${d}T12:00:00Z`));
 
 // Sensori di rete angar Edge: stato, impostazioni e ciò che hanno visto negli ultimi 30 giorni.
-export default async function EdgeSensorsPage({ searchParams }: { searchParams: { view?: string; error?: string } }) {
+export default async function EdgeSensorsPage({ searchParams }: { searchParams: { view?: string; error?: string; notice?: string } }) {
   const s = currentSession()!;
   const orgId = s.orgId;
   const view: View = (VIEWS as readonly string[]).includes(searchParams.view ?? "") ? (searchParams.view as View) : "sensors";
@@ -33,7 +34,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
 
   const [org, sensors, events] = await Promise.all([
     db.organization.findUnique({ where: { id: orgId }, select: { privacyMode: true, uploadAlertMb: true } }),
-    db.edgeSensor.findMany({ where: { organizationId: orgId }, orderBy: { createdAt: "asc" } }),
+    db.edgeSensor.findMany({ where: { organizationId: orgId }, orderBy: { createdAt: "asc" }, include: { device: { select: { serial: true, model: true } } } }),
     db.edgeEvent.findMany({
       where: { organizationId: orgId, day: { gte: from } },
       select: { serviceId: true, serviceName: true, kind: true, client: true, clientLabel: true, hits: true, bytesUp: true, blocked: true, day: true },
@@ -45,7 +46,11 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
   const people = mode === "individual";
   const anonymous = mode === "anonymous";
   const now = Date.now();
-  const online = sensors.filter((x) => x.lastSeenAt && now - x.lastSeenAt.getTime() < ONLINE_MS).length;
+  // Sensore di un dispositivo angar reso: resta con la sua storia ma è sempre offline.
+  const isDevice = (x: { kind: string }) => x.kind === "device" || x.kind === "hardware";
+  const returned = (x: { kind: string; device: unknown }) => isDevice(x) && !x.device;
+  const isOnline = (x: (typeof sensors)[number]) => !returned(x) && !!x.lastSeenAt && now - x.lastSeenAt.getTime() < ONLINE_MS;
+  const online = sensors.filter(isOnline).length;
   const base = appUrl();
 
   // Link all'inventario per le AI viste.
@@ -107,6 +112,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
         action={<Link href="/edge" className="btn btn-secondary">About angar Edge</Link>}
       />
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
+      {searchParams.notice && <Notice tone="success">{searchParams.notice}</Notice>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Sensors online" value={`${online}/${sensors.length}`} hint={sensors.length ? "Reporting in the last 15 min" : "Add your first sensor below"} tone={sensors.length && online < sensors.length ? "signal" : undefined} />
@@ -122,8 +128,10 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
           <Table columns={["Sensor", "Status", "Last report", { label: "Settings", className: "w-[330px]" }, { label: "", className: "w-[1%]" }]} empty={sensors.length ? false : "No sensors yet. Add one below — it takes a few minutes."}>
             {sensors.map((x) => {
               const st = (x.stats ?? {}) as Stats;
-              const on = !!x.lastSeenAt && now - x.lastSeenAt.getTime() < ONLINE_MS;
+              const on = isOnline(x);
               const cloud = x.kind === "cloud";
+              const dev = isDevice(x);
+              const gone = returned(x);
               const fields: { f: string; label: string; v: boolean }[] = cloud
                 ? []
                 : [
@@ -137,13 +145,14 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                   <td className={td}>
                     <div className="font-medium text-ink-100">{x.name}</div>
                     <div className="text-xs text-ink-400">
-                      {cloud ? "Cloud logs" : x.kind === "hardware" ? "angar device" : "Software"} · {x.tokenHint}
+                      {cloud ? "Cloud logs" : dev ? "angar device" : "Software"} ·{" "}
+                      {dev ? (x.device ? <><span className="font-mono">{x.device.serial}</span> · {MODEL_LABEL[x.device.model] ?? x.device.model}</> : "returned") : x.tokenHint}
                     </div>
                   </td>
                   <td className={td}>
                     <div className="flex items-center gap-2 text-ink-100">
-                      <span className={`h-2 w-2 rounded-full ${on ? "bg-steady" : x.lastSeenAt ? "bg-signal" : "bg-ink-400/50"}`} />
-                      {on ? "Online" : x.lastSeenAt ? `Last seen ${fmtAgo(x.lastSeenAt)}` : "Waiting for first contact"}
+                      <span className={`h-2 w-2 rounded-full ${on ? "bg-steady" : x.lastSeenAt && !gone ? "bg-signal" : "bg-ink-400/50"}`} />
+                      {gone ? "Device returned" : on ? "Online" : x.lastSeenAt ? `Last seen ${fmtAgo(x.lastSeenAt)}` : dev ? "Waiting — plug it in" : "Waiting for first contact"}
                     </div>
                     <div className="text-xs text-ink-400">{[x.version && `v${x.version}`, x.os, x.hostIp].filter(Boolean).join(" · ") || "—"}</div>
                   </td>
@@ -191,11 +200,32 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                             <input name="name" defaultValue={x.name} maxLength={60} className="field flex-1 min-w-0" aria-label="Sensor name" />
                             <button className="btn btn-secondary btn-sm">Rename</button>
                           </form>
+                          {dev && (
+                            <form action={replaceDeviceAction} className="flex flex-col gap-1">
+                              <input type="hidden" name="sensorId" value={x.id} />
+                              <div className="flex gap-2">
+                                <input name="serial" placeholder="New serial AE-…" maxLength={20} required className="field flex-1 min-w-0 font-mono uppercase" aria-label="Serial of the replacement device" />
+                                <button className="btn btn-secondary btn-sm whitespace-nowrap">{x.device ? "Replace device" : "Link device"}</button>
+                              </div>
+                              <span className="text-[11px] text-ink-400">{x.device ? "From the replacement box's label. Same sensor and history; the old box stops." : "Links a new box to this sensor, keeping its history."}</span>
+                            </form>
+                          )}
                           <div className="flex items-center justify-between">
-                            <RotateToken sensorId={x.id} name={x.name} kind={x.kind} appUrl={base} edgeImage={EDGE_IMAGE} />
+                            {dev ? (
+                              x.device ? (
+                                <form action={returnDeviceAction}>
+                                  <input type="hidden" name="sensorId" value={x.id} />
+                                  <ConfirmSubmit label="Return device" className="btn btn-ghost btn-sm" message={`Unlink ${x.device.serial} to send it back? ${x.name} keeps its history but stops receiving data.`} />
+                                </form>
+                              ) : (
+                                <span />
+                              )
+                            ) : (
+                              <RotateToken sensorId={x.id} name={x.name} kind={x.kind} appUrl={base} edgeImage={EDGE_IMAGE} />
+                            )}
                             <form action={deleteSensorAction}>
                               <input type="hidden" name="sensorId" value={x.id} />
-                              <ConfirmSubmit label="Delete" message={`Delete ${x.name}? It stops working and its history is removed.`} />
+                              <ConfirmSubmit label="Delete" message={`Delete ${x.name}? It stops working and its history is removed.${x.device ? " The device is marked for return." : ""}`} />
                             </form>
                           </div>
                         </div>

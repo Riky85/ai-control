@@ -387,7 +387,7 @@ Emails need email sending set up on the deployment. Nobody is asked twice within
     title: "EU AI Act readiness",
     summary: "Classify every AI, see your readiness score and the key dates, export the AI register for your DPO.",
     keywords: ["ai act", "compliance", "risk", "high-risk", "dpo", "register", "literacy"],
-    body: `AI Act suggests a risk tier for each AI (minimal, limited, high) from what it is and what data it touches, and shows a readiness score with the key dates (AI literacy since February 2025, most obligations from August 2026). Apply the suggestions, record AI literacy training, and download the AI register (Excel) for your DPO. Guidance, not legal advice.`,
+    body: `AI Act suggests a risk tier for each AI (minimal, limited, high) from what it is and what data it touches, and shows a readiness score with the key dates (AI literacy measures since February 2025, transparency since August 2026, high-risk systems from December 2027 after the 2026 Digital Omnibus). Apply the suggestions, record AI literacy training, and download the AI register (Excel) for your DPO. Guidance, not legal advice.`,
   },
   {
     slug: "not-allowed-ai",

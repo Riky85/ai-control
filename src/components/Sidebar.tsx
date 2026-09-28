@@ -202,7 +202,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
       ) : (
         <div className="flex items-center h-10 mb-4 px-2">
           <Link href="/" className="text-white" aria-label="angar home">
-            <Wordmark size={16} logoSize={20} />
+            <Wordmark size={20} />
           </Link>
           <button
             onClick={toggle}

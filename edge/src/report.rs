@@ -10,7 +10,7 @@ pub const MAX_CANDIDATES: usize = 500;
 const MAX_BODY: usize = 1_000_000;
 
 pub enum Outcome {
-    Sent { events: usize, candidates: usize, more: bool },
+    Sent { events: usize, candidates: usize, more: bool, counters: crate::stats::Counters },
     Unauthorized,
     Failed(String),
 }
@@ -95,7 +95,7 @@ pub fn send(shared: &Shared, agent: &ureq::Agent, server: &str, token: &str, hos
         match res {
             Ok(_) => {
                 let more = lock(&shared.stats).has_backlog();
-                return Outcome::Sent { events: ne, candidates: nc, more };
+                return Outcome::Sent { events: ne, candidates: nc, more, counters: batch.counters };
             }
             Err(e) => {
                 lock(&shared.stats).merge(batch);

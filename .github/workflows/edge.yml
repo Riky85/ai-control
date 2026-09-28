@@ -42,7 +42,13 @@ jobs:
               }
             });'
       - name: Shell syntax
-        run: sh -n install.sh
+        run: |
+          sh -n install.sh
+          sh -n hardware/provision.sh
+          sh -n hardware/led-pi5.sh
+          bash -n hardware/build-image.sh
+      - name: Shellcheck
+        run: shellcheck -S warning install.sh hardware/*.sh
 
   build:
     needs: test
@@ -91,10 +97,51 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: edge/Cargo.toml
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
+      # Devices only install binaries whose ed25519 signature matches the public key built
+      # into angar-edge (EDGE_UPDATE_PUBKEY in edge/src/update.rs). The private key is the
+      # EDGE_SIGNING_KEY secret: base64 of the raw 32-byte ed25519 seed.
+      - name: Sign binaries (ed25519)
+        env:
+          EDGE_SIGNING_KEY: ${{ secrets.EDGE_SIGNING_KEY }}
+        run: |
+          if [ -z "$EDGE_SIGNING_KEY" ]; then
+            echo "::warning title=angar Edge::EDGE_SIGNING_KEY is not set: publishing WITHOUT .sig files, devices will refuse this update"
+            exit 0
+          fi
+          python3 -c 'import cryptography' 2>/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq python3-cryptography; }
+          python3 - <<'EOF'
+          import base64, glob, os, sys
+          from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+          from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+          seed = base64.b64decode(os.environ["EDGE_SIGNING_KEY"].strip())
+          if len(seed) != 32:
+              sys.exit("EDGE_SIGNING_KEY must be base64 of a 32-byte ed25519 seed")
+          key = Ed25519PrivateKey.from_private_bytes(seed)
+          pub = base64.b64encode(key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)).decode()
+          print("public key:", pub)
+          if pub != "T6vTxDdHRBSWI52KNuPmzd+P/w5v1yXHBDhDSM14VVg=":
+              sys.exit("EDGE_SIGNING_KEY does not match EDGE_UPDATE_PUBKEY in edge/src/update.rs")
+          for path in sorted(glob.glob("dist/angar-edge-linux-*")):
+              if path.endswith(".sig"):
+                  continue
+              data = open(path, "rb").read()
+              sig = key.sign(data)
+              key.public_key().verify(sig, data)
+              open(path + ".sig", "w").write(base64.b64encode(sig).decode() + "\n")
+              print("signed", path, len(data), "bytes")
+          EOF
+      - name: Version file
+        run: |
+          sed -n 's/^version = "\(.*\)"/\1/p' edge/Cargo.toml | head -n 1 > dist/angar-edge-version.txt
+          test -s dist/angar-edge-version.txt
+          cat dist/angar-edge-version.txt
       - name: Publish to the edge-latest release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -102,7 +149,13 @@ jobs:
         run: |
           ls -l dist
           gh release view edge-latest >/dev/null 2>&1 || gh release create edge-latest --title "angar Edge sensor" --notes "Built automatically from edge/. Install it from your angar workspace (Edge → Sensors), not from here." --latest=false --target "$GITHUB_SHA"
-          gh release upload edge-latest dist/* --clobber
+          # stale signatures must not survive an unsigned build
+          if ! ls dist/*.sig >/dev/null 2>&1; then
+            for a in angar-edge-linux-x86_64.sig angar-edge-linux-aarch64.sig; do gh release delete-asset edge-latest "$a" --yes 2>/dev/null || true; done
+          fi
+          # binaries and signatures first, the version file last: devices read it to decide
+          gh release upload edge-latest dist/angar-edge-linux-* --clobber
+          gh release upload edge-latest dist/angar-edge-version.txt --clobber
 
   docker:
     needs: build

@@ -15,6 +15,9 @@ const ASSET: Record<DesktopOs, string> = {
   linux: "angar-linux-x64",
 };
 
+// Versione dell'app desktop pubblicata (desktop/Cargo.toml).
+export const DESKTOP_VERSION = "0.5.2";
+
 export const DESKTOP_OS_LABEL: Record<DesktopOs, string> = { windows: "Windows", mac: "macOS", linux: "Linux" };
 
 export function osFromUserAgent(ua: string | null | undefined): DesktopOs {

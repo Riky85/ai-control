@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { MODEL_LABEL } from "@/lib/edge/device-id";
 import { currentSession } from "@/lib/auth";
 import Link from "next/link";
 import { partnerClients, partnerFleet, partnerEconomics } from "@/lib/partner";
@@ -247,7 +248,16 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                 {f.name}
                 {f.blockEnabled && <span className="ml-2 text-[11px] text-ink-400">blocking</span>}
               </td>
-              <td className={`${td} text-ink-400`}>{KIND_LABEL[f.kind] ?? f.kind}</td>
+              <td className={`${td} text-ink-400`}>
+                {KIND_LABEL[f.kind] ?? f.kind}
+                {f.device ? (
+                  <div className="text-xs">
+                    <span className="font-mono">{f.device.serial}</span> · {MODEL_LABEL[f.device.model] ?? f.device.model}
+                  </div>
+                ) : f.kind === "device" ? (
+                  <div className="text-xs">returned</div>
+                ) : null}
+              </td>
               <td className={td}>
                 <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${f.online ? "text-steady" : "text-alarm"}`}>
                   <span className={`h-2 w-2 rounded-full ${f.online ? "bg-steady" : "bg-alarm"}`} />

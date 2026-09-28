@@ -59,10 +59,24 @@ export async function signInAction(formData: FormData) {
     fail("Wrong email or password.");
   }
 
-  const memberships = await db.workspaceMember.findMany({ where: { email }, orderBy: { invitedAt: "asc" } });
-  if (memberships.length === 0) fail("This account isn't part of any workspace. Ask an owner to invite you.");
+  // Arrivato dal link d'invito (prova di possesso dell'email) con la password giusta: l'invito si accetta ora.
+  if (next.startsWith("/api/invite/")) {
+    const invite = await db.workspaceMember.findUnique({ where: { inviteToken: next.slice("/api/invite/".length) } });
+    if (invite && invite.email === email && invite.status === "invited") {
+      await db.workspaceMember.update({ where: { id: invite.id }, data: { status: "active", inviteToken: null } });
+      await db.account.update({ where: { id: account!.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
+      await issueSession(account!, invite.organizationId);
+      await audit("member.join", email, { via: "invite" }, { orgId: invite.organizationId, actorEmail: email });
+      redirect("/");
+    }
+  }
+  // Si entra solo nei workspace già attivi: un invito si accetta dal link ricevuto per email.
+  const memberships = await db.workspaceMember.findMany({ where: { email, status: "active" }, orderBy: { invitedAt: "asc" } });
+  if (memberships.length === 0) {
+    const pending = await db.workspaceMember.count({ where: { email, status: "invited" } });
+    fail(pending ? "Open the invitation link we emailed you to join the workspace." : "This account isn't part of any workspace. Ask an owner to invite you.");
+  }
   await db.account.update({ where: { id: account!.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
-  await db.workspaceMember.updateMany({ where: { email, status: "invited" }, data: { status: "active" } });
   await issueSession(account!, memberships[0].organizationId);
   await audit("auth.login", email, undefined, { orgId: memberships[0].organizationId, actorEmail: email });
   redirect(next);
@@ -73,7 +87,8 @@ export async function signUpAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const company = String(formData.get("company") ?? "").trim();
-  const fail = (msg: string) => redirect(`/signup?error=${encodeURIComponent(msg)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&company=${encodeURIComponent(company)}`);
+  const inviteToken = String(formData.get("invite") ?? "").trim().slice(0, 100);
+  const fail = (msg: string) => redirect(`/signup?error=${encodeURIComponent(msg)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&company=${encodeURIComponent(company)}${inviteToken ? `&invite=${encodeURIComponent(inviteToken)}` : ""}`);
 
   if (!email.includes("@")) fail("Enter a valid email.");
   const problem = passwordProblem(password);
@@ -81,7 +96,9 @@ export async function signUpAction(formData: FormData) {
   if (await db.account.findUnique({ where: { email } })) fail("An account with this email already exists — sign in instead.");
 
   const isFirstAccount = (await db.account.count()) === 0;
-  const invited = await db.workspaceMember.findMany({ where: { email } });
+  // Si entra in un workspace solo con il link d'invito giusto (prova di possesso dell'email).
+  const invite = inviteToken ? await db.workspaceMember.findUnique({ where: { inviteToken } }) : null;
+  const invited = invite && invite.email === email && invite.status === "invited" ? [invite] : [];
 
   const account = await db.account.create({ data: { email, name: name || null, passwordHash: await hashPassword(password) } });
 
@@ -99,7 +116,7 @@ export async function signUpAction(formData: FormData) {
     orgId = orgs[0]?.id ?? (await db.organization.create({ data: { name: company || "My company" } })).id;
     if (!orgs.length) await db.workspaceMember.create({ data: { organizationId: orgId, email, name: name || null, role: "OWNER", status: "active" } });
   } else if (invited.length > 0) {
-    await db.workspaceMember.updateMany({ where: { email }, data: { status: "active", name: name || undefined } });
+    await db.workspaceMember.update({ where: { id: invited[0].id }, data: { status: "active", inviteToken: null, name: name || undefined } });
     orgId = invited[0].organizationId;
   } else {
     const org = await db.organization.create({ data: { name: company || `${name || email.split("@")[0]}'s company` } });

@@ -22,7 +22,7 @@ export default async function JoinPage({ params, searchParams }: { params: { cod
 
   return (
     <div className="min-h-screen bg-panel flex flex-col items-center justify-center px-6 py-12 gap-6">
-      <div className="text-ink-100 mb-2"><Wordmark size={20} /></div>
+      <div className="text-ink-100 mb-2"><Wordmark size={22} /></div>
       <div className="w-full max-w-md rounded-xl border border-line bg-panel p-7 flex flex-col gap-6">
         <div>
           <h1 className="text-xl font-semibold text-ink-100">Join {org.name} on angar</h1>

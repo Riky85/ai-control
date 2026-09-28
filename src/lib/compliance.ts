@@ -48,11 +48,14 @@ export function suggestTier(asset: { name: string; vendor: string | null; servic
   return { tier: "LIMITED_RISK", reason: "Interacts with people or generates content — transparency duties (Art. 50)." };
 }
 
+// Date aggiornate al Digital Omnibus sull'AI (Reg. (UE) 2026/1744, in vigore dal 27 luglio 2026).
+export const AI_ACT_LAST_REVIEW = "2026-09-28";
 export const AI_ACT_DATES = [
-  { date: new Date("2025-02-02"), title: "Prohibited practices & AI literacy", detail: "Banned AI uses stop; staff using AI need adequate AI literacy (Art. 4–5)." },
+  { date: new Date("2025-02-02"), title: "Prohibited practices & AI literacy", detail: "Banned AI uses stop; companies must take measures to support their staff's AI literacy (Art. 4–5, as amended by the 2026 Omnibus)." },
   { date: new Date("2025-08-02"), title: "General-purpose AI models", detail: "Obligations for GPAI model providers; governance and penalties apply." },
-  { date: new Date("2026-08-02"), title: "Most obligations", detail: "High-risk systems in Annex III (HR, credit, education…) and transparency duties (Art. 50)." },
-  { date: new Date("2027-08-02"), title: "High-risk in regulated products", detail: "AI that is a safety component of products under EU product law (Annex I)." },
+  { date: new Date("2026-08-02"), title: "Transparency duties", detail: "Tell people when they talk to AI and label AI-generated content (Art. 50). Watermarking grace until 2 Dec 2026 for systems already on the market." },
+  { date: new Date("2027-12-02"), title: "High-risk systems (Annex III)", detail: "HR, credit, education, essential services… — postponed by the Digital Omnibus (Reg. 2026/1744)." },
+  { date: new Date("2028-08-02"), title: "High-risk in regulated products", detail: "AI that is a safety component of products under EU product law (Annex I) — postponed by the Digital Omnibus." },
 ];
 
 export function timeline(now = new Date()) {

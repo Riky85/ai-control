@@ -77,8 +77,11 @@ custom extrusion at more than 500 units per year.
    one-line change to make on the router's DHCP. This page is read-only, so there is no login to
    harden.
 
-*Needs server work, not built yet:* a claim endpoint and page, and `EdgeSensor.serial` /
-`claimSecretHash` / `claimedAt`. We can reuse `kind = "device"`.
+*Built:* factory registry (`EdgeDevice`), batch creation on /system (CSV with serial, secret and
+QR claim URL) or `POST /api/edge/devices`, the claim page `/edge/claim?serial=…`, the device's
+`POST /api/edge/claim`, replace/return in Edge → Sensors, and the image tooling in
+`edge/hardware/` (`build-image.sh`, `provision.sh`, status LED). Signed updates need the
+`EDGE_SIGNING_KEY` GitHub secret.
 
 ## 6. Updates, watchdog, security
 

@@ -73,15 +73,24 @@ Description=angar Edge network sensor (AI usage from DNS and firewall logs)
 Documentation=https://github.com/Riky85/ai-control/tree/main/edge
 Wants=network-online.target
 After=network-online.target
+StartLimitIntervalSec=0
 
 [Service]
-Type=simple
-EnvironmentFile=/etc/angar-edge.env
+# READY=1 and WATCHDOG=1 come from angar-edge itself (sd_notify); a hung sensor is restarted.
+Type=notify
+WatchdogSec=60
+# Token (software installs). On an angar device there is none: it claims itself with
+# /etc/angar-edge/device.json (see edge/hardware/) and keeps the token in the state dir.
+EnvironmentFile=-/etc/angar-edge.env
 ExecStart=/usr/local/bin/angar-edge --state-dir /var/lib/angar-edge
 User=angar-edge
 Group=angar-edge
 StateDirectory=angar-edge
 StateDirectoryMode=0750
+# /run/angar-edge/state: booting|unclaimed|online|offline|retired (read by the LED hook)
+RuntimeDirectory=angar-edge
+RuntimeDirectoryMode=0755
+# Ports 53 (DNS), 514 (syslog) and 80 (device status page) are below 1024.
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 NoNewPrivileges=true

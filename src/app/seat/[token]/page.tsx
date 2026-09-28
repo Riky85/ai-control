@@ -14,7 +14,7 @@ export default async function SeatPage({ params, searchParams }: { params: { tok
 
   return (
     <div className="force-dark min-h-screen bg-sidebar text-ink-100 flex flex-col items-center justify-center px-6 py-12 gap-8">
-      <Wordmark size={20} logoSize={22} />
+      <Wordmark size={22} />
       <div className="w-full max-w-md rounded-2xl border border-line bg-panel p-7 flex flex-col gap-5">
         {!r || !asset ? (
           <>

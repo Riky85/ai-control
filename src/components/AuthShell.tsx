@@ -10,7 +10,7 @@ export default function AuthShell({ title, subtitle, children }: { title: string
     <div className="force-dark min-h-screen w-full bg-sidebar text-ink-100 grid lg:grid-cols-[1fr_1.05fr] font-body">
       <div className="flex flex-col px-6 sm:px-12 py-8 min-h-screen">
         <Link href="/login" className="text-ink-100 self-start" aria-label="angar">
-          <Wordmark size={20} logoSize={22} />
+          <Wordmark size={22} />
         </Link>
         <div className="flex-1 flex items-center justify-center py-10">
           <div className="w-full max-w-[380px] animate-rise">

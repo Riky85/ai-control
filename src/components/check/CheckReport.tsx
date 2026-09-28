@@ -44,7 +44,7 @@ export default function CheckReport() {
       <article className="report-paper max-w-[820px] mx-auto bg-white text-[#141418] rounded-xl shadow-card px-14 py-12">
         {/* Intestazione */}
         <header className="flex items-start justify-between border-b-2 border-[#141418] pb-5">
-          <div className="text-[#141418]"><Wordmark size={20} /></div>
+          <div className="text-[#141418]"><Wordmark size={22} /></div>
           <div className="text-right text-xs text-[#5F5F69] leading-relaxed">
             <div className="font-semibold uppercase tracking-wider text-[#141418]">AI Spend Report</div>
             <div>{longDate(date)}</div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import CopyButton from "@/components/CopyButton";
 import { createSensorAction, rotateSensorTokenAction } from "@/lib/edge-actions";
 
@@ -83,8 +84,10 @@ function Notes({ items, label = "Setup by vendor" }: { items: [string, string][]
 
 /** "Add a sensor": tipo, nome → token mostrato una sola volta con i comandi pronti. */
 export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edgeImage: string; canEdit: boolean }) {
-  const [kind, setKind] = useState<"software" | "cloud">("software");
+  const [kind, setKind] = useState<"software" | "cloud" | "device">("software");
   const [name, setName] = useState("");
+  const [serial, setSerial] = useState("");
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<Created | null>(null);
   const [pending, start] = useTransition();
@@ -108,6 +111,7 @@ export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edge
   const options = [
     { id: "software" as const, title: "Software on a server", desc: "VM, Raspberry Pi or any Linux box — Docker or one-line install. DNS and firewall logs." },
     { id: "cloud" as const, title: "Cloud logs", desc: "Cloudflare Gateway, Zscaler, Cisco Umbrella or your SIEM push logs to angar." },
+    { id: "device" as const, title: "angar device", desc: "The box we ship. Enter the serial from its label — it links itself when plugged in." },
   ];
   return (
     <section className="rounded-xl border border-line bg-panel p-5">
@@ -117,6 +121,10 @@ export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edge
         onSubmit={(e) => {
           e.preventDefault();
           setError(null);
+          if (kind === "device") {
+            router.push(`/edge/claim?serial=${encodeURIComponent(serial.trim())}`);
+            return;
+          }
           start(async () => {
             const r = await createSensorAction({ name, kind });
             if ("error" in r) setError(r.error);
@@ -124,7 +132,7 @@ export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edge
           });
         }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           {options.map((o) => (
             <label key={o.id} className={`rounded-lg border p-3 cursor-pointer transition-colors ${kind === o.id ? "border-accent bg-ink" : "border-line hover:border-ink-400"}`}>
               <input type="radio" name="kind" value={o.id} checked={kind === o.id} onChange={() => setKind(o.id)} className="sr-only" />
@@ -134,8 +142,17 @@ export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edge
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={kind === "cloud" ? "Name, e.g. Cloudflare Gateway" : "Name, e.g. Milan office"} className="field w-64" maxLength={60} required disabled={!canEdit} />
-          <button className="btn btn-primary btn-sm" disabled={pending || !canEdit}>{pending ? "Creating…" : "Create sensor"}</button>
+          {kind === "device" ? (
+            <>
+              <input key="serial" value={serial} onChange={(e) => setSerial(e.target.value)} placeholder="Serial, e.g. AE-7K3M-Q9TZ" className="field w-64 font-mono uppercase" maxLength={20} required disabled={!canEdit} aria-label="Device serial" />
+              <button className="btn btn-primary btn-sm" disabled={!canEdit}>Continue</button>
+            </>
+          ) : (
+            <>
+              <input key="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={kind === "cloud" ? "Name, e.g. Cloudflare Gateway" : "Name, e.g. Milan office"} className="field w-64" maxLength={60} required disabled={!canEdit} />
+              <button className="btn btn-primary btn-sm" disabled={pending || !canEdit}>{pending ? "Creating…" : "Create sensor"}</button>
+            </>
+          )}
           {!canEdit && <span className="text-xs text-ink-400">Only admins can add sensors.</span>}
         </div>
         {error && <p className="text-sm text-alarm">{error}</p>}

@@ -45,7 +45,7 @@ export async function requireRole(min: MemberRole, back = "/"): Promise<Session>
   const s = currentSession();
   if (!s) redirect("/login");
   const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } } });
-  if (!member) redirect("/login?error=" + encodeURIComponent("You no longer have access to this workspace."));
+  if (!member || member.status !== "active") redirect("/login?error=" + encodeURIComponent("You no longer have access to this workspace."));
   if (RANK[member.role] < RANK[min]) {
     const sep = back.includes("?") ? "&" : "?";
     redirect(`${back}${sep}error=${encodeURIComponent(`This needs the ${min.toLowerCase()} role or higher — ask an owner of this workspace.`)}`);
@@ -56,15 +56,13 @@ export async function requireRole(min: MemberRole, back = "/"): Promise<Session>
 /**
  * Amministratore della piattaforma (non di un singolo workspace): vede la
  * pagina System e scarica i backup, che contengono i dati di TUTTI i
- * workspace. È chi è elencato in PLATFORM_ADMIN_EMAILS; se la variabile non
- * è impostata, il primo account mai creato.
+ * workspace. Solo chi è elencato in PLATFORM_ADMIN_EMAILS: senza la variabile
+ * nessuno (fail closed).
  */
 export async function isPlatformAdmin(email?: string | null): Promise<boolean> {
   if (!email) return false;
   const list = (process.env.PLATFORM_ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
-  if (list.length) return list.includes(email.toLowerCase());
-  const first = await db.account.findFirst({ orderBy: { createdAt: "asc" }, select: { email: true } });
-  return first?.email === email.toLowerCase();
+  return list.includes(email.toLowerCase());
 }
 
 export async function requirePlatformAdmin(): Promise<Session> {

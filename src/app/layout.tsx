@@ -62,11 +62,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   // Il ruolo nel token potrebbe essere vecchio: l'appartenenza al workspace si verifica sempre nel database.
   const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: session.orgId, email: session.email } } });
-  if (!member) redirect("/api/auth/signout?reason=" + encodeURIComponent("You no longer have access to that workspace."));
+  if (!member || member.status !== "active") redirect("/api/auth/signout?reason=" + encodeURIComponent("You no longer have access to that workspace."));
 
   const org = await db.organization.findUnique({ where: { id: session.orgId } });
   const connectedComputers = (await listDesktopDevices(session.orgId)).filter((d) => d.online).length;
-  const memberships = await db.workspaceMember.findMany({ where: { email: session.email }, include: { organization: { select: { id: true, name: true } } }, orderBy: { invitedAt: "asc" } });
+  const memberships = await db.workspaceMember.findMany({ where: { email: session.email, status: "active" }, include: { organization: { select: { id: true, name: true } } }, orderBy: { invitedAt: "asc" } });
   const plan = planById(org?.plan ?? "STARTER");
   const workspace: SidebarWorkspaceProps = {
     current: org ? { id: org.id, name: org.name } : null,

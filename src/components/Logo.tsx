@@ -19,12 +19,16 @@ export default function Logo({ size = 18, className }: { size?: number; classNam
   );
 }
 
-/** Logo + nome: usato nelle intestazioni. */
-export function Wordmark({ size = 18, logoSize, className = "" }: { size?: number; logoSize?: number; className?: string }) {
+/**
+ * Logo + nome: usato nelle intestazioni. `size` è l'altezza del logo; il nome
+ * è sempre al 90% e centrato sul logo, con le stesse proporzioni della sidebar
+ * aperta, in ogni pagina (login, pricing, check, condivisioni…).
+ */
+export function Wordmark({ size = 20, className = "" }: { size?: number; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
-      <Logo size={logoSize ?? size} />
-      <span className="font-brand leading-none tracking-tight" style={{ fontSize: size + 2 }}>angar</span>
+    <span className={`inline-flex items-center align-middle ${className}`} style={{ gap: Math.round(size * 0.4) }}>
+      <Logo size={size} />
+      <span className="font-brand leading-none tracking-tight" style={{ fontSize: Math.round(size * 0.9) }}>angar</span>
     </span>
   );
 }

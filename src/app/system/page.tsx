@@ -5,6 +5,9 @@ import { PageHeader, Panel, Table, td } from "@/components/ui";
 import Badge from "@/components/Badge";
 import { emailEnabled } from "@/lib/mail";
 import { stripeEnabled } from "@/lib/stripe";
+import { MODEL_LABEL, DEVICE_STATUSES } from "@/lib/edge/device-id";
+import { setDeviceStatusAction } from "@/lib/edge-actions";
+import DeviceBatchForm from "./DeviceBatchForm";
 
 export const dynamic = "force-dynamic";
 
@@ -16,13 +19,20 @@ export default async function SystemPage() {
   } catch {
     dbOk = false;
   }
-  const [errors, backups, errors24h, leads, jobs] = await Promise.all([
+  const [errors, backups, errors24h, leads, jobs, deviceCounts, devices] = await Promise.all([
     db.errorEvent.findMany({ orderBy: { createdAt: "desc" }, take: 50 }),
     db.backupRun.findMany({ orderBy: { startedAt: "desc" }, take: 14 }),
     db.errorEvent.count({ where: { createdAt: { gt: new Date(Date.now() - 86400_000) } } }),
     db.lead.findMany({ orderBy: { createdAt: "desc" }, take: 50 }),
     db.jobRun.findMany({ orderBy: { ranAt: "desc" }, take: 5 }),
+    db.edgeDevice.groupBy({ by: ["status"], _count: { _all: true } }),
+    db.edgeDevice.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      select: { id: true, serial: true, model: true, status: true, batch: true, claimedAt: true, organization: { select: { name: true } }, sensor: { select: { name: true } } },
+    }),
   ]);
+  const devCount = (st: string) => deviceCounts.find((c) => c.status === st)?._count._all ?? 0;
   const lastOkBackup = backups.find((b) => b.status === "ok");
   const backupFresh = lastOkBackup && lastOkBackup.startedAt > new Date(Date.now() - 36 * 3600_000);
 
@@ -70,6 +80,52 @@ export default async function SystemPage() {
               <td className={`${td} tabular`}>{b.rows.toLocaleString()}</td>
               <td className={`${td} tabular`}>{(b.bytes / 1024).toFixed(0)} KB</td>
               <td className={`${td} text-ink-400 font-mono text-xs truncate max-w-[260px]`}>{b.error ?? b.location ?? "—"}</td>
+            </tr>
+          ))}
+        </Table>
+      </div>
+
+      <div>
+        <div className="flex flex-wrap items-end justify-between gap-3 mb-3">
+          <div>
+            <h2 className="text-base font-semibold text-ink-100">angar devices</h2>
+            <p className="text-sm text-ink-400">
+              {DEVICE_STATUSES.map((st) => `${devCount(st)} ${st}`).join(" · ")}
+              {process.env.EDGE_FACTORY_TOKEN ? " · factory API on" : " · factory API off (EDGE_FACTORY_TOKEN)"}
+            </p>
+          </div>
+          <DeviceBatchForm />
+        </div>
+        <Table columns={["Serial", "Model", "Status", "Workspace", "Sensor", "Claimed", { label: "", className: "w-[1%]" }]} empty={devices.length === 0 ? "No devices yet — create a batch for the next shipment." : false}>
+          {devices.map((d) => (
+            <tr key={d.id}>
+              <td className={`${td} font-mono text-ink-100 whitespace-nowrap`}>
+                {d.serial}
+                {d.batch && <div className="font-sans text-xs text-ink-400">{d.batch}</div>}
+              </td>
+              <td className={`${td} text-ink-400`}>{MODEL_LABEL[d.model] ?? d.model}</td>
+              <td className={`${td} ${d.status === "claimed" ? "text-steady" : d.status === "retired" ? "text-alarm" : "text-ink-400"}`}>{d.status}</td>
+              <td className={`${td} text-ink-100`}>{d.organization?.name ?? "—"}</td>
+              <td className={`${td} text-ink-400`}>{d.sensor?.name ?? "—"}</td>
+              <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{d.claimedAt ? fmtDateTime(d.claimedAt) : "—"}</td>
+              <td className={`${td} whitespace-nowrap`}>
+                <div className="flex gap-1">
+                  {(d.status === "returned"
+                    ? [["stock", "Restock"], ["retired", "Retire"]]
+                    : d.status === "claimed"
+                      ? [["returned", "Mark returned"], ["retired", "Retire"]]
+                      : d.status === "stock"
+                        ? [["retired", "Retire"]]
+                        : []
+                  ).map(([st, label]) => (
+                    <form key={st} action={setDeviceStatusAction}>
+                      <input type="hidden" name="deviceId" value={d.id} />
+                      <input type="hidden" name="status" value={st} />
+                      <button className={`btn btn-ghost btn-sm ${st === "retired" ? "text-alarm" : ""}`}>{label}</button>
+                    </form>
+                  ))}
+                </div>
+              </td>
             </tr>
           ))}
         </Table>

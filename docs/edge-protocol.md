@@ -73,3 +73,38 @@ The server parses lines with the same rules as the sensor's syslog parsers
 - **LAN scan** (`scanLan`, opt-in): every 6 h, TCP-probe the sensor's own /24 on
   11434 (Ollama `/api/tags`) and 1234 (LM Studio `/v1/models`), 2 s timeout, ≤ 64 in parallel.
 - Reports every `reportEverySec`; keeps unsent deltas (bounded) when offline.
+
+## Hardware devices (angar device): factory registry and zero-touch claim
+
+Each device is flashed with `/etc/angar-edge/device.json`:
+
+```json
+{ "serial": "AE-7K3M-Q9TZ", "secret": "<32+ random chars>", "model": "n100" | "pi5" }
+```
+
+The server keeps a factory registry (`EdgeDevice`: serial, sha256 of secret, model,
+status `stock` | `claimed` | `returned` | `retired`, linked sensor). Serials are
+created by platform admins on /system (batch → CSV with serial, secret, claim URL
+for the QR label) or with `POST /api/edge/devices` + `Authorization: Bearer $EDGE_FACTORY_TOKEN`
+body `{ "count": 10, "model": "n100" }` → `{ "devices": [{ "serial", "secret", "claimUrl" }] }`.
+
+The QR label encodes `<app>/edge/claim?serial=AE-XXXX-XXXX`. A workspace admin opens
+it (or types the serial in Edge → Sensors → Add a device), names the site, and the
+device is linked to a new `EdgeSensor` (kind `device`).
+
+### POST /api/edge/claim (called by the device, no token yet)
+
+Body `{ "serial": "AE-…", "secret": "…", "version": "0.2.0" }`.
+- 404 unknown serial / 403 wrong secret (constant-time compare of hashes).
+- 202 `{ "status": "unclaimed", "claimUrl": "…" }` while nobody has claimed it (device retries every 30 s).
+- 200 `{ "status": "claimed", "token": "ange_…", "sensorId": "…", "company": "…" }` once claimed.
+  Every successful call issues a fresh token (rotating the previous one), so a
+  re-flashed or reset device can always recover; the device stores it in its state dir.
+- 410 `{ "status": "retired" }` if the device was replaced / returned (device stops sending and shows it on its status page).
+
+### Signed updates
+
+The `edge-latest` release also carries `angar-edge-linux-<arch>.sig` (ed25519 signature,
+base64, of the binary) and `angar-edge-version.txt`. Devices check once a day, verify the
+signature with the public key built into the binary (`EDGE_UPDATE_PUBKEY`), swap binaries
+atomically keeping the previous one, and roll back if the new one fails to report within 10 minutes.
