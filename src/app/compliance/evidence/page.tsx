@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
+import { featureEnabled } from "@/lib/plan-gate";
+import LockedFeature from "@/components/LockedFeature";
 import { buildEvidencePack, packFingerprint } from "@/lib/evidence-pack";
 import { PageHeader, Table, td } from "@/components/ui";
 import PrintButton from "@/components/PrintButton";
@@ -24,12 +26,11 @@ export default async function EvidencePackPage() {
       <div className="print:hidden">
         <PageHeader
           crumbs={[{ label: "AI Act", href: "/compliance" }, { label: "Evidence pack" }]}
-          title="Evidence pack"
+          title="AI Act evidence pack"
           subtitle="AI Act and NIS2 evidence in one document: AI inventory, readiness, training, policies, controls, suppliers, incidents and a tamper-evident audit log."
           action={
             <>
-              <a href="/api/compliance/evidence" className="btn btn-secondary">Download JSON</a>
-              <PrintButton label="Print / PDF" />
+              {(await featureEnabled(s.orgId, "evidencePack")) ? <><a href="/api/compliance/evidence" className="btn btn-secondary">Download JSON</a><PrintButton label="Print / PDF" /></> : <LockedFeature feature="evidencePack" label="Download evidence pack" />}
             </>
           }
         />
@@ -85,6 +86,12 @@ export default async function EvidencePackPage() {
       </Section>
 
       <Section title="3. AI literacy (Art. 4)" subtitle="Training recorded in angar.">
+        {pack.policyAcknowledgement.policyVersion && (
+          <p className="text-sm text-ink-400 mb-3">
+            AI policy {pack.policyAcknowledgement.policyVersion} shared with employees{pack.policyAcknowledgement.trackedPerPerson ? `: ${pack.policyAcknowledgement.acknowledged} of ${pack.policyAcknowledgement.sent} acknowledged (${pack.policyAcknowledgement.acknowledgementRate ?? 0}%)` : `: ${pack.policyAcknowledgement.anonymousCompletions} anonymous acknowledgements`}
+            {pack.policyAcknowledgement.averageQuizScore != null && `, average literacy check ${pack.policyAcknowledgement.averageQuizScore}/${pack.policyAcknowledgement.quizQuestions}`}.
+          </p>
+        )}
         <Table columns={["Date", "Training", "Recorded by"]} empty={pack.aiLiteracy.length ? false : "No AI literacy training recorded — record it on the AI Act page."}>
           {pack.aiLiteracy.map((l, i) => (
             <tr key={i}>

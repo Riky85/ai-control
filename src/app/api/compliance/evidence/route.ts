@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
+import { planGate } from "@/lib/plan-gate";
 import { buildEvidencePack, packFingerprint } from "@/lib/evidence-pack";
 import { audit } from "@/lib/audit";
 
@@ -13,6 +14,8 @@ export async function GET() {
   if (!s) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } }, select: { role: true } });
   if (!member || (member.role !== "ADMIN" && member.role !== "OWNER")) return NextResponse.json({ error: "Admins and owners only." }, { status: 403 });
+  const gate = await planGate(s.orgId, "evidencePack");
+  if (!gate.ok) return NextResponse.json({ error: gate.message }, { status: 402 });
 
   const pack = await buildEvidencePack(s.orgId, s.email);
   const fingerprint = packFingerprint(pack);

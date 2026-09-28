@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { currentOrgId } from "@/lib/org";
+import { featureEnabled } from "@/lib/plan-gate";
+import LockedFeature from "@/components/LockedFeature";
+import { AssetLimitNotice } from "@/components/PlanBanner";
 import { db } from "@/lib/db";
 import CsvDropzone from "@/components/CsvDropzone";
 import AiTable from "@/components/AiTable";
 import { StatCard, PageHeader } from "@/components/ui";
 import LineChart from "@/components/LineChart";
 import ExportMenu from "@/components/ExportMenu";
-import { computeSavings, monthlyOf, loadAssets } from "@/lib/savings";
+import { computeSavingsCached, monthlyOf, loadAssets } from "@/lib/savings";
+import { desktopDeviceCounts } from "@/lib/discovery/devices";
 import { aiFilters, filterAssets, type AiFilterParams } from "@/lib/ai-filters";
 import FilterBar from "@/components/FilterBar";
 import { uploadSpendAction } from "@/lib/spend-actions";
@@ -14,6 +18,7 @@ import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
 import SetupWizard from "@/components/SetupWizard";
 import BenchmarkCard from "@/components/BenchmarkCard";
+import SavedSoFar from "@/components/SavedSoFar";
 
 export const dynamic = "force-dynamic";
 
@@ -29,18 +34,18 @@ function greeting(name?: string | null) {
 export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string; spend?: string } & AiFilterParams }) {
   const orgId = currentOrgId();
   const session = currentSession();
-  const [org, { items: savings, totalMonthly: canSave, assets }, all, broken, toReview] = await Promise.all([
+  // Tutto in parallelo; risparmi e computer collegati sono condivisi con il layout (React cache).
+  const [org, { items: savings, totalMonthly: canSave, assets }, all, broken, toReview, spendCount, { total: devicesCount }, memberCount, records] = await Promise.all([
     db.organization.findUnique({ where: { id: orgId } }),
-    computeSavings(orgId),
+    computeSavingsCached(orgId),
     loadAssets(orgId, { includeRejected: true }),
     db.connector.count({ where: { organizationId: orgId, status: "ERROR", credentialsEncrypted: { not: null }, provider: { notIn: ["NETWORK"] } } }),
     db.aiAsset.count({ where: { organizationId: orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } }),
-  ]);
-  // Stato del wizard di avvio: costi collegati, uso rilevato, team invitato.
-  const [spendCount, devicesCount, memberCount] = await Promise.all([
+    // Stato del wizard di avvio: costi collegati, uso rilevato, team invitato.
     db.spendRecord.count({ where: { organizationId: orgId } }),
-    db.desktopDevice.count({ where: { organizationId: orgId } }),
+    desktopDeviceCounts(orgId),
     db.workspaceMember.count({ where: { organizationId: orgId } }),
+    db.spendRecord.findMany({ where: { organizationId: orgId, date: { gte: new Date(Date.now() - 400 * 86400000) } }, select: { date: true, amountEur: true } }),
   ]);
   const wizardSteps = [
     { key: "costs", title: "See what you pay for AI", desc: "Drop a bank statement or connect your bank — angar lists every AI subscription and cost.", href: "/sources", cta: "Add costs", done: spendCount > 0 },
@@ -53,7 +58,6 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   const estimated = costed.filter((m) => m.estimated).length;
   const unpaid = assets.filter((a) => !monthlyOf(a)).length;
   const shown = filterAssets(all, searchParams);
-  const records = await db.spendRecord.findMany({ where: { organizationId: orgId, date: { gte: new Date(Date.now() - 400 * 86400000) } }, select: { date: true, amountEur: true } });
 
   // Ultimi 12 mesi: spesa AI reale (addebiti) oppure, senza addebiti, AI in uso.
   const months: { key: string; label: string }[] = [];
@@ -89,11 +93,12 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       <PageHeader title={greeting(session?.name)} subtitle={`${org?.name ?? ""} — your AI at a glance.`} action={
           assets.length ? (
             <div className="flex items-center gap-2">
-              <a href="/api/export/register" className="btn btn-secondary" title="AI register for the EU AI Act and GDPR records (Excel)">AI register</a>
+              {(await featureEnabled(orgId, "registerExport")) ? <a href="/api/export/register" className="btn btn-secondary" title="AI register for the EU AI Act and GDPR records (Excel)">AI register</a> : <LockedFeature feature="registerExport" label="AI register" />}
               <ExportMenu dataset="assets" />
             </div>
           ) : undefined
         } />
+      <AssetLimitNotice orgId={orgId} />
 
       {(searchParams.connected || searchParams.imported || searchParams.spend) && (
         <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
@@ -135,16 +140,17 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         <>
           <SetupWizard steps={wizardSteps} />
 
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} found by the scan to decide` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} tone="accent" href={toReview ? "/review" : "/providers"} />
             <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (org?.employees ? `${fmtEur(spend / org.employees, { decimals: true })} per employee` : estimated ? `${estimated} estimated from list prices` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
             <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"} →` : "Nothing found yet"} href="/savings" />
-            <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/discover"} />
+            <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/download"} />
           </div>
 
+          <SavedSoFar orgId={orgId} />
           <BenchmarkCard orgId={orgId} />
 
-          <section className="rounded-xl border border-line bg-panel p-5 grid grid-cols-[240px_1fr] gap-6 items-center animate-rise">
+          <section className="rounded-xl border border-line bg-panel p-5 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6 items-center animate-rise">
             <div className="flex flex-col gap-3">
               <div className="text-sm text-ink-400">{hasSpend ? "AI spend by month" : "AI in use over time"}</div>
               <div className="flex items-baseline gap-2">

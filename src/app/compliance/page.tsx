@@ -1,6 +1,8 @@
 import Link from "next/link";
 import GovernanceNav from "@/components/GovernanceNav";
 import { currentOrgId } from "@/lib/org";
+import { featureEnabled } from "@/lib/plan-gate";
+import LockedFeature from "@/components/LockedFeature";
 import { readiness, suggestionFor, timeline, TIER_LABEL } from "@/lib/compliance";
 import { applySuggestedTierAction, applyAllSuggestionsAction, recordLiteracyAction } from "@/lib/compliance-actions";
 import { PageHeader, StatCard, Table, td, Notice } from "@/components/ui";
@@ -41,13 +43,14 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
         title="AI Act"
         subtitle="EU AI Act readiness for every AI your company uses."
         action={
-          <a href="/api/export/register" className="btn btn-secondary btn-sm">
-            Download AI register (Excel)
-          </a>
+          (await featureEnabled(currentOrgId(), "registerExport")) ? (
+            <a href="/api/export/register" className="btn btn-secondary btn-sm">
+              Download AI register (Excel)
+            </a>
+          ) : <LockedFeature feature="registerExport" label="Download AI register (Excel)" className="btn btn-secondary btn-sm" />
         }
       />
 
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
       {searchParams.applied && <Notice tone="success">{Number(searchParams.applied) ? `Classified ${searchParams.applied} AI with the suggested risk class.` : "Every AI already had a risk class — nothing changed."}</Notice>}
 
       <div className="grid grid-cols-4 gap-4">

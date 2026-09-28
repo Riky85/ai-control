@@ -18,6 +18,8 @@ function Icon({ name }: { name: string }) {
       return <svg {...common}><rect {...stroke} x="2.5" y="2.5" width="13" height="13" rx="1.5" /><path {...stroke} d="M2.5 7h13" /><path {...stroke} d="M7 7v8.5" /></svg>;
     case "assets":
       return <svg {...common}><rect {...stroke} x="2.5" y="2.5" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="10" y="2.5" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="2.5" y="10" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="10" y="10" width="5.5" height="5.5" rx="1" /></svg>;
+    case "account":
+      return <svg {...common}><circle {...stroke} cx="9" cy="6.5" r="2.8" /><path {...stroke} d="M3.5 15.5c.6-2.8 2.8-4.5 5.5-4.5s4.9 1.7 5.5 4.5" /></svg>;
     case "people":
       return <svg {...common}><circle {...stroke} cx="7" cy="6" r="2.3" /><path {...stroke} d="M2.5 15c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" /><circle {...stroke} cx="13" cy="5.5" r="1.8" /><path {...stroke} d="M11.5 8.2c1.9.3 3 1.5 3 3.8" /></svg>;
     case "data":
@@ -100,7 +102,7 @@ const PRIMARY_ITEMS = [
 // Voci meno frequenti: nel menu a tendina del blocco utente, così la
 // sidebar aperta non ha bisogno di scroll.
 const MENU_ITEMS = [
-  { href: "/download", label: "Download the app", icon: "download" },
+  { href: "/account", label: "Account", icon: "account" },
   { href: "/workspace", label: "Workspace", icon: "people" },
   { href: "/report", label: "Monthly report", icon: "report" },
   { href: "/billing", label: "Plan & billing", icon: "billing" },
@@ -116,11 +118,11 @@ const MORE_ITEMS = [
   { href: "/budgets", label: "Budgets", icon: "budget" },
   { href: "/providers", label: "Providers", icon: "providers" },
   { href: "/people", label: "People", icon: "people" },
-  { href: "/computers", label: "Computers", icon: "computer" },
+  { href: "/download", label: "Desktop app", icon: "computer" },
   { href: "/governance", label: "Governance", icon: "assurance" },
 ];
 // Pagine che accendono la voce Governance.
-const GOVERNANCE_PATHS = ["/governance", "/compliance", "/data", "/activity", "/changes"];
+const GOVERNANCE_PATHS = ["/governance", "/compliance", "/data", "/activity"];
 
 // Stato aperta/chiusa in un cookie: il server lo legge e rende subito la
 // sidebar nello stato giusto, senza flash al refresh.
@@ -170,11 +172,11 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
     href === "/"
       ? pathname === "/" || pathname.startsWith("/assets")
       : href === "/sources"
-        ? ["/sources", "/connectors", "/discover"].some((p) => pathname.startsWith(p))
+        ? ["/sources", "/connectors"].some((p) => pathname.startsWith(p))
         : href === "/governance"
           ? GOVERNANCE_PATHS.some((p) => pathname.startsWith(p))
-          : href === "/computers"
-            ? ["/computers", "/download"].some((p) => pathname.startsWith(p))
+          : href === "/download"
+            ? ["/download", "/computers", "/discover"].some((p) => pathname.startsWith(p))
             : href === "/billing"
               ? ["/billing", "/edge"].some((p) => pathname.startsWith(p))
               : pathname.startsWith(href);
@@ -276,11 +278,11 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
               {collapsed && (
                 <span className="relative shrink-0">
                   <Icon name={item.icon} />
-                  {item.href === "/computers" && connectedComputers > 0 && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-steady ring-2 ring-sidebar" />}
+                  {item.href === "/download" && connectedComputers > 0 && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-steady ring-2 ring-sidebar" />}
                 </span>
               )}
               {!collapsed && <span className="flex-1">{item.label}</span>}
-              {!collapsed && item.href === "/computers" && connectedComputers > 0 && (
+              {!collapsed && item.href === "/download" && connectedComputers > 0 && (
                 <span className="flex items-center gap-1 text-[11px] text-steady tabular">
                   <span className="h-1.5 w-1.5 rounded-full bg-steady" />
                   {connectedComputers}
@@ -296,7 +298,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
             <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#25282B] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
               {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-[#A3A19C] truncate border-b border-white/[0.08] mb-1">{userEmail}</div>}
               {[
-                ...((workspace?.workspaces.length ?? 0) > 1 ? [{ href: "/partner", label: "Partner console", icon: "partner" }] : []),
+                ...((workspace?.workspaces.length ?? 0) > 1 ? [{ href: "/partner", label: "Partner console", icon: "partner" }, { href: "/group", label: "Group view", icon: "budget" }] : []),
                 ...MENU_ITEMS,
                 ...(platformAdmin ? [{ href: "/system", label: "System", icon: "assurance" }] : []),
               ].map((item) => (

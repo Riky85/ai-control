@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireRole, requirePlatformAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
+import { planGate } from "@/lib/plan-gate";
 import { newEdgeToken } from "@/lib/edge/auth";
 import { DEVICE_MODELS, normalizeSerial, placeholderTokenHash, type DeviceModel } from "@/lib/edge/device-id";
 import { createDeviceBatch, MAX_BATCH, type NewDevice } from "@/lib/edge/devices";
@@ -30,6 +31,8 @@ export async function createSensorAction(input: { name: string; kind: string }):
   const name = cleanName(input?.name);
   const kind = (KINDS as readonly string[]).includes(input?.kind) ? input.kind : "software";
   if (!name) return { error: "Give the sensor a name, e.g. Milan office." };
+  const gate = await planGate(s.orgId, "edgeSensors");
+  if (!gate.ok) return { error: gate.message };
   if ((await db.edgeSensor.count({ where: { organizationId: s.orgId } })) >= 100) return { error: "This workspace already has 100 sensors — delete one first." };
   const t = newEdgeToken();
   const sensor = await db.edgeSensor.create({

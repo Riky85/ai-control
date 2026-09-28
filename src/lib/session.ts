@@ -12,6 +12,8 @@ export interface SessionPayload {
   n?: string; // nome
   o: string; // organization id corrente
   r: string; // ruolo nel workspace corrente
+  m?: "pwd" | "sso"; // come si è entrati (assente nei token vecchi = password)
+  f?: 1; // MFA da attivare prima di usare l'app (workspace con MFA obbligatoria)
   x: number; // scadenza (unix secondi)
 }
 
@@ -40,6 +42,30 @@ export async function verifySession(token: string | undefined): Promise<SessionP
     const ok = await crypto.subtle.verify("HMAC", await key(), fromB64url(sig), enc.encode(body));
     if (!ok) return null;
     const payload = JSON.parse(new TextDecoder().decode(fromB64url(body))) as SessionPayload;
+    return payload.x > Date.now() / 1000 ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Token firmati a breve scadenza per altri scopi (login in attesa di MFA,
+ * ritorno SSO, verifica email). Lo scopo entra nella firma: un token di un
+ * tipo non vale mai come token di sessione o di un altro tipo.
+ */
+export async function signPurpose<T extends object>(purpose: string, data: T, seconds: number): Promise<string> {
+  const body = b64url(enc.encode(JSON.stringify({ ...data, x: Math.floor(Date.now() / 1000) + seconds })));
+  const sig = await crypto.subtle.sign("HMAC", await key(), enc.encode(`${purpose}:${body}`));
+  return `${body}.${b64url(sig)}`;
+}
+
+export async function verifyPurpose<T extends object>(purpose: string, token: string | undefined): Promise<T | null> {
+  if (!token || !token.includes(".")) return null;
+  const [body, sig] = token.split(".");
+  try {
+    const ok = await crypto.subtle.verify("HMAC", await key(), fromB64url(sig), enc.encode(`${purpose}:${body}`));
+    if (!ok) return null;
+    const payload = JSON.parse(new TextDecoder().decode(fromB64url(body))) as T & { x: number };
     return payload.x > Date.now() / 1000 ? payload : null;
   } catch {
     return null;

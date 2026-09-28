@@ -1,5 +1,6 @@
 import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
+import { AssetLimitNotice } from "@/components/PlanBanner";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
 import RiskGauge from "@/components/RiskGauge";
@@ -7,13 +8,16 @@ import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, s
 import { setNetworkBlockAction, setInsteadAssetAction } from "@/lib/edge-actions";
 import { dismissSavingAction } from "@/lib/spend-actions";
 import AssetPeople from "@/components/AssetPeople";
+import { saveContractAction } from "@/lib/savings-actions";
+import { noticeDeadline, daysUntil } from "@/lib/contracts";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
 import { StatCard, Tabs, Panel, Table, td } from "@/components/ui";
 import StatusDot from "@/components/StatusDot";
+import VendorRiskCard from "@/components/VendorRiskCard";
 import ExportMenu from "@/components/ExportMenu";
-import { computeSavings, categoryOf, monthlyOf } from "@/lib/savings";
+import { computeSavingsCached, categoryOf, monthlyOf } from "@/lib/savings";
 import { CATEGORY_LABEL, PLANS, MANAGE_URL } from "@/lib/pricing/catalog";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +34,7 @@ const DAY = 86400000;
 const CONF: Record<string, string> = { HIGH: "Sure", MEDIUM: "Likely", LOW: "Worth checking" };
 
 // Il passaporto di un'AI: quanto costa, chi la usa, come risparmiare, cosa tocca.
-export default async function AssetDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { tab?: string; reminded?: string; error?: string } }) {
+export default async function AssetDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { tab?: string; reminded?: string; error?: string; removed?: string; saved?: string } }) {
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "overview";
   const orgId = currentOrgId();
 
@@ -51,7 +55,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
     }),
     db.user.findMany({ where: { organizationId: orgId }, orderBy: { name: "asc" } }),
     db.spendRecord.findMany({ where: { organizationId: orgId, aiAssetId: params.id }, orderBy: { date: "desc" }, take: 100 }),
-    computeSavings(orgId),
+    computeSavingsCached(orgId),
   ]);
 
   if (!asset) notFound();
@@ -108,7 +112,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           href={`/assets/${asset.id}?tab=spend`}
           label="Cost / month"
@@ -124,11 +128,12 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         />
         <StatCard href="/savings" label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} tone={canSave >= 1 ? "accent" : undefined} />
       </div>
+      <AssetLimitNotice orgId={orgId} assetId={asset.id} />
 
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/assets/${asset.id}?tab=${t.key}` }))} />
 
-      <div className="grid grid-cols-3 gap-4 items-start">
-        <div className="col-span-2 flex flex-col gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        <div className="lg:col-span-2 flex flex-col gap-4">
           {tab === "overview" && (
             <>
               <Panel title="How to save" subtitle="Calculated automatically from your bills, seats and list prices">
@@ -150,7 +155,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 </div>
               </Panel>
               <Panel title="Details">
-                <dl className="grid grid-cols-3 gap-x-6 gap-y-5">
+                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-5">
                   <Field label="Provider" value={asset.vendor} />
                   <Field label="Model" value={asset.model} />
                   <Field label="Owner" value={asset.owner?.name ?? asset.owner?.email} empty="No owner" />
@@ -188,8 +193,9 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             </Table>
           )}
 
-          {tab === "people" && <AssetPeople asset={{ id: asset.id, name: asset.name }} usages={asset.usages} reminded={searchParams.reminded} error={searchParams.error} />}
+          {tab === "people" && <AssetPeople asset={{ id: asset.id, name: asset.name }} usages={asset.usages} reminded={searchParams.reminded} error={searchParams.error} removed={searchParams.removed} />}
 
+          {tab === "risk" && <VendorRiskCard asset={asset} />}
           {tab === "risk" && (
             <>
               <Panel title="Risk" subtitle="Computed by rules from what angar knows about this AI">
@@ -198,7 +204,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                     <div className="shrink-0">
                       <RiskGauge score={risk.score} level={risk.level} />
                     </div>
-                    <div className="flex-1 grid grid-cols-2 gap-6">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div>
                         <h3 className="text-sm font-medium text-ink-100 mb-2">Why</h3>
                         <ul className="flex flex-col gap-2 text-sm text-ink-400">
@@ -331,6 +337,36 @@ export default async function AssetDetailPage({ params, searchParams }: { params
               </select>
             </div>
             <button type="submit" className="btn btn-secondary w-full">Save cost</button>
+          </form>
+          </details>
+
+          {/* Contratto: date, preavviso, rinnovo, ordine, centro di costo (registro contratti su /savings?view=contracts). */}
+          <details className="pt-5 border-t border-line group" open={searchParams.saved === "contract" || undefined}>
+          <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none flex items-center justify-between gap-2">
+            <span>Contract & renewal</span>
+            {(() => {
+              const d = asset.cost ? noticeDeadline(asset.cost) : null;
+              return d ? <span className={`text-xs tabular ${daysUntil(d) <= 14 ? "text-signal" : "text-ink-400"}`}>Notice by {fmtDate(d)}</span> : null;
+            })()}
+          </summary>
+          {searchParams.saved === "contract" && <p className="text-xs text-steady mt-3">Contract saved.</p>}
+          <form action={saveContractAction} className="grid grid-cols-2 gap-2 mt-3">
+            <input type="hidden" name="assetId" value={asset.id} />
+            <label className="flex flex-col gap-1 text-xs text-ink-400">Start<input type="date" name="contractStart" defaultValue={asset.cost?.contractStart?.toISOString().slice(0, 10) ?? ""} className={`${INPUT} w-full`} /></label>
+            <label className="flex flex-col gap-1 text-xs text-ink-400">End<input type="date" name="contractEnd" defaultValue={asset.cost?.contractEnd?.toISOString().slice(0, 10) ?? ""} className={`${INPUT} w-full`} /></label>
+            <label className="flex flex-col gap-1 text-xs text-ink-400">Notice (days)<input type="number" min={0} max={730} name="noticeDays" defaultValue={asset.cost?.noticeDays ?? ""} placeholder="30" className={`${INPUT} w-full`} /></label>
+            <label className="flex flex-col gap-1 text-xs text-ink-400">Auto-renews
+              <select name="autoRenew" defaultValue={asset.cost?.autoRenew == null ? "" : asset.cost.autoRenew ? "yes" : "no"} className={`${INPUT} w-full`}>
+                <option value="">Don&apos;t know</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-xs text-ink-400">PO number<input name="poNumber" maxLength={80} defaultValue={asset.cost?.poNumber ?? ""} className={`${INPUT} w-full`} /></label>
+            <label className="flex flex-col gap-1 text-xs text-ink-400">Cost centre<input name="costCenter" maxLength={80} defaultValue={asset.cost?.costCenter ?? ""} className={`${INPUT} w-full`} /></label>
+            <label className="col-span-2 flex flex-col gap-1 text-xs text-ink-400">Contract owner<input type="email" name="contractOwnerEmail" maxLength={320} defaultValue={asset.cost?.contractOwnerEmail ?? ""} placeholder="name@company.com" className={`${INPUT} w-full`} /></label>
+            <label className="col-span-2 flex flex-col gap-1 text-xs text-ink-400">Contract link<input type="url" name="contractUrl" maxLength={1000} defaultValue={asset.cost?.contractUrl ?? ""} placeholder="https://… (SharePoint, Drive)" className={`${INPUT} w-full`} /></label>
+            <button type="submit" className="col-span-2 btn btn-secondary w-full">Save contract</button>
           </form>
           </details>
         </aside>

@@ -5,6 +5,7 @@ import { checkBudgets } from "@/lib/budgets";
 import { computeSavings, monthlyOf } from "@/lib/savings";
 import { fmtEur, fmtDate } from "@/lib/format";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
+import { countActive, idleSeats, SEAT_WINDOW_DAYS } from "@/lib/seats";
 
 /**
  * Lavori periodici, eseguiti dal server stesso (niente cron esterno): ogni ora
@@ -27,14 +28,27 @@ function isoWeek(d = new Date()) {
   return `${t.getUTCFullYear()}-W${String(Math.ceil(((t.getTime() - yearStart.getTime()) / DAY + 1) / 7)).padStart(2, "0")}`;
 }
 
-/** true se questo lavoro non era ancora stato registrato per questa chiave (e lo registra). */
+/**
+ * true se questo lavoro non era ancora stato registrato per questa chiave (e lo
+ * registra come "running"). Un "running" di oltre 2 ore è un lavoro interrotto
+ * (riavvio, errore): si può riprendere. finish() lo segna "done" solo a fine lavoro.
+ */
+const STALE_RUN_MS = 2 * 60 * 60 * 1000;
 async function claim(name: string, key: string) {
   try {
-    await db.jobRun.create({ data: { name, key } });
+    await db.jobRun.create({ data: { name, key, status: "running" } });
     return true;
   } catch {
-    return false;
+    const retaken = await db.jobRun.updateMany({
+      where: { name, key, status: "running", ranAt: { lt: new Date(Date.now() - STALE_RUN_MS) } },
+      data: { ranAt: new Date() },
+    });
+    return retaken.count > 0;
   }
+}
+
+async function finish(name: string, key: string) {
+  await db.jobRun.updateMany({ where: { name, key }, data: { status: "done" } });
 }
 
 // ── Rinnovi: avviso 14 giorni prima, con i posti non usati ───────────────
@@ -43,14 +57,18 @@ export async function renewalAlerts(orgId: string) {
   let n = 0;
   for (const r of renewals) {
     const asset = await db.aiAsset.findFirst({ where: { id: r.assetId, organizationId: orgId }, include: { cost: true, usages: { select: { lastSeenAt: true } } } });
+    if (asset?.cost?.contractEnd) continue; // con il contratto registrato avvisa noticeDeadlineAlerts (contracts.ts)
     const seats = asset?.cost?.seats ?? null;
-    const active = asset?.usages.filter((u) => u.lastSeenAt && Date.now() - u.lastSeenAt.getTime() < 60 * DAY).length ?? 0;
-    const idle = seats && asset?.usages.length ? Math.max(0, seats - active) : 0;
+    // Stessa definizione di posto attivo di Usage e Savings (30 giorni).
+    const active = countActive(asset?.usages ?? []);
+    const idle = idleSeats(seats, active, asset?.usages.length ?? 0);
+    // Mensili: si avvisa solo se ci sono posti da togliere (niente rumore ogni mese).
+    if (!r.annual && idle === 0) continue;
     const created = await createAlert(orgId, {
       kind: "renewal",
       severity: r.annual || idle > 0 ? "warning" : "info",
       title: `${r.name} renews on ${fmtDate(r.date)} — ${fmtEur(r.amountEur)}${r.annual ? " (yearly)" : ""}`,
-      body: idle > 0 ? `${idle} of ${seats} seats haven't been used in 60 days. Remove them before the renewal to stop paying for them.` : `Decide now if you still need it${r.annual ? ": a yearly plan can't be reduced until the next term" : ""}.`,
+      body: idle > 0 ? `${idle} of ${seats} seats haven't been used in ${SEAT_WINDOW_DAYS} days. Remove them before the renewal to stop paying for them.` : `Decide now if you still need it${r.annual ? ": a yearly plan can't be reduced until the next term" : ""}.`,
       href: `/assets/${r.assetId}`,
       dedupeKey: `renewal:${r.assetId}:${r.date.toISOString().slice(0, 10)}`,
     });
@@ -63,6 +81,8 @@ export async function renewalAlerts(orgId: string) {
 export async function seatFollowups(orgId: string) {
   // Il giro di pulizia posti è per persona: spento con la privacy per reparto / solo totali.
   if (!showsPeople(await orgPrivacyMode(orgId))) return 0;
+  // Se l'azienda l'ha scelto, prima si tolgono da soli i posti che angar sa togliere via API.
+  await (await import("@/lib/seat-removal")).autoRemoveSeats(orgId).catch((err) => console.error("[jobs] auto seat removal failed", orgId, err));
   const stale = await db.seatReminder.findMany({ where: { organizationId: orgId, respondedAt: null, removedAt: null, sentAt: { lt: new Date(Date.now() - 7 * DAY) } } });
   const released = await db.seatReminder.findMany({ where: { organizationId: orgId, response: "release", removedAt: null } });
   const byAsset = new Map<string, number>();
@@ -171,24 +191,31 @@ export async function runDueJobs(now = new Date()) {
         summary.renewals += await renewalAlerts(o.id);
         summary.seats += await seatFollowups(o.id);
         summary.budgets += (await checkBudgets(o.id)).filter((b) => b.alerted).length;
+        summary.renewals += await (await import("@/lib/contracts")).noticeDeadlineAlerts(o.id).catch(() => 0);
+        await (await import("@/lib/savings-ledger")).verifySavingActions(o.id, now).catch((err) => console.error("[jobs] saving verification failed", o.id, err));
       } catch (err) {
         console.error("[jobs] daily failed for", o.id, err);
       }
     }
+    await finish("daily", day);
   }
   // Mensile: il 1° del mese dalle 9.
   if (day.endsWith("-01") && hour >= 9 && (await claim("monthly-report", day.slice(0, 7)))) {
     summary.reports = await monthlyReports().catch(() => 0);
+    await finish("monthly-report", day.slice(0, 7));
   }
   // Settimanale: lunedì dalle 8.
   if (weekday === "Mon" && hour >= 8 && (await claim("weekly", isoWeek(now)))) {
     for (const o of orgs) {
       try {
         if (await weeklyDigest(o.id)) summary.digests++;
+        // Promemoria della policy AI non confermata da 7+ giorni (max 2 per persona).
+        await (await import("@/lib/policy-ack")).sendAckReminders(o.id, undefined, now).catch((err) => console.error("[jobs] policy ack reminders failed", o.id, err));
       } catch (err) {
         console.error("[jobs] weekly failed for", o.id, err);
       }
     }
+    await finish("weekly", isoWeek(now));
   }
   return summary;
 }

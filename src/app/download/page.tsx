@@ -2,7 +2,9 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, Tabs } from "@/components/ui";
+import ComputersView from "./ComputersView";
+import OtherWaysView from "./OtherWaysView";
 import CopyButton from "@/components/CopyButton";
 import { Wordmark } from "@/components/Logo";
 import { ensureWorkspaceToken } from "@/lib/discovery/ingest";
@@ -13,13 +15,22 @@ export const dynamic = "force-dynamic";
 // Area download, in una schermata: a sinistra il download per questo computer
 // (sistema rilevato) con l'anteprima dell'app; sotto tre schede compatte —
 // tutta l'azienda, IT (installazione silenziosa), telefono e rete.
-export default async function DownloadPage() {
+const VIEWS = [
+  { key: "download", label: "Download" },
+  { key: "computers", label: "Computers" },
+  { key: "other", label: "Other ways" },
+] as const;
+
+// Area "Desktop app": download, computer collegati e altri modi di trovare le AI
+// (prima tre pagine: /download, /computers, /discover).
+export default async function DownloadPage({ searchParams }: { searchParams: { view?: string } }) {
   const s = currentSession()!;
+  const view = VIEWS.some((v) => v.key === searchParams.view) ? searchParams.view! : "download";
   const h = headers();
   const base = process.env.APP_URL?.replace(/\/$/, "") || `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
   const org = await db.organization.findUnique({ where: { id: s.orgId }, select: { name: true } });
   const company = org?.name ?? "your company";
-  const { joinCode } = await ensureWorkspaceToken(s.orgId);
+  const { joinCode, token } = await ensureWorkspaceToken(s.orgId);
   const joinUrl = `${base}/join/${joinCode}`;
   const detected = osFromUserAgent(h.get("user-agent"));
   const others = (["windows", "mac", "linux"] as DesktopOs[]).filter((o) => o !== detected);
@@ -35,13 +46,33 @@ export default async function DownloadPage() {
     { os: "Linux", cmd: `./angar-${joinCode} --silent --email-domain yourcompany.com` },
   ];
 
+  const header = (
+    <>
+      <PageHeader
+        title="Desktop app"
+        subtitle="The desktop app shows which AI tools are used at work and for how long — never pages, prompts or anything anyone writes."
+      />
+      <Tabs active={view} items={VIEWS.map((v) => ({ key: v.key, label: v.label, href: v.key === "download" ? "/download" : `/download?view=${v.key}` }))} />
+    </>
+  );
+  if (view === "computers")
+    return (
+      <div className="flex flex-col gap-5">
+        {header}
+        <ComputersView orgId={s.orgId} />
+      </div>
+    );
+  if (view === "other")
+    return (
+      <div className="flex flex-col gap-5">
+        {header}
+        <OtherWaysView orgId={s.orgId} base={base} token={token} joinUrl={joinUrl} canEdit={s.role !== "VIEWER"} canAdmin={s.role === "ADMIN" || s.role === "OWNER"} />
+      </div>
+    );
+
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Download angar"
-        subtitle="The desktop app shows which AI tools are used at work and for how long — never pages, prompts or anything anyone writes."
-        action={<Link href="/computers" className="btn btn-secondary">Connected computers</Link>}
-      />
+      {header}
 
       {/* Download principale + anteprima dell'app */}
       <section className="relative overflow-hidden rounded-2xl border border-line bg-panel grid grid-cols-1 lg:grid-cols-[1fr_auto]">

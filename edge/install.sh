@@ -33,16 +33,42 @@ case "$(uname -m)" in
   *) die "unsupported CPU architecture: $(uname -m)" ;;
 esac
 
-URL="$BASE_URL/angar-edge-linux-$ARCH"
+ASSET="angar-edge-linux-$ARCH"
+URL="$BASE_URL/$ASSET"
 TMP="$(mktemp)"
-trap 'rm -f "$TMP"' EXIT
-say "Downloading angar-edge ($ARCH)..."
+SUMS="$(mktemp)"
+trap 'rm -f "$TMP" "$SUMS"' EXIT
 if command -v curl >/dev/null 2>&1; then
-  curl -fsSL -o "$TMP" "$URL" || die "download failed: $URL"
+  fetch() { curl -fsSL -o "$1" "$2"; }
 elif command -v wget >/dev/null 2>&1; then
-  wget -qO "$TMP" "$URL" || die "download failed: $URL"
+  fetch() { wget -qO "$1" "$2"; }
 else
   die "curl or wget is required"
+fi
+say "Downloading angar-edge ($ARCH)..."
+fetch "$TMP" "$URL" || die "download failed: $URL"
+
+# Integrity: compare with the SHA256SUMS published next to the binaries.
+if fetch "$SUMS" "$BASE_URL/SHA256SUMS" 2>/dev/null; then
+  WANT="$(awk -v f="$ASSET" '$2 == f || $2 == "*" f { print $1; exit }' "$SUMS")"
+  if command -v sha256sum >/dev/null 2>&1; then
+    GOT="$(sha256sum "$TMP" | awk '{print $1}')"
+  elif command -v shasum >/dev/null 2>&1; then
+    GOT="$(shasum -a 256 "$TMP" | awk '{print $1}')"
+  else
+    GOT=""
+  fi
+  if [ -z "$WANT" ]; then
+    say "Warning: $ASSET is not listed in SHA256SUMS; skipping the checksum check."
+  elif [ -z "$GOT" ]; then
+    say "Warning: sha256sum not found; skipping the checksum check."
+  elif [ "$WANT" != "$GOT" ]; then
+    die "checksum mismatch for $ASSET (a release may be publishing right now: retry in a few minutes)"
+  else
+    say "Checksum OK."
+  fi
+else
+  say "Warning: no SHA256SUMS at $BASE_URL; skipping the checksum check."
 fi
 install -m 0755 "$TMP" "$BIN"
 "$BIN" --version >/dev/null 2>&1 || die "the downloaded binary does not run on this machine"

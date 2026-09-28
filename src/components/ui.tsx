@@ -82,7 +82,7 @@ export function PageHeader({
   crumbs?: { label: string; href?: string }[];
 }) {
   return (
-    <div className="flex items-start justify-between gap-4">
+    <div className="flex flex-wrap lg:flex-nowrap items-start justify-between gap-x-4 gap-y-3">
       <div className="min-w-0">
         {crumbs && crumbs.length > 0 && (
           <nav className="text-sm text-ink-400 mb-2 flex items-center gap-1.5">
@@ -94,11 +94,12 @@ export function PageHeader({
             ))}
           </nav>
         )}
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 truncate">{title}</h1>
+        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 break-words lg:truncate">{title}</h1>
         {subtitle && <p className="text-sm text-ink-400 mt-1">{subtitle}</p>}
       </div>
-      {/* Le azioni stanno a sinistra dei due pulsanti fissi del layout (computer connessi + documentazione). */}
-      <div className="flex items-center gap-2 shrink-0 pr-[8.25rem] min-h-9">{action}</div>
+      {/* Su schermi grandi le azioni stanno a sinistra dei pulsanti fissi del layout (avvisi, computer,
+          documentazione); su schermi piccoli quei pulsanti hanno una riga loro sopra la pagina. */}
+      <div className="flex flex-wrap items-center gap-2 shrink-0 lg:pr-[8.25rem] min-h-9">{action}</div>
     </div>
   );
 }
@@ -109,7 +110,7 @@ export function PageHeader({
  */
 export function Table({ columns, children, empty }: { columns: (string | { label: string; className?: string })[]; children: React.ReactNode; empty?: string | false }) {
   return (
-    <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
+    <div className="rounded-xl border border-line bg-panel overflow-x-auto animate-rise">
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">

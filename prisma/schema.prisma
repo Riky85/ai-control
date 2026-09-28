@@ -116,6 +116,12 @@ model Organization {
   stripeCustomerId     String?
   stripeSubscriptionId String?
   currentPeriodEnd     DateTime?
+  // Prova gratuita (funzioni Growth): null = impostata al primo accesso (vedi plan-gate.ts).
+  trialEndsAt          DateTime?
+  // Add-on attivi (es. "COMPLIANCE") e il loro abbonamento Stripe separato.
+  addons                    String[] @default([])
+  stripeAddonSubscriptionId String?
+  billingInterval           String?  // "month" | "year" (dall'ultimo checkout)
   // Angar Edge: dispositivi fisici in abbonamento (abbonamento Stripe separato).
   edgeDevices              Int     @default(0)
   stripeEdgeSubscriptionId String?
@@ -153,13 +159,33 @@ model Organization {
   edgeSensors  EdgeSensor[]
   edgeEvents   EdgeEvent[]
   edgeHardware EdgeDevice[]
+  // Presa visione della policy AI / AI literacy, API pubblica e webhook in uscita.
+  policyAcks   PolicyAck[]
+  apiKeys      ApiKey[]
+  webhooks     Webhook[]
   // Privacy per i dipendenti: "individual" (per persona), "department"
   // (solo per reparto, gruppi di almeno 5), "anonymous" (solo totali azienda).
   privacyMode  String @default("individual")
+  // Chiave (hex) per gli pseudonimi delle persone quando la privacy non è "per persona":
+  // p_ + HMAC-SHA256(privacySalt, email). Generata al primo uso.
+  privacySalt  String?
+  desktopTokens DesktopToken[]
   // Avviso quando un dispositivo carica più di N MB al giorno su un'AI non approvata.
   uploadAlertMb Int   @default(100)
   // Partner (MSP / integratore) che gestisce questo workspace, se c'è.
   managedByPartnerId String?
+  // Gruppo societario (holding): vista consolidata tra più workspace.
+  groupId            String?
+  group              OrgGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  costCenters        CostCenter[]
+  accountingSettings AccountingSettings?
+  // Sicurezza d'accesso: SSO obbligatorio (per tutti o solo per ssoDomain) e MFA per chi entra con password.
+  ssoRequired Boolean @default(false)
+  ssoDomain   String?
+  mfaRequired Boolean @default(false)
+  // Posti liberati ("non mi serve" o nessuna risposta in 7 giorni): toglierli da soli via API del fornitore.
+  autoRemoveSeats Boolean @default(false)
+  savingActions   SavingAction[]
 }
 
 // Avvisi della piattaforma (campanella in alto a destra): rinnovi in arrivo,
@@ -219,6 +245,8 @@ model JobRun {
   name  String
   key   String
   ranAt DateTime @default(now())
+  // "running" mentre il lavoro gira, "done" a fine lavoro (default per le righe vecchie).
+  status String @default("done")
 
   @@unique([name, key])
 }
@@ -233,6 +261,9 @@ model Lead {
   aiCount     Int?
   summary     Json?
   createdAt   DateTime @default(now())
+  // Doppio opt-in: il report parte solo dopo il clic sul link di conferma (hash del token).
+  confirmTokenHash String?   @unique
+  confirmedAt      DateTime?
 
   @@index([createdAt])
 }
@@ -257,6 +288,7 @@ model DesktopDevice {
   lastSeenAt     DateTime     @default(now())
 
   @@unique([organizationId, deviceKey])
+  @@index([organizationId, lastSeenAt])
 }
 
 model User {
@@ -391,6 +423,15 @@ model AiSystemCost {
   seats               Int?     // posti stimati dall'importo
   annualBilling       Boolean  @default(false)
   updatedAt           DateTime @updatedAt
+  // Registro contratti e rinnovi (inserito a mano dal CFO / owner).
+  contractStart       DateTime?
+  contractEnd         DateTime?
+  noticeDays          Int?     // preavviso di disdetta, in giorni prima di contractEnd
+  autoRenew           Boolean?
+  poNumber            String?
+  costCenter          String?
+  contractOwnerEmail  String?
+  contractUrl         String?  // link al contratto (nessun archivio file in angar)
 }
 
 // Un'alternativa registrata manualmente per un AI system — mai generata
@@ -582,6 +623,14 @@ model Account {
   lockedUntil  DateTime?
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
+  // Accesso con Microsoft/Google senza password (passwordHash inutilizzabile).
+  ssoOnly             Boolean   @default(false)
+  emailVerifiedAt     DateTime?
+  // MFA TOTP (RFC 6238): segreto cifrato; attivo solo con totpEnabledAt.
+  totpSecretEncrypted String?
+  totpEnabledAt       DateTime?
+  totpLastStep        Int?
+  recoveryCodesHash   String[]  @default([])
 }
 
 // Registro di audit: chi ha fatto cosa, quando, da dove. Solo in aggiunta.
@@ -745,4 +794,150 @@ model EdgeEvent {
 
   @@unique([sensorId, day, serviceId, client, source])
   @@index([organizationId, day])
+}
+
+// Token per singola installazione dell'app desktop (dal link aziendale). Il primo
+// invio lo lega a una persona: dopo, invii con un'altra email vengono rifiutati.
+// "email" è lo pseudonimo (p_…) dell'email, così vale in ogni modalità privacy.
+model DesktopToken {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tokenHash      String       @unique
+  email          String?
+  deviceKey      String?
+  createdAt      DateTime     @default(now())
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+
+  @@index([organizationId])
+}
+
+// Registro dei risparmi realizzati: un suggerimento accettato → fatto →
+// verificato sugli addebiti reali (SpendRecord) dopo doneAt. Base della garanzia 90 giorni.
+model SavingAction {
+  id                 String       @id @default(cuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assetId            String?
+  kind               String       // "seat_removed" | "plan_downgrade" | "duplicate_removed" | "annual_billing" | "cancelled" | "other"
+  title              String
+  expectedMonthlyEur Float
+  status             String       @default("accepted") // "accepted" | "done" | "verified" | "failed"
+  savingKey          String?      // chiave del suggerimento (savings.ts) da cui è nato
+  seatReminderId     String?      @unique // posto tolto (pulizia posti), una riga per posto
+  acceptedAt         DateTime     @default(now())
+  doneAt             DateTime?
+  verifiedAt         DateTime?
+  verifiedMonthlyEur Float?
+  createdBy          String
+  note               String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([organizationId, status])
+}
+
+// Link di verifica email dopo la registrazione con password (nel DB solo l'hash).
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  accountId String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([accountId])
+}
+
+// Gruppo societario (holding): più workspace con vista consolidata. Ognuno vede
+// solo le società in cui è OWNER/ADMIN attivo.
+model OrgGroup {
+  id            String         @id @default(cuid())
+  name          String
+  createdBy     String
+  createdAt     DateTime       @default(now())
+  organizations Organization[]
+}
+
+// Centro di costo per reparto (chargeback / showback, export DATEV KOST1).
+model CostCenter {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  department     String
+  code           String
+  name           String?
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, department])
+}
+
+// Conti per gli export contabili del chargeback (DATEV, TeamSystem).
+model AccountingSettings {
+  id              String       @id @default(cuid())
+  organizationId  String       @unique
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  expenseAccount  String?
+  clearingAccount String?
+  datevConsultant String?
+  datevClient     String?
+  updatedAt       DateTime     @updatedAt
+}
+
+// Presa visione della policy AI + mini-modulo di AI literacy (AI Act art. 4).
+// Una riga per persona e versione della policy (link personale /ack/[token]).
+// Con la privacy per reparto / solo totali si usa il link generico: una riga
+// per completamento con email "" (solo conteggi, nessuna persona).
+model PolicyAck {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  policyVersion  String
+  token          String       @unique
+  lang           String?
+  sentAt         DateTime     @default(now())
+  openedAt       DateTime?
+  acknowledgedAt DateTime?
+  quizScore      Int?
+  remindedAt     DateTime?
+  reminders      Int          @default(0)
+
+  @@index([organizationId, policyVersion])
+  @@index([organizationId, email])
+}
+
+// Chiavi per l'API REST pubblica (sola lettura): nel database solo l'hash SHA-256.
+model ApiKey {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  keyHash        String       @unique
+  hint           String
+  scopes         String[]     @default(["read"])
+  createdBy      String
+  createdAt      DateTime     @default(now())
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+
+  @@index([organizationId])
+}
+
+// Webhook in uscita (eventi firmati con HMAC-SHA256 nell'header X-Angar-Signature).
+model Webhook {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  url             String
+  secretEncrypted String
+  events          String[]
+  active          Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  createdBy       String?
+  lastStatus      String?
+  lastSentAt      DateTime?
+
+  @@index([organizationId])
 }

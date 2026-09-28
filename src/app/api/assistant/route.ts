@@ -1,4 +1,26 @@
 import { DOCS, searchDocs } from "@/lib/docs";
+import { currentSession } from "@/lib/auth";
+import { clientIp, rateLimit, retryAfter } from "@/lib/rate-limit";
+
+type Turn = { role: "user" | "assistant"; content: string };
+const RATE = { limit: 30, windowMs: 3_600_000 };
+
+/** Storico pulito: solo ruoli validi, ultimi 12 messaggi da max 4000 caratteri, inizia sempre con "user". */
+function cleanHistory(h: unknown): Turn[] {
+  const list = (Array.isArray(h) ? h : [])
+    .filter((m): m is Turn => !!m && typeof m === "object" && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim() !== "")
+    .slice(-12)
+    .map((m) => ({ role: m.role, content: m.content.slice(0, 4000) }));
+  while (list.length && list[0].role !== "user") list.shift();
+  // Due messaggi consecutivi dello stesso ruolo: si tiene l'ultimo (l'API vuole l'alternanza).
+  const out: Turn[] = [];
+  for (const m of list) {
+    if (out.length && out[out.length - 1].role === m.role) out[out.length - 1] = m;
+    else out.push(m);
+  }
+  if (out.length && out[out.length - 1].role === "user") out.pop();
+  return out;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +31,12 @@ export const dynamic = "force-dynamic";
  * inviato al modello: solo la domanda e il testo della documentazione.
  */
 export async function POST(req: Request) {
-  const { question, history } = (await req.json().catch(() => ({}))) as { question?: string; history?: { role: "user" | "assistant"; content: string }[] };
+  // Per sessione (o per IP senza sessione): 30 domande all'ora.
+  const who = currentSession()?.accountId ?? `ip:${clientIp(req.headers)}`;
+  if (!rateLimit(`assistant:${who}`, RATE.limit, RATE.windowMs)) {
+    return Response.json({ answer: "You've asked a lot of questions in the last hour — try again a bit later, or browse the Docs tab.", sources: [], mode: "limited" }, { status: 429, headers: { "Retry-After": String(retryAfter(RATE.limit, RATE.windowMs)) } });
+  }
+  const { question, history } = (await req.json().catch(() => ({}))) as { question?: string; history?: unknown };
   const q = String(question ?? "").trim().slice(0, 1000);
   if (!q) return Response.json({ answer: "Ask me anything about using angar.", sources: [] });
 
@@ -25,11 +52,18 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           model: process.env.ASSISTANT_MODEL ?? "claude-haiku-4-5-20251001",
           max_tokens: 600,
-          system:
-            "You are the in-app help assistant of angar, an AI estate intelligence SaaS. Answer ONLY from the documentation below. " +
-            "Reply in the user's language, in 2-6 short sentences or numbered steps, plainly, no markdown headings. " +
-            "If the docs don't cover it, say so and suggest the closest article. Never invent features.\n\n" + docs,
-          messages: [...(history ?? []).slice(-6), { role: "user", content: q }],
+          // La documentazione è uguale per tutte le domande: prompt caching (meno costo e latenza).
+          system: [
+            {
+              type: "text",
+              text:
+                "You are the in-app help assistant of angar, an AI estate intelligence SaaS. Answer ONLY from the documentation below. " +
+                "Reply in the user's language, in 2-6 short sentences or numbered steps, plainly, no markdown headings. " +
+                "If the docs don't cover it, say so and suggest the closest article. Never invent features.\n\n" + docs,
+              cache_control: { type: "ephemeral" },
+            },
+          ],
+          messages: [...cleanHistory(history), { role: "user", content: q }],
         }),
       });
       if (res.ok) {

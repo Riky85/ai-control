@@ -3,6 +3,8 @@
 import { parseSpendFile } from "@/lib/spend/parse";
 import { summarize } from "@/lib/spend/parse";
 import { quickReport } from "@/lib/spend/quick";
+import { headers } from "next/headers";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export type CheckResult =
   | { ok: true; rowsRead: number; months: number; report: ReturnType<typeof quickReport> }
@@ -10,6 +12,8 @@ export type CheckResult =
 
 /** AI Spend Check pubblico: legge i file in memoria e non salva nulla. */
 export async function checkSpendAction(formData: FormData): Promise<CheckResult> {
+  // Pubblico: al massimo 5 controlli all'ora per IP (lettura file = CPU del server).
+  if (!rateLimit(`check:${clientIp(headers())}`, 5, 3_600_000)) return { ok: false, error: "Too many checks from your network — try again in an hour." };
   const files = formData.getAll("file").filter((f): f is File => typeof f === "object" && f !== null && "arrayBuffer" in f && (f as File).size > 0);
   if (!files.length) return { ok: false, error: "Choose a file first." };
   if (files.reduce((t, f) => t + f.size, 0) > 15 * 1024 * 1024) return { ok: false, error: "Files are over 15 MB — export a shorter period." };

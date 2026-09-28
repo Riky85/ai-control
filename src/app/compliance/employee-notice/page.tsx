@@ -2,6 +2,8 @@ import { USAGE_RETENTION_MONTHS } from "@/lib/jobs";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
+import { featureEnabled } from "@/lib/plan-gate";
+import LockedFeature from "@/components/LockedFeature";
 import { PageHeader } from "@/components/ui";
 import CopyButton from "@/components/CopyButton";
 import PrintButton from "@/components/PrintButton";
@@ -60,10 +62,12 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
           title="Employee notice"
           subtitle="A ready-to-use privacy notice for your staff, built from what angar actually collects in your company."
           action={
-            <>
-              <CopyButton text={text} label="Copy" className="btn btn-secondary" />
-              <PrintButton label="Print" />
-            </>
+            (await featureEnabled(orgId, "employeeNotice")) ? (
+              <>
+                <CopyButton text={text} label="Copy" className="btn btn-secondary" />
+                <PrintButton label="Print" />
+              </>
+            ) : <LockedFeature feature="employeeNotice" label="Copy & print" />
           }
         />
 

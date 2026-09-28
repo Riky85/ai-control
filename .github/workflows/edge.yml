@@ -137,6 +137,11 @@ jobs:
               open(path + ".sig", "w").write(base64.b64encode(sig).decode() + "\n")
               print("signed", path, len(data), "bytes")
           EOF
+      # SHA256SUMS: edge/install.sh checks the downloaded binary against it.
+      - name: Checksums
+        run: |
+          (cd dist && sha256sum angar-edge-linux-x86_64 angar-edge-linux-aarch64 > SHA256SUMS)
+          cat dist/SHA256SUMS
       - name: Version file
         run: |
           sed -n 's/^version = "\(.*\)"/\1/p' edge/Cargo.toml | head -n 1 > dist/angar-edge-version.txt
@@ -153,8 +158,8 @@ jobs:
           if ! ls dist/*.sig >/dev/null 2>&1; then
             for a in angar-edge-linux-x86_64.sig angar-edge-linux-aarch64.sig; do gh release delete-asset edge-latest "$a" --yes 2>/dev/null || true; done
           fi
-          # binaries and signatures first, the version file last: devices read it to decide
-          gh release upload edge-latest dist/angar-edge-linux-* --clobber
+          # binaries, signatures and checksums first, the version file last: devices read it to decide
+          gh release upload edge-latest dist/angar-edge-linux-* dist/SHA256SUMS --clobber
           gh release upload edge-latest dist/angar-edge-version.txt --clobber
 
   docker:

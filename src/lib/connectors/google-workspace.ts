@@ -16,6 +16,8 @@ import { AI_SERVICES } from "@/lib/discovery/catalog";
 export const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/admin.reports.audit.readonly",
   "https://www.googleapis.com/auth/admin.directory.user.readonly",
+  // Togliere le licenze Gemini aggiuntive dalla pulizia posti (seat-removal/providers.ts).
+  "https://www.googleapis.com/auth/apps.licensing",
   "openid",
   "email",
 ];

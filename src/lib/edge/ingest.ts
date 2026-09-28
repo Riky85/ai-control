@@ -6,6 +6,7 @@ import type { EdgeSensor, Organization } from "@prisma/client";
 import { db } from "@/lib/db";
 import { createAlert } from "@/lib/alerts";
 import { ingestFindings, type Finding } from "@/lib/discovery/ingest";
+import { displayableRef } from "@/lib/discovery/pseudonym";
 import { privacyModeOf, type PrivacyMode } from "@/lib/privacy";
 import { edgeService, buildMatcher, CAND_PREFIX } from "./config";
 import { parseIp, type EdgeEventIn, type EdgeCandidateIn } from "./parse";
@@ -155,7 +156,8 @@ export async function processEdgeBatch(sensor: Sensor, batch: EdgeBatch): Promis
   const ipEmail = anonymous ? new Map<string, string>() : await emailsByIp(organizationId, allIps);
   const emailOf = (client: string) => (anonymous || client === "*" ? null : ipEmail.get(client) ?? null);
   // Etichetta visibile solo in modalità "per persona": email (app desktop) o nome host.
-  const labelOf = (client: string, name?: string | null) => (mode === "individual" && client !== "*" ? emailOf(client) ?? name ?? null : null);
+  // (Uno pseudonimo p_… non è un nome: non diventa mai un'etichetta.)
+  const labelOf = (client: string, name?: string | null) => (mode === "individual" && client !== "*" ? displayableRef(emailOf(client)) ?? name ?? null : null);
 
   // 1. Righe unificate (eventi, AI candidate, modelli locali), senza doppioni nel batch.
   const rows = new Map<string, Row>();

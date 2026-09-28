@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
+import { requireFeature } from "@/lib/plan-gate";
 import { audit } from "@/lib/audit";
 
 const BACK = "/partner";
@@ -17,6 +18,7 @@ const fail = (msg: string): never => redirect(`${BACK}?error=${encodeURIComponen
  */
 export async function setManagedByMeAction(formData: FormData) {
   const s = await requireRole("ADMIN", BACK);
+  await requireFeature("partnerConsole", BACK);
   const clientId = String(formData.get("orgId") ?? "");
   const managed = String(formData.get("managed") ?? "") === "1";
   const view = String(formData.get("view") ?? "") === "fleet" ? "fleet" : "clients";

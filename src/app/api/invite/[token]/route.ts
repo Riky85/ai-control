@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
-import { issueSession } from "@/lib/auth-actions";
+import { issueSession } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";

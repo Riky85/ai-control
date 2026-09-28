@@ -11,15 +11,68 @@ const per = (n: number) => `${fmtEur(n, { decimals: n < 100 })}`;
 export default async function BenchmarkCard({ orgId, variant = "compact" }: { orgId: string; variant?: "compact" | "section" }) {
   const b = await getBenchmark(orgId);
   if (variant === "section") return <Section b={b} />;
+  // Bloccato (mancano i dipendenti o le aziende simili): blocco con bagliore e anteprima sfocata.
+  if (!b.peers || b.yours === null) return <Locked b={b} />;
   return (
-    <section className="rounded-xl border border-line bg-panel px-5 py-4 flex items-center gap-6 animate-rise">
-      <div className="flex-1 min-w-0">
+    <section className="relative overflow-hidden rounded-xl border border-line bg-panel px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-6 animate-rise">
+      <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
+      <div className="relative flex-1 min-w-0">
         <div className="text-sm text-ink-100">
           <Sentence b={b} />
         </div>
         <div className="text-xs text-ink-400 mt-0.5">AI spend per employee per month · anonymous, aggregated across angar customers</div>
       </div>
-      {b.peers && b.yours !== null && <RangeBar b={b} className="w-64 shrink-0" />}
+      <RangeBar b={b} className="relative w-full md:w-64 shrink-0" />
+    </section>
+  );
+}
+
+export function Locked({ b }: { b: Benchmark }) {
+  const you = b.yours !== null ? per(b.yours) : null;
+  return (
+    <section className="relative overflow-hidden rounded-xl border border-line bg-panel grid grid-cols-1 md:grid-cols-[1fr_300px] animate-rise">
+      <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
+      <div className="relative p-5 flex items-start gap-4 min-w-0">
+        <span className="h-10 w-10 shrink-0 rounded-xl border border-line bg-ink-100/[0.04] flex items-center justify-center text-accent">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M3 14.5h12M5 14.5V9M9 14.5V5M13 14.5v-7" /></svg>
+        </span>
+        <div className="min-w-0 flex flex-col gap-2">
+          <div>
+            <div className="text-sm font-semibold text-ink-100">Compare your AI spend with similar companies</div>
+            <p className="text-sm text-ink-400 mt-0.5">
+              {b.employeesSet
+                ? `You spend ${you ?? "—"} per employee each month. The comparison appears as soon as ${b.minCompanies}+ similar companies use angar.`
+                : `See your AI spend per employee next to companies of your size and industry — anonymous. It unlocks when ${b.minCompanies}+ similar companies use angar.`}
+            </p>
+          </div>
+          {!b.employeesSet && (
+            <Link href="/settings#employees" className="btn btn-primary btn-sm self-start">
+              Add number of employees
+            </Link>
+          )}
+        </div>
+      </div>
+      <div className="relative hidden md:flex flex-col justify-center gap-2 px-6 py-5 border-l border-line/60" aria-hidden>
+        <div className="flex items-center justify-between text-[11px] text-ink-400">
+          <span>You</span>
+          <span className="rounded-full border border-line px-1.5 py-0.5 flex items-center gap-1">
+            <svg width="9" height="10" viewBox="0 0 9 10" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="1" y="4.5" width="7" height="5" rx="1" /><path d="M2.5 4.5V3a2 2 0 014 0v1.5" /></svg>
+            Locked
+          </span>
+        </div>
+        <div className="blur-[2px] opacity-70 flex flex-col gap-2">
+          <div className="relative h-2 rounded-full bg-ink">
+            <div className="absolute inset-y-0 left-[28%] w-[34%] rounded-full bg-ink-400/30" />
+            <div className="absolute -top-1 left-[45%] h-4 w-0.5 bg-ink-100" />
+            <div className="absolute top-1/2 left-[58%] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent ring-2 ring-panel" />
+          </div>
+          <div className="flex justify-between text-[11px] text-ink-400 tabular">
+            <span>€0</span>
+            <span>median €24</span>
+            <span>€60</span>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

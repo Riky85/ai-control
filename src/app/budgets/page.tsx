@@ -3,14 +3,30 @@ import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import { departmentSpend, UNASSIGNED } from "@/lib/budgets";
 import { setBudgetAction, deleteBudgetAction } from "@/lib/budget-actions";
-import { PageHeader, StatCard, Table, td, Notice } from "@/components/ui";
+import { PageHeader, StatCard, Table, Tabs, td, Notice } from "@/components/ui";
+import Chargeback from "./Chargeback";
 import { fmtEur } from "@/lib/format";
 import { maskCount, orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
-export default async function BudgetsPage({ searchParams }: { searchParams: { error?: string } }) {
+const VIEW_TABS = [
+  { key: "budgets", label: "Budgets", href: "/budgets" },
+  { key: "chargeback", label: "Chargeback", href: "/budgets?view=chargeback" },
+];
+
+export default async function BudgetsPage({ searchParams }: { searchParams: { error?: string; view?: string; month?: string; saved?: string } }) {
   const orgId = currentOrgId();
+  if (searchParams.view === "chargeback")
+    return (
+      <div className="flex flex-col gap-5">
+        <PageHeader title="Budgets" subtitle="AI cost per team and cost centre each month — for chargeback or showback." />
+        <Tabs items={VIEW_TABS} active="chargeback" />
+        {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
+        {searchParams.saved && <Notice tone="success">Accounts saved.</Notice>}
+        <Chargeback orgId={orgId} month={searchParams.month} />
+      </div>
+    );
   // Privacy per reparto / solo totali: i gruppi sotto le 5 persone mostrano "<5".
   const people = showsPeople(await orgPrivacyMode(orgId));
   const [spend, budgets, userDepts] = await Promise.all([
@@ -47,6 +63,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title="Budgets" subtitle="Monthly AI budget per team — angar warns you at 80% and 100%." />
+      <Tabs items={VIEW_TABS} active="budgets" />
 
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 

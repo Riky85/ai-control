@@ -4,24 +4,42 @@ import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import { Notice, PageHeader, Panel } from "@/components/ui";
 import Badge from "@/components/Badge";
-import { planById, EDGE } from "@/lib/plans";
+import { planById, EDGE, addonById } from "@/lib/plans";
+import { getPlanState } from "@/lib/plan-gate";
 import EdgeBox from "@/components/EdgeBox";
-import PricingCards from "@/components/PricingCards";
+import PricingCards, { BillingToggle } from "@/components/PricingCards";
 import { stripeEnabled } from "@/lib/stripe";
 import { openBillingPortalAction, startEdgeCheckoutAction } from "@/lib/workspace-actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function BillingPage({ searchParams }: { searchParams: { checkout?: string; error?: string } }) {
-  const [org, aiSystems, connections, members, sharedDashboards] = await Promise.all([
-    db.organization.findUniqueOrThrow({ where: { id: currentOrgId() } }),
+export default async function BillingPage({ searchParams }: { searchParams: { checkout?: string; error?: string; billing?: string } }) {
+  const annual = searchParams.billing === "annual";
+  const [state, aiSystems, connections, members, sharedDashboards] = await Promise.all([
+    getPlanState(currentOrgId()),
     db.aiAsset.count({ where: { organizationId: currentOrgId(), deletedAt: null } }),
     db.connector.count({ where: { organizationId: currentOrgId(), status: "CONNECTED", credentialsEncrypted: { not: null } } }),
     db.workspaceMember.count({ where: { organizationId: currentOrgId() } }),
     // Come in Workspace: contano solo i link non revocati e non scaduti.
     db.shareLink.count({ where: { organizationId: currentOrgId(), revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } }),
   ]);
-  const current = planById(org.plan);
+  const org = state.org;
+  const current = planById(state.effectivePlan);
+  const planTitle = state.trialing
+    ? `${current.name} trial`
+    : state.expired
+      ? "Free limits"
+      : `${planById(org.plan).name} plan`;
+  const planSubtitle = state.trialing
+    ? `${state.trialDaysLeft} day${state.trialDaysLeft === 1 ? "" : "s"} left · ends ${fmtDate(state.trialEndsAt)} · then Free limits unless you choose a plan`
+    : state.expired
+      ? "Your data stays visible; changes beyond the Free limits are locked until you choose a plan."
+      : [
+          org.currentPeriodEnd ? `Renews ${fmtDate(org.currentPeriodEnd)}` : null,
+          org.billingInterval === "year" ? "billed yearly" : org.stripeSubscriptionId ? "billed monthly" : null,
+          ...state.addons.map((a) => `+ ${addonById(a)?.name ?? a}`),
+        ].filter(Boolean).join(" · ") || undefined;
+  const statusLabel = state.trialing ? "trialing" : state.expired ? "expired" : org.planStatus;
   const payments = stripeEnabled();
   const salesEmail = process.env.SALES_EMAIL;
 
@@ -52,6 +70,9 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
       {searchParams.checkout === "edge" && (
         <Notice tone="success">Edge order received — we&apos;ll email tracking details when your devices ship.</Notice>
       )}
+      {searchParams.checkout === "addon" && (
+        <Notice tone="success">Add-on payment received — it switches on as soon as Stripe confirms it.</Notice>
+      )}
       {searchParams.checkout === "cancelled" && <Notice>Checkout cancelled — nothing was charged.</Notice>}
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
       {!payments && (
@@ -60,12 +81,12 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
 
       <div className="grid grid-cols-3 gap-4">
         <Panel
-          title={`${current.name} plan`}
-          subtitle={org.currentPeriodEnd ? `Renews ${fmtDate(org.currentPeriodEnd)}` : undefined}
-          action={<Badge>{org.planStatus}</Badge>}
+          title={planTitle}
+          subtitle={planSubtitle}
+          action={<Badge>{statusLabel}</Badge>}
           className="col-span-3"
         >
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {usage.map(([label, used, limit]) => {
               const pct = limit === null ? 0 : Math.min(100, Math.round((used / limit) * 100));
               return (
@@ -90,10 +111,20 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
         </Panel>
       </div>
 
-      <PricingCards mode="billing" current={org.plan} payments={payments} salesEmail={salesEmail} />
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <h2 className="text-base font-semibold text-ink-100">{state.trialing || state.expired ? "Choose a plan" : "Plans"}</h2>
+        <BillingToggle basePath="/billing" annual={annual} />
+      </div>
+      <PricingCards
+        mode="billing"
+        annual={annual}
+        view={{ planId: org.plan, effectivePlan: state.effectivePlan, trialing: state.trialing, expired: state.expired, subscribed: Boolean(org.stripeSubscriptionId), addons: state.addons }}
+        payments={payments}
+        salesEmail={salesEmail}
+      />
 
-      <section id="edge" className="rounded-xl border border-line bg-panel p-6 grid grid-cols-3 gap-8 scroll-mt-6">
-        <div className="col-span-2 flex gap-6">
+      <section id="edge" className="rounded-xl border border-line bg-panel p-6 grid grid-cols-1 lg:grid-cols-3 gap-8 scroll-mt-6">
+        <div className="lg:col-span-2 flex flex-col sm:flex-row gap-6">
           <Link href="/edge" aria-label="About angar Edge" className="shrink-0 hover:opacity-90 transition-opacity">
             <EdgeBox width={150} />
           </Link>
@@ -117,7 +148,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 border-l border-line pl-8">
+        <div className="flex flex-col gap-4 lg:border-l border-line lg:pl-8">
           <div className="font-display text-ink-100">
             <span className="text-[30px] font-semibold tracking-tight tabular">€{EDGE.pricePerDevice}</span>
             <span className="text-sm text-ink-400"> / device / month</span>

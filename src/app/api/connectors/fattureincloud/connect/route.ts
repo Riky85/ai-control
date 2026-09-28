@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
+import { planGate } from "@/lib/plan-gate";
 import { signState } from "@/lib/oauth-state";
 import { appOrigin } from "@/lib/mail";
 import { FIC_BASE, FIC_SCOPE, ficConfigured } from "@/lib/connectors/fatture-in-cloud";
@@ -10,6 +11,8 @@ export async function GET(req: Request) {
   const s = await requireRole("ADMIN", "/sources");
   const origin = appOrigin(req.headers);
   if (!ficConfigured()) return NextResponse.redirect(`${origin}/sources?error=${encodeURIComponent("Fatture in Cloud isn't available on this deployment yet.")}`);
+  const gate = await planGate(s.orgId, "connections", { provider: "FATTURE_IN_CLOUD" });
+  if (!gate.ok) return NextResponse.redirect(`${origin}/sources?error=${encodeURIComponent(gate.message)}`);
   const url = new URL(`${FIC_BASE}/oauth/authorize`);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", process.env.FIC_CLIENT_ID!);

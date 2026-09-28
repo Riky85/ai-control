@@ -2,8 +2,14 @@ import { currentOrgId } from "@/lib/org";
 import { fmtDate } from "@/lib/format";
 import { remindInactiveAction } from "@/lib/spend-actions";
 import { groupByDepartment, maskCount, orgPrivacyMode, MIN_GROUP } from "@/lib/privacy";
+import { displayableRef } from "@/lib/discovery/pseudonym";
 import PrivacyNotice from "@/components/PrivacyNotice";
-import { Table, td } from "@/components/ui";
+import { Notice, Table, td } from "@/components/ui";
+import { db } from "@/lib/db";
+import { currentSession } from "@/lib/auth";
+import { seatRemovalSupport } from "@/lib/seat-removal";
+import { setAutoRemoveSeatsAction } from "@/lib/savings-actions";
+import SeatRemoveButton from "@/components/SeatRemoveButton";
 
 const DAY = 86400000;
 
@@ -23,19 +29,30 @@ export default async function AssetPeople({
   usages,
   reminded,
   error,
+  removed,
 }: {
   asset: { id: string; name: string };
   usages: AssetPeopleUsage[];
   reminded?: string;
   error?: string;
+  removed?: string;
 }) {
   const mode = await orgPrivacyMode(currentOrgId());
   const now = Date.now();
   const isActive = (u: AssetPeopleUsage) => !!u.lastSeenAt && now - u.lastSeenAt.getTime() <= 30 * DAY;
-  const errorBox = error && <div className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{error}</div>;
+  const errorBox = error && <div data-keeps-url-error className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">{error}</div>;
 
   if (mode === "individual") {
     const inactive = usages.filter((u) => u.user?.email && !isActive(u)).map((u) => u.user!.email);
+    const orgId = currentOrgId();
+    const session = currentSession();
+    const isAdmin = !!session && ["OWNER", "ADMIN"].includes(session.role);
+    const [removedRows, support, org] = await Promise.all([
+      db.seatReminder.findMany({ where: { organizationId: orgId, aiAssetId: asset.id, removedAt: { not: null } }, select: { email: true, removedAt: true } }),
+      seatRemovalSupport(orgId, asset.id),
+      db.organization.findUnique({ where: { id: orgId }, select: { autoRemoveSeats: true } }),
+    ]);
+    const removedAt = new Map(removedRows.map((r) => [r.email.toLowerCase(), r.removedAt!]));
     return (
       <>
         {inactive.length > 0 && (
@@ -57,18 +74,50 @@ export default async function AssetPeople({
           </div>
         )}
         {reminded && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Sent to {reminded} {reminded === "1" ? "person" : "people"}.</div>}
+        {removed && <Notice tone="success">{removed}</Notice>}
         {errorBox}
-        <Table columns={["Person", "Department", "Last active"]} empty={usages.length === 0 ? "Nobody known yet — connect Microsoft 365, Google Workspace or an Admin key to see who uses it." : false}>
-          {usages.map((u) => (
-            <tr key={u.id}>
-              <td className={`${td} text-ink-100`}>
-                {u.user?.name ?? u.user?.email ?? u.externalUserRef ?? "Unknown"}
-                {u.user?.name && <span className="block text-xs text-ink-400">{u.user.email}</span>}
-              </td>
-              <td className={`${td} text-ink-400`}>{u.user?.department ?? "—"}</td>
-              <td className={`${td} text-ink-400 tabular`}>{u.lastSeenAt ? fmtDate(u.lastSeenAt) : "—"}</td>
-            </tr>
-          ))}
+        {isAdmin && support?.mode === "api" && (
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-line bg-panel px-5 py-3">
+            <div className="text-sm">
+              <span className="text-ink-100">Remove seats automatically</span>
+              <span className="block text-xs text-ink-400">When someone answers &ldquo;I don&apos;t need it&rdquo; or doesn&apos;t reply in 7 days, angar removes the seat via {support.label}. Applies to every AI angar can remove seats from.</span>
+            </div>
+            <form action={setAutoRemoveSeatsAction}>
+              <input type="hidden" name="assetId" value={asset.id} />
+              <input type="hidden" name="on" value={org?.autoRemoveSeats ? "0" : "1"} />
+              <button
+                type="submit"
+                role="switch"
+                aria-checked={!!org?.autoRemoveSeats}
+                title={org?.autoRemoveSeats ? "Turn off" : "Turn on"}
+                className={`relative h-5 w-9 rounded-full transition-colors ${org?.autoRemoveSeats ? "bg-steady" : "bg-ink-400/40"}`}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${org?.autoRemoveSeats ? "left-[18px]" : "left-0.5"}`} />
+              </button>
+            </form>
+          </div>
+        )}
+        <Table columns={["Person", "Department", "Last active", ""]} empty={usages.length === 0 ? "Nobody known yet — connect Microsoft 365, Google Workspace or an Admin key to see who uses it." : false}>
+          {usages.map((u) => {
+            const gone = u.user?.email ? removedAt.get(u.user.email.toLowerCase()) : undefined;
+            return (
+              <tr key={u.id}>
+                <td className={`${td} text-ink-100`}>
+                  {u.user?.name ?? displayableRef(u.user?.email) ?? displayableRef(u.externalUserRef) ?? (u.user?.email || u.externalUserRef ? "Anonymous person" : "Unknown")}
+                  {u.user?.name && <span className="block text-xs text-ink-400">{u.user.email}</span>}
+                </td>
+                <td className={`${td} text-ink-400`}>{u.user?.department ?? "—"}</td>
+                <td className={`${td} text-ink-400 tabular`}>{u.lastSeenAt ? fmtDate(u.lastSeenAt) : "—"}</td>
+                <td className={`${td} text-right whitespace-nowrap`}>
+                  {gone ? (
+                    <span className="text-xs text-ink-400">Seat removed {fmtDate(gone)}</span>
+                  ) : u.user?.email && isAdmin && support?.mode === "api" ? (
+                    <SeatRemoveButton assetId={asset.id} email={u.user.email} />
+                  ) : null}
+                </td>
+              </tr>
+            );
+          })}
         </Table>
       </>
     );

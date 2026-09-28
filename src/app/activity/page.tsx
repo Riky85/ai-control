@@ -1,5 +1,6 @@
 import FilterBar from "@/components/FilterBar";
 import GovernanceNav from "@/components/GovernanceNav";
+import ChangesTab from "./ChangesTab";
 import { fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
@@ -10,6 +11,7 @@ import ExportMenu from "@/components/ExportMenu";
 import { Table, td, PageHeader, Tabs } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
+import { displayableRef } from "@/lib/discovery/pseudonym";
 
 export const dynamic = "force-dynamic";
 
@@ -38,10 +40,11 @@ interface CheckRow {
 
 const TABS = [
   { key: "events", label: "Events" },
+  { key: "changes", label: "Changes" },
   { key: "evidence", label: "Evidence" },
 ] as const;
 
-export default async function ActivityPage({ searchParams }: { searchParams: { q?: string; tab?: string } }) {
+export default async function ActivityPage({ searchParams }: { searchParams: { q?: string; tab?: string; field?: string } }) {
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "events";
 
   return (
@@ -49,13 +52,13 @@ export default async function ActivityPage({ searchParams }: { searchParams: { q
       <GovernanceNav active="/activity" />
       <PageHeader
         title="Activity"
-        subtitle={"What every connector observed, and the evidence trail behind every control."}
-        action={<ExportMenu dataset="activity" />}
+        subtitle={"What every connector observed, what changed between syncs, and the evidence trail behind every control."}
+        action={<ExportMenu dataset={tab === "changes" ? "changes" : "activity"} />}
       />
 
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/activity?tab=${t.key}` }))} />
 
-      {tab === "events" ? <EventsTab q={searchParams.q} /> : <EvidenceTab />}
+      {tab === "events" ? <EventsTab q={searchParams.q} /> : tab === "changes" ? <ChangesTab q={searchParams.q} field={searchParams.field} /> : <EvidenceTab />}
     </div>
   );
 }
@@ -101,7 +104,7 @@ async function EventsTab({ q }: { q?: string }) {
                 </Link>
               </td>
               <td className={`${td} text-ink-100`}>{a.eventType}</td>
-              <td className={`${td} text-ink-400`}>{!a.actorRef ? "—" : people ? a.actorRef : <span title="Hidden by the employee privacy mode">Hidden</span>}</td>
+              <td className={`${td} text-ink-400`}>{!a.actorRef ? "—" : people ? displayableRef(a.actorRef) ?? "Anonymous" : <span title="Hidden by the employee privacy mode">Hidden</span>}</td>
               <td className={td}>{risk ? <Badge>{risk.level}</Badge> : <span className="text-ink-400">—</span>}</td>
               <td className={`${td} text-ink-400`}>{SOURCE_LABEL[a.source] ?? a.source}</td>
               <td className={`${td} text-ink-400 tabular`}>{fmtDateTime(a.occurredAt)}</td>

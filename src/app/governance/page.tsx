@@ -1,4 +1,5 @@
 import { currentOrgId } from "@/lib/org";
+import { currentSession } from "@/lib/auth";
 import GovernanceNav from "@/components/GovernanceNav";
 import { db } from "@/lib/db";
 import { PageHeader, StatCard, Tabs } from "@/components/ui";
@@ -7,6 +8,8 @@ import Badge from "@/components/Badge";
 import StatusDot from "@/components/StatusDot";
 import Link from "next/link";
 import { POLICY_LIBRARY } from "@/lib/policy-library";
+import PolicyAckPanel from "@/components/PolicyAckPanel";
+import { VendorRiskFlags } from "@/components/VendorRiskCard";
 import {
   createPolicyAction,
   addPolicyFromLibraryAction,
@@ -38,53 +41,34 @@ interface CheckRow {
 }
 
 const TABS = [
-  { key: "reviews", label: "Reviews" },
   { key: "policies", label: "Policies" },
   { key: "assurance", label: "Assurance" },
 ] as const;
 
-export default async function GovernancePage({ searchParams }: { searchParams: { tab?: string } }) {
-  const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "reviews";
+export default async function GovernancePage({ searchParams }: { searchParams: { tab?: string; ack?: string; n?: string; error?: string } }) {
+  const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "policies";
 
   return (
     <div className="flex flex-col gap-5">
       <GovernanceNav active="/governance" />
       <PageHeader
         title="Governance"
-        subtitle="Reviews, policies and assurance for every AI."
+        subtitle="Policies and assurance for every AI. New AI is reviewed in the review queue."
         action={<ExportMenu dataset="assets" />}
       />
 
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/governance?tab=${t.key}` }))} />
 
-      {tab === "reviews" && <ReviewsTab />}
+      {tab === "policies" && <VendorRiskFlags orgId={currentOrgId()} />}
+      {tab === "policies" && <PolicyAckPanel orgId={currentOrgId()} flash={searchParams} />}
       {tab === "policies" && <PoliciesTab />}
       {tab === "assurance" && <AssuranceTab />}
     </div>
   );
 }
 
-async function ReviewsTab() {
-  // La coda di revisione vera è /review: qui solo il conteggio e il rimando.
-  const pending = await db.aiAsset.count({
-    where: { organizationId: currentOrgId(), deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } },
-  });
-
-  return (
-    <div className="rounded-xl border border-line bg-panel p-5 flex items-center justify-between gap-4">
-      <p className="text-sm text-ink-400">
-        {pending === 0
-          ? "Nothing waiting on review — every AI system has been marked as allowed or not allowed."
-          : `${pending} AI system${pending === 1 ? "" : "s"} need${pending === 1 ? "s" : ""} review. Decisions are made in the review queue.`}
-      </p>
-      <Link href="/review" className="btn btn-primary btn-sm shrink-0">
-        Open review queue
-      </Link>
-    </div>
-  );
-}
-
 async function PoliciesTab() {
+  const canEdit = ["ADMIN", "OWNER"].includes(currentSession()?.role ?? "");
   const policies = await db.policy.findMany({ where: { organizationId: currentOrgId() }, orderBy: { createdAt: "desc" } });
   const activeNames = new Set(policies.map((p) => p.name));
   const availableTemplates = POLICY_LIBRARY.filter((t) => !activeNames.has(t.name));
@@ -112,6 +96,9 @@ async function PoliciesTab() {
                         <span className="text-sm font-medium text-ink-100">{p.name}</span>
                         <p className="text-sm text-ink-400 mt-1">{p.description}</p>
                       </div>
+                      {!canEdit ? (
+                        <span className="text-xs text-ink-400 shrink-0">{p.enabled ? "Enabled" : "Disabled"}</span>
+                      ) : (
                       <div className="flex items-center gap-2 shrink-0">
                         <form action={togglePolicyAction}>
                           <input type="hidden" name="policyId" value={p.id} />
@@ -125,6 +112,7 @@ async function PoliciesTab() {
                           <button type="submit" className="btn btn-ghost btn-sm">Remove</button>
                         </form>
                       </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -134,7 +122,7 @@ async function PoliciesTab() {
         </div>
       </div>
 
-      {availableTemplates.length > 0 && (
+      {canEdit && availableTemplates.length > 0 && (
         <div>
           <h2 className="text-base font-semibold text-ink-100 mb-3">Policy library</h2>
           <div className="rounded-xl border border-line bg-panel divide-y divide-line">
@@ -161,6 +149,7 @@ async function PoliciesTab() {
         </div>
       )}
 
+      {canEdit && (
       <div>
         <h2 className="text-base font-semibold text-ink-100 mb-3">Write a custom policy</h2>
         <form action={createPolicyAction} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
@@ -189,6 +178,7 @@ async function PoliciesTab() {
           </div>
         </form>
       </div>
+      )}
     </div>
   );
 }

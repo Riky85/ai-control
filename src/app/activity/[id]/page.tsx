@@ -6,6 +6,7 @@ import Badge from "@/components/Badge";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
+import { displayableRef } from "@/lib/discovery/pseudonym";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
             </Link>
           </Row>
           <Row label="Actor">
-            <span className="text-ink-100">{!activity.actorRef ? "Unknown" : people ? activity.actorRef : "Hidden by the employee privacy mode"}</span>
+            <span className="text-ink-100">{!activity.actorRef ? "Unknown" : people ? displayableRef(activity.actorRef) ?? "Anonymous" : "Hidden by the employee privacy mode"}</span>
           </Row>
           <Row label="Event type">
             <span className="text-ink-100">{activity.eventType}</span>

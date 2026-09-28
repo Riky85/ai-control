@@ -1,5 +1,5 @@
 import Link from "next/link";
-import AuthShell, { authInput, authButton } from "@/components/AuthShell";
+import AuthShell, { authInput, authButton, SsoButtons } from "@/components/AuthShell";
 import { signUpAction } from "@/lib/auth-actions";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 export default function SignupPage({ searchParams }: { searchParams: { error?: string; email?: string; name?: string; company?: string; invite?: string } }) {
   return (
     <AuthShell title="Create your account" subtitle="See every AI your company uses in minutes. Invited? Use the same email to join that workspace.">
+      <SsoButtons next={searchParams.invite ? `/api/invite/${searchParams.invite}` : undefined} email={searchParams.email} />
       <form action={signUpAction} className="flex flex-col gap-4">
         <label className="flex flex-col gap-2 text-sm text-ink-400">
           Full name

@@ -22,6 +22,22 @@ export async function stripePost<T = any>(path: string, params: Record<string, s
   return json as T;
 }
 
+/**
+ * Parametri comuni a ogni Checkout: partita IVA, indirizzo di fatturazione
+ * obbligatorio, codici promozionali e (con STRIPE_AUTOMATIC_TAX=1, che
+ * richiede Stripe Tax attivo) IVA calcolata da Stripe. `customer_update`
+ * è ammesso solo con un cliente Stripe già esistente.
+ */
+export function checkoutCommonParams(customerId?: string | null, opts: { promotionCodes?: boolean } = {}): Record<string, string> {
+  return {
+    "tax_id_collection[enabled]": "true",
+    billing_address_collection: "required",
+    ...(opts.promotionCodes === false ? {} : { allow_promotion_codes: "true" }),
+    ...(process.env.STRIPE_AUTOMATIC_TAX === "1" ? { "automatic_tax[enabled]": "true" } : {}),
+    ...(customerId ? { customer: customerId, "customer_update[address]": "auto", "customer_update[name]": "auto" } : {}),
+  };
+}
+
 /** Verifica la firma del webhook (schema v1, tolleranza 5 minuti). */
 export function verifyStripeSignature(payload: string, header: string | null, secret: string) {
   if (!header) return false;

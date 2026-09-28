@@ -27,10 +27,11 @@ export default function EmailReport({ snapshot, compact }: { snapshot: CheckSnap
           topSavings: snapshot.savings.slice(0, 5).map((s) => ({ title: s.title, monthlyEur: s.monthlyEur })),
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; emailed?: boolean };
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; emailed?: boolean; confirm?: boolean };
       if (!res.ok || !data.ok) throw new Error(data.error ?? "Something went wrong — try again.");
       setState("done");
-      setMsg(data.emailed ? `Sent to ${email}. Check your inbox in a minute.` : `Thanks — we'll send the report to ${email}.`);
+      // Doppio opt-in: prima arriva un link di conferma, poi il report.
+      setMsg(data.confirm ? `Check your inbox: confirm ${email} and we'll send the report right away.` : "Thanks. We can't email reports right now — use Print / save as PDF to keep it.");
     } catch (err) {
       setState("error");
       setMsg((err as Error).message);

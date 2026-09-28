@@ -1,14 +1,16 @@
 import Link from "next/link";
-import AuthShell, { authInput, authButton } from "@/components/AuthShell";
+import AuthShell, { authInput, authButton, SsoButtons } from "@/components/AuthShell";
 import { signInAction } from "@/lib/auth-actions";
 
 export const dynamic = "force-dynamic";
 
-export default function LoginPage({ searchParams }: { searchParams: { error?: string; next?: string; email?: string; reset?: string } }) {
+export default function LoginPage({ searchParams }: { searchParams: { error?: string; next?: string; email?: string; reset?: string; verified?: string } }) {
   return (
     <AuthShell title="Welcome back" subtitle="Sign in to see your company's AI and what it costs.">
+      <SsoButtons next={searchParams.next} email={searchParams.email} />
       <form action={signInAction} className="flex flex-col gap-4">
         <input type="hidden" name="next" value={searchParams.next ?? "/"} />
+        {searchParams.verified && <p className="rounded-xl bg-steady/10 px-3.5 py-2.5 text-sm text-steady">Email confirmed — sign in to continue.</p>}
         {searchParams.reset && <p className="rounded-xl bg-steady/10 px-3.5 py-2.5 text-sm text-steady">Password updated — sign in with the new one.</p>}
         <label className="flex flex-col gap-2 text-sm text-ink-400">
           Work email

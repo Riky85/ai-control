@@ -10,6 +10,8 @@ import { workplaceStatus } from "@/lib/connectors/workplace";
 import { ficConfigured } from "@/lib/connectors/fatture-in-cloud";
 import { bankConfigured } from "@/lib/connectors/bank";
 import { chiftConfigured } from "@/lib/connectors/chift";
+import { featureEnabled } from "@/lib/plan-gate";
+import { LockedNote } from "@/components/LockedFeature";
 
 export const dynamic = "force-dynamic";
 
@@ -31,12 +33,12 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
   );
   const bankState: RowState = bankRow?.credentialsEncrypted ? "connected" : bankConfigured() ? "available" : "soon";
   const accountingState: RowState = accountingRow?.lastSyncedAt ? "connected" : chiftConfigured() ? "available" : "soon";
+  const workplaceEnabled = await featureEnabled(orgId, "microsoft365");
   const keys = connectors.filter((c) => !["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK", "FATTURE_IN_CLOUD", "BANK", "ACCOUNTING"].includes(c.provider));
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Sources" subtitle="Connect once. angar keeps your AI list, costs and savings up to date by itself — nothing to type." />
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
       <div className="grid grid-cols-2 gap-4 items-stretch">
         <Card
@@ -88,7 +90,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
                 {p.connected ? (
                   <span className="text-xs text-steady">Connected</span>
                 ) : p.available ? (
-                  <a href={p.connectUrl} className="btn btn-secondary btn-sm">Connect</a>
+                  workplaceEnabled ? <a href={p.connectUrl} className="btn btn-secondary btn-sm">Connect</a> : <LockedNote feature={p.id === "GOOGLE_WORKSPACE" ? "googleWorkspace" : "microsoft365"} />
                 ) : (
                   <span className="text-xs text-ink-400">Coming soon</span>
                 )}

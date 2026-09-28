@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- angar.app bundle for macOS. CI (.github/workflows/desktop.yml) fills in __VERSION__
+     from desktop/Cargo.toml, signs, notarises and zips it. The web app only renames the
+     bundle folder to angar-<join code>.app, which keeps the signature valid. -->
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>angar</string>
+  <key>CFBundleDisplayName</key><string>angar</string>
+  <key>CFBundleIdentifier</key><string>ai.angar.setup</string>
+  <key>CFBundleExecutable</key><string>angar</string>
+  <key>CFBundleIconFile</key><string>angar</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>CFBundleShortVersionString</key><string>__VERSION__</string>
+  <key>CFBundleVersion</key><string>__VERSION__</string>
+  <key>LSMinimumSystemVersion</key><string>11.0</string>
+  <key>LSUIElement</key><true/>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSHumanReadableCopyright</key><string>angar</string>
+</dict>
+</plist>

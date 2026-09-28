@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
+import { planGate } from "@/lib/plan-gate";
 import { signState } from "@/lib/oauth-state";
 import { appOrigin } from "@/lib/mail";
 import { googleConfigured } from "@/lib/connectors/workplace";
@@ -11,6 +12,8 @@ export async function GET(req: Request) {
   const s = await requireRole("ADMIN", "/sources");
   const origin = appOrigin(req.headers);
   if (!googleConfigured()) return NextResponse.redirect(`${origin}/sources?error=${encodeURIComponent("Google Workspace isn't available on this deployment yet.")}`);
+  const gate = await planGate(s.orgId, "connections", { provider: "GOOGLE_WORKSPACE" });
+  if (!gate.ok) return NextResponse.redirect(`${origin}/sources?error=${encodeURIComponent(gate.message)}`);
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   url.searchParams.set("client_id", process.env.GOOGLE_CLIENT_ID!);
   url.searchParams.set("redirect_uri", `${origin}/api/connectors/google/callback`);

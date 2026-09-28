@@ -28,18 +28,9 @@ export async function askAllInactiveAction() {
 export async function markSeatRemovedAction(formData: FormData) {
   const s = await requireRole("EDITOR", "/usage?view=cleanup");
   const id = String(formData.get("id") ?? "");
-  const r = await db.seatReminder.findFirst({ where: { id, organizationId: s.orgId, removedAt: null } });
-  if (!r) redirect("/usage?view=cleanup");
-  await db.seatReminder.update({ where: { id: r!.id }, data: { removedAt: new Date() } });
-  const cost = await db.aiSystemCost.findUnique({ where: { aiAssetId: r!.aiAssetId } });
-  if (cost?.seats && cost.seats > 1) {
-    const perSeat = cost.monthlyCostEstimate != null ? cost.monthlyCostEstimate / cost.seats : null;
-    await db.aiSystemCost.update({
-      where: { aiAssetId: r!.aiAssetId },
-      data: { seats: cost.seats - 1, ...(perSeat != null ? { monthlyCostEstimate: Math.round((cost.monthlyCostEstimate! - perSeat) * 100) / 100 } : {}) },
-    });
-  }
-  await audit("seats.removed", r!.email, { assetId: r!.aiAssetId });
+  // Segna il posto, abbassa posti e costo, scrive il registro dei risparmi e l'audit.
+  const { completeSeatRemoval } = await import("@/lib/seat-removal");
+  await completeSeatRemoval(s.orgId, { reminderId: id }, { email: s.email, via: "manual" });
   revalidatePath("/", "layout");
   redirect("/usage?view=cleanup");
 }

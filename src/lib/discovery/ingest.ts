@@ -2,8 +2,10 @@ import { createHash, randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { persistSyncResult } from "@/lib/connectors/upsert";
 import { recordInventorySnapshot } from "@/lib/evidence";
+import { notifyNewAi } from "@/lib/chat-actions";
 import type { ObservedAsset } from "@/lib/connectors/types";
 import { AI_SERVICES, matchApp, matchDomain, type AiService } from "./catalog";
+import { identitiesFor } from "./pseudonym";
 
 export interface Finding {
   // "candidate" / "candidate_app": sembra un'AI ma non è nel catalogo (solo app desktop).
@@ -99,6 +101,12 @@ export async function ingestFindings(organizationId: string, device: string, fin
 
   // angar Edge (rete): sempre "edge.seen", anche quando si sa di chi è il dispositivo.
   const eventType = source === "edge" ? "edge.seen" : !userEmail ? "discovery.seen" : source === "desktop" ? "desktop.active" : "extension.active";
+
+  // Privacy nel database: fuori da "per persona" niente email (pseudonimo) e
+  // niente nome del computer (il nome host spesso è il nome della persona).
+  const ids = await identitiesFor(organizationId);
+  const who = userEmail ? ids.person(userEmail) : null;
+  if (!ids.people) device = privateDevice(device, ids.host);
   const assets: ObservedAsset[] = [...byService.values()].map(({ svc, days, candidate }) => ({
     externalId: `net:${svc.id}`,
     type: svc.type,
@@ -108,10 +116,10 @@ export async function ingestFindings(organizationId: string, device: string, fin
     vendor: svc.vendor,
     connectedSystems: [{ system: "Seen on", detail: device.slice(0, 120) }],
     // Con l'estensione o l'app desktop si sa anche chi la usa (email aziendale).
-    users: userEmail ? [{ email: userEmail }] : [],
+    users: who ? [{ email: who }] : [],
     activities: [...days.values()].slice(0, 60).map(({ hits, minutes, evidence, last }) => ({
       eventType,
-      actorRef: (userEmail ?? device).slice(0, 120),
+      actorRef: (who ?? device).slice(0, 120),
       occurredAt: last ?? new Date(),
       payload: { device, hits, minutes: Math.round(minutes), evidence: [...evidence].slice(0, 10) },
     })),
@@ -122,9 +130,24 @@ export async function ingestFindings(organizationId: string, device: string, fin
     update: {},
     create: { organizationId, provider: "NETWORK", status: "CONNECTED", scopes: ["discovery"] },
   });
+  const since = new Date();
   await persistSyncResult(organizationId, connector.id, { provider: "NETWORK", assets, syncedAt: new Date(), warnings: [] });
   await recordInventorySnapshot(organizationId);
+  // AI appena comparse: webhook "ai.discovered" + messaggio Slack/Teams con i pulsanti (mai bloccante).
+  const fresh = await db.aiAsset.findMany({ where: { organizationId, connectorId: connector.id, deletedAt: null, status: "UNKNOWN", createdAt: { gte: since } }, select: { id: true, name: true, vendor: true }, take: 50 });
+  if (fresh.length) notifyNewAi(organizationId, fresh);
   return assets.map((a) => a.name);
+}
+
+/**
+ * Fonte senza il nome del computer: "Desktop app · mario-pc" → "Desktop app",
+ * "MARIO-PC" (scanner) → "computer-1a2b3c4d". Log di rete e sensori Edge restano.
+ */
+export function privateDevice(device: string, host: (h: string) => string): string {
+  if (/^(Network log|angar Edge)\b/.test(device) || device === "Browser extension" || device === "Desktop app") return device;
+  const i = device.indexOf("·");
+  if (i >= 0) return device.slice(0, i).trim().slice(0, 60) || "Device";
+  return host(device);
 }
 
 /**

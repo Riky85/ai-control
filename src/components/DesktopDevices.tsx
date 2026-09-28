@@ -1,6 +1,7 @@
 import { listDesktopDevices } from "@/lib/discovery/devices";
 import { fmtAgo } from "@/lib/format";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
+import { displayableRef } from "@/lib/discovery/pseudonym";
 
 const OS_LABEL: Record<string, string> = { windows: "Windows", macos: "macOS", linux: "Linux" };
 
@@ -68,7 +69,14 @@ export default async function DesktopDevices({ organizationId, compact = false }
           <div key={d.host + (d.email ?? "")} className="flex items-center gap-4 px-5 py-3">
             <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${d.online ? "bg-steady" : "bg-ink-400/40"}`} title={d.online ? "Connected" : "Silent"} />
             <div className="flex-1 min-w-0">
-              <span className="block text-sm text-ink-100 truncate">{d.email ?? d.host}</span>
+              <span className="flex items-center gap-2 min-w-0">
+                <span className="text-sm text-ink-100 truncate">{displayableRef(d.email) ?? d.host}</span>
+                {d.legacy && (
+                  <span className="shrink-0 text-[11px] font-medium rounded-full px-1.5 py-px text-ink-400 bg-ink-400/10" title="Set up with the old company-wide token, which isn't tied to one person. Reinstall from the company link to give this computer its own token.">
+                    legacy
+                  </span>
+                )}
+              </span>
               <span className="block text-xs text-ink-400 truncate">
                 {d.host}
                 {d.os && OS_LABEL[d.os] ? ` · ${OS_LABEL[d.os]}` : ""}

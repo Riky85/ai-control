@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import type { ConnectorSyncResult } from "./types";
 import { assessAssetRisk } from "@/lib/risk-engine";
 import { runAssuranceChecks } from "@/lib/assurance-engine";
+import { identitiesFor, isPseudonym } from "@/lib/discovery/pseudonym";
 
 /**
  * Scrive il risultato di un sync nel database in modo idempotente:
@@ -16,6 +17,12 @@ export async function persistSyncResult(
   result: ConnectorSyncResult
 ) {
   const touchedAssetIds: string[] = [];
+  // Privacy nel database, non solo nelle pagine: fuori da "per persona" niente
+  // email né nomi, solo pseudonimi (e il reparto solo in "per reparto").
+  const ids = await identitiesFor(organizationId);
+  // Attività: la discovery (NETWORK) arriva già pseudonimizzata da ingestFindings.
+  const actorOf = (ref: string | undefined) =>
+    ids.people || !ref || ref === "*" || isPseudonym(ref) || result.provider === "NETWORK" ? ref : ids.person(ref);
 
   for (const observed of result.assets) {
     const own = await db.aiAsset.findUnique({
@@ -102,7 +109,7 @@ export async function persistSyncResult(
           aiAssetId: asset.id,
           source: result.provider,
           eventType: activity.eventType,
-          actorRef: activity.actorRef,
+          actorRef: actorOf(activity.actorRef),
           occurredAt: activity.occurredAt,
           payload: activity.payload as any,
         },
@@ -110,15 +117,13 @@ export async function persistSyncResult(
     }
 
     for (const observedUser of observed.users ?? []) {
+      const email = ids.person(observedUser.email);
+      const name = ids.people ? observedUser.name : undefined;
+      const department = ids.department(observedUser.department) ?? undefined;
       const user = await db.user.upsert({
-        where: { organizationId_email: { organizationId, email: observedUser.email } },
-        update: { name: observedUser.name, department: observedUser.department },
-        create: {
-          organizationId,
-          email: observedUser.email,
-          name: observedUser.name,
-          department: observedUser.department,
-        },
+        where: { organizationId_email: { organizationId, email } },
+        update: { name, department },
+        create: { organizationId, email, name, department },
       });
 
       await db.aiAssetUsage.upsert({

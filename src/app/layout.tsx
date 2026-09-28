@@ -10,7 +10,12 @@ import SearchPalette from "@/components/SearchPalette";
 import ConnectedIndicator from "@/components/ConnectedIndicator";
 import AlertsBell from "@/components/AlertsBell";
 import ScrollReset from "@/components/ScrollReset";
-import { listDesktopDevices } from "@/lib/discovery/devices";
+import { desktopDeviceCounts } from "@/lib/discovery/devices";
+import UrlNotice from "@/components/UrlNotice";
+import PlanBanner from "@/components/PlanBanner";
+import { getPlanState } from "@/lib/plan-gate";
+import VerifyEmailBanner from "@/components/VerifyEmailBanner";
+import { Suspense } from "react";
 import DocsButton from "@/components/DocsButton";
 import { DOCS } from "@/lib/docs";
 import { planById } from "@/lib/plans";
@@ -68,14 +73,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     );
   }
 
-  // Il ruolo nel token potrebbe essere vecchio: l'appartenenza al workspace si verifica sempre nel database.
-  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: session.orgId, email: session.email } } });
+  // Tutto in parallelo. Il ruolo nel token potrebbe essere vecchio: l'appartenenza
+  // al workspace si verifica sempre nel database (il redirect arriva subito dopo).
+  const [member, org, { online: connectedComputers }, memberships, platformAdmin, reviewCount] = await Promise.all([
+    db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: session.orgId, email: session.email } } }),
+    db.organization.findUnique({ where: { id: session.orgId } }),
+    desktopDeviceCounts(session.orgId),
+    db.workspaceMember.findMany({ where: { email: session.email, status: "active" }, include: { organization: { select: { id: true, name: true } } }, orderBy: { invitedAt: "asc" } }),
+    isPlatformAdmin(session.email),
+    db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } }),
+  ]);
   if (!member || member.status !== "active") redirect("/api/auth/signout?reason=" + encodeURIComponent("You no longer have access to that workspace."));
 
-  const org = await db.organization.findUnique({ where: { id: session.orgId } });
-  const connectedComputers = (await listDesktopDevices(session.orgId)).filter((d) => d.online).length;
-  const memberships = await db.workspaceMember.findMany({ where: { email: session.email, status: "active" }, include: { organization: { select: { id: true, name: true } } }, orderBy: { invitedAt: "asc" } });
-  const plan = planById(org?.plan ?? "STARTER");
+  const plan = planById((await getPlanState(session.orgId)).effectivePlan);
   const workspace: SidebarWorkspaceProps = {
     current: org ? { id: org.id, name: org.name } : null,
     workspaces: memberships.map((m) => m.organization),
@@ -89,16 +99,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {head}
       <body className={`flex h-screen overflow-hidden bg-sidebar text-ink-100 font-body`}>
         <SearchPalette />
-        <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={await isPlatformAdmin(session.email)} connectedComputers={connectedComputers} reviewCount={await db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } })} />
+        <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={platformAdmin} connectedComputers={connectedComputers} reviewCount={reviewCount} />
         <div id="app-scroll" className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto [scrollbar-gutter:stable]">
           <ScrollReset targetId="app-scroll" />
+          <PlanBanner orgId={session.orgId} />
           <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-12 pb-24">
             {/* Sempre nello stesso punto, in ogni pagina. */}
-            <div className="absolute top-12 right-4 sm:right-6 lg:right-10 z-30 print:hidden flex items-center gap-2">
+            <div className="relative lg:absolute lg:top-12 lg:right-10 z-30 print:hidden flex items-center justify-end gap-2 mb-4 lg:mb-0">
               <AlertsBell organizationId={session.orgId} />
               <ConnectedIndicator organizationId={session.orgId} />
               <DocsButton />
             </div>
+            <VerifyEmailBanner />
+            <Suspense fallback={null}>
+              <UrlNotice />
+            </Suspense>
             {children}
           </main>
           <AskDocs docs={DOCS.map(({ slug, title, section, summary }) => ({ slug, title, section, summary }))} />

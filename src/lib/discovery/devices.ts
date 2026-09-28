@@ -1,4 +1,5 @@
 import { isIP } from "net";
+import { cache } from "react";
 import { db } from "@/lib/db";
 
 /** Fino a 8 IPv4/IPv6 validi, in forma canonica, senza doppioni. */
@@ -48,6 +49,7 @@ export async function recordDesktopDevice(
     create: { organizationId, deviceKey, ...data, syncCount: 1 },
     update: { ...data, syncCount: { increment: 1 } },
   });
+  return deviceKey;
 }
 
 const FRESH = 70 * 60 * 1000; // due sync mancati = "silenzioso"
@@ -61,39 +63,39 @@ export type DeviceRow = {
   firstSeenAt: Date;
   lastSeenAt: Date;
   online: boolean;
+  /** Invia col vecchio token unico dell'azienda (non legato a una persona). */
+  legacy: boolean;
 };
 
-export async function listDesktopDevices(organizationId: string): Promise<DeviceRow[]> {
+/**
+ * Computer registrati e quanti sono connessi ora: due count sull'indice
+ * (organizationId, lastSeenAt), una volta sola per richiesta (layout + pagina).
+ */
+export const desktopDeviceCounts = cache(async (organizationId: string): Promise<{ total: number; online: number }> => {
+  const [total, online] = await Promise.all([
+    db.desktopDevice.count({ where: { organizationId } }),
+    db.desktopDevice.count({ where: { organizationId, lastSeenAt: { gte: new Date(Date.now() - FRESH) } } }),
+  ]);
+  return { total, online };
+});
+
+/** Elenco completo (pagina Computers), una volta sola per richiesta. */
+export const listDesktopDevices = cache(loadDesktopDevices);
+
+async function loadDesktopDevices(organizationId: string): Promise<DeviceRow[]> {
   const now = Date.now();
   const map = new Map<string, DeviceRow>();
 
-  // Ciò che l'app ha già inviato (attività "desktop.active"), così il computer
-  // compare subito anche prima che la nuova versione del server registri il device.
-  const activities = await db.aiAssetActivity.findMany({
-    where: { eventType: "desktop.active", aiAsset: { organizationId, deletedAt: null } },
-    orderBy: { occurredAt: "desc" },
-    take: 5000,
-    select: { actorRef: true, occurredAt: true, aiAssetId: true, payload: true },
-  });
-  const ais = new Map<string, Set<string>>(); // deviceKey → set di AI viste
-  for (const a of activities) {
-    const email = (a.actorRef ?? "").includes("@") ? a.actorRef!.toLowerCase() : null;
-    const host = hostFrom(String((a.payload as { device?: string } | null)?.device ?? "Desktop app"));
-    const key = `${host.toLowerCase()}|${email ?? ""}`;
-    const cur = map.get(key);
-    if (!cur) {
-      map.set(key, { host, email, os: null, appVersion: null, aiCount: 0, firstSeenAt: a.occurredAt, lastSeenAt: a.occurredAt, online: false });
-      ais.set(key, new Set());
-    } else if (a.occurredAt < cur.firstSeenAt) cur.firstSeenAt = a.occurredAt;
-    ais.get(key)!.add(a.aiAssetId);
-  }
-  for (const [key, set] of ais) map.get(key)!.aiCount = set.size;
-
-  // Ciò che il server ha registrato (host, OS, versione, ultimo contatto): ha la precedenza.
-  const devices = await db.desktopDevice.findMany({ where: { organizationId }, orderBy: { lastSeenAt: "desc" } });
+  // Ciò che il server ha registrato (host, OS, versione, ultimo contatto). Le attività
+  // "desktop.active" non servono più: ogni invio registra il computer (DesktopDevice).
+  const [devices, tokens] = await Promise.all([
+    db.desktopDevice.findMany({ where: { organizationId }, orderBy: { lastSeenAt: "desc" }, take: 5000 }),
+    db.desktopToken.findMany({ where: { organizationId, revokedAt: null, deviceKey: { not: null } }, select: { deviceKey: true } }),
+  ]);
+  const perDevice = new Set(tokens.map((t) => t.deviceKey));
   for (const d of devices) {
     const key = `${d.host.toLowerCase()}|${d.email ?? ""}`;
-    map.set(key, { host: d.host, email: d.email, os: d.os, appVersion: d.appVersion, aiCount: d.aiCount, firstSeenAt: d.firstSeenAt, lastSeenAt: d.lastSeenAt, online: false });
+    map.set(key, { host: d.host, email: d.email, os: d.os, appVersion: d.appVersion, aiCount: d.aiCount, firstSeenAt: d.firstSeenAt, lastSeenAt: d.lastSeenAt, online: false, legacy: !perDevice.has(d.deviceKey) });
   }
 
   return [...map.values()].map((d) => ({ ...d, online: now - d.lastSeenAt.getTime() < FRESH })).sort((a, b) => b.lastSeenAt.getTime() - a.lastSeenAt.getTime());

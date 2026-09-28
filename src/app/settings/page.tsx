@@ -7,6 +7,7 @@ import Link from "next/link";
 import { addUserAction } from "@/lib/actions";
 import { setEmployeesAction } from "@/lib/spend-actions";
 import { setIndustryAction, setChatWebhookAction, setPrivacyModeAction } from "@/lib/settings-actions";
+import { erasePastNamesAction } from "@/lib/discovery/privacy-actions";
 import { PRIVACY_MODES, privacyModeOf, showsPeople, MIN_GROUP } from "@/lib/privacy";
 import { currentSession } from "@/lib/auth";
 import { INDUSTRIES } from "@/lib/industries";
@@ -14,6 +15,8 @@ import { Notice } from "@/components/ui";
 import { Panel, PageHeader } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import ThemeSelect from "@/components/ThemeSelect";
+import SignInSecurityPanel from "@/components/SignInSecurityPanel";
+import DevelopersPanel from "@/components/DevelopersPanel";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, parseTheme } from "@/lib/theme";
 
@@ -22,7 +25,7 @@ export const dynamic = "force-dynamic";
 const input = "field w-full";
 const button = "btn btn-secondary btn-sm";
 
-export default async function SettingsPage({ searchParams }: { searchParams: { error?: string; reset?: string; chat?: string; privacy?: string } }) {
+export default async function SettingsPage({ searchParams }: { searchParams: { error?: string; reset?: string; chat?: string; privacy?: string; signin?: string; webhook?: string } }) {
   const [org, users, connectors] = await Promise.all([
     db.organization.findUnique({ where: { id: currentOrgId() } }),
     db.user.findMany({ where: { organizationId: currentOrgId() }, orderBy: { name: "asc" } }),
@@ -36,7 +39,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Settings" subtitle="Your organization, team and connections." />
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
       <div className="grid grid-cols-3 gap-4 items-start">
         <div className="col-span-2 flex flex-col gap-4">
@@ -102,6 +104,16 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
               <p className="text-xs text-ink-400 mt-3">
                 angar never records what people type, read or generate in an AI tool — only which AI tools are used, when and how much. Hand out the <Link href="/compliance/employee-notice" className="underline hover:text-ink-100">employee notice</Link> before you start.
               </p>
+              <p className="text-xs text-ink-400 mt-2">
+                Outside per-person mode, new data is stored without emails or names (only a pseudonym, and the department in per-department mode). A change applies from now on — data already collected keeps its names until you erase them.
+              </p>
+              {searchParams.privacy === "erased" && <div className="mt-3"><Notice tone="success">Names and emails were removed from past data.</Notice></div>}
+              {!showsPeople(privacy) && role === "OWNER" && (
+                <form action={erasePastNamesAction} className="mt-3 flex items-center gap-3 border-t border-line pt-3">
+                  <button className="btn btn-secondary btn-sm">Erase names from past data</button>
+                  <span className="text-xs text-ink-400">Replaces emails and names in past activity with pseudonyms. Workspace members and AI owners stay. Can&apos;t be undone.</span>
+                </form>
+              )}
             </Panel>
           </div>
 
@@ -120,6 +132,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
               {connectors.length === 0 && <p className="text-sm text-ink-400">Connect a provider to start discovering your AI.</p>}
             </div>
           </Panel>
+
+          <DevelopersPanel orgId={currentOrgId()} canEdit={canSetPrivacy} webhookStatus={searchParams.webhook} />
         </div>
 
         <div className="flex flex-col gap-4">
@@ -136,7 +150,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
             <form action={setEmployeesAction} className="flex items-end gap-2 mt-4 pt-4 border-t border-line">
               <label className="flex-1 flex flex-col gap-1.5 text-sm text-ink-400">
                 Employees
-                <input name="employees" type="number" min="1" defaultValue={org?.employees ?? ""} placeholder="e.g. 120" className={input} />
+                <input id="employees" name="employees" type="number" min="1" defaultValue={org?.employees ?? ""} placeholder="e.g. 120" className={input} />
               </label>
               <button className={button}>Save</button>
             </form>
@@ -167,6 +181,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
               </div>
             </form>
             <p className="text-xs text-ink-400 mt-2">Slack: Apps → Incoming Webhooks → Add to a channel. Teams: channel → Workflows → &ldquo;Post to a channel when a webhook request is received&rdquo;. Paste the URL here.</p>
+            <details className="mt-2">
+              <summary className="cursor-pointer list-none text-xs text-ink-400 hover:text-ink-100 select-none">Approve / Keep buttons in Slack and Teams</summary>
+              <div className="text-xs text-ink-400 mt-2 flex flex-col gap-1.5">
+                <p><b className="text-ink-100">Teams:</b> &ldquo;New AI found&rdquo; cards have Approve / Not allowed buttons. They open angar, where you confirm signed in (editor or higher). Links expire in 7 days. Nothing to set up.</p>
+                <p><b className="text-ink-100">Slack:</b> without the angar Slack app, buttons work the same way as in Teams. For one-click buttons inside Slack, the platform admin creates a Slack app: Interactivity → Request URL <span className="font-mono">{process.env.APP_URL ?? ""}/api/slack/interactions</span>; bot scopes <span className="font-mono">users:read</span>, <span className="font-mono">users:read.email</span>, <span className="font-mono">chat:write</span>; sets <span className="font-mono">SLACK_SIGNING_SECRET</span> and <span className="font-mono">SLACK_BOT_TOKEN</span>; then you add the incoming webhook of that app here. Slack users are matched to angar members by email. The bot also asks inactive people &ldquo;Do you still need your seat?&rdquo; in a direct message.</p>
+                <p>Status: {process.env.SLACK_SIGNING_SECRET ? "Slack interactivity on" : "Slack interactivity off (link buttons)"}{process.env.SLACK_BOT_TOKEN ? " · Slack bot on" : ""}.</p>
+              </div>
+            </details>
           </Panel>
 
           <Panel title="Security">
@@ -177,6 +199,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
               <Row label="Audit log" badge="AUDIT_ON" />
             </dl>
           </Panel>
+
+          <SignInSecurityPanel message={searchParams.signin} />
 
         </div>
       </div>

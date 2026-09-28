@@ -6,9 +6,12 @@ import FilterBar from "@/components/FilterBar";
 import { VendorBadge } from "@/components/VendorIcon";
 import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
 import { Notice } from "@/components/ui";
-import { cleanupRows } from "@/lib/seats";
+import { cleanupRows, seatStats, idleSeats as idleSeatsOf, SEAT_WINDOW_DAYS } from "@/lib/seats";
+import { isPseudonym } from "@/lib/discovery/pseudonym";
+import { currentSession } from "@/lib/auth";
 import { askAllInactiveAction, markSeatRemovedAction } from "@/lib/seat-actions";
 import PrivacyNotice from "@/components/PrivacyNotice";
+import SeatRemoveButton from "@/components/SeatRemoveButton";
 import { groupByDepartment, maskCount, orgPrivacyMode, showsPeople, MIN_GROUP } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +35,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const view = views.includes(searchParams.view ?? "") ? searchParams.view! : "ai";
   const cleanup = individual ? await cleanupRows(orgId) : [];
   const toRemove = cleanup.filter((c) => c.state === "release" || c.state === "no_reply");
-  const since = new Date(Date.now() - 30 * DAY);
+  const since = new Date(Date.now() - SEAT_WINDOW_DAYS * DAY);
   const [events, assets, users] = await Promise.all([
     db.aiAssetActivity.findMany({
       where: {
@@ -40,15 +43,18 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         aiAsset: { organizationId: orgId, deletedAt: null },
         OR: [{ eventType: { in: PERSON_EVENTS } }, { eventType: { startsWith: "oauth." } }],
       },
-      include: { aiAsset: { select: { id: true, name: true, vendor: true } } },
+      select: { id: true, aiAssetId: true, eventType: true, actorRef: true, occurredAt: true, payload: true, aiAsset: { select: { id: true, name: true, vendor: true } } },
       orderBy: { occurredAt: "desc" },
       take: 5000,
     }),
     db.aiAsset.findMany({ where: { organizationId: orgId, deletedAt: null, status: { not: "UNAPPROVED" } }, include: { cost: true } }),
     db.user.findMany({ where: { organizationId: orgId }, select: { email: true, name: true, department: true } }),
   ]);
+  // Posti attivi dalla stessa fonte di Savings e avvisi di rinnovo (AiAssetUsage, 30 giorni), aggregati in SQL.
+  const seatsByAsset = await seatStats(assets.map((a) => a.id));
   const who = new Map(users.map((u) => [u.email.toLowerCase(), u]));
-  const nameOf = (email: string) => who.get(email.toLowerCase())?.name ?? email;
+  // Uno pseudonimo (privacy per reparto / solo totali) non è mai un nome.
+  const nameOf = (email: string) => (isPseudonym(email) ? "Anonymous person" : who.get(email.toLowerCase())?.name ?? email);
   const hitsOf = (p: unknown) => Math.max(1, Math.min(Number((p as { hits?: number } | null)?.hits) || 1, 100000));
   const minutesOf = (p: unknown) => Math.max(0, Math.min(Number((p as { minutes?: number } | null)?.minutes) || 0, 24 * 60));
   const visitsOf = (e: { eventType: string; payload: unknown }) => (COUNTED.includes(e.eventType) ? hitsOf(e.payload) : 1);
@@ -58,7 +64,8 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const pair = new Map<string, Row>();
   for (const e of events) {
     const email = (e.actorRef ?? "").toLowerCase();
-    if (!email.includes("@")) continue;
+    // Persona = email o pseudonimo (fuori da "per persona" il database ha solo pseudonimi).
+    if (!email.includes("@") && !isPseudonym(email)) continue;
     const k = `${email}|${e.aiAssetId}`;
     const r = pair.get(k) ?? { email, assetId: e.aiAssetId, name: e.aiAsset.name, vendor: e.aiAsset.vendor, visits: 0, minutes: 0, days: new Set(), last: e.occurredAt, sources: new Set() };
     r.visits += visitsOf(e);
@@ -74,10 +81,12 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const byAi = assets
     .map((a) => {
       const rows = pairs.filter((p) => p.assetId === a.id);
-      const active = rows.length;
+      const st = seatsByAsset.get(a.id);
+      // Persone attive: dai posti (AiAssetUsage) se noti, altrimenti da chi compare nelle attività.
+      const active = st?.known ? st.active : rows.length;
       const seats = a.cost?.seats ?? null;
       const monthly = a.cost?.monthlyCostEstimate ?? null;
-      const idle = seats && active > 0 && seats > active ? seats - active : 0;
+      const idle = idleSeatsOf(seats, st?.active ?? 0, st?.known ?? 0);
       const save = idle && monthly && seats ? (monthly / seats) * idle : 0;
       return { a, active, seats, visits: rows.reduce((t, r) => t + r.visits, 0), minutes: rows.reduce((t, r) => t + r.minutes, 0), idle, save };
     })
@@ -123,7 +132,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         </div>
       )}
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="People using AI" value={count(people.size)} hint="Last 30 days" tone="accent" href={individual ? "/usage?view=people" : mode === "department" ? "/usage?view=departments" : "/usage?view=ai"} />
         <StatCard label="AI used" value={String(new Set(pairs.map((p) => p.assetId)).size)} hint={`${events.length} connections recorded`} href="/usage?view=ai" />
         <StatCard label="Paid seats not used" value={String(idleSeats)} hint={idleSeats ? "Nobody used them in 30 days" : "Every paid seat is used"} tone={idleSeats ? "signal" : undefined} href="/usage?view=ai" />
@@ -179,7 +188,6 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       {view === "cleanup" && individual && (
         <div className="flex flex-col gap-4">
           {searchParams.asked && <Notice tone="success">Asked {searchParams.asked} {searchParams.asked === "1" ? "person" : "people"} by email. Their answers appear here.</Notice>}
-          {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
           <section className="rounded-xl border border-line bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
               <h2 className="text-base font-semibold text-ink-100">Free the seats nobody uses</h2>
@@ -187,9 +195,11 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                 angar emails everyone who hasn&apos;t used a paid AI in 30 days: &ldquo;do you still need it?&rdquo;. No answer in 7 days, or &ldquo;no&rdquo;, and the seat lands here, ready to remove.
               </p>
             </div>
-            <form action={askAllInactiveAction}>
-              <button className="btn btn-primary">Ask inactive people now</button>
-            </form>
+            {currentSession()?.role !== "VIEWER" && (
+              <form action={askAllInactiveAction}>
+                <button className="btn btn-primary">Ask inactive people now</button>
+              </form>
+            )}
           </section>
           <Table
             columns={["AI", "Person", "Asked", "Answer", { label: "Saves", className: "text-right" }, ""]}
@@ -215,9 +225,10 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                   </span>
                 </td>
                 <td className={`${td} text-right tabular text-ink-100`}>{c.perSeatEur && c.state !== "keep" ? `${fmtEur(c.perSeatEur)}/mo` : "—"}</td>
-                <td className={`${td} text-right`}>
+                <td className={`${td} text-right whitespace-nowrap`}>
+                  {(c.state === "release" || c.state === "no_reply") && <SeatRemoveButton assetId={c.assetId} email={c.email} back="cleanup" />}
                   {(c.state === "release" || c.state === "no_reply") && (
-                    <form action={markSeatRemovedAction}>
+                    <form action={markSeatRemovedAction} className="inline-block ml-2">
                       <input type="hidden" name="id" value={c.id} />
                       <button className="btn btn-secondary btn-sm" title="Remove the seat in the provider's admin page first, then mark it here">Mark removed</button>
                     </form>
@@ -261,7 +272,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                 <tr key={p.email + p.assetId}>
                   <td className={td}>
                     <span className="block text-ink-100">{nameOf(p.email)}</span>
-                    {nameOf(p.email) !== p.email && <span className="block text-xs text-ink-400">{p.email}</span>}
+                    {nameOf(p.email) !== p.email && !isPseudonym(p.email) && <span className="block text-xs text-ink-400">{p.email}</span>}
                   </td>
                   <td className={td}>
                     <Link href={`/assets/${p.assetId}`} className="flex items-center gap-2 text-ink-100 hover:underline">
@@ -285,7 +296,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
           <FilterBar search={{ placeholder: "Search a person or AI" }} filters={aiOptions.length > 1 ? [{ param: "ai", label: "AI", options: aiOptions }] : []} />
           <Table columns={["When", "Person", "AI", { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, "Source"]} empty={events.length === 0 && "No connections recorded yet."}>
             {events
-              .filter((e) => (e.actorRef ?? "").includes("@") && match((e.actorRef ?? "").toLowerCase(), e.aiAsset.name))
+              .filter((e) => ((e.actorRef ?? "").includes("@") || isPseudonym(e.actorRef)) && match((e.actorRef ?? "").toLowerCase(), e.aiAsset.name))
               .slice(0, 300)
               .map((e) => (
                 <tr key={e.id}>

@@ -2,7 +2,7 @@
 
 import { currentOrgId } from "@/lib/org";
 import { requireRole, currentSession } from "@/lib/auth";
-import { issueSession } from "@/lib/auth-actions";
+import { issueSession } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { sendEmail, appOrigin } from "@/lib/mail";
 import { randomBytes } from "node:crypto";
@@ -11,8 +11,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { MemberRole, Plan } from "@prisma/client";
 import { db } from "@/lib/db";
-import { planById, withinLimit, PLANS, EDGE } from "@/lib/plans";
-import { stripeEnabled, stripePost } from "@/lib/stripe";
+import { planById, withinLimit, PLANS, EDGE, addonById, planRank } from "@/lib/plans";
+import { stripeEnabled, stripePost, checkoutCommonParams } from "@/lib/stripe";
+import { getPlanState } from "@/lib/plan-gate";
 
 const ROLES: MemberRole[] = ["OWNER", "ADMIN", "EDITOR", "VIEWER"];
 
@@ -93,10 +94,10 @@ export async function createShareLinkAction(formData: FormData) {
   await requireRole("EDITOR", "/workspace?tab=sharing");
   const name = String(formData.get("name") ?? "").trim() || "AI estate overview";
   const days = Number(formData.get("expiresInDays") ?? 0);
-  const o = await org();
+  const o = { plan: (await getPlanState(currentOrgId())).effectivePlan };
   const active = await db.shareLink.count({ where: { organizationId: currentOrgId(), revokedAt: null } });
   if (!withinLimit(planById(o.plan).limits.sharedDashboards, active)) {
-    redirect(`/workspace?tab=sharing&error=${encodeURIComponent(`Your ${planById(o.plan).name} plan includes ${planById(o.plan).limits.sharedDashboards} shared dashboard. Upgrade for unlimited.`)}`);
+    redirect(`/workspace?tab=sharing&error=${encodeURIComponent(`Your ${planById(o.plan).name} plan includes ${planById(o.plan).limits.sharedDashboards} shared dashboard${planById(o.plan).limits.sharedDashboards === 1 ? "" : "s"}. Upgrade for more.`)}`);
   }
   const link = await db.shareLink.create({
     data: {
@@ -122,30 +123,85 @@ export async function revokeShareLinkAction(formData: FormData) {
 export async function startCheckoutAction(formData: FormData) {
   await requireRole("OWNER", "/billing");
   const plan = formData.get("plan") as Plan;
+  const annual = formData.get("interval") === "year";
+  const back = `/billing${annual ? "?billing=annual&" : "?"}`;
   const def = PLANS.find((p) => p.id === plan);
-  const price = def?.stripePriceEnv ? process.env[def.stripePriceEnv] : undefined;
-  if (!stripeEnabled() || !price) redirect(`/billing?error=${encodeURIComponent("Payments aren't connected on this deployment yet.")}`);
+  const envName = annual ? def?.stripeAnnualPriceEnv : def?.stripePriceEnv;
+  const price = envName ? process.env[envName] : undefined;
+  if (!stripeEnabled() || !price) {
+    redirect(`${back}error=${encodeURIComponent(annual && def?.stripePriceEnv && process.env[def.stripePriceEnv] ? "Annual billing isn't available yet — choose monthly." : "Payments aren't connected on this deployment yet.")}`);
+  }
 
   const o = await org();
+  let url = "";
+  try {
+    // Già abbonato: il cambio di piano passa dal portale Stripe (niente secondo abbonamento).
+    if (o.stripeSubscriptionId && o.stripeCustomerId) {
+      const portal = await stripePost<{ url: string }>("/billing_portal/sessions", {
+        customer: o.stripeCustomerId,
+        return_url: `${origin()}/billing`,
+        "flow_data[type]": "subscription_update",
+        "flow_data[subscription_update][subscription]": o.stripeSubscriptionId,
+      });
+      url = portal.url;
+    } else {
+      const session = await stripePost<{ url: string }>("/checkout/sessions", {
+        mode: "subscription",
+        "line_items[0][price]": price!,
+        "line_items[0][quantity]": "1",
+        success_url: `${origin()}/billing?checkout=success`,
+        cancel_url: `${origin()}/billing?checkout=cancelled`,
+        client_reference_id: o.id,
+        "metadata[organizationId]": o.id,
+        "metadata[plan]": plan,
+        "metadata[interval]": annual ? "year" : "month",
+        "subscription_data[metadata][organizationId]": o.id,
+        "subscription_data[metadata][plan]": plan,
+        ...checkoutCommonParams(o.stripeCustomerId),
+      });
+      url = session.url;
+    }
+  } catch (err) {
+    redirect(`${back}error=${encodeURIComponent((err as Error).message)}`);
+  }
+  await audit("billing.checkout_start", plan, { interval: annual ? "year" : "month" });
+  redirect(url);
+}
+
+/** Add-on (es. Compliance): abbonamento Stripe separato, sopra qualsiasi piano a pagamento. */
+export async function startAddonCheckoutAction(formData: FormData) {
+  await requireRole("OWNER", "/billing");
+  const addon = addonById(String(formData.get("addon") ?? ""));
+  const annual = formData.get("interval") === "year";
+  if (!addon) redirect("/billing");
+  const price = process.env[annual ? addon!.stripeAnnualPriceEnv : addon!.stripePriceEnv];
+  if (!stripeEnabled() || !price) redirect(`/billing?error=${encodeURIComponent(annual ? `The ${addon!.name} add-on isn't available with annual billing yet — choose monthly.` : "Payments aren't connected on this deployment yet.")}#addons`);
+
+  const o = await org();
+  if (o.addons.includes(addon!.id)) redirect(`/billing?error=${encodeURIComponent(`${addon!.name} is already active.`)}#addons`);
+  if (planRank(o.plan) >= planRank(addon!.includedFrom) && o.planStatus === "active") redirect(`/billing?error=${encodeURIComponent(`${addon!.name} is already included in your plan.`)}#addons`);
   let url = "";
   try {
     const session = await stripePost<{ url: string }>("/checkout/sessions", {
       mode: "subscription",
       "line_items[0][price]": price!,
       "line_items[0][quantity]": "1",
-      success_url: `${origin()}/billing?checkout=success`,
-      cancel_url: `${origin()}/billing?checkout=cancelled`,
+      success_url: `${origin()}/billing?checkout=addon#addons`,
+      cancel_url: `${origin()}/billing?checkout=cancelled#addons`,
       client_reference_id: o.id,
       "metadata[organizationId]": o.id,
-      "metadata[plan]": plan,
+      "metadata[kind]": "addon",
+      "metadata[addon]": addon!.id,
       "subscription_data[metadata][organizationId]": o.id,
-      "subscription_data[metadata][plan]": plan,
-      ...(o.stripeCustomerId ? { customer: o.stripeCustomerId } : {}),
+      "subscription_data[metadata][kind]": "addon",
+      "subscription_data[metadata][addon]": addon!.id,
+      ...checkoutCommonParams(o.stripeCustomerId),
     });
     url = session.url;
   } catch (err) {
-    redirect(`/billing?error=${encodeURIComponent((err as Error).message)}`);
+    redirect(`/billing?error=${encodeURIComponent((err as Error).message)}#addons`);
   }
+  await audit("billing.checkout_start", addon!.id, { interval: annual ? "year" : "month", kind: "addon" });
   redirect(url);
 }
 
@@ -185,7 +241,7 @@ export async function startEdgeCheckoutAction(formData: FormData) {
       "metadata[kind]": "edge",
       "subscription_data[metadata][organizationId]": o.id,
       "subscription_data[metadata][kind]": "edge",
-      ...(o.stripeCustomerId ? { customer: o.stripeCustomerId } : {}),
+      ...checkoutCommonParams(o.stripeCustomerId),
     });
     url = session.url;
   } catch (err) {
@@ -213,14 +269,14 @@ export async function createWorkspaceAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   if (!name) redirect(`/workspace?tab=workspaces&error=${encodeURIComponent("Give the workspace a name.")}`);
   const s = await requireRole("OWNER", "/workspace?tab=workspaces");
-  const current = await org();
-  const limit = planById(current.plan).limits.workspaces;
+  const { org: current, effectivePlan, trialEndsAt } = await getPlanState(currentOrgId());
+  const limit = planById(effectivePlan).limits.workspaces;
   const count = await db.workspaceMember.count({ where: { email: s.email, role: "OWNER" } });
   if (!withinLimit(limit, count)) {
-    redirect(`/workspace?tab=workspaces&error=${encodeURIComponent(`The ${planById(current.plan).name} plan includes ${limit} workspace${limit === 1 ? "" : "s"}. Upgrade to create more.`)}`);
+    redirect(`/workspace?tab=workspaces&error=${encodeURIComponent(`The ${planById(effectivePlan).name} plan includes ${limit} workspace${limit === 1 ? "" : "s"}. Upgrade to create more.`)}`);
   }
-  // Il nuovo workspace eredita il piano di quello corrente.
-  const created = await db.organization.create({ data: { name, plan: current.plan, planStatus: current.planStatus } });
+  // Il nuovo workspace eredita il piano di quello corrente, e la stessa fine prova (niente prove nuove a catena).
+  const created = await db.organization.create({ data: { name, plan: current.plan, planStatus: current.planStatus, trialEndsAt } });
   await db.workspaceMember.create({ data: { organizationId: created.id, email: s.email, name: s.name ?? null, role: "OWNER", status: "active" } });
   const account = await db.account.findUniqueOrThrow({ where: { id: s.accountId } });
   await issueSession(account, created.id);

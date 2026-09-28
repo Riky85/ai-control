@@ -3,7 +3,9 @@
  * (addebiti, posti, utenti attivi, modello usato). Nessun LLM, nessun numero
  * inventato: ogni suggerimento dice da dove viene e quanto è sicuro.
  */
+import * as React from "react";
 import { db } from "@/lib/db";
+import { countActive, SEAT_WINDOW_DAYS } from "@/lib/seats";
 import { AI_SERVICES } from "@/lib/discovery/catalog";
 import { matchMerchant } from "@/lib/pricing/merchants";
 import { PLANS, SERVICE_CATEGORY, CATEGORY_LABEL, categoryPlural, USD_TO_EUR, apiModelFor, cheaperModel, blended, estimateMonthlyEur, type Category } from "@/lib/pricing/catalog";
@@ -68,7 +70,11 @@ export function monthlyOf(
 export async function computeSavings(organizationId: string) {
   const [assets, dismissed, network] = await Promise.all([
     loadAssets(organizationId),
-    db.savingDismissal.findMany({ where: { organizationId }, select: { key: true } }),
+    // Nascosti: "not for us" e quelli già accettati nel registro dei risparmi (tranne i falliti).
+    db.savingDismissal.findMany({ where: { organizationId }, select: { key: true } }).then(async (d) => [
+      ...d,
+      ...(await db.savingAction.findMany({ where: { organizationId, savingKey: { not: null }, status: { not: "failed" } }, select: { savingKey: true } })).map((a) => ({ key: a.savingKey! })),
+    ]),
     db.connector.findUnique({ where: { organizationId_provider: { organizationId, provider: "NETWORK" } } }),
   ]);
   const out: Saving[] = [];
@@ -98,7 +104,7 @@ export async function computeSavings(organizationId: string) {
     }
 
     // 2. Posti pagati ma non usati (serve sapere chi è attivo).
-    const active = a.usages.filter((u) => u.lastSeenAt && now - u.lastSeenAt.getTime() < 30 * DAY).length;
+    const active = countActive(a.usages, SEAT_WINDOW_DAYS, now);
     if (seats && a.usages.length > 0 && active < seats) {
       const perSeat = m.eur / seats;
       const idle = seats - active;
@@ -243,3 +249,8 @@ export async function computeSavings(organizationId: string) {
   }
   return { items, totalMonthly: total, assets, byKind };
 }
+
+/** computeSavings una volta sola per richiesta (layout, pagina e componenti la condividono). */
+// cache() esiste solo nel livello server di React: fuori (job pianificati) si usa la funzione normale.
+const reactCache = (React as { cache?: <T extends (...a: never[]) => unknown>(fn: T) => T }).cache;
+export const computeSavingsCached = reactCache ? reactCache(computeSavings) : computeSavings;

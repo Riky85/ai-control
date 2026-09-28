@@ -4,7 +4,7 @@ import { currentOrgId } from "@/lib/org";
 import { PageHeader, StatCard, Table, td } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import { VendorBadge } from "@/components/VendorIcon";
-import { computeSavings, monthlyOf } from "@/lib/savings";
+import { computeSavingsCached, monthlyOf } from "@/lib/savings";
 import { savingsByAsset } from "@/components/AiTable";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 // Da chi dipendi e quanto paghi a ciascuno: quota di spesa, AI coinvolte,
 // risparmi possibili e rischio di concentrazione.
 export default async function ProvidersPage() {
-  const { items, assets } = await computeSavings(currentOrgId());
+  const { items, assets } = await computeSavingsCached(currentOrgId());
   const save = savingsByAsset(items);
 
   const byVendor = new Map<string, typeof assets>();

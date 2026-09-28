@@ -3,6 +3,7 @@
 import { currentOrgId } from "@/lib/org";
 import { requireRole, currentSession } from "@/lib/auth";
 import { audit } from "@/lib/audit";
+import { assetManageable, requireFeature } from "@/lib/plan-gate";
 import type { MemberRole } from "@prisma/client";
 
 // Ogni azione di scrittura: ruolo minimo verificato nel database, e gli ID
@@ -14,6 +15,9 @@ async function guard(min: MemberRole, action: string, formData?: FormData, back 
   if (assetId) {
     const ok = await db.aiAsset.count({ where: { id: String(assetId), organizationId: s.orgId } });
     if (!ok) redirect(`${back}?error=${encodeURIComponent("That AI system isn't in this workspace.")}`);
+    // Sistemi oltre il limite del piano: visibili, non modificabili (togliere un falso positivo resta sempre possibile).
+    const gate = formData?.get("decision") === "notai" ? null : await assetManageable(s.orgId, String(assetId));
+    if (gate && !gate.ok) redirect(`${back}?error=${encodeURIComponent(gate.message)}`);
   }
   const policyId = formData?.get("policyId");
   if (policyId) {
@@ -129,6 +133,7 @@ const KEY_TESTS: Partial<Record<ConnectorProvider, (key: string) => Promise<unkn
 export async function connectWithApiKeyAction(formData: FormData) {
   const session = await guard("ADMIN", "connector.connect", formData, "/connectors");
   const provider = formData.get("provider") as ConnectorProvider;
+  await requireFeature("connections", formData.get("next") === "review" ? "/onboarding" : "/connectors", { provider });
   const apiKey = String(formData.get("apiKey") ?? "").trim();
   const inFlow = formData.get("next") === "review";
   const back = (msg: string) =>
@@ -187,6 +192,7 @@ async function upsertManualAsset(input: { name: string; vendor?: string; type?: 
       })
     : null;
   const existing = await db.aiAsset.findFirst({ where: { organizationId: currentOrgId(), connectorId: null, name: input.name } });
+  if (!existing) await requireFeature("aiSystems", "/connectors");
   const data = {
     type,
     vendor: input.vendor || null,
@@ -271,6 +277,7 @@ export async function importCsvAction(formData: FormData) {
 // cifrato e scansionato.
 export async function connectGithubTokenAction(formData: FormData) {
   await guard("ADMIN", "connector.connect", undefined, "/connectors");
+  await requireFeature("connections", "/connectors#GITHUB", { provider: "GITHUB" });
   const token = String(formData.get("token") ?? "").trim();
   const org = String(formData.get("org") ?? "").trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/.*$/, "");
   const back = (msg: string) => redirect(`/connectors?error=${encodeURIComponent(msg)}&provider=GITHUB#GITHUB`);

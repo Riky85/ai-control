@@ -94,6 +94,7 @@ export async function syncFattureInCloudAction() {
 
 export async function startBankAuthAction(formData: FormData) {
   const s = await requireRole("ADMIN", "/sources/bank");
+  await (await import("@/lib/plan-gate")).requireFeature("connections", "/sources/bank", { provider: "BANK" });
   const { startBankAuth } = await import("@/lib/connectors/bank");
   const { signState } = await import("@/lib/oauth-state");
   const { appOrigin } = await import("@/lib/mail");

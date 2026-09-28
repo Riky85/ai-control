@@ -33,7 +33,6 @@ export default async function ClaimDevicePage({ searchParams }: { searchParams: 
         title="Link an angar device"
         subtitle="The box starts reporting to this workspace as soon as it's plugged into your network."
       />
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
       {problem && <Notice tone="error">{problem}</Notice>}
 
       {!serial || problem ? (

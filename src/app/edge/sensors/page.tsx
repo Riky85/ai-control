@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { currentSession } from "@/lib/auth";
+import { featureEnabled } from "@/lib/plan-gate";
+import { LockedNote } from "@/components/LockedFeature";
 import { db } from "@/lib/db";
 import { appUrl } from "@/lib/alerts";
 import { privacyModeOf, PRIVACY_MODES } from "@/lib/privacy";
@@ -111,8 +113,8 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
         subtitle="Network sensors that see every AI your company reaches — from DNS, firewall or cloud logs. Never content or URLs."
         action={<Link href="/edge" className="btn btn-secondary">About angar Edge</Link>}
       />
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
       {searchParams.notice && <Notice tone="success">{searchParams.notice}</Notice>}
+      {!(await featureEnabled(orgId, "edgeSensors")) && <Notice><span className="inline-flex flex-wrap items-center gap-x-2">New software and cloud-log sensors need Growth; angar devices work on any plan. <LockedNote feature="edgeSensors" /></span></Notice>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Sensors online" value={`${online}/${sensors.length}`} hint={sensors.length ? "Reporting in the last 15 min" : "Add your first sensor below"} tone={sensors.length && online < sensors.length ? "signal" : undefined} />

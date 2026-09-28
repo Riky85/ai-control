@@ -2,8 +2,47 @@ import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { appUrl } from "@/lib/alerts";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
+import { isPseudonym } from "@/lib/discovery/pseudonym";
 
 const DAY = 86400000;
+
+/**
+ * Posti attivi: UNA sola definizione per tutta la piattaforma (Usage, risparmi,
+ * avvisi di rinnovo): persone con AiAssetUsage.lastSeenAt negli ultimi 30 giorni.
+ */
+export const SEAT_WINDOW_DAYS = 30;
+
+type UsageLike = { lastSeenAt: Date | null };
+
+/** Posti attivi da righe d'uso già caricate. */
+export function countActive(usages: readonly UsageLike[], windowDays = SEAT_WINDOW_DAYS, now = Date.now()): number {
+  const cutoff = now - windowDays * DAY;
+  return usages.filter((u) => u.lastSeenAt && u.lastSeenAt.getTime() >= cutoff).length;
+}
+
+/** Posti pagati non usati: solo se si sa chi la usa (almeno una persona nota). */
+export function idleSeats(seats: number | null | undefined, active: number, known: number): number {
+  return seats && known > 0 ? Math.max(0, seats - active) : 0;
+}
+
+/** Posti attivi di un'AI (id → count nel database; oggetto con usages → conteggio in memoria). */
+export async function activeSeats(asset: string | { usages: readonly UsageLike[] }, windowDays = SEAT_WINDOW_DAYS): Promise<number> {
+  if (typeof asset !== "string") return countActive(asset.usages, windowDays);
+  return db.aiAssetUsage.count({ where: { aiAssetId: asset, lastSeenAt: { gte: new Date(Date.now() - windowDays * DAY) } } });
+}
+
+/** Per più AI in una volta, aggregato in SQL: persone note e attive per AI. */
+export async function seatStats(assetIds: string[], windowDays = SEAT_WINDOW_DAYS): Promise<Map<string, { active: number; known: number }>> {
+  const out = new Map<string, { active: number; known: number }>();
+  if (!assetIds.length) return out;
+  const [known, active] = await Promise.all([
+    db.aiAssetUsage.groupBy({ by: ["aiAssetId"], where: { aiAssetId: { in: assetIds } }, _count: { _all: true } }),
+    db.aiAssetUsage.groupBy({ by: ["aiAssetId"], where: { aiAssetId: { in: assetIds }, lastSeenAt: { gte: new Date(Date.now() - windowDays * DAY) } }, _count: { _all: true } }),
+  ]);
+  for (const k of known) out.set(k.aiAssetId, { known: k._count._all, active: 0 });
+  for (const a of active) out.set(a.aiAssetId, { known: out.get(a.aiAssetId)?.known ?? a._count._all, active: a._count._all });
+  return out;
+}
 
 /**
  * Chiede a chi non usa un'AI da 30 giorni se il posto serve ancora. Ogni
@@ -22,8 +61,11 @@ export async function sendSeatReminders(organizationId: string, assetId: string,
     include: { usages: { include: { user: true } } },
   });
   if (!asset) return { asked: 0, sent: 0, reason: "Not found" };
-  const cutoff = Date.now() - 30 * DAY;
-  const inactive = asset.usages.filter((u) => u.user?.email && (!u.lastSeenAt || u.lastSeenAt.getTime() < cutoff)).map((u) => u.user!.email.toLowerCase());
+  const cutoff = Date.now() - SEAT_WINDOW_DAYS * DAY;
+  // Uno pseudonimo (dati raccolti con un'altra modalità privacy) non è un indirizzo email.
+  const inactive = asset.usages
+    .filter((u) => u.user?.email && !isPseudonym(u.user.email) && (!u.lastSeenAt || u.lastSeenAt.getTime() < cutoff))
+    .map((u) => u.user!.email.toLowerCase());
   if (!inactive.length) return { asked: 0, sent: 0, reason: "Everyone known has used it in the last 30 days." };
   if (!emailEnabled()) return { asked: inactive.length, sent: 0, reason: "Email isn't configured on this deployment." };
 
@@ -39,6 +81,7 @@ export async function sendSeatReminders(organizationId: string, assetId: string,
       update: { token, sentAt: new Date(), respondedAt: null, response: null, removedAt: null },
     });
     const link = `${appUrl()}/seat/${token}`;
+    void import("@/lib/chat-actions").then((m) => m.sendSeatCheckDm({ token, email, assetName: asset.name, orgName: org?.name ?? "Your company" })).catch(() => {}); // Slack DM (se c'è il bot)
     const r = await sendEmail({
       to: email,
       subject: `Do you still need your ${asset.name} seat?`,

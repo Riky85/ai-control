@@ -25,6 +25,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
             <form action={sendReportNowAction}>
               <button className="btn btn-secondary">Email it to me</button>
             </form>
+            <Link href="/report/board" className="btn btn-secondary">Board pack</Link>
             <PrintButton />
           </div>
         }

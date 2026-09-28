@@ -11,6 +11,7 @@ import { db } from "@/lib/db";
 import { readiness, LITERACY_EVIDENCE, TIER_LABEL } from "@/lib/compliance";
 import { canonicalJson, verifyAuditChain, type ChainResult } from "@/lib/audit";
 import { privacyModeOf, showsPeople, type PrivacyMode } from "@/lib/privacy";
+import { ackSummaryForPack } from "@/lib/policy-ack";
 
 const DAY = 86400000;
 const SENSOR_ONLINE_MS = 15 * 60 * 1000; // i sensori riportano ogni 5 minuti
@@ -56,6 +57,8 @@ export interface EvidencePack {
     checks: { key: string; label: string; detail: string; weight: number; points: number }[];
   };
   aiLiteracy: { date: string; summary: string; recordedBy: string | null }[];
+  // Presa visione della policy AI + mini-modulo di literacy (sempre aggregato, mai per persona).
+  policyAcknowledgement: Awaited<ReturnType<typeof ackSummaryForPack>>;
   policies: { name: string; description: string; category: string; enabled: boolean; updatedAt: string }[];
   networkControls: { name: string; vendor: string | null; suggestedInstead: string | null }[];
   edgeSensors: { total: number; online: number; lastSeen: string | null; sensors: { name: string; kind: string; online: boolean; lastSeen: string | null; dns: boolean; firewallLogs: boolean; blocking: boolean }[] };
@@ -95,6 +98,7 @@ export async function buildEvidencePack(orgId: string, generatedBy: string | nul
     db.workspaceMember.findMany({ where: { organizationId: orgId }, select: { email: true } }),
   ]);
   if (!org) throw new Error("Organisation not found");
+  const policyAcknowledgement = await ackSummaryForPack(orgId);
 
   const mode = privacyModeOf(org);
   const people = showsPeople(mode);
@@ -165,7 +169,9 @@ export async function buildEvidencePack(orgId: string, generatedBy: string | nul
       missingOwners: r.missingOwners,
       checks: r.checks.map((c) => ({ key: c.key, label: c.label, detail: c.detail, weight: c.weight, points: Math.round(c.weight * c.fraction) })),
     },
-    aiLiteracy: literacy.map((e) => ({ date: e.createdAt.toISOString(), summary: e.summary, recordedBy: ((e.payload as { recordedBy?: string } | null)?.recordedBy as string | undefined) ?? null })),
+    policyAcknowledgement,
+    // Le conferme per persona sono già riassunte in policyAcknowledgement.
+    aiLiteracy: literacy.filter((e) => (e.payload as { kind?: string } | null)?.kind !== "policy_ack").map((e) => ({ date: e.createdAt.toISOString(), summary: e.summary, recordedBy: ((e.payload as { recordedBy?: string } | null)?.recordedBy as string | undefined) ?? null })),
     policies: policies.map((p) => ({ name: p.name, description: p.description, category: p.category, enabled: p.enabled, updatedAt: p.updatedAt.toISOString() })),
     networkControls: assetsExtra
       .filter((a) => a.blockOnNetwork)

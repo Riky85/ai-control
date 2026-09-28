@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { MODEL_LABEL } from "@/lib/edge/device-id";
 import { currentSession } from "@/lib/auth";
+import { featureEnabled } from "@/lib/plan-gate";
+import { LockedNote } from "@/components/LockedFeature";
 import Link from "next/link";
 import { partnerClients, partnerFleet, partnerEconomics } from "@/lib/partner";
 import { planById, EDGE } from "@/lib/plans";
@@ -43,7 +45,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
           </form>
         }
       />
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
+      {!(await featureEnabled(s.orgId, "partnerConsole")) && <Notice><span className="inline-flex flex-wrap items-center gap-x-2">The partner console is read-only on your plan. <LockedNote feature="partnerConsole" /></span></Notice>}
 
       <div className="grid grid-cols-4 gap-4">
         <StatCard label="Clients" value={String(clients.length)} hint={onlyOwn ? "Add your first client workspace" : "Workspaces you're a member of"} tone="accent" />

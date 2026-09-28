@@ -5,7 +5,6 @@ const ITEMS = [
   { href: "/compliance", label: "AI Act" },
   { href: "/data", label: "Data exposure" },
   { href: "/activity", label: "Activity" },
-  { href: "/changes", label: "Changes" },
 ];
 
 // Le pagine di governance come un'unica sezione: una sola voce in sidebar,

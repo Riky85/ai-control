@@ -16,9 +16,10 @@ const HIDE_KEY = "angar:wizard-hidden";
 
 // Wizard di avvio: guida l'utente nei 3 passi che rendono angar utile
 // (costi → uso → team). Ogni passo si spunta da solo dai dati reali.
-// Si può chiudere; quando i passi sono tutti fatti, sparisce comunque.
+// Aperto: come il blocco Download (bagliore arancio, anteprima a destra).
+// Chiuso: una barra sottile con l'avanzamento e il prossimo passo.
 export default function SetupWizard({ steps }: { steps: WizardStep[] }) {
-  // null finché non si legge la preferenza: niente lampeggio tra chip e wizard.
+  // null finché non si legge la preferenza: niente lampeggio tra barra e wizard.
   const [hidden, setHidden] = useState<boolean | null>(null);
   useEffect(() => {
     try {
@@ -27,72 +28,150 @@ export default function SetupWizard({ steps }: { steps: WizardStep[] }) {
       setHidden(false);
     }
   }, []);
+  const store = (v: boolean) => {
+    try {
+      if (v) localStorage.setItem(HIDE_KEY, "1");
+      else localStorage.removeItem(HIDE_KEY);
+    } catch {
+      /* best-effort */
+    }
+    setHidden(v);
+  };
 
   const doneCount = steps.filter((s) => s.done).length;
   if (hidden === null || doneCount === steps.length) return null;
-  // Chiuso: resta una piccola pillola per riaprirlo.
+  const activeIdx = steps.findIndex((s) => !s.done);
+  const next = steps[activeIdx];
+
   if (hidden)
     return (
-      <button
-        onClick={() => {
-          try {
-            localStorage.removeItem(HIDE_KEY);
-          } catch {
-            /* best-effort */
-          }
-          setHidden(false);
-        }}
-        className="self-start inline-flex items-center gap-2 rounded-full border border-line bg-panel px-3 py-1.5 text-xs text-ink-400 hover:text-ink-100 hover:border-accent/50 transition-colors"
-      >
-        <span className="h-4 w-4 rounded-full bg-accent/15 text-accent text-[10px] font-semibold flex items-center justify-center">{doneCount}</span>
-        Setup guide · {doneCount} of {steps.length} done — show
-      </button>
+      <section className="relative overflow-hidden rounded-xl border border-line bg-panel flex items-center gap-4 pl-4 pr-3 py-3">
+        <div aria-hidden className="pointer-events-none absolute -left-16 -top-20 h-40 w-40 rounded-full bg-accent/15 blur-3xl" />
+        <Ring done={doneCount} total={steps.length} />
+        <div className="relative flex-1 min-w-0">
+          <div className="text-sm font-medium text-ink-100">Setup guide · {doneCount} of {steps.length} done</div>
+          <div className="text-xs text-ink-400 truncate">Next: {next.title}</div>
+        </div>
+        <Link href={next.href} className="relative btn btn-primary btn-sm shrink-0">
+          {next.cta}
+        </Link>
+        <button onClick={() => store(false)} className="relative btn btn-ghost btn-sm shrink-0">
+          Show steps
+        </button>
+      </section>
     );
-  // Il primo passo non ancora completato è quello "attivo".
-  const activeIdx = steps.findIndex((s) => !s.done);
 
   return (
-    <section className="rounded-xl border border-accent/40 bg-panel overflow-hidden">
-      <div className="flex items-center justify-between gap-4 px-5 pt-4 pb-3">
-        <div>
-          <h2 className="text-base font-semibold text-ink-100">Get angar working — {doneCount} of {steps.length} done</h2>
-          <p className="text-sm text-ink-400">Three quick steps. Each ticks itself once the data arrives.</p>
+    <section className="relative overflow-hidden rounded-2xl border border-line bg-panel grid grid-cols-1 lg:grid-cols-[1fr_auto]">
+      <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
+      <button
+        onClick={() => store(true)}
+        aria-label="Hide the setup guide"
+        className="absolute right-3 top-3 z-10 h-8 w-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-ink-100 hover:bg-ink-100/[0.06] transition-colors"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M2 2l8 8M10 2l-8 8" /></svg>
+      </button>
+
+      <div className="relative p-6 lg:p-7 flex flex-col gap-4 min-w-0">
+        <div className="flex items-center gap-2 text-xs text-ink-400">
+          <span className="rounded-full border border-accent/40 px-2 py-0.5 text-accent font-medium tabular">
+            {doneCount} of {steps.length} done
+          </span>
+          <span>Setup guide</span>
         </div>
-        <button
-          onClick={() => {
-            try {
-              localStorage.setItem(HIDE_KEY, "1");
-            } catch {
-              /* best-effort */
-            }
-            setHidden(true);
-          }}
-          className="text-xs text-ink-400 hover:text-ink-100 shrink-0"
-        >
-          Dismiss
-        </button>
+        <div>
+          <h2 className="font-display text-[24px] leading-tight font-semibold tracking-tight text-ink-100">Get angar working in 3 steps</h2>
+          <p className="text-sm text-ink-400 mt-1 max-w-md">Each step ticks itself as soon as the data arrives — you&apos;ll see your AI, costs and savings here.</p>
+        </div>
+        <div className="h-1.5 w-full max-w-md rounded-full bg-ink-100/[0.07] overflow-hidden">
+          <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${Math.max(6, (doneCount / steps.length) * 100)}%` }} />
+        </div>
+        <ol className="flex flex-col gap-1.5 max-w-xl">
+          {steps.map((s, i) => {
+            const active = i === activeIdx;
+            return (
+              <li key={s.key} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 ${active ? "bg-accent/[0.07] border border-accent/30" : "border border-transparent"}`}>
+                <span className={`h-6 w-6 shrink-0 rounded-full flex items-center justify-center text-xs font-semibold ${s.done ? "bg-steady text-white" : active ? "bg-accent text-white" : "border border-line text-ink-400"}`}>
+                  {s.done ? <Check /> : i + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className={`text-sm font-medium ${s.done ? "text-ink-400 line-through" : "text-ink-100"}`}>{s.title}</div>
+                  {active && <div className="text-xs text-ink-400 mt-0.5">{s.desc}</div>}
+                </div>
+                {!s.done && (
+                  <Link href={s.href} className={`btn btn-sm shrink-0 ${active ? "btn-primary" : "btn-ghost"}`}>
+                    {s.cta}
+                  </Link>
+                )}
+              </li>
+            );
+          })}
+        </ol>
       </div>
-      <div className="h-1 w-full bg-ink-100/[0.06]">
-        <div className="h-full bg-accent transition-all" style={{ width: `${(doneCount / steps.length) * 100}%` }} />
+
+      <div className="relative hidden lg:flex items-end justify-center px-8 pt-8">
+        <Preview />
       </div>
-      <div className="divide-y divide-line border-t border-line">
-        {steps.map((s, i) => (
-          <div key={s.key} className={`flex items-center gap-4 px-5 py-3.5 ${i === activeIdx ? "bg-accent/[0.04]" : ""}`}>
-            <span className={`h-6 w-6 shrink-0 rounded-full flex items-center justify-center text-xs font-semibold ${s.done ? "bg-steady text-white" : i === activeIdx ? "bg-accent text-white" : "border border-line text-ink-400"}`}>
-              {s.done ? "✓" : i + 1}
-            </span>
+    </section>
+  );
+}
+
+function Check() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 6.5l2.3 2.3 4.7-5" /></svg>
+  );
+}
+
+/** Anello di avanzamento per la barra chiusa. */
+function Ring({ done, total }: { done: number; total: number }) {
+  const r = 15;
+  const c = 2 * Math.PI * r;
+  return (
+    <span className="relative h-10 w-10 shrink-0">
+      <svg width="40" height="40" viewBox="0 0 40 40" className="-rotate-90">
+        <circle cx="20" cy="20" r={r} fill="none" strokeWidth="3" className="stroke-ink-100/10" />
+        <circle cx="20" cy="20" r={r} fill="none" strokeWidth="3" strokeLinecap="round" className="stroke-accent" strokeDasharray={c} strokeDashoffset={c * (1 - Math.max(0.04, done / total))} />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-ink-100 tabular">
+        {done}/{total}
+      </span>
+    </span>
+  );
+}
+
+/** Anteprima di cosa si vede a setup finito (numeri d'esempio), come nel blocco Download. */
+function Preview() {
+  const rows: [string, string, string, boolean][] = [
+    ["ChatGPT", "10 seats · 3 used", "€305", true],
+    ["Claude", "Team · 6 seats", "€150", false],
+    ["Copilot", "Business · 8 seats", "€168", false],
+  ];
+  return (
+    <div className="w-[290px] rounded-t-xl border border-b-0 border-line bg-sidebar shadow-[0_-10px_60px_rgba(0,0,0,0.35)] select-none" aria-hidden>
+      <div className="grid grid-cols-2 gap-2 p-3">
+        <div className="rounded-lg border border-line bg-panel px-3 py-2">
+          <div className="text-[10px] text-ink-400">AI in use</div>
+          <div className="font-display text-[20px] font-semibold tabular text-ink-100 leading-tight">13</div>
+        </div>
+        <div className="rounded-lg border border-accent/40 bg-panel px-3 py-2">
+          <div className="text-[10px] text-ink-400">You could save</div>
+          <div className="font-display text-[20px] font-semibold tabular text-accent leading-tight">
+            €683<span className="text-[10px] text-ink-400 font-normal">/mo</span>
+          </div>
+        </div>
+      </div>
+      <div className="mx-3 mb-3 rounded-lg border border-line bg-panel divide-y divide-line">
+        {rows.map(([n, info, eur, flag]) => (
+          <div key={n} className="flex items-center gap-2.5 px-3 py-2">
+            <span className="h-6 w-6 rounded-md bg-ink-100/[0.08] text-[10px] font-semibold text-ink-100 flex items-center justify-center">{n[0]}</span>
             <div className="flex-1 min-w-0">
-              <div className={`text-sm font-medium ${s.done ? "text-ink-400 line-through" : "text-ink-100"}`}>{s.title}</div>
-              {!s.done && <div className="text-xs text-ink-400 mt-0.5">{s.desc}</div>}
+              <div className="text-[11px] text-ink-100">{n}</div>
+              <div className={`text-[10px] ${flag ? "text-signal" : "text-ink-400"}`}>{info}</div>
             </div>
-            {!s.done && (
-              <Link href={s.href} className={`btn btn-sm shrink-0 ${i === activeIdx ? "btn-primary" : "btn-secondary"}`}>
-                {s.cta}
-              </Link>
-            )}
+            <div className="text-[11px] tabular text-ink-100 font-medium">{eur}</div>
           </div>
         ))}
       </div>
-    </section>
+    </div>
   );
 }

@@ -1,7 +1,10 @@
 import ExcelJS from "exceljs";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
+import { planGate } from "@/lib/plan-gate";
+import { appOrigin } from "@/lib/mail";
 import { computeSavings, categoryOf } from "@/lib/savings";
+import { vendorRiskColumns } from "@/lib/vendor-risk";
 import { groupByDepartment, maskCount, orgPrivacyMode, showsPeople, type PrivacyMode } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +62,7 @@ async function build(dataset: string, orgId: string, mode: PrivacyMode = "indivi
             "Data it touches": a.dataAccess.map((d) => `${d.dataAsset.name} (${label(d.dataAsset.sensitivity)})`).join(", ") || null,
             "EU AI Act risk class": TIER[a.euAiActTier] ?? a.euAiActTier, "angar risk": label(a.riskAssessments[0]?.level),
             "Cost €/month": eur(a.cost?.monthlyCostEstimate), "In use since": day(a.firstSeenAt), "Last seen": day(a.lastSeenAt),
+            ...vendorRiskColumns(a),
           })),
         },
         {
@@ -167,6 +171,8 @@ async function build(dataset: string, orgId: string, mode: PrivacyMode = "indivi
 
 export async function GET(_req: Request, { params }: { params: { dataset: string } }) {
   const orgId = currentOrgId();
+  const gate = params.dataset === "register" ? await planGate(orgId, "registerExport") : null;
+  if (gate && !gate.ok) return Response.redirect(`${appOrigin(_req.headers)}/billing?error=${encodeURIComponent(gate.message)}`, 303);
   const [org, data] = await Promise.all([db.organization.findUnique({ where: { id: orgId } }), orgPrivacyMode(orgId).then((mode) => build(params.dataset, orgId, mode))]);
   if (!data) return new Response("Unknown export", { status: 404 });
 

@@ -85,7 +85,8 @@ export default async function ConnectorsPage({
           <b>{searchParams.imported} AI system{searchParams.imported === "1" ? "" : "s"} imported.</b> See them in <a href="/" className="underline">Your AI</a>.
         </Notice>
       )}
-      {searchParams.error && !searchParams.provider && <Notice tone="error">{searchParams.error}</Notice>}
+      {/* Errore di una connessione: resta accanto a quella connessione, non nel toast globale. */}
+      {searchParams.error && searchParams.provider && <span data-keeps-url-error hidden />}
 
       <Section title="AI providers" subtitle="A normal API key is enough. Admin keys (Anthropic, OpenAI) also bring in users and exact costs.">
         {AI_PROVIDERS.map((p) => {

@@ -5,6 +5,8 @@ import { currentOrgId } from "@/lib/org";
 import Badge from "@/components/Badge";
 import { VendorBadge } from "@/components/VendorIcon";
 import { reviewAssetAction } from "@/lib/actions";
+import { currentSession } from "@/lib/auth";
+import { isPseudonym } from "@/lib/discovery/pseudonym";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +17,8 @@ const LEVEL_RANK: Record<string, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LO
 // Coda di revisione: lista a sinistra, pannello di decisione a destra.
 export default async function ReviewPage({ searchParams }: { searchParams: { id?: string; skip?: string; reviewed?: string; from?: string; found?: string } }) {
   const orgId = currentOrgId();
+  // I viewer vedono la coda ma non decidono (l'azione lo ricontrolla comunque).
+  const canDecide = currentSession()?.role !== "VIEWER";
   const skipped = (searchParams.skip ?? "").split(",").filter(Boolean);
   const [pending, users, reviewedCount] = await Promise.all([
     db.aiAsset.findMany({
@@ -75,7 +79,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
         action={searchParams.reviewed ? <span className="text-sm text-steady mr-2">✓ {searchParams.reviewed} reviewed</span> : undefined}
       />
 
-      <div className="grid grid-cols-[320px_1fr] gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 items-start">
         <ul className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
           {queue.map((a) => {
             const lvl = a.riskAssessments[0]?.level;
@@ -118,7 +122,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
             <Link href={`/assets/${current.id}`} className="btn btn-secondary btn-sm">Open passport</Link>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <h3 className="text-sm font-medium text-ink-100 mb-2">Why it matters</h3>
               <ul className="flex flex-col gap-1.5 text-sm text-ink-400">
@@ -158,12 +162,12 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="transition-transform group-open:rotate-90"><path d="M3.5 2l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 Change owner (optional)
               </summary>
-              <div className="grid grid-cols-2 gap-4 mt-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                 <label className="flex flex-col gap-1.5 text-sm text-ink-100">
                   Owner
                   <select name="ownerId" defaultValue={current.ownerId ?? ""} className={INPUT}>
                     <option value="">Keep as is</option>
-                    {users.map((u) => (
+                    {users.filter((u) => !isPseudonym(u.email)).map((u) => (
                       <option key={u.id} value={u.id}>{u.name ?? u.email}</option>
                     ))}
                   </select>
@@ -172,9 +176,10 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
               </div>
             </details>
             <div className="flex items-center gap-3">
-              <button name="decision" value="approve" className="btn btn-primary">Approve</button>
-              <button name="decision" value="reject" className="btn btn-secondary">Not allowed</button>
-              {current.externalId?.startsWith("net:cand") && (
+              {!canDecide && <span className="text-sm text-ink-400">Viewers can&apos;t decide — ask an editor.</span>}
+              {canDecide && <button name="decision" value="approve" className="btn btn-primary">Approve</button>}
+              {canDecide && <button name="decision" value="reject" className="btn btn-secondary">Not allowed</button>}
+              {canDecide && current.externalId?.startsWith("net:cand") && (
                 <button name="decision" value="notai" className="btn btn-secondary">Not AI — remove</button>
               )}
               <Link href={`/review?skip=${nextSkip}`} className="ml-auto text-sm text-ink-400 hover:text-ink-100">Decide later →</Link>
