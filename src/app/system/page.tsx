@@ -43,6 +43,8 @@ export default async function SystemPage() {
     ["Backups", Boolean(backupFresh), lastOkBackup ? `Last good backup ${fmtDateTime(lastOkBackup.startedAt)}` : "No successful backup yet"],
     ["Email (invites, password reset)", emailEnabled(), emailEnabled() ? "Sending via Resend" : "Not set up — needs RESEND_API_KEY and EMAIL_FROM"],
     ["Payments", stripeEnabled(), stripeEnabled() ? "Stripe connected" : "Not set up — needs Stripe keys"],
+    ["Microsoft / Google sign-in", Boolean(process.env.AUTH_MICROSOFT_CLIENT_ID || process.env.MS365_CLIENT_ID || process.env.AUTH_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID), process.env.AUTH_MICROSOFT_CLIENT_ID || process.env.MS365_CLIENT_ID || process.env.AUTH_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID ? "Buttons shown on sign-in" : "Hidden — needs AUTH_MICROSOFT_* or AUTH_GOOGLE_* keys"],
+    ["Slack one-click buttons", Boolean(process.env.SLACK_SIGNING_SECRET && process.env.SLACK_BOT_TOKEN), process.env.SLACK_SIGNING_SECRET && process.env.SLACK_BOT_TOKEN ? "Active" : "Optional — links used instead (SLACK_SIGNING_SECRET, SLACK_BOT_TOKEN)"],
     ["Error tracking", true, `${errors24h} error${errors24h === 1 ? "" : "s"} in the last 24 h`],
     ["Scheduler (alerts, costs, reports)", jobs.length > 0, jobs[0] ? `Last run: ${jobs[0].name} ${jobs[0].key} at ${fmtDateTime(jobs[0].ranAt)}` : "Waiting for the first daily run (after 7:00 Rome time)"],
   ];

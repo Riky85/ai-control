@@ -12,6 +12,7 @@ import AlertsBell from "@/components/AlertsBell";
 import ScrollReset from "@/components/ScrollReset";
 import { desktopDeviceCounts } from "@/lib/discovery/devices";
 import UrlNotice from "@/components/UrlNotice";
+import AreaTabs from "@/components/AreaTabs";
 import { TRIAL_DAYS } from "@/lib/plans";
 import { fmtDate } from "@/lib/format";
 import { getPlanState } from "@/lib/plan-gate";
@@ -117,6 +118,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Suspense fallback={null}>
               <UrlNotice />
             </Suspense>
+            <AreaTabs />
             {children}
           </main>
           <AskDocs docs={DOCS.map(({ slug, title, section, summary }) => ({ slug, title, section, summary }))} />

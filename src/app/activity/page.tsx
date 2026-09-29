@@ -1,5 +1,4 @@
 import FilterBar from "@/components/FilterBar";
-import GovernanceNav from "@/components/GovernanceNav";
 import ChangesTab from "./ChangesTab";
 import { fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
@@ -49,7 +48,6 @@ export default async function ActivityPage({ searchParams }: { searchParams: { q
 
   return (
     <div className="flex flex-col gap-5">
-      <GovernanceNav active="/activity" />
       <PageHeader
         title="Activity"
         subtitle={"What every connector observed, what changed between syncs, and the evidence trail behind every control."}

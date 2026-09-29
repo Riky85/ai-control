@@ -23,6 +23,8 @@ export default async function SignInSecurityPanel({ message }: { message?: strin
         {message && message !== "ok" && <div className="mb-3"><Notice tone="error">{message}</Notice></div>}
         <form action={setSignInSecurityAction} className="flex flex-col gap-3">
           <fieldset disabled={!isOwner} className="flex flex-col gap-3">
+            {/* Senza SSO configurato sulla piattaforma le opzioni SSO non si mostrano (restano solo se già attive). */}
+            {(ssoOn || org.ssoRequired) && (<>
             <label className="flex items-start gap-3 text-sm cursor-pointer">
               <input type="checkbox" name="ssoRequired" defaultChecked={org.ssoRequired} disabled={!ssoOn && !org.ssoRequired} className="mt-0.5 accent-accent" />
               <span>
@@ -34,6 +36,7 @@ export default async function SignInSecurityPanel({ message }: { message?: strin
               Only for emails at (optional)
               <input name="ssoDomain" defaultValue={org.ssoDomain ?? ""} placeholder="company.com — empty = everyone" className="field w-full" />
             </label>
+            </>)}
             <label className="flex items-start gap-3 text-sm cursor-pointer">
               <input type="checkbox" name="mfaRequired" defaultChecked={org.mfaRequired} className="mt-0.5 accent-accent" />
               <span>

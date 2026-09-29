@@ -10,7 +10,7 @@ export const NAV_PAGES: NavPage[] = [
   { href: "/", label: "Overview", keywords: "home dashboard start" },
   { href: "/savings", label: "Savings", keywords: "save money risparmi cut costs waste unused seats" },
   { href: "/usage", label: "Usage", keywords: "who uses people activity seats active for each person" },
-  { href: "/review", label: "Review", keywords: "approve pending new found shadow ai decide" },
+  { href: "/review", label: "Overview → To review", keywords: "approve pending new found shadow ai decide" },
   { href: "/sources", label: "Sources", keywords: "connect bank invoices microsoft google integrations" },
   { href: "/download?view=other", label: "Other ways to find AI (extension, scan, logs)", keywords: "desktop app scan install computers agent download shadow ai" },
   { href: "/people", label: "People", keywords: "employees users staff owners who department person" },
@@ -33,7 +33,7 @@ export const NAV_PAGES: NavPage[] = [
   { href: "/partner", label: "Partner console", keywords: "clients accountant msp multi workspace customers" },
   { href: "/edge", label: "angar Edge", keywords: "device hardware network sensor dns appliance box always on" },
   { href: "/download?view=computers", label: "Connected computers", keywords: "devices desktop app installed status connected agents" },
-  { href: "/download", label: "Download the app", keywords: "install desktop app agent get windows mac" },
+  { href: "/download", label: "Sources → Desktop app", keywords: "install desktop app agent get windows mac" },
 ];
 
 /**

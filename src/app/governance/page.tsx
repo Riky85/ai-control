@@ -1,6 +1,5 @@
 import { currentOrgId } from "@/lib/org";
 import { currentSession } from "@/lib/auth";
-import GovernanceNav from "@/components/GovernanceNav";
 import { db } from "@/lib/db";
 import { PageHeader, StatCard, Tabs } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
@@ -50,7 +49,6 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
 
   return (
     <div className="flex flex-col gap-5">
-      <GovernanceNav active="/governance" />
       <PageHeader
         title="Governance"
         subtitle="Policies and assurance for every AI. New AI is reviewed in the review queue."

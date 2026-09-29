@@ -7,6 +7,7 @@ import { signOutAction } from "@/lib/auth-actions";
 import Logo, { Wordmark } from "./Logo";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 import WorkspaceSwitcher, { type WorkspaceOption } from "./WorkspaceSwitcher";
+import { AREAS, locate } from "@/lib/areas";
 
 // Icone minimali, un solo stroke-width, coerenti tra loro — niente set di
 // icone eterogeneo preso da librerie diverse.
@@ -85,44 +86,13 @@ function PanelToggleIcon() {
   );
 }
 
-// Due gruppi, non una lista piatta di 10 voci: le 5 cose che rispondono
-// davvero alla domanda del prodotto (cosa abbiamo, da chi dipende, cosa
-// costa, cosa cambia) in evidenza; il resto — supporto/governance — sotto,
-// visivamente più piccolo e silenzioso. Meno cose in vista = più facile
-// da capire al primo sguardo.
-// Il percorso principale: vedi → rivedi → approfondisci → costi → cosa cambia.
-const PRIMARY_ITEMS = [
-  { href: "/", label: "Overview", icon: "home" },
-  { href: "/savings", label: "Savings", icon: "savings" },
-  { href: "/usage", label: "Usage", icon: "usage" },
-  { href: "/review", label: "Review", icon: "review" },
-  { href: "/sources", label: "Sources", icon: "connectors" },
-];
-
-// Voci meno frequenti: nel menu a tendina del blocco utente, così la
-// sidebar aperta non ha bisogno di scroll.
+// 5 aree (le schede di ogni area stanno in alto nella pagina, vedi AreaTabs).
+// Le impostazioni (Settings, Workspace, Plan & billing, Account) nel menu utente.
 const MENU_ITEMS = [
-  { href: "/account", label: "Account", icon: "account" },
-  { href: "/workspace", label: "Workspace", icon: "people" },
-  { href: "/report", label: "Monthly report", icon: "report" },
-  { href: "/billing", label: "Plan & billing", icon: "billing" },
   { href: "/settings", label: "Settings", icon: "settings" },
-  { href: "/audit", label: "Audit log", icon: "activity" },
+  { href: "/billing", label: "Plan & billing", icon: "billing" },
   { href: "/docs", label: "Documentation", icon: "evidence" },
 ];
-
-// Poche voci: le pagine di dettaglio (AI Act, dati, attività, modifiche) stanno
-// dentro Governance; angar Edge dentro Plan & billing.
-const MORE_ITEMS = [
-  { href: "/advisor", label: "AI Advisor", icon: "advisor" },
-  { href: "/budgets", label: "Budgets", icon: "budget" },
-  { href: "/providers", label: "Providers", icon: "providers" },
-  { href: "/people", label: "People", icon: "people" },
-  { href: "/download", label: "Desktop app", icon: "computer" },
-  { href: "/governance", label: "Governance", icon: "assurance" },
-];
-// Pagine che accendono la voce Governance.
-const GOVERNANCE_PATHS = ["/governance", "/compliance", "/data", "/activity"];
 
 // Stato aperta/chiusa in un cookie: il server lo legge e rende subito la
 // sidebar nello stato giusto, senza flash al refresh.
@@ -141,7 +111,6 @@ export interface SidebarWorkspaceProps {
 export default function Sidebar({ initialCollapsed = false, orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0, connectedComputers = 0, trial = null }: { initialCollapsed?: boolean; orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number; connectedComputers?: number; trial?: SidebarTrial | null }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(initialCollapsed);
-  const [moreOpen, setMoreOpen] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -168,18 +137,8 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
   // Le dashboard condivise (/share/…) sono pubbliche: niente navigazione dell'app.
   if (pathname.startsWith("/share")) return null;
 
-  const isActive = (href: string) =>
-    href === "/"
-      ? pathname === "/" || pathname.startsWith("/assets")
-      : href === "/sources"
-        ? ["/sources", "/connectors"].some((p) => pathname.startsWith(p))
-        : href === "/governance"
-          ? GOVERNANCE_PATHS.some((p) => pathname.startsWith(p))
-          : href === "/download"
-            ? ["/download", "/computers", "/discover"].some((p) => pathname.startsWith(p))
-            : href === "/billing"
-              ? ["/billing", "/edge"].some((p) => pathname.startsWith(p))
-              : pathname.startsWith(href);
+  const current = locate(pathname);
+  const isActive = (href: string) => (current ? current.area.href === href || current.tab.href === href : pathname === href);
   function itemClass(active: boolean, sub = false) {
     return `flex items-center gap-3 text-[15px] transition-colors rounded-lg ${
       collapsed ? "justify-center h-10 w-10 mx-auto shrink-0" : sub ? "pl-11 pr-3 py-1.5" : "px-3 py-2"
@@ -235,61 +194,33 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
       )}
 
       <nav className={`flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden flex-1 min-h-0 ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>
-        {PRIMARY_ITEMS.filter((item) => item.href !== "/review" || reviewCount > 0 || isActive("/review")).map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            title={collapsed ? item.label : undefined}
-            className={itemClass(isActive(item.href))}
-          >
-            <span className="relative shrink-0">
-              <Icon name={item.icon} />
-              {/* Da chiusa: il numero da rivedere diventa un badge sull'icona. */}
-              {collapsed && item.href === "/review" && reviewCount > 0 && (
-                <span className="absolute -top-2 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-accent text-white text-[9px] font-semibold leading-4 text-center tabular ring-2 ring-sidebar">
-                  {reviewCount > 99 ? "99+" : reviewCount}
-                </span>
-              )}
-            </span>
-            {!collapsed && <span className="flex-1">{item.label}</span>}
-            {!collapsed && item.href === "/review" && reviewCount > 0 && (
-              <span className="text-[11px] font-semibold text-white bg-accent rounded-full px-1.5 min-w-[20px] text-center tabular">{reviewCount}</span>
-            )}
-          </Link>
-        ))}
-
-        {collapsed ? (
-          <div className="my-2 border-t border-white/[0.08]" />
-        ) : (
-          <button
-            onClick={() => setMoreOpen((v) => !v)}
-            className="mt-3 flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] text-[#C8C6C1] hover:text-white hover:bg-white/[0.05] transition-colors"
-          >
-            <Icon name="more" />
-            <span className="flex-1 text-left">More</span>
-            <span className={`transition-transform ${moreOpen ? "" : "-rotate-90"}`}>
-              <Chevron />
-            </span>
-          </button>
-        )}
-        {(collapsed || moreOpen) &&
-          MORE_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href), !collapsed)}>
-              {collapsed && (
-                <span className="relative shrink-0">
-                  <Icon name={item.icon} />
-                  {item.href === "/download" && connectedComputers > 0 && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-steady ring-2 ring-sidebar" />}
-                </span>
-              )}
+        {AREAS.map((item) => {
+          const badge = item.key === "overview" && reviewCount > 0 ? reviewCount : 0;
+          const online = item.key === "sources" && connectedComputers > 0;
+          return (
+            <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href))}>
+              <span className="relative shrink-0">
+                <Icon name={item.icon} />
+                {collapsed && badge > 0 && (
+                  <span className="absolute -top-2 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-accent text-white text-[9px] font-semibold leading-4 text-center tabular ring-2 ring-sidebar">
+                    {badge > 99 ? "99+" : badge}
+                  </span>
+                )}
+                {collapsed && online && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-steady ring-2 ring-sidebar" />}
+              </span>
               {!collapsed && <span className="flex-1">{item.label}</span>}
-              {!collapsed && item.href === "/download" && connectedComputers > 0 && (
-                <span className="flex items-center gap-1 text-[11px] text-steady tabular">
+              {!collapsed && badge > 0 && (
+                <span title="AI to review" className="text-[11px] font-semibold text-white bg-accent rounded-full px-1.5 min-w-[20px] text-center tabular">{badge}</span>
+              )}
+              {!collapsed && online && (
+                <span title="Computers online" className="flex items-center gap-1 text-[11px] text-steady tabular">
                   <span className="h-1.5 w-1.5 rounded-full bg-steady" />
                   {connectedComputers}
                 </span>
               )}
             </Link>
-          ))}
+          );
+        })}
       </nav>
 
       {trial && <TrialCard trial={trial} collapsed={collapsed} />}
