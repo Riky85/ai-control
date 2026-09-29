@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   const { org, desktopToken } = auth;
   const raw = await req.text();
   if (raw.length > 500_000) return NextResponse.json({ error: "Too much data." }, { status: 413 });
-  let body: { user?: string | null; findings?: Finding[]; source?: string; device?: string; os?: string; version?: string; ips?: unknown };
+  let body: { user?: string | null; findings?: Finding[]; source?: string; device?: string; os?: string; version?: string; ips?: unknown; since?: unknown };
   try {
     body = JSON.parse(raw);
   } catch {
@@ -91,7 +91,10 @@ export async function POST(req: Request) {
       message: noticeMessage(org.name, a.name, a.insteadAssetId ? instead.get(a.insteadAssetId) : undefined, a.blockOnNetwork),
     });
   }
-  return NextResponse.json({ ok: true, systems, notices });
+  // Dati azzerati dopo l'ultimo invio di questo computer: l'app rimanda gli ultimi 30 giorni.
+  const since = typeof body.since === "number" ? body.since : null;
+  const resync = desktop && !!org.dataResetAt && since !== null && since < org.dataResetAt.getTime();
+  return NextResponse.json({ ok: true, systems, notices, resync });
 }
 
 function noticeMessage(company: string, ai: string, insteadName: string | undefined, blockedOnNetwork: boolean) {

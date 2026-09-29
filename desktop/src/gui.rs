@@ -543,6 +543,8 @@ impl eframe::App for Setup {
                             s.input.cfg.token = None;
                             s.input.cfg.company = None;
                             s.input.cfg.email = None;
+                            // Da capo: al primo invio si rimandano gli ultimi 30 giorni.
+                            s.input.cfg.last_sync_ms = None;
                             s.input.cfg.save();
                         }));
                     }

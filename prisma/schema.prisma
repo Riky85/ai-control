@@ -172,6 +172,8 @@ model Organization {
   desktopTokens DesktopToken[]
   // Avviso quando un dispositivo carica più di N MB al giorno su un'AI non approvata.
   uploadAlertMb Int   @default(100)
+  // Ultimo "Reset workspace data": le app desktop con dati più vecchi rimandano la cronologia.
+  dataResetAt   DateTime?
   // Partner (MSP / integratore) che gestisce questo workspace, se c'è.
   managedByPartnerId String?
   // Gruppo societario (holding): vista consolidata tra più workspace.

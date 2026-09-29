@@ -34,7 +34,7 @@ export async function resetWorkspaceDataAction(formData: FormData) {
     const policies = await tx.policy.deleteMany({ where });
     const evidence = await tx.evidence.deleteMany({ where });
     const connectors = await tx.connector.deleteMany({ where });
-    await tx.organization.update({ where: { id: s.orgId }, data: { onboardingCompletedAt: null } });
+    await tx.organization.update({ where: { id: s.orgId }, data: { onboardingCompletedAt: null, dataResetAt: new Date() } });
     return { assets: assets.count, data: data.count, people: people.count, policies: policies.count, evidence: evidence.count, connectors: connectors.count };
   });
   await audit("workspace.reset_data", org.name, counts);

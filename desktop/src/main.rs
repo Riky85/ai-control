@@ -159,6 +159,7 @@ fn main() {
                 cfg.token = None;
                 cfg.company = None;
                 cfg.email = None;
+                cfg.last_sync_ms = None;
                 cfg.save();
             }
         }
@@ -277,6 +278,11 @@ fn show_notices(cfg: &mut Config, body: &str) {
     cfg.save();
 }
 
+/// Il server chiede di rimandare la cronologia (dati azzerati dopo l'ultimo invio).
+fn wants_resync(body: &str) -> bool {
+    serde_json::from_str::<serde_json::Value>(body).map(|v| v["resync"] == serde_json::Value::Bool(true)).unwrap_or(false)
+}
+
 fn valid_email(e: &str) -> Option<String> {
     let e = e.trim().to_lowercase();
     let (user, domain) = e.split_once('@')?;
@@ -316,6 +322,8 @@ fn send(cfg: &Config, findings: &[detect::Finding]) -> Result<String, String> {
         "os": std::env::consts::OS,
         "ips": local_ips(),
         "findings": findings,
+        // Da quando manda i dati: se l'azienda ha azzerato angar dopo, il server chiede di rimandarli.
+        "since": cfg.last_sync_ms,
     });
     let r = agent()
         .post(&format!("{}/api/discovery/usage", cfg.server))
@@ -363,10 +371,17 @@ fn run_loop(mut cfg: Config) {
             // Always send (also empty): it tells the company the computer is still connected.
             let reply = send(&cfg, &findings);
             let ok = reply.is_ok();
+            let mut resync = false;
             if let Ok(body) = &reply {
                 show_notices(&mut cfg, body);
+                resync = wants_resync(body);
             }
-            if ok {
+            if ok && resync {
+                // L'azienda ha azzerato i dati: al prossimo giro si rimandano gli ultimi 30 giorni.
+                cfg.last_sync_ms = None;
+                cfg.save();
+                next_sync = Instant::now();
+            } else if ok {
                 cfg.last_sync_ms = Some(started);
                 cfg.save();
                 usage = Usage::default();
