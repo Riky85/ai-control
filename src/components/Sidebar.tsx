@@ -86,7 +86,7 @@ function PanelToggleIcon() {
   );
 }
 
-// 5 aree (le schede di ogni area stanno in alto nella pagina, vedi AreaTabs).
+// 8 aree (le schede di ogni area stanno in alto nella pagina, vedi AreaTabs).
 // Le impostazioni (Settings, Workspace, Plan & billing, Account) nel menu utente.
 const MENU_ITEMS = [
   { href: "/settings", label: "Settings", icon: "settings" },
@@ -195,8 +195,8 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
 
       <nav className={`flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden flex-1 min-h-0 ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>
         {AREAS.map((item) => {
-          const badge = item.key === "overview" && reviewCount > 0 ? reviewCount : 0;
-          const online = item.key === "sources" && connectedComputers > 0;
+          const badge = item.key === "review" && reviewCount > 0 ? reviewCount : 0;
+          const online = item.key === "devices" && connectedComputers > 0;
           return (
             <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href))}>
               <span className="relative shrink-0">

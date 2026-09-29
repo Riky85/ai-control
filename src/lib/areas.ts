@@ -1,5 +1,5 @@
 /**
- * Le 5 aree della piattaforma (+ impostazioni): una voce in sidebar ciascuna,
+ * Le 8 aree della piattaforma (+ impostazioni): una voce in sidebar ciascuna,
  * dentro le schede in alto. Unica fonte per sidebar e schede.
  */
 export interface AreaTab {
@@ -19,27 +19,35 @@ export interface Area {
 }
 
 export const AREAS: Area[] = [
+  { key: "overview", label: "Overview", href: "/", icon: "home", tabs: [{ href: "/", label: "Overview", match: ["/assets"] }] },
   {
-    key: "overview",
-    label: "Overview",
-    href: "/",
-    icon: "home",
+    key: "review",
+    label: "Review",
+    href: "/review",
+    icon: "review",
     tabs: [
-      { href: "/", label: "Overview", match: ["/assets"] },
       { href: "/review", label: "To review", match: ["/review"] },
       { href: "/alerts", label: "Alerts", match: ["/alerts"] },
     ],
   },
   {
-    key: "spend",
-    label: "Spend",
+    key: "savings",
+    label: "Savings",
     href: "/savings",
     icon: "savings",
     tabs: [
       { href: "/savings", label: "Savings", match: ["/savings"] },
-      { href: "/budgets", label: "Budgets", match: ["/budgets"] },
       { href: "/providers", label: "Providers", match: ["/providers"] },
       { href: "/advisor", label: "Advisor", match: ["/advisor"] },
+    ],
+  },
+  {
+    key: "budgets",
+    label: "Budgets & reports",
+    href: "/budgets",
+    icon: "budget",
+    tabs: [
+      { href: "/budgets", label: "Budgets", match: ["/budgets"] },
       { href: "/report", label: "Reports", match: ["/report", "/group"] },
     ],
   },
@@ -66,13 +74,13 @@ export const AREAS: Area[] = [
       { href: "/audit", label: "Audit log", match: ["/audit"] },
     ],
   },
+  { key: "sources", label: "Sources", href: "/sources", icon: "connectors", tabs: [{ href: "/sources", label: "Connections", match: ["/sources", "/connectors"] }] },
   {
-    key: "sources",
-    label: "Sources",
-    href: "/sources",
-    icon: "connectors",
+    key: "devices",
+    label: "Devices",
+    href: "/download",
+    icon: "computer",
     tabs: [
-      { href: "/sources", label: "Connections", match: ["/sources", "/connectors"] },
       { href: "/download", label: "Desktop app", match: ["/download", "/computers", "/discover"] },
       { href: "/edge/sensors", label: "angar Edge", match: ["/edge"] },
     ],
