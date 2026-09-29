@@ -675,7 +675,8 @@ fn main() {
     }
     sd::spawn_watchdog();
     sd::notify("READY=1");
-    if a.auto_update.unwrap_or(device_mode) {
+    // Aggiornamenti automatici solo su Linux (le release firmate sono binari Linux).
+    if cfg!(target_os = "linux") && a.auto_update.unwrap_or(device_mode) {
         match exe.clone() {
             Some(exe) => spawn_updater(exe, dir.clone(), a.update_url.clone()),
             None => log!("Auto-update off: cannot locate the running executable"),

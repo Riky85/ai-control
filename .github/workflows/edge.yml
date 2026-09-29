@@ -93,8 +93,34 @@ jobs:
           name: ${{ matrix.asset }}
           path: edge/dist/${{ matrix.asset }}
 
+  # Windows: per provare Edge sul proprio PC (DNS per quel PC o per la rete, niente aggiornamenti automatici).
+  windows:
+    needs: test
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: edge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: edge
+          key: windows
+      - name: Build
+        run: |
+          cargo build --release
+          mkdir -p dist
+          cp target/release/angar-edge.exe dist/angar-edge-windows-x64.exe
+          ./dist/angar-edge-windows-x64.exe --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: angar-edge-windows-x64.exe
+          path: edge/dist/angar-edge-windows-x64.exe
+
   release:
-    needs: build
+    needs: [build, windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -140,7 +166,7 @@ jobs:
       # SHA256SUMS: edge/install.sh checks the downloaded binary against it.
       - name: Checksums
         run: |
-          (cd dist && sha256sum angar-edge-linux-x86_64 angar-edge-linux-aarch64 > SHA256SUMS)
+          (cd dist && sha256sum angar-edge-linux-x86_64 angar-edge-linux-aarch64 angar-edge-windows-x64.exe > SHA256SUMS)
           cat dist/SHA256SUMS
       - name: Version file
         run: |
@@ -159,7 +185,7 @@ jobs:
             for a in angar-edge-linux-x86_64.sig angar-edge-linux-aarch64.sig; do gh release delete-asset edge-latest "$a" --yes 2>/dev/null || true; done
           fi
           # binaries, signatures and checksums first, the version file last: devices read it to decide
-          gh release upload edge-latest dist/angar-edge-linux-* dist/SHA256SUMS --clobber
+          gh release upload edge-latest dist/angar-edge-linux-* dist/angar-edge-windows-x64.exe dist/SHA256SUMS --clobber
           gh release upload edge-latest dist/angar-edge-version.txt --clobber
 
   docker:

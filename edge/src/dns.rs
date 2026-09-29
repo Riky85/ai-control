@@ -357,16 +357,24 @@ fn handle(shared: &Shared, query: &[u8], client: IpAddr, tcp: bool, buf: &mut [u
 }
 
 pub fn bind_udp(port: u16) -> std::io::Result<UdpSocket> {
+    // Windows: i socket IPv6 non accettano IPv4 (V6ONLY di default) → prima IPv4.
+    if cfg!(windows) {
+        return UdpSocket::bind((Ipv4Addr::UNSPECIFIED, port));
+    }
     UdpSocket::bind((Ipv6Addr::UNSPECIFIED, port)).or_else(|_| UdpSocket::bind((Ipv4Addr::UNSPECIFIED, port)))
 }
 
 pub fn bind_tcp(port: u16) -> std::io::Result<TcpListener> {
+    if cfg!(windows) {
+        return TcpListener::bind((Ipv4Addr::UNSPECIFIED, port));
+    }
     TcpListener::bind((Ipv6Addr::UNSPECIFIED, port)).or_else(|_| TcpListener::bind((Ipv4Addr::UNSPECIFIED, port)))
 }
 
 pub fn bind_hint(e: &std::io::Error, port: u16) -> String {
     match e.kind() {
         ErrorKind::AddrInUse => format!("port {port} is already in use"),
+        ErrorKind::PermissionDenied if cfg!(windows) => format!("port {port} is taken or blocked (on Windows, Internet Connection Sharing uses 53 — try --dns-port 5353 or stop the \"SharedAccess\" service)"),
         ErrorKind::PermissionDenied => format!("no permission to bind port {port} (run as root or grant CAP_NET_BIND_SERVICE)"),
         _ => format!("cannot bind port {port}: {e}"),
     }

@@ -56,6 +56,18 @@ export function SetupSteps({ created, appUrl, edgeImage }: { created: Created; a
     <div className="flex flex-col gap-4">
       <Cmd label="Linux with systemd (Raspberry Pi OS 64-bit, Debian, Ubuntu, any VM)" value={install} />
       <Cmd label="or Docker (host network, so it sees the real device IPs)" value={docker} />
+      <details className="rounded-lg border border-line px-3 py-2.5">
+        <summary className="cursor-pointer list-none text-sm text-ink-100 select-none">Try it on your Windows PC ›</summary>
+        <div className="mt-2 flex flex-col gap-2 text-sm text-ink-400">
+          <span>
+            1. Download{" "}
+            <a className="underline hover:text-ink-100" href="https://github.com/Riky85/ai-control/releases/download/edge-latest/angar-edge-windows-x64.exe">angar-edge-windows-x64.exe</a> and open PowerShell in that folder.
+          </span>
+          <Cmd label="2. Start it (keep the window open)" value={`.\\angar-edge-windows-x64.exe --token ${t}${server ? ` --server ${server}` : ""} -v`} />
+          <span>3. Windows Settings → Network → your connection → DNS server: Manual → IPv4 preferred DNS <b className="text-ink-100">127.0.0.1</b>. Open a few AI sites: they appear here within 5 minutes.</span>
+          <span>To test other devices, set their DNS (or your router&apos;s) to this PC&apos;s IP — only while the PC stays on. Put DNS back to Automatic when you stop it.</span>
+        </div>
+      </details>
       <div className="text-sm text-ink-400 flex flex-col gap-1">
         <span className="text-ink-100 font-medium">Then pick one (or both):</span>
         <span>1. DNS — set the DNS server your router / DHCP hands out to the sensor&apos;s IP.</span>
