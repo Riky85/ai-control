@@ -210,3 +210,10 @@ multi-arch image `ghcr.io/riky85/angar-edge:latest`, built from the prebuilt bin
 - Blocking works at the DNS level only. Clients that cached the answer or use another resolver
   still get through.
 - 32-bit ARM isn't built. Use a 64-bit OS.
+
+## Windows (to try it on your own PC)
+
+`angar-edge-windows-x64.exe` is published next to the Linux binaries. Run it in PowerShell with
+`--token ange_…`, then set the PC's IPv4 DNS to `127.0.0.1` (or point other devices / the router
+at the PC's IP while it stays on). Self-update is Linux-only; download a new .exe to update.
+If port 53 is taken (Internet Connection Sharing), use `--dns-port 5353` or stop "SharedAccess".
