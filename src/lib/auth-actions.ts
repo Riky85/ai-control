@@ -1,5 +1,6 @@
 "use server";
 
+import { secureCookies } from "@/lib/edition";
 import { fmtTime } from "@/lib/format";
 
 import { cookies, headers } from "next/headers";
@@ -70,7 +71,7 @@ export async function signInAction(formData: FormData) {
   // Password giusta e MFA attiva: secondo passo con un cookie firmato di 5 minuti.
   if (account!.totpEnabledAt && account!.totpSecretEncrypted) {
     const token = await signPurpose("mfa", { a: account!.id, next }, MFA_MINUTES * 60);
-    cookies().set(MFA_COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: MFA_MINUTES * 60 });
+    cookies().set(MFA_COOKIE, token, { httpOnly: true, secure: secureCookies(), sameSite: "lax", path: "/", maxAge: MFA_MINUTES * 60 });
     redirect("/login/mfa");
   }
   await finishPasswordLogin(account!, next, fail);

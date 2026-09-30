@@ -1,4 +1,5 @@
 import { zipSync, strToU8 } from "fflate";
+import { desktopServerTag } from "@/lib/edition";
 
 /**
  * App desktop angar: i binari li compila GitHub Actions (desktop/ nel repo)
@@ -19,7 +20,7 @@ const ASSET: Record<DesktopOs, string> = {
 const MAC_APP_ZIP = "angar-macos.app.zip";
 
 // Versione dell'app desktop pubblicata (desktop/Cargo.toml).
-export const DESKTOP_VERSION = "0.5.4";
+export const DESKTOP_VERSION = "0.5.5";
 
 export const DESKTOP_OS_LABEL: Record<DesktopOs, string> = { windows: "Windows", mac: "macOS", linux: "Linux" };
 
@@ -182,19 +183,21 @@ function macApp(code: string, exe: Uint8Array) {
 export async function desktopDownload(os: DesktopOs, code: string): Promise<{ name: string; type: string; data: Uint8Array } | null> {
   // Il codice finisce nei nomi di file/cartelle: solo caratteri sicuri.
   if (!/^[A-Za-z0-9_-]{1,60}$/.test(code)) return null;
+  // On-premises: anche l'indirizzo del server nel nome, così l'app non chiede nulla.
+  const tag = `${code}${desktopServerTag()}`;
   // Windows e Linux: byte identici all'asset di CI (firma Authenticode intatta), cambia solo il nome.
   if (os === "windows") {
     const exe = await asset(ASSET.windows);
-    return exe && { name: `angar-${code}.exe`, type: "application/vnd.microsoft.portable-executable", data: exe };
+    return exe && { name: `angar-${tag}.exe`, type: "application/vnd.microsoft.portable-executable", data: exe };
   }
   if (os === "linux") {
     const exe = await asset(ASSET.linux);
-    return exe && { name: `angar-${code}`, type: "application/octet-stream", data: exe };
+    return exe && { name: `angar-${tag}`, type: "application/octet-stream", data: exe };
   }
   const bundle = await asset(MAC_APP_ZIP);
-  const renamed = bundle && renameAppInZip(bundle, "angar.app", `angar-${code}.app`);
-  if (renamed) return { name: `angar-${code}.zip`, type: "application/zip", data: renamed };
+  const renamed = bundle && renameAppInZip(bundle, "angar.app", `angar-${tag}.app`);
+  if (renamed) return { name: `angar-${tag}.zip`, type: "application/zip", data: renamed };
   // Release precedente (solo binario nudo): impacchettato qui, non firmato Developer ID.
   const exe = await asset(ASSET.mac);
-  return exe && { name: `angar-${code}.zip`, type: "application/zip", data: macApp(code, exe) };
+  return exe && { name: `angar-${tag}.zip`, type: "application/zip", data: macApp(tag, exe) };
 }

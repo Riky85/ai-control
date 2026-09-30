@@ -1,3 +1,4 @@
+import { desktopServerTag } from "@/lib/edition";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
@@ -38,10 +39,13 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
     mac: "Unzip, then right-click → Open the first time",
     linux: "chmod +x, then run it",
   };
+  // On-premises: il nome del file porta anche il server; per sicurezza lo passiamo pure come opzione.
+  const tag = `${joinCode}${desktopServerTag()}`;
+  const srv = desktopServerTag() ? ` --server ${base}` : "";
   const it = [
-    { os: "Windows", cmd: `angar-${joinCode}.exe --silent --email-domain yourcompany.com` },
-    { os: "macOS", cmd: `"angar-${joinCode}.app/Contents/MacOS/angar" --join ${joinCode} --silent --email-domain yourcompany.com` },
-    { os: "Linux", cmd: `./angar-${joinCode} --silent --email-domain yourcompany.com` },
+    { os: "Windows", cmd: `angar-${tag}.exe --silent --email-domain yourcompany.com${srv}` },
+    { os: "macOS", cmd: `"angar-${tag}.app/Contents/MacOS/angar" --join ${joinCode} --silent --email-domain yourcompany.com${srv}` },
+    { os: "Linux", cmd: `./angar-${tag} --silent --email-domain yourcompany.com${srv}` },
   ];
 
   const header = (

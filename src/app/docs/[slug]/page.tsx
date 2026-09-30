@@ -18,6 +18,9 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
   const next = DOCS[idx + 1];
 
   return (
+    <div className="flex flex-col gap-5">
+      {/* Intestazione a tutta larghezza: Export in alto a destra come nelle altre pagine. */}
+      <PageHeader crumbs={[{ label: "Documentation", href: "/docs" }, { label: doc.section }]} title={doc.title} action={<ExportMenu />} />
     <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 lg:gap-10">
       <nav className="hidden lg:flex print:hidden sticky top-0 self-start flex-col gap-5 text-sm">
         <Link href="/docs" className="text-ink-400 hover:text-ink-100">← All docs</Link>
@@ -36,8 +39,7 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
       </nav>
 
       <article className="max-w-2xl">
-        <PageHeader crumbs={[{ label: "Documentation", href: "/docs" }, { label: doc.section }]} title={doc.title} action={<ExportMenu />} />
-        <p className="text-base text-ink-400 mt-2">{doc.summary}</p>
+        <p className="text-base text-ink-400">{doc.summary}</p>
         <div className="mt-4 border-t border-line pt-2">
           <DocBody body={doc.body} />
         </div>
@@ -56,6 +58,7 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
           )}
         </div>
       </article>
+    </div>
     </div>
   );
 }

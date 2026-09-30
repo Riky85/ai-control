@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { ConnectorProvider, Organization, Plan } from "@prisma/client";
 import { db } from "@/lib/db";
+import { isOnPrem } from "@/lib/edition";
 import { currentSession } from "@/lib/auth";
 import { FEATURES, TRIAL_DAYS, TRIAL_PLAN, featureAvailability, hasFeature, planById, planRank, type Feature } from "@/lib/plans";
 
@@ -35,6 +36,8 @@ export function lazyTrialEnd(createdAt: Date, now = new Date()) {
 /** Stato del piano (pura: niente database). */
 export function planState(org: OrgForPlan, now = new Date()): PlanState {
   const addons = [...(org.addons ?? [])];
+  // On-premises: licenza aziendale, tutto incluso, nessuna prova che scade.
+  if (isOnPrem()) return { planId: org.plan, effectivePlan: "ENTERPRISE", addons, trialing: false, trialEndsAt: null, trialDaysLeft: null, expired: false, readOnly: false };
   const inOwnTrial = org.planStatus === "trialing" && !org.stripeSubscriptionId;
   if (inOwnTrial) {
     const end = org.trialEndsAt ?? lazyTrialEnd(org.createdAt, now);

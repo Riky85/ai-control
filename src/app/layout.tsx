@@ -22,6 +22,7 @@ import DocsButton from "@/components/DocsButton";
 import { DOCS } from "@/lib/docs";
 import { planById } from "@/lib/plans";
 import { db } from "@/lib/db";
+import { isOnPrem } from "@/lib/edition";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, THEME_SCRIPT, parseTheme } from "@/lib/theme";
 
@@ -104,7 +105,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {head}
       <body className={`flex h-screen overflow-hidden bg-sidebar text-ink-100 font-body`}>
         <SearchPalette />
-        <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={platformAdmin} connectedComputers={connectedComputers} reviewCount={reviewCount} trial={trial} />
+        <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={platformAdmin} connectedComputers={connectedComputers} reviewCount={reviewCount} trial={trial} onprem={isOnPrem()} />
         <div id="app-scroll" className="flex-1 flex flex-col min-w-0 bg-panel overflow-y-auto [scrollbar-gutter:stable]">
           <ScrollReset targetId="app-scroll" />
           <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-12 pb-24">

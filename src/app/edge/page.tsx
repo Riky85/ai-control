@@ -2,6 +2,9 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 import { EDGE, planById } from "@/lib/plans";
 import EdgeBox from "@/components/EdgeBox";
+import CopyButton from "@/components/CopyButton";
+import { appUrl } from "@/lib/alerts";
+import { isOnPrem } from "@/lib/edition";
 
 export const dynamic = "force-dynamic";
 
@@ -159,6 +162,28 @@ export default function EdgePage() {
           <p className="px-3 py-2 text-xs text-ink-400">Most companies use both: Edge for the network, the app for people.</p>
         </div>
       </section>
+
+      {/* Tutto in azienda: angar intero sul server del cliente o sul dispositivo Edge. */}
+      {!isOnPrem() && (
+        <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-ink-100">Keep every piece of data in your company</h2>
+            <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Enterprise</span>
+          </div>
+          <p className="text-sm text-ink-400 max-w-3xl">
+            Run the whole of angar on your own server or on the angar device. Computers, sensors, people and costs all stay on your network — nothing is sent to
+            angar&apos;s cloud. One command on any Linux server with internet access for updates:
+          </p>
+          <div className="flex items-start gap-2 max-w-3xl">
+            <code className="flex-1 min-w-0 rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100 font-mono break-all select-all">{`curl -fsSL ${appUrl()}/api/onprem/install.sh | sudo sh`}</code>
+            <CopyButton text={`curl -fsSL ${appUrl()}/api/onprem/install.sh | sudo sh`} />
+          </div>
+          <p className="text-xs text-ink-400">
+            Then open the address it prints and create your account.{" "}
+            <Link href="/docs/on-premises" className="underline hover:text-ink-100">How it works</Link>
+          </p>
+        </section>
+      )}
 
       {/* Prezzo */}
       <section className="rounded-xl border border-line bg-panel p-4 flex flex-col md:flex-row md:items-center gap-4">

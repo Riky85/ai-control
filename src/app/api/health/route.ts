@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { isOnPrem } from "@/lib/edition";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,8 @@ export async function GET() {
       status: healthy ? "ok" : "degraded",
       database,
       config: missing.length ? `missing: ${missing.join(", ")}` : "ok",
-      version: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) ?? "dev",
+      version: (process.env.RAILWAY_GIT_COMMIT_SHA ?? process.env.ANGAR_VERSION)?.slice(0, 7) ?? "dev",
+      edition: isOnPrem() ? "onprem" : "cloud",
       responseMs: Date.now() - started,
     },
     { status: healthy ? 200 : 503 }

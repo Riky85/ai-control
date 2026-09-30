@@ -20,6 +20,37 @@ pub fn join_code_from_file_name() -> Option<String> {
     exe.ancestors().take(4).find_map(|p| code_in(&p.file_name()?.to_string_lossy()))
 }
 
+/// On-premises downloads also carry the company's own server after the code:
+/// "angar-<code>@<scheme>~<host>[_<port>].exe" → "<scheme>://<host>[:<port>]".
+pub fn server_from_file_name() -> Option<String> {
+    let exe = std::env::current_exe().ok()?;
+    exe.ancestors().take(4).find_map(|p| server_in(&p.file_name()?.to_string_lossy()))
+}
+
+fn server_in(name: &str) -> Option<String> {
+    code_in(name)?;
+    let rest = name.split_once('@')?.1;
+    let (scheme, rest) = rest.split_once('~')?;
+    if scheme != "http" && scheme != "https" {
+        return None;
+    }
+    let raw: String = rest.chars().take_while(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_')).collect();
+    // ".exe" / ".app" / ".zip" come after the host: drop a known extension.
+    let raw = [".exe", ".app", ".zip"].iter().find_map(|e| raw.strip_suffix(e)).unwrap_or(&raw).to_string();
+    let (host, port) = match raw.rsplit_once('_') {
+        Some((h, p)) if !p.is_empty() && p.len() <= 5 && p.chars().all(|c| c.is_ascii_digit()) => (h.to_string(), Some(p.to_string())),
+        _ => (raw.clone(), None),
+    };
+    let host = host.trim_matches('.').to_string();
+    if host.is_empty() || host.contains('_') {
+        return None;
+    }
+    Some(match port {
+        Some(p) => format!("{scheme}://{host}:{p}"),
+        None => format!("{scheme}://{host}"),
+    })
+}
+
 fn code_in(name: &str) -> Option<String> {
     let rest = name.strip_prefix("angar-").or_else(|| name.strip_prefix("angar_"))?;
     let code: String = rest.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '_' || *c == '-').collect();
@@ -36,6 +67,18 @@ mod tests {
         assert_eq!(super::code_in("angar-P3zTkkuJy9Gw.app").as_deref(), Some("P3zTkkuJy9Gw"));
         assert_eq!(super::code_in("angar.exe"), None);
         assert_eq!(super::code_in("angar"), None);
+        assert_eq!(super::code_in("angar-P3zTkkuJy9Gw@http~angar.acme.local_8080.exe").as_deref(), Some("P3zTkkuJy9Gw"));
+    }
+
+    #[test]
+    fn servers() {
+        use super::server_in;
+        assert_eq!(server_in("angar-P3zTkkuJy9Gw.exe"), None);
+        assert_eq!(server_in("angar-P3zTkkuJy9Gw@http~angar.acme.local_8080.exe").as_deref(), Some("http://angar.acme.local:8080"));
+        assert_eq!(server_in("angar-P3zTkkuJy9Gw@http~192.168.1.20_8080 (1).exe").as_deref(), Some("http://192.168.1.20:8080"));
+        assert_eq!(server_in("angar-P3zTkkuJy9Gw@https~angar.acme.com.app").as_deref(), Some("https://angar.acme.com"));
+        assert_eq!(server_in("angar-P3zTkkuJy9Gw@https~angar.acme.com").as_deref(), Some("https://angar.acme.com"));
+        assert_eq!(server_in("angar-P3zTkkuJy9Gw@ftp~x.y"), None);
     }
 }
 

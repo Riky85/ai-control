@@ -1,3 +1,4 @@
+import { secureCookies } from "@/lib/edition";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { MemberRole } from "@prisma/client";
@@ -105,7 +106,7 @@ export async function issueSession(account: { id: string; email: string; name: s
   const token = await signSession({ a: account.id, e: account.email, n: account.name ?? undefined, o: orgId, r: member.role, m, ...(mustEnrolMfa ? { f: 1 as const } : {}) });
   cookies().set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: secureCookies(),
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_DAYS * 86400,

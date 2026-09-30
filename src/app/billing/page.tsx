@@ -2,6 +2,7 @@ import Link from "next/link";
 import { fmtDate } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
+import { isOnPrem } from "@/lib/edition";
 import { Notice, PageHeader, Panel } from "@/components/ui";
 import Badge from "@/components/Badge";
 import { planById, EDGE, addonById } from "@/lib/plans";
@@ -14,6 +15,16 @@ import { openBillingPortalAction, startEdgeCheckoutAction } from "@/lib/workspac
 export const dynamic = "force-dynamic";
 
 export default async function BillingPage({ searchParams }: { searchParams: { checkout?: string; error?: string; billing?: string } }) {
+  if (isOnPrem()) {
+    return (
+      <div className="flex flex-col gap-4">
+        <PageHeader title="Plan & billing" subtitle="angar on-premises — installed on your own server." />
+        <Panel title="Everything included">
+          <p className="text-sm text-ink-400">All features are on and your data stays on this server. Your licence and invoices are handled directly with angar — write to us for renewals or support.</p>
+        </Panel>
+      </div>
+    );
+  }
   const annual = searchParams.billing === "annual";
   const [state, aiSystems, connections, members, sharedDashboards] = await Promise.all([
     getPlanState(currentOrgId()),

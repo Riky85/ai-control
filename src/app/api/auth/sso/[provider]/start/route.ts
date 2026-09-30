@@ -1,3 +1,4 @@
+import { secureCookies } from "@/lib/edition";
 import { NextResponse } from "next/server";
 import { appOrigin } from "@/lib/mail";
 import { signPurpose } from "@/lib/session";
@@ -25,6 +26,6 @@ export async function GET(req: Request, { params }: { params: { provider: string
   const token = await signPurpose("sso", { p: p.id, v: verifier, s: state, n: nonce, next }, 600);
 
   const res = NextResponse.redirect(authorizeUrl(p, { redirectUri: ssoCallbackUrl(origin, p.id), state, nonce, challenge, loginHint }));
-  res.cookies.set(SSO_COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: SSO_COOKIE_PATH, maxAge: 600 });
+  res.cookies.set(SSO_COOKIE, token, { httpOnly: true, secure: secureCookies(), sameSite: "lax", path: SSO_COOKIE_PATH, maxAge: 600 });
   return res;
 }

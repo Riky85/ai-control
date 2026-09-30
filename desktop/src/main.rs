@@ -95,7 +95,8 @@ fn main() {
     // The background copy never opens windows.
     let silent = args.silent || args.run;
     let mut cfg = Config::load();
-    if let Some(s) = args.server.clone().or_else(|| std::env::var("ANGAR_SERVER").ok()) {
+    // --server / ANGAR_SERVER, else the server in the downloaded file's name (on-premises).
+    if let Some(s) = args.server.clone().or_else(|| std::env::var("ANGAR_SERVER").ok()).or_else(install::server_from_file_name) {
         cfg.server = s.trim_end_matches('/').to_string();
     }
     if cfg.server.is_empty() {

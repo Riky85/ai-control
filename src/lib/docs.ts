@@ -142,6 +142,28 @@ Blocks AI you mark "Not allowed" at DNS level, finds servers and scripts calling
 Software and cloud logs are included from Growth; the device is billed per device each month.`,
   },
 
+  {
+    slug: "on-premises",
+    section: "Connect",
+    title: "angar on your own server",
+    summary: "For companies that want no data on the internet: the whole of angar runs on your server or on the angar device.",
+    keywords: ["on-prem", "on premises", "onprem", "self-hosted", "local", "locale", "server", "docker", "compose", "gdpr", "no cloud", "internal", "backup"],
+    body: `With angar on-premises the app, the database and the network sensor run inside your company. Computers and sensors report to your server; nothing is sent to angar's cloud.
+## Install
+1. Take a Linux server or VM (2 CPU, 4 GB RAM, 20 GB disk) — or the angar device.
+2. Run the command shown on the angar Edge page: curl -fsSL <angar>/api/onprem/install.sh | sudo sh
+3. It installs Docker if needed, starts angar and prints its address (e.g. http://192.168.1.20:8080). Open it and create your account.
+## Add computers and the network
+- Connect → Desktop app: the downloaded app already points to your server.
+- Connect → angar Edge: create a sensor, then on the same server run the installer again with "-s -- edge <token>".
+## Update, backup, move
+- Update: run the same install command again. Settings and data are kept.
+- Backup: docker compose exec -T db pg_dump -U angar angar > backup.sql (in /opt/angar).
+- Settings (address, port, keys) are in /opt/angar/.env.
+## Good to know
+Internet is used only to download updates and the desktop app. Bank, Microsoft 365 and Google connections work only if the server can reach them. Available on Enterprise.`,
+  },
+
   // ——— Using angar ———
   {
     slug: "overview-and-review",
