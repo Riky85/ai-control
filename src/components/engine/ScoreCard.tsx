@@ -13,29 +13,34 @@ export interface ScoreCardData {
   delta?: number | null;
 }
 
-/** Colore di un valore 0..100: verde buono, giallo da migliorare, rosso debole. */
-export function levelColor(value: number) {
-  return value >= 70 ? "rgb(var(--c-steady))" : value >= 45 ? "rgb(var(--c-signal))" : "rgb(var(--c-alarm))";
-}
-
-/** Anello di un asse: valore al centro, etichetta sotto. */
+/**
+ * Indicatore di un asse, sobrio: numero e 10 tacche neutre. Solo gli assi
+ * deboli (sotto 45) hanno un piccolo punto arancione accanto al nome.
+ */
 export function AxisGauge({ label, value, size = 64 }: { label: string; value: number; size?: number }) {
-  const stroke = Math.max(4, Math.round(size / 11));
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const v = Math.max(0, Math.min(100, value));
+  const v = Math.max(0, Math.min(100, Math.round(value)));
+  const filled = Math.round(v / 10);
+  const big = size >= 70;
+  const ticks = (
+    <div className="flex gap-[3px]" aria-hidden>
+      {Array.from({ length: 10 }, (_, i) => (
+        <span key={i} className={`h-1.5 flex-1 rounded-full ${i < filled ? "bg-ink-100/75" : "bg-ink-100/[0.09]"}`} />
+      ))}
+    </div>
+  );
+  // Senza etichetta (intestazione delle card degli assi): solo le tacche.
+  if (!label) return <div className="w-28" role="img" aria-label={`${v} out of 100`}>{ticks}</div>;
   return (
-    <div className="flex flex-col items-center gap-1.5 min-w-0">
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden>
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-ink-100/[0.08]" />
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round" stroke={levelColor(v)} strokeDasharray={c} strokeDashoffset={c * (1 - Math.max(0.02, v / 100))} />
-        </svg>
-        <span className="absolute inset-0 flex items-center justify-center font-display font-semibold tabular text-ink-100" style={{ fontSize: Math.round(size * 0.3) }}>
-          {v}
-        </span>
+    <div className="min-w-0 rounded-xl border border-line bg-ink-100/[0.02] px-3 py-2.5" role="group" aria-label={`${label}: ${v} out of 100`}>
+      <div className="flex items-center gap-1.5 text-xs text-ink-400">
+        <span className="truncate">{label}</span>
+        {v < 45 && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" title="Weak area" />}
       </div>
-      {label && <span className="text-xs text-ink-400 truncate max-w-full">{label}</span>}
+      <div className={`font-display font-semibold tabular text-ink-100 leading-tight mt-0.5 ${big ? "text-[26px]" : "text-[20px]"}`}>
+        {v}
+        <span className="text-[11px] font-normal text-ink-400 ml-0.5">/100</span>
+      </div>
+      <div className="mt-2">{ticks}</div>
     </div>
   );
 }
@@ -69,7 +74,7 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-3 flex-1 min-w-0 md:max-w-md md:ml-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1 min-w-0">
           {AXES.map((a) => (
             <AxisGauge key={a} label={AXIS_LABEL[a]} value={axes[a]} size={60} />
           ))}

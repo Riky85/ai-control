@@ -64,7 +64,7 @@ export default async function ScorePage() {
               <h2 className="font-display text-[26px] leading-tight font-semibold tracking-tight text-ink-100 mt-2">{result.verdict}</h2>
               <p className="text-sm text-ink-400 mt-1">Computed only from your data. Every point has a reason below.</p>
             </div>
-            <div className="grid grid-cols-4 gap-3 max-w-lg">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {AXES.map((a) => (
                 <AxisGauge key={a} label={AXIS_LABEL[a]} value={result.axes[a]} size={76} />
               ))}

@@ -93,7 +93,7 @@ export default async function EnginePage() {
           </div>
           <div className="relative flex flex-col items-center gap-4">
             <ScoreRing score={72} grade="B" size={220} />
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
               <AxisGauge label="Efficiency" value={58} />
               <AxisGauge label="Governance" value={81} />
               <AxisGauge label="Risk" value={77} />
