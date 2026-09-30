@@ -52,7 +52,7 @@ function Sentence({ b }: { b: Benchmark }) {
     return (
       <>
         Benchmark unlocks when 5+ similar companies use angar.{" "}
-        <Link href="/settings" className="underline hover:text-accent">Add number of employees</Link> to compare your AI spend for each employee.
+        <Link href="/settings?tab=general#employees" className="underline hover:text-accent">Add number of employees</Link> to compare your AI spend for each employee.
       </>
     );
   const you = b.yours !== null ? per(b.yours) : "—";

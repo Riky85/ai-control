@@ -41,6 +41,8 @@ export function useVoice(onFinal: (text: string) => void) {
     try {
       rec.current?.abort();
     } catch {}
+    // Il microfono globale (in alto a destra) si mette in pausa mentre usiamo questo.
+    window.dispatchEvent(new Event("angar:voice-pause"));
     const r: Rec = new Ctor();
     r.lang = navigator.language || "en-GB";
     r.interimResults = true;
@@ -62,6 +64,7 @@ export function useVoice(onFinal: (text: string) => void) {
     r.onend = () => {
       setListening(false);
       setInterim("");
+      window.dispatchEvent(new Event("angar:voice-resume"));
     };
     rec.current = r;
     setError(null);

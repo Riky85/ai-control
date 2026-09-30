@@ -4,7 +4,7 @@ export default function Loading() {
   const block = "rounded-xl border border-line bg-panel";
   return (
     <div className="flex flex-col gap-6 animate-pulse" aria-busy="true" aria-label="Loading">
-      <div className="flex flex-col gap-2 lg:pr-[8.25rem]">
+      <div className="flex flex-col gap-2 lg:pr-[var(--hdr-tools,8.25rem)]">
         <div className="h-7 w-56 max-w-full rounded-md bg-ink-100/[0.07]" />
         <div className="h-4 w-96 max-w-full rounded bg-ink-100/[0.05]" />
       </div>

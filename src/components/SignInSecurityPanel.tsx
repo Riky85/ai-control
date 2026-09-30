@@ -3,7 +3,8 @@ import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { ssoAvailable } from "@/lib/sso";
 import { setSignInSecurityAction } from "@/lib/auth-actions";
-import { Notice, Panel } from "@/components/ui";
+import { Notice } from "@/components/ui";
+import { Row, Section } from "@/components/SettingsRows";
 
 // Impostazioni → Sicurezza d'accesso: SSO obbligatorio e MFA obbligatoria (solo Owner).
 export default async function SignInSecurityPanel({ message }: { message?: string }) {
@@ -15,42 +16,35 @@ export default async function SignInSecurityPanel({ message }: { message?: strin
   const sso = ssoAvailable();
   const ssoOn = sso.microsoft || sso.google;
   const providers = [sso.microsoft && "Microsoft", sso.google && "Google"].filter(Boolean).join(" or ");
+  const check = "h-4 w-4 accent-accent cursor-pointer disabled:cursor-not-allowed";
 
   return (
-    <div id="sign-in-security" className="scroll-mt-6">
-      <Panel title="Sign-in security" subtitle="How members sign in to this workspace" action={<Link href="/account/security" className="btn btn-ghost btn-sm">My 2-step</Link>}>
-        {message === "ok" && <div className="mb-3"><Notice tone="success">Saved.</Notice></div>}
-        {message && message !== "ok" && <div className="mb-3"><Notice tone="error">{message}</Notice></div>}
-        <form action={setSignInSecurityAction} className="flex flex-col gap-3">
-          <fieldset disabled={!isOwner} className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
+      {message === "ok" && <Notice tone="success">Saved.</Notice>}
+      {message && message !== "ok" && <Notice tone="error">{message}</Notice>}
+      <form action={setSignInSecurityAction}>
+        {/* Un solo fieldset: senza permessi i controlli restano visibili ma spenti. */}
+        <fieldset disabled={!isOwner} className="contents">
+          <Section id="sign-in-security" title="Sign-in" action={!isOwner ? <span className="text-xs text-ink-400">Owners only</span> : undefined}>
             {/* Senza SSO configurato sulla piattaforma le opzioni SSO non si mostrano (restano solo se già attive). */}
-            {(ssoOn || org.ssoRequired) && (<>
-            <label className="flex items-start gap-3 text-sm cursor-pointer">
-              <input type="checkbox" name="ssoRequired" defaultChecked={org.ssoRequired} disabled={!ssoOn && !org.ssoRequired} className="mt-0.5 accent-accent" />
-              <span>
-                <span className="block text-ink-100">Require {providers || "Microsoft or Google"} sign-in</span>
-                <span className="block text-xs text-ink-400">{ssoOn ? "Password sign-ins are refused for these members." : "Not set up on this deployment yet."}</span>
-              </span>
-            </label>
-            <label className="flex flex-col gap-1.5 text-xs text-ink-400 pl-7">
-              Only for emails at (optional)
-              <input name="ssoDomain" defaultValue={org.ssoDomain ?? ""} placeholder="company.com — empty = everyone" className="field w-full" />
-            </label>
-            </>)}
-            <label className="flex items-start gap-3 text-sm cursor-pointer">
-              <input type="checkbox" name="mfaRequired" defaultChecked={org.mfaRequired} className="mt-0.5 accent-accent" />
-              <span>
-                <span className="block text-ink-100">Require two-step verification for password sign-ins</span>
-                <span className="block text-xs text-ink-400">Members without it set it up right after signing in.</span>
-              </span>
-            </label>
-          </fieldset>
-          <div className="flex items-center gap-3">
-            <button className="btn btn-secondary btn-sm" disabled={!isOwner}>Save</button>
-            {!isOwner && <span className="text-xs text-ink-400">Owners only.</span>}
-          </div>
-        </form>
-      </Panel>
+            {(ssoOn || org.ssoRequired) && (
+              <Row title={`Require ${providers || "Microsoft or Google"}`} hint={ssoOn ? "Password sign-ins are refused." : "Not set up on this deployment yet."}>
+                <input type="checkbox" name="ssoRequired" aria-label="Require single sign-on" defaultChecked={org.ssoRequired} disabled={!ssoOn && !org.ssoRequired} className={check} />
+                <input name="ssoDomain" defaultValue={org.ssoDomain ?? ""} placeholder="Only company.com (optional)" aria-label="Only for emails at this domain" className="field w-56 max-w-full" />
+              </Row>
+            )}
+            <Row title="Require two-step" hint="For password sign-ins. Set up right after signing in.">
+              <input type="checkbox" name="mfaRequired" aria-label="Require two-step verification" defaultChecked={org.mfaRequired} className={check} />
+            </Row>
+            <Row title="Your two-step" hint="Your own authenticator app.">
+              <Link href="/account/security" className="btn btn-secondary btn-sm">Open →</Link>
+            </Row>
+            <div className="px-5 py-3 flex justify-end">
+              <button className="btn btn-secondary btn-sm" disabled={!isOwner}>Save</button>
+            </div>
+          </Section>
+        </fieldset>
+      </form>
     </div>
   );
 }

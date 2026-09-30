@@ -99,7 +99,7 @@ export function PageHeader({
       </div>
       {/* Su schermi grandi le azioni stanno a sinistra dei pulsanti fissi del layout (avvisi, computer,
           documentazione); su schermi piccoli quei pulsanti hanno una riga loro sopra la pagina. */}
-      <div className="flex flex-wrap items-center gap-2 shrink-0 lg:pr-[8.25rem] min-h-9">{action}</div>
+      <div className="flex flex-wrap items-center gap-2 shrink-0 lg:pr-[var(--hdr-tools,8.25rem)] min-h-9">{action}</div>
     </div>
   );
 }
@@ -147,12 +147,12 @@ export const td = "px-5 py-3";
  */
 export function Tabs({ items, active }: { items: { key: string; label: string; href: string; count?: number }[]; active: string }) {
   return (
-    <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit">
+    <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit max-w-full overflow-x-auto">
       {items.map((t) => (
         <Link
           key={t.key}
           href={t.href}
-          className={`text-sm px-3.5 py-1.5 rounded-md transition-colors ${
+          className={`shrink-0 whitespace-nowrap text-sm px-3.5 py-1.5 rounded-md transition-colors ${
             active === t.key ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"
           }`}
         >

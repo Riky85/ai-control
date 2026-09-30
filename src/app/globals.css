@@ -110,3 +110,12 @@ body {
   .animate-rise, .animate-grow { animation: none !important; }
   tr, .rounded-xl { break-inside: avoid; }
 }
+
+/* Sidebar: le etichette entrano con una dissolvenza e un piccolo scivolamento
+   mentre la barra si allarga (niente testo che va a capo durante l'animazione). */
+@keyframes sb-fade {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: none; }
+}
+.sb-fade { animation: sb-fade 0.26s cubic-bezier(0.32, 0.72, 0, 1) 0.06s both; }
+@media (prefers-reduced-motion: reduce) { .sb-fade { animation: none; } }

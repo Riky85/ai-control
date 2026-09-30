@@ -7,13 +7,14 @@ import { emailEnabled } from "@/lib/mail";
 import { SESSION_COOKIE, SESSION_DAYS, verifySession } from "@/lib/session";
 import { updateProfileAction, changePasswordAction, resendVerificationAction, signOutAction } from "@/lib/auth-actions";
 import { fmtDate } from "@/lib/format";
-import { Notice, PageHeader, Panel } from "@/components/ui";
+import { Notice, PageHeader } from "@/components/ui";
+import { Row, Section } from "@/components/SettingsRows";
 
 export const dynamic = "force-dynamic";
 
 const SAVED: Record<string, string> = { profile: "Name saved.", password: "Password changed." };
 
-export default async function AccountPage({ searchParams }: { searchParams: { error?: string; saved?: string; verified?: string; verifySent?: string } }) {
+export default async function AccountPage({ searchParams }: { searchParams: { saved?: string; verified?: string; verifySent?: string } }) {
   const s = currentSession();
   if (!s) redirect("/login");
   const account = await db.account.findUnique({ where: { id: s.accountId } });
@@ -22,83 +23,53 @@ export default async function AccountPage({ searchParams }: { searchParams: { er
   const via = session?.m === "sso" ? "Microsoft or Google" : "email and password";
 
   return (
-    <div className="flex flex-col gap-6 max-w-3xl">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Account" subtitle={account.email} />
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
       {searchParams.saved && SAVED[searchParams.saved] && <Notice tone="success">{SAVED[searchParams.saved]}</Notice>}
       {searchParams.verified && <Notice tone="success">Email confirmed.</Notice>}
       {searchParams.verifySent && <Notice tone="success">Confirmation link sent to {account.email}.</Notice>}
 
-      <Panel title="Profile">
-        <form action={updateProfileAction} className="flex items-end gap-2">
-          <label className="flex-1 flex flex-col gap-1.5 text-sm text-ink-400">
-            Name
-            <input name="name" required maxLength={120} defaultValue={account.name ?? ""} autoComplete="name" className="field w-full" />
-          </label>
-          <button className="btn btn-secondary btn-sm">Save</button>
-        </form>
-        <dl className="text-sm flex flex-col gap-2.5 mt-4 pt-4 border-t border-line">
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-ink-400">Email</dt>
-            <dd className="text-ink-100 flex items-center gap-3">
-              {account.email}
-              {account.emailVerifiedAt ? (
-                <span className="text-xs text-steady">Confirmed</span>
-              ) : emailEnabled() ? (
-                <form action={resendVerificationAction}>
-                  <button className="text-xs text-signal hover:underline">Not confirmed — resend link</button>
-                </form>
-              ) : (
-                <span className="text-xs text-ink-400">Not confirmed</span>
-              )}
-            </dd>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-ink-400">Member since</dt>
-            <dd className="text-ink-100">{fmtDate(account.createdAt)}</dd>
-          </div>
-        </dl>
-      </Panel>
-
-      <div id="password" className="scroll-mt-6">
-        <Panel title="Password" subtitle={account.ssoOnly ? "You sign in with Microsoft or Google." : undefined}>
-          {account.ssoOnly ? (
-            <p className="text-sm text-ink-400">
-              No password is set. To add one, use <Link href="/forgot" className="underline hover:text-ink-100">Forgot password</Link> after signing out — we&apos;ll email you a link.
-            </p>
+      <Section title="Profile">
+        <Row title="Name">
+          <form action={updateProfileAction} className="flex gap-2 w-full max-w-xs md:w-auto">
+            <input name="name" required maxLength={120} defaultValue={account.name ?? ""} autoComplete="name" aria-label="Name" className="field flex-1 min-w-0 md:w-56" />
+            <button className="btn btn-secondary btn-sm">Save</button>
+          </form>
+        </Row>
+        <Row title="Email" hint={`Member since ${fmtDate(account.createdAt)}`}>
+          <span className="text-sm text-ink-100 break-all">{account.email}</span>
+          {account.emailVerifiedAt ? (
+            <span className="text-xs text-steady">Confirmed</span>
+          ) : emailEnabled() ? (
+            <form action={resendVerificationAction}>
+              <button className="btn btn-secondary btn-sm">Resend confirmation</button>
+            </form>
           ) : (
-            <form action={changePasswordAction} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-end">
-              <label className="flex flex-col gap-1.5 text-sm text-ink-400">
-                Current password
-                <input name="current" type="password" required autoComplete="current-password" className="field w-full" />
-              </label>
-              <label className="flex flex-col gap-1.5 text-sm text-ink-400">
-                New password
-                <input name="password" type="password" required minLength={10} autoComplete="new-password" placeholder="10+ characters, letters and numbers" className="field w-full" />
-              </label>
-              <button className="btn btn-secondary btn-sm">Change</button>
+            <span className="text-xs text-signal">Not confirmed</span>
+          )}
+        </Row>
+      </Section>
+
+      <Section title="Security">
+        <Row title="Password" id="password" hint={account.ssoOnly ? "None — you use Microsoft or Google. To add one, sign out and use Forgot password." : "10+ characters, letters and numbers."}>
+          {!account.ssoOnly && (
+            <form action={changePasswordAction} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] items-center gap-2 w-full max-w-lg">
+              <input name="current" type="password" required autoComplete="current-password" placeholder="Current password" aria-label="Current password" className="field w-full min-w-0" />
+              <input name="password" type="password" required minLength={10} autoComplete="new-password" placeholder="New password" aria-label="New password" className="field w-full min-w-0" />
+              <button className="btn btn-secondary btn-sm justify-self-start">Change</button>
             </form>
           )}
-        </Panel>
-      </div>
-
-      <Panel
-        title="Two-step verification"
-        subtitle={account.ssoOnly ? "Handled by Microsoft or Google." : account.totpEnabledAt ? `On since ${fmtDate(account.totpEnabledAt)}` : "Off"}
-        action={!account.ssoOnly ? <Link href="/account/security" className="btn btn-secondary btn-sm">{account.totpEnabledAt ? "Manage" : "Set up"}</Link> : undefined}
-      >
-        <p className="text-sm text-ink-400">A code from an authenticator app after your password, so a stolen password isn&apos;t enough.</p>
-      </Panel>
-
-      <Panel title="Sessions">
-        <p className="text-sm text-ink-400">
-          This session signed in with {via}. Sessions last {SESSION_DAYS} days on each browser{account.lastLoginAt ? `; last sign-in ${fmtDate(account.lastLoginAt)}` : ""}.
-          Changing your password doesn&apos;t sign out other browsers — sign out there, or ask an owner to remove and re-invite you if a device is lost.
-        </p>
-        <form action={signOutAction} className="mt-3">
-          <button className="btn btn-secondary btn-sm">Sign out of this browser</button>
-        </form>
-      </Panel>
+        </Row>
+        <Row title="Two-step verification" hint={account.ssoOnly ? "Handled by Microsoft or Google." : account.totpEnabledAt ? `On since ${fmtDate(account.totpEnabledAt)}` : "Off — an authenticator code after your password."}>
+          {!account.ssoOnly && <Link href="/account/security" className="btn btn-secondary btn-sm">{account.totpEnabledAt ? "Manage" : "Set up"}</Link>}
+        </Row>
+        <Row title="This browser" hint={`Signed in with ${via}${account.lastLoginAt ? ` · ${fmtDate(account.lastLoginAt)}` : ""} · lasts ${SESSION_DAYS} days.`}>
+          <form action={signOutAction}>
+            <button className="btn btn-secondary btn-sm">Sign out</button>
+          </form>
+        </Row>
+      </Section>
+      <p className="text-xs text-ink-400 px-1">Lost a device? Ask an owner to remove and re-invite you — a new password doesn&apos;t sign out other browsers.</p>
     </div>
   );
 }

@@ -10,12 +10,15 @@ import { erasePastNamesAction } from "@/lib/discovery/privacy-actions";
 import { PRIVACY_MODES, privacyModeOf, showsPeople } from "@/lib/privacy";
 import { INDUSTRIES } from "@/lib/industries";
 import { Notice, PageHeader, Tabs } from "@/components/ui";
+import { Row, Section, Status } from "@/components/SettingsRows";
 import { VendorBadge } from "@/components/VendorIcon";
 import ThemeSelect from "@/components/ThemeSelect";
 import SignInSecurityPanel from "@/components/SignInSecurityPanel";
 import DevelopersPanel from "@/components/DevelopersPanel";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, parseTheme } from "@/lib/theme";
+import VoiceSetting from "@/components/VoiceSetting";
+import { VOICE_COOKIE, parseVoiceMode } from "@/lib/voice";
 
 export const dynamic = "force-dynamic";
 
@@ -44,8 +47,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
   const isAdmin = role === "ADMIN" || role === "OWNER";
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeader title="Settings" subtitle="Your organization, privacy, security and integrations." />
+    <div className="flex flex-col gap-4">
+      <PageHeader title="Settings" />
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/settings?tab=${t.key}` }))} />
 
       {tab === "general" && (
@@ -53,15 +56,15 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
           <Row title="Organization" hint={org?.country ? `Country: ${org.country}` : undefined}>
             <span className="text-sm text-ink-100">{org?.name ?? "—"}</span>
           </Row>
-          <Row title="Employees" hint="For AI spend for each employee and the benchmark." id="employees">
+          <Row title="Employees" hint="For AI spend for each employee." id="employees">
             <form action={setEmployeesAction} className="flex gap-2">
-              <input name="employees" type="number" min="1" defaultValue={org?.employees ?? ""} placeholder="e.g. 120" className="field w-32" />
+              <input name="employees" type="number" min="1" defaultValue={org?.employees ?? ""} placeholder="e.g. 120" aria-label="Employees" className="field w-32" />
               <button className="btn btn-secondary btn-sm">Save</button>
             </form>
           </Row>
           <Row title="Industry" hint="Compares you with similar companies.">
-            <form action={setIndustryAction} className="flex gap-2">
-              <select name="industry" defaultValue={org?.industry ?? ""} className="field w-56">
+            <form action={setIndustryAction} className="flex gap-2 w-full max-w-xs md:w-auto">
+              <select name="industry" defaultValue={org?.industry ?? ""} aria-label="Industry" className="field flex-1 min-w-0 md:w-56">
                 <option value="">Not set</option>
                 {INDUSTRIES.map((i) => (
                   <option key={i} value={i}>{i}</option>
@@ -73,19 +76,20 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
           <Row title="Appearance">
             <ThemeSelect initial={parseTheme(cookies().get(THEME_COOKIE)?.value)} />
           </Row>
-          <Row title="People" hint="Added automatically from company accounts and provider keys.">
-            <div className="flex items-center gap-3">
-              <Link href="/people" className="btn btn-secondary btn-sm">{userCount} {userCount === 1 ? "person" : "people"} →</Link>
-              <details className="relative">
-                <summary className="btn btn-ghost btn-sm list-none cursor-pointer">Add by hand</summary>
-                <form action={addUserAction} className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-line bg-panel p-3 shadow-card flex flex-col gap-2">
-                  <input name="email" type="email" required placeholder="Email" className="field" />
-                  <input name="name" placeholder="Name" className="field" />
-                  <input name="department" placeholder="Department" className="field" />
-                  <button className="btn btn-primary btn-sm">Add</button>
-                </form>
-              </details>
-            </div>
+          <Row title="Voice" hint="Speak to angar anywhere in the platform.">
+            <VoiceSetting initial={parseVoiceMode(cookies().get(VOICE_COOKIE)?.value)} />
+          </Row>
+          <Row title="People" hint="Added from company accounts and provider keys.">
+            <Link href="/people" className="btn btn-secondary btn-sm">{userCount} {userCount === 1 ? "person" : "people"} →</Link>
+            <details className="relative">
+              <summary className="btn btn-ghost btn-sm list-none cursor-pointer">Add by hand</summary>
+              <form action={addUserAction} className="absolute right-0 z-20 mt-2 w-72 max-w-[calc(100vw-3rem)] rounded-xl border border-line bg-panel p-3 shadow-card flex flex-col gap-2">
+                <input name="email" type="email" required placeholder="Email" className="field" />
+                <input name="name" placeholder="Name" className="field" />
+                <input name="department" placeholder="Department" className="field" />
+                <button className="btn btn-primary btn-sm">Add</button>
+              </form>
+            </details>
           </Row>
         </Section>
       )}
@@ -95,7 +99,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
           {searchParams.privacy === "ok" && <Notice tone="success">Privacy mode changed — pages, exports and reports follow it from now on.</Notice>}
           {searchParams.privacy === "erased" && <Notice tone="success">Names and emails were removed from past data.</Notice>}
           <Section>
-            <Row title="Employee privacy" hint="What angar shows about the people who use AI.">
+            <Row title="Employee privacy" hint="What angar shows about people. Never what they type." id="privacy">
               <form action={setPrivacyModeAction} className="flex flex-col gap-2 w-full max-w-md">
                 <fieldset disabled={!isAdmin} className="flex flex-col gap-1.5">
                   {PRIVACY_MODES.map((m) => (
@@ -108,38 +112,37 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
                     </label>
                   ))}
                 </fieldset>
-                <div className="flex items-center gap-3">
-                  <button className="btn btn-primary btn-sm" disabled={!isAdmin}>Save</button>
-                  {!isAdmin && <span className="text-xs text-ink-400">Admins only.</span>}
+                <div className="flex items-center justify-end gap-3">
+                  {!isAdmin && <span className="text-xs text-ink-400">Admins only</span>}
+                  <button className="btn btn-secondary btn-sm" disabled={!isAdmin}>Save</button>
                 </div>
               </form>
             </Row>
             <Row title="Employee notice" hint="Hand it out before you start (EN · IT · DE).">
-              <Link href="/compliance/employee-notice" className="btn btn-secondary btn-sm">Open notice →</Link>
+              <Link href="/compliance/employee-notice" className="btn btn-secondary btn-sm">Open →</Link>
             </Row>
             {!showsPeople(privacy) && role === "OWNER" && (
-              <Row title="Past data" hint="Replace names and emails already collected with pseudonyms. Can't be undone.">
+              <Row title="Past data" hint="Swap names already collected for pseudonyms. Can't be undone.">
                 <form action={erasePastNamesAction}>
-                  <button className="btn btn-secondary btn-sm">Erase names</button>
+                  <button className="btn btn-danger btn-sm">Erase names</button>
                 </form>
               </Row>
             )}
           </Section>
-          <p className="text-xs text-ink-400">angar never records what people type, read or generate in an AI tool — only which tools are used, when and how much. A new mode applies from now on.</p>
         </>
       )}
 
       {tab === "security" && (
         <>
           <SignInSecurityPanel message={searchParams.signin} />
-          <Section>
+          <Section title="Data">
             <Row title="Connector keys">
               <Status on={Boolean(process.env.CREDENTIALS_SECRET)} yes="Encrypted" no="Not configured" />
             </Row>
-            <Row title="Access to your tools">
-              <Status on yes="Read-only (except seat removal you start)" />
+            <Row title="Access to your tools" hint="Except seat removals you start.">
+              <Status on yes="Read-only" />
             </Row>
-            <Row title="Audit log" hint="Tamper-evident, every change is recorded.">
+            <Row title="Audit log" hint="Every change, tamper-evident.">
               <Link href="/audit" className="btn btn-secondary btn-sm">Open →</Link>
             </Row>
           </Section>
@@ -149,32 +152,36 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
       {tab === "integrations" && (
         <>
           {searchParams.chat === "ok" && <Notice tone="success">Connected — a test message was sent.</Notice>}
+          {searchParams.chat === "off" && <Notice tone="success">Slack or Teams disconnected.</Notice>}
           <Section>
             <Row title="Sources" hint={connectors.length ? `${connectors.length} connected` : "Nothing connected yet"}>
-              <div className="flex flex-wrap items-center gap-2 justify-end">
-                {connectors.slice(0, 6).map((c) => (
-                  <span key={c.id} title={c.provider} className="rounded-lg border border-line p-1">
-                    <VendorBadge vendor={c.provider} size={22} />
-                  </span>
-                ))}
-                <Link href="/sources" className="btn btn-secondary btn-sm">Manage →</Link>
-              </div>
+              {connectors.slice(0, 6).map((c) => (
+                <span key={c.id} title={c.provider} className="rounded-lg border border-line p-1">
+                  <VendorBadge vendor={c.provider} size={22} />
+                </span>
+              ))}
+              <Link href="/sources" className="btn btn-secondary btn-sm">Manage →</Link>
             </Row>
-            <Row title="Slack or Teams" hint={org?.chatWebhookEncrypted ? "Weekly summary on Mondays + alerts." : "Weekly summary and alerts in your team chat."}>
+            <Row
+              title="Slack or Teams"
+              hint={
+                <details>
+                  <summary className="cursor-pointer list-none hover:text-ink-100 select-none">{org?.chatWebhookEncrypted ? "Weekly summary on Mondays + alerts." : "Weekly summary and alerts."} <span className="underline">How?</span></summary>
+                  <div className="mt-2 flex flex-col gap-1.5">
+                    <p><b className="text-ink-100">Slack:</b> Apps → Incoming Webhooks → Add to a channel.</p>
+                    <p><b className="text-ink-100">Teams:</b> channel → Workflows → &ldquo;Post to a channel when a webhook request is received&rdquo;.</p>
+                    <p>Buttons inside Slack need the angar Slack app: Interactivity URL <span className="font-mono break-all">{process.env.APP_URL ?? ""}/api/slack/interactions</span>, <span className="font-mono">SLACK_SIGNING_SECRET</span>, <span className="font-mono">SLACK_BOT_TOKEN</span>.</p>
+                  </div>
+                </details>
+              }
+            >
               <form action={setChatWebhookAction} className="flex gap-2 w-full max-w-md">
-                <input name="url" type="url" placeholder={org?.chatWebhookEncrypted ? "Connected — paste a new URL to change" : "Incoming webhook URL"} className="field flex-1 min-w-0" />
+                <input name="url" type="url" aria-label="Webhook URL" placeholder={org?.chatWebhookEncrypted ? "Connected — paste a new URL" : "Incoming webhook URL"} className="field flex-1 min-w-0" />
                 <button className="btn btn-secondary btn-sm">{org?.chatWebhookEncrypted ? "Update" : "Connect"}</button>
-                {org?.chatWebhookEncrypted && <button name="url" value="" className="btn btn-ghost btn-sm">Disconnect</button>}
+                {org?.chatWebhookEncrypted && <button name="url" value="" formNoValidate className="btn btn-ghost btn-sm">Disconnect</button>}
               </form>
             </Row>
           </Section>
-          <details className="text-xs text-ink-400 -mt-2">
-            <summary className="cursor-pointer list-none hover:text-ink-100 select-none">How to get the Slack / Teams URL and one-click buttons</summary>
-            <div className="mt-2 flex flex-col gap-1.5 max-w-3xl">
-              <p><b className="text-ink-100">Slack:</b> Apps → Incoming Webhooks → Add to a channel. <b className="text-ink-100">Teams:</b> channel → Workflows → &ldquo;Post to a channel when a webhook request is received&rdquo;.</p>
-              <p>Approve / Keep buttons open angar to confirm. For buttons that work inside Slack, the platform admin sets up the angar Slack app (Interactivity URL <span className="font-mono">{process.env.APP_URL ?? ""}/api/slack/interactions</span>, <span className="font-mono">SLACK_SIGNING_SECRET</span>, <span className="font-mono">SLACK_BOT_TOKEN</span>).</p>
-            </div>
-          </details>
           <DevelopersPanel orgId={orgId} canEdit={isAdmin} webhookStatus={searchParams.webhook} />
         </>
       )}
@@ -183,14 +190,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
         <>
           {searchParams.reset && <Notice tone="success">Workspace data reset — drop a bank statement on Overview to start again.</Notice>}
           <Section>
-            <Row title="Demo data" hint="Adds an example company so every page is filled in.">
+            <Row title="Demo data" hint="Fills every page with an example company.">
               <form action={loadDemoDataAction}>
                 <button className="btn btn-secondary btn-sm">Load demo data</button>
               </form>
             </Row>
-            <Row title="Reset workspace" hint="Deletes AI, costs, people, sources and keys. Members, plan and audit log stay. Owners only.">
+            <Row title="Reset workspace" hint="Keeps only members, plan and audit log. Owners only.">
               <form action={resetWorkspaceDataAction} className="flex gap-2 w-full max-w-md">
-                <input name="confirm" required autoComplete="off" placeholder={`Type "${org?.name ?? ""}"`} className="field flex-1 min-w-0 focus:border-alarm" />
+                <input name="confirm" required autoComplete="off" aria-label="Organization name" placeholder={`Type "${org?.name ?? ""}"`} className="field flex-1 min-w-0 focus:border-alarm" />
                 <button className="btn btn-danger btn-sm">Reset</button>
               </form>
             </Row>
@@ -198,31 +205,5 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
         </>
       )}
     </div>
-  );
-}
-
-/** Blocco unico con righe separate da una linea: niente riquadri che si impastano. */
-function Section({ children }: { children: React.ReactNode }) {
-  return <section className="rounded-xl border border-line bg-panel divide-y divide-line">{children}</section>;
-}
-
-function Row({ title, hint, id, children }: { title: string; hint?: string; id?: string; children: React.ReactNode }) {
-  return (
-    <div id={id} className="scroll-mt-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-3 md:gap-8 items-start md:items-center px-5 py-4">
-      <div>
-        <div className="text-sm font-medium text-ink-100">{title}</div>
-        {hint && <div className="text-xs text-ink-400 mt-0.5">{hint}</div>}
-      </div>
-      <div className="flex md:justify-end min-w-0">{children}</div>
-    </div>
-  );
-}
-
-function Status({ on, yes, no }: { on: boolean; yes: string; no?: string }) {
-  return (
-    <span className="inline-flex items-center gap-2 text-sm text-ink-100">
-      <span className={`h-2 w-2 rounded-full ${on ? "bg-steady" : "bg-signal"}`} />
-      {on ? yes : no}
-    </span>
   );
 }

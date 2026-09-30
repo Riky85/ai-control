@@ -4,7 +4,8 @@ import { currentSession } from "@/lib/auth";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { Notice, PageHeader, Panel, Tabs, Table } from "@/components/ui";
+import { Notice, PageHeader, Tabs } from "@/components/ui";
+import { EmptyRow, Row, Section } from "@/components/SettingsRows";
 import { emailEnabled } from "@/lib/mail";
 import { planById } from "@/lib/plans";
 import CopyField from "@/components/CopyField";
@@ -21,8 +22,9 @@ const ROLE_HELP: Record<string, string> = {
   EDITOR: "Edit passports, owners, costs",
   VIEWER: "Read-only",
 };
+const roleLabel = (r: string) => r.charAt(0) + r.slice(1).toLowerCase();
 
-export default async function WorkspacePage({ searchParams }: { searchParams: { tab?: string; error?: string; invited?: string; shared?: string; inviteLink?: string; emailSent?: string; resetFor?: string; resetLink?: string } }) {
+export default async function WorkspacePage({ searchParams }: { searchParams: { tab?: string; invited?: string; shared?: string; inviteLink?: string; emailSent?: string; resetFor?: string; resetLink?: string } }) {
   const tab = searchParams.tab === "sharing" ? "sharing" : searchParams.tab === "workspaces" ? "workspaces" : "members";
   const [org, members, links, allWorkspaces] = await Promise.all([
     db.organization.findUniqueOrThrow({ where: { id: currentOrgId() } }),
@@ -37,27 +39,22 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
   const activeLinks = links.filter((l) => !l.revokedAt && (!l.expiresAt || l.expiresAt > new Date()));
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Workspace"
-        subtitle={`${org.name} — who can use angar, and dashboards shared outside it.`}
-        action={<Link href="/billing" className="btn btn-secondary">{plan.name} plan</Link>}
-      />
+    <div className="flex flex-col gap-4">
+      <PageHeader title="Workspace" subtitle={org.name} />
 
       <Tabs
         active={tab}
         items={[
           { key: "members", label: "Members", count: members.length, href: "/workspace?tab=members" },
-          { key: "sharing", label: "Shared dashboards", count: activeLinks.length, href: "/workspace?tab=sharing" },
+          { key: "sharing", label: "Sharing", count: activeLinks.length, href: "/workspace?tab=sharing" },
           { key: "workspaces", label: "Workspaces", count: allWorkspaces.length, href: "/workspace?tab=workspaces" },
         ]}
       />
 
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
       {searchParams.invited && (
         <Notice>
           <div className="flex flex-col gap-2">
-            <span>{searchParams.emailSent === "1" ? "Member added — invitation email sent." : "Member added. Email isn't set up yet, so send them this sign-up link:"}</span>
+            <span>{searchParams.emailSent === "1" ? "Member added — invitation email sent." : "Member added. Send them this sign-up link:"}</span>
             {searchParams.emailSent !== "1" && searchParams.inviteLink && <CopyField value={searchParams.inviteLink} />}
           </div>
         </Notice>
@@ -70,175 +67,157 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
           </div>
         </Notice>
       )}
-      {searchParams.shared && <Notice tone="success">Link created — copy it below and send it to whoever needs to see the dashboard.</Notice>}
+      {searchParams.shared && <Notice tone="success">Link created — copy it below.</Notice>}
 
-      {tab === "workspaces" ? (
-        <div className="grid grid-cols-3 gap-4 items-start">
-          <div className="col-span-2">
-          <Table columns={["Workspace", "AI systems", "Members", "Plan", ""]}>
-                {allWorkspaces.map((w) => (
-                  <tr key={w.id}>
-                    <td className="px-5 py-3">
-                      <form action={renameWorkspaceAction} className="flex items-center gap-2">
-                        <input type="hidden" name="orgId" value={w.id} />
-                        <input name="name" defaultValue={w.name} className={`${input} py-1.5 w-56`} />
-                        <button className="btn btn-secondary btn-sm">Rename</button>
-                      </form>
-                    </td>
-                    <td className="px-5 py-3 text-ink-100 tabular">{w._count.aiAssets}</td>
-                    <td className="px-5 py-3 text-ink-100 tabular">{w._count.members}</td>
-                    <td className="px-5 py-3 text-ink-100">{planById(w.plan).name}</td>
-                    <td className="px-5 py-3 text-right">
-                      {w.id === org.id ? (
-                        <Badge>CURRENT</Badge>
-                      ) : (
-                        <form action={switchWorkspaceAction}>
-                          <input type="hidden" name="orgId" value={w.id} />
-                          <button className="btn btn-secondary btn-sm">Open</button>
-                        </form>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </Table>
-          </div>
-          <Panel
-            title="Create a workspace"
-            subtitle={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on the ${plan.name} plan — e.g. one for each company, plant or client`}
-          >
-            {plan.limits.workspaces === null || allWorkspaces.length < plan.limits.workspaces ? (
-              <form action={createWorkspaceAction} className="flex flex-col gap-2">
-                <input name="name" required placeholder="Workspace name" className={input} />
-                <button className="btn btn-primary">Create workspace</button>
-              </form>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <p className="text-sm text-ink-400">Your plan's workspace limit is reached.</p>
-                <Link href="/billing" className="btn btn-secondary">See plans</Link>
-              </div>
-            )}
-          </Panel>
-        </div>
-      ) : tab === "members" ? (
-        <div className="grid grid-cols-3 gap-4 items-start">
-          <div className="col-span-2">
-          <Table columns={["Member", "Role", "Status", ""]}>
-                {members.map((m) => (
-                  <tr key={m.id}>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        <span className="h-8 w-8 rounded-full bg-accent-soft text-accent-dark text-xs font-semibold flex items-center justify-center shrink-0">
-                          {(m.name ?? m.email).charAt(0).toUpperCase()}
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block font-medium text-ink-100 truncate">{m.name ?? m.email}</span>
-                          {m.name && <span className="block text-xs text-ink-400 truncate">{m.email}</span>}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3">
-                      <form action={setMemberRoleAction} className="flex items-center gap-2">
-                        <input type="hidden" name="memberId" value={m.id} />
-                        <AutoSubmitSelect name="role" defaultValue={m.role} aria-label="Role" className={`${input} py-1.5`}>
-                          {Object.keys(ROLE_HELP).map((r) => (
-                            <option key={r} value={r}>{r.charAt(0) + r.slice(1).toLowerCase()}</option>
-                          ))}
-                        </AutoSubmitSelect>
-                      </form>
-                    </td>
-                    <td className="px-5 py-3"><Badge>{m.status === "active" ? "ACTIVE" : "INVITED"}</Badge></td>
-                    <td className="px-5 py-3 text-right">
-                      <div className="flex items-center justify-end gap-3">
-                      {m.status === "active" && (
-                        <form action={createMemberResetLinkAction}>
-                          <input type="hidden" name="email" value={m.email} />
-                          <button className="btn btn-ghost btn-sm">Reset link</button>
-                        </form>
-                      )}
-                      <form action={removeMemberAction}>
-                        <input type="hidden" name="memberId" value={m.id} />
-                        <button className="btn btn-ghost btn-sm">Remove</button>
-                      </form>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {members.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-5 py-3 text-sm text-ink-400 text-center">No members yet — invite yourself first as Owner.</td>
-                  </tr>
-                )}
-              </Table>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <Panel title="Invite a member" subtitle={`${members.length} of ${plan.limits.members ?? "unlimited"} on the ${plan.name} plan`}>
-              <form action={inviteMemberAction} className="flex flex-col gap-2">
-                <input name="email" type="email" required placeholder="Email" className={input} />
-                <input name="name" placeholder="Name (optional)" className={input} />
-                <select name="role" defaultValue={members.length === 0 ? "OWNER" : "VIEWER"} className={input}>
+      {tab === "members" && (
+        <>
+          <Section>
+            <Row title="Invite" hint={`${members.length} of ${plan.limits.members ?? "unlimited"} on ${plan.name}. ${emailEnabled() ? "They get an email." : "You share the sign-up link."}`}>
+              <form action={inviteMemberAction} className="grid grid-cols-1 sm:grid-cols-2 items-center gap-2 w-full max-w-md">
+                <input name="email" type="email" required placeholder="Email" aria-label="Email" className={input} />
+                <input name="name" placeholder="Name (optional)" aria-label="Name" className={input} />
+                <select name="role" defaultValue={members.length === 0 ? "OWNER" : "VIEWER"} aria-label="Role" className={input}>
                   {Object.entries(ROLE_HELP).map(([r, help]) => (
-                    <option key={r} value={r}>{r.charAt(0) + r.slice(1).toLowerCase()} — {help}</option>
+                    <option key={r} value={r}>{roleLabel(r)} — {help}</option>
                   ))}
                 </select>
-                <button className="btn btn-primary">Invite</button>
+                <button className="btn btn-secondary btn-sm justify-self-start sm:justify-self-end">Invite</button>
               </form>
-            </Panel>
-            <p className="text-xs text-ink-400 px-1">
-              Invited people sign up with the same email and join this workspace with their role.
-              {!emailEnabled() && " Invitation emails aren't sent automatically yet — share the sign-up link yourself."}
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-4 items-start">
-          <div className="col-span-2 flex flex-col gap-3">
+            </Row>
+          </Section>
+          <Section title="Members">
+            {members.map((m) => (
+              <Row
+                key={m.id}
+                title={
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span className="truncate">{m.name ?? m.email}</span>
+                    {m.status !== "active" && <Badge>INVITED</Badge>}
+                  </span>
+                }
+                hint={m.name ? <span className="block truncate">{m.email}</span> : undefined}
+              >
+                <form action={setMemberRoleAction}>
+                  <input type="hidden" name="memberId" value={m.id} />
+                  <AutoSubmitSelect name="role" defaultValue={m.role} aria-label="Role" className={`${input} py-1.5`}>
+                    {Object.keys(ROLE_HELP).map((r) => (
+                      <option key={r} value={r}>{roleLabel(r)}</option>
+                    ))}
+                  </AutoSubmitSelect>
+                </form>
+                {m.status === "active" && (
+                  <form action={createMemberResetLinkAction}>
+                    <input type="hidden" name="email" value={m.email} />
+                    <button className="btn btn-ghost btn-sm">Reset link</button>
+                  </form>
+                )}
+                <form action={removeMemberAction}>
+                  <input type="hidden" name="memberId" value={m.id} />
+                  <button className="btn btn-ghost btn-sm">Remove</button>
+                </form>
+              </Row>
+            ))}
+            {members.length === 0 && <EmptyRow>No members yet — invite yourself first as Owner.</EmptyRow>}
+          </Section>
+        </>
+      )}
+
+      {tab === "sharing" && (
+        <>
+          <Section>
+            <Row title="Share the Overview" hint={`Read-only link. ${activeLinks.length} of ${plan.limits.sharedDashboards ?? "unlimited"} active on ${plan.name}.`}>
+              <form action={createShareLinkAction} className="flex flex-wrap gap-2 w-full max-w-md">
+                <input name="name" placeholder="Name, e.g. Board Q3" aria-label="Link name" className={`${input} flex-1 min-w-[10rem]`} />
+                <select name="expiresInDays" defaultValue="30" aria-label="Expiry" className={input}>
+                  <option value="7">7 days</option>
+                  <option value="30">30 days</option>
+                  <option value="90">90 days</option>
+                  <option value="0">No expiry</option>
+                </select>
+                <button className="btn btn-secondary btn-sm">Create link</button>
+              </form>
+            </Row>
+          </Section>
+          <Section title="Links">
             {links.map((l) => {
               const expired = l.expiresAt && l.expiresAt < new Date();
               const live = !l.revokedAt && !expired;
               return (
-                <div key={l.id} className={`rounded-xl border border-line bg-panel p-4 flex flex-col gap-3 ${live ? "" : "opacity-60"}`}>
-                  <div className="flex items-center gap-3">
-                    <span className="flex-1 min-w-0">
-                      <span className="block text-sm font-medium text-ink-100 truncate">{l.name}</span>
-                      <span className="block text-xs text-ink-400">
-                        Overview dashboard · {l.viewCount} view{l.viewCount === 1 ? "" : "s"}
-                        {l.lastViewedAt && ` · last opened ${fmtDate(l.lastViewedAt)}`} ·{" "}
+                <div key={l.id} className={live ? "" : "opacity-60"}>
+                  <Row
+                    title={<span className="block truncate">{l.name}</span>}
+                    hint={
+                      <>
+                        {l.viewCount} view{l.viewCount === 1 ? "" : "s"}
+                        {l.lastViewedAt && ` · last ${fmtDate(l.lastViewedAt)}`} ·{" "}
                         {l.revokedAt ? "Revoked" : expired ? "Expired" : l.expiresAt ? `Expires ${fmtDate(l.expiresAt)}` : "No expiry"}
-                      </span>
-                    </span>
+                      </>
+                    }
+                  >
                     {live && (
-                      <form action={revokeShareLinkAction}>
-                        <input type="hidden" name="linkId" value={l.id} />
-                        <button className="btn btn-ghost btn-sm">Revoke</button>
-                      </form>
+                      <>
+                        <div className="w-full max-w-md">
+                          <CopyField value={`${base}/share/${l.token}`} />
+                        </div>
+                        <form action={revokeShareLinkAction}>
+                          <input type="hidden" name="linkId" value={l.id} />
+                          <button className="btn btn-ghost btn-sm">Revoke</button>
+                        </form>
+                      </>
                     )}
-                  </div>
-                  {live && <CopyField value={`${base}/share/${l.token}`} />}
+                  </Row>
                 </div>
               );
             })}
-            {links.length === 0 && (
-              <div className="rounded-xl border border-dashed border-line p-8 text-center text-sm text-ink-400">
-                No shared dashboards yet. Create a read-only link to show your AI estate to management, auditors or a client.
-              </div>
-            )}
-          </div>
+            {links.length === 0 && <EmptyRow>No shared links yet.</EmptyRow>}
+          </Section>
+        </>
+      )}
 
-          <Panel title="Share a dashboard" subtitle={`${activeLinks.length} of ${plan.limits.sharedDashboards ?? "unlimited"} active on the ${plan.name} plan`}>
-            <form action={createShareLinkAction} className="flex flex-col gap-2">
-              <input name="name" placeholder="Name, e.g. Board — Q3 AI estate" className={input} />
-              <select name="expiresInDays" defaultValue="30" className={input}>
-                <option value="7">Expires in 7 days</option>
-                <option value="30">Expires in 30 days</option>
-                <option value="90">Expires in 90 days</option>
-                <option value="0">Never expires</option>
-              </select>
-              <button className="btn btn-primary">Create link</button>
-              <p className="text-xs text-ink-400">Anyone with the link sees a read-only snapshot of the Overview. You can revoke it at any time.</p>
-            </form>
-          </Panel>
-        </div>
+      {tab === "workspaces" && (
+        <>
+          <Section>
+            <Row title="New workspace" hint={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on ${plan.name}. One for each company, plant or client.`}>
+              {plan.limits.workspaces === null || allWorkspaces.length < plan.limits.workspaces ? (
+                <form action={createWorkspaceAction} className="flex gap-2 w-full max-w-md">
+                  <input name="name" required placeholder="Workspace name" aria-label="Workspace name" className={`${input} flex-1 min-w-0`} />
+                  <button className="btn btn-secondary btn-sm">Create</button>
+                </form>
+              ) : (
+                <>
+                  <span className="text-xs text-ink-400">Limit reached</span>
+                  <Link href="/billing" className="btn btn-secondary btn-sm">See plans →</Link>
+                </>
+              )}
+            </Row>
+          </Section>
+          <Section title="Your workspaces">
+            {allWorkspaces.map((w) => (
+              <Row
+                key={w.id}
+                title={
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span className="truncate">{w.name}</span>
+                    {w.id === org.id && <Badge>CURRENT</Badge>}
+                  </span>
+                }
+                hint={`${w._count.aiAssets} AI · ${w._count.members} member${w._count.members === 1 ? "" : "s"} · ${planById(w.plan).name}`}
+              >
+                <form action={renameWorkspaceAction} className="flex gap-2 w-full max-w-xs">
+                  <input type="hidden" name="orgId" value={w.id} />
+                  <input name="name" defaultValue={w.name} required aria-label="Workspace name" className={`${input} py-1.5 flex-1 min-w-0`} />
+                  <button className="btn btn-secondary btn-sm">Rename</button>
+                </form>
+                {w.id !== org.id && (
+                  <form action={switchWorkspaceAction}>
+                    <input type="hidden" name="orgId" value={w.id} />
+                    <button className="btn btn-secondary btn-sm">Open</button>
+                  </form>
+                )}
+              </Row>
+            ))}
+          </Section>
+        </>
       )}
     </div>
   );

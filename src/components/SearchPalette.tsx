@@ -133,7 +133,7 @@ export default function SearchPalette() {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[12vh]" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={close} />
-      <div className="relative w-full max-w-xl rounded-2xl border border-white/10 bg-[#25282B] shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-xl rounded-2xl border border-white/10 bg-[#2F3238] shadow-2xl overflow-hidden">
         <div className="flex items-center gap-3 px-4 border-b border-white/10">
           <svg width="17" height="17" viewBox="0 0 14 14" fill="none" className="shrink-0 text-[#A3A19C]">
             <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.3" />

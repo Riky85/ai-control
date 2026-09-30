@@ -101,7 +101,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
   const privacyNote = !people && (
     <p className="text-xs text-ink-400">
       Privacy mode: {PRIVACY_MODES.find((p) => p.id === mode)?.label.toLowerCase()} — {anonymous ? "no devices are recorded, only company totals." : "device names and IPs are hidden, only counts."}{" "}
-      <Link href="/settings" className="underline hover:text-ink-100">Change</Link>
+      <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">Change</Link>
     </p>
   );
 

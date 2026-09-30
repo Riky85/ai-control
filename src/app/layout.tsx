@@ -19,6 +19,8 @@ import { getPlanState } from "@/lib/plan-gate";
 import VerifyEmailBanner from "@/components/VerifyEmailBanner";
 import { Suspense } from "react";
 import DocsButton from "@/components/DocsButton";
+import VoiceControl from "@/components/VoiceControl";
+import { VOICE_COOKIE, parseVoiceMode } from "@/lib/voice";
 import { DOCS } from "@/lib/docs";
 import { planById } from "@/lib/plans";
 import { db } from "@/lib/db";
@@ -48,7 +50,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1A1C1D",
+  themeColor: "#27292F",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -113,6 +115,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="relative lg:absolute lg:top-12 lg:right-10 z-30 print:hidden flex items-center justify-end gap-2 mb-4 lg:mb-0">
               <AlertsBell organizationId={session.orgId} />
               <ConnectedIndicator organizationId={session.orgId} />
+              <VoiceControl initialMode={parseVoiceMode(cookies().get(VOICE_COOKIE)?.value)} />
               <DocsButton />
             </div>
             <VerifyEmailBanner />

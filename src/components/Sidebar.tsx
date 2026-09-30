@@ -126,7 +126,13 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
     };
   }, []);
 
+  // Durante l'animazione niente scroll nel menu: il testo che entra non deve far comparire la barra.
+  const [animating, setAnimating] = useState(false);
+  const animTimer = useRef<ReturnType<typeof setTimeout>>();
   function toggle() {
+    setAnimating(true);
+    clearTimeout(animTimer.current);
+    animTimer.current = setTimeout(() => setAnimating(false), 320);
     setCollapsed((prev) => {
       const next = !prev;
       document.cookie = `${SIDEBAR_COOKIE}=${next ? "1" : "0"}; path=/; max-age=31536000; samesite=lax`;
@@ -147,7 +153,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
 
   return (
     <aside
-      className={`shrink-0 bg-sidebar border-r border-white/[0.08] h-full py-3 flex flex-col transition-[width] duration-150 ${
+      className={`shrink-0 bg-sidebar border-r border-sidebar h-full py-3 flex flex-col transition-[width,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
         collapsed ? "w-[60px] px-2.5" : "w-64 px-3"
       }`}
     >
@@ -161,7 +167,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
           </span>
         </button>
       ) : (
-        <div className="flex items-center h-10 mb-4 px-2">
+        <div className="flex items-center h-10 mb-4 px-2 sb-fade">
           <Link href="/" className="text-white" aria-label="angar home">
             <Wordmark size={20} />
           </Link>
@@ -176,7 +182,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
       )}
 
       {!collapsed && (
-        <>
+        <div className="sb-fade">
           {workspace && <WorkspaceSwitcher {...workspace} />}
           <button
             type="button"
@@ -190,10 +196,10 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
             <span className="flex-1 min-w-0 text-left text-sm text-[#8A8884]">Search…</span>
             <kbd className="text-[10px] text-[#A3A19C] border border-white/[0.15] rounded px-1 shrink-0">Ctrl K</kbd>
           </button>
-        </>
+        </div>
       )}
 
-      <nav className={`flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden flex-1 min-h-0 ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>
+      <nav className={`flex flex-col gap-0.5 overflow-x-hidden flex-1 min-h-0 whitespace-nowrap ${animating ? "overflow-y-hidden" : "overflow-y-auto"} ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "[scrollbar-width:thin]"}`}>
         {AREAS.map((item) => {
           const badge = item.key === "review" && reviewCount > 0 ? reviewCount : 0;
           const online = item.key === "connect" && connectedComputers > 0;
@@ -210,7 +216,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
                 )}
                 {collapsed && online && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-steady ring-2 ring-sidebar" />}
               </span>
-              {!collapsed && <span className="flex-1">{item.label}</span>}
+              {!collapsed && <span className="flex-1 sb-fade">{item.label}</span>}
               {!collapsed && badge > 0 && (
                 <span title="AI to review" className="text-[11px] font-semibold text-white bg-accent rounded-full px-1.5 min-w-[20px] text-center tabular">{badge}</span>
               )}
@@ -223,7 +229,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
             </Link>
             {!collapsed &&
               item.children?.map((c) => (
-                <Link key={c.href} href={c.href} className={`${itemClass(child?.href === c.href, true)} !text-[14px]`}>
+                <Link key={c.href} href={c.href} className={`${itemClass(child?.href === c.href, true)} !text-[14px] sb-fade`}>
                   {c.label}
                 </Link>
               ))}
@@ -236,7 +242,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
       <div className="mt-3 pt-3 border-t border-white/[0.08] flex flex-col gap-0.5">
         <div ref={menuRef} className="relative">
           {menuOpen && (
-            <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#25282B] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
+            <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#2F3238] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
               {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-[#A3A19C] truncate border-b border-white/[0.08] mb-1">{userEmail}</div>}
               {[
                 ...((workspace?.workspaces.length ?? 0) > 1 ? [{ href: "/partner", label: "Partner console", icon: "partner" }, { href: "/group", label: "Group view", icon: "budget" }] : []),
@@ -266,7 +272,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
               {(userName ?? orgName ?? "A").charAt(0).toUpperCase()}
             </span>
             {!collapsed && (
-              <span className="flex-1 min-w-0 text-left">
+              <span className="flex-1 min-w-0 text-left sb-fade">
                 <span className="block text-sm font-medium text-white truncate">{userName ?? "Account"}</span>
                 <span className="block text-xs text-[#A3A19C] truncate">{orgName}</span>
               </span>

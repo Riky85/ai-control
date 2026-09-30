@@ -20,7 +20,7 @@ const EMAIL_RE = /[^\s@<>()"',;:]+@[^\s@<>()"',;:]+\.[a-z]{2,24}/gi;
  * un'AI (servono alla governance). Il registro di audit non si modifica mai.
  */
 export async function erasePastNamesAction() {
-  const s = await requireRole("OWNER", "/settings");
+  const s = await requireRole("OWNER", "/settings?tab=privacy");
   const orgId = s.orgId;
   const ids = await identitiesFor(orgId);
   if (ids.people) redirect(`/settings?tab=privacy&error=${encodeURIComponent("Switch employee privacy to “By department” or “Company totals only” first.")}#privacy`);

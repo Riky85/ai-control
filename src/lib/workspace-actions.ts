@@ -316,3 +316,24 @@ export async function switchToFreeAction() {
   revalidatePath("/", "layout");
   redirect("/billing");
 }
+
+/**
+ * Richiesta di dispositivi Edge quando i pagamenti online non sono attivi (o
+ * per chi preferisce la fattura): resta nel registro e arriva via email a
+ * vendite e amministratori della piattaforma.
+ */
+export async function requestEdgeDevicesAction(formData: FormData) {
+  const s = await requireRole("OWNER", "/billing");
+  const quantity = Math.max(1, Math.min(500, Math.floor(Number(formData.get("quantity") ?? 1))));
+  const o = await org();
+  await audit("edge.request", o.id, { quantity });
+  const to = [process.env.SALES_EMAIL, ...(process.env.PLATFORM_ADMIN_EMAILS ?? "").split(",")].map((e) => e?.trim()).filter((e): e is string => !!e && e.includes("@"));
+  for (const addr of Array.from(new Set(to))) {
+    await sendEmail({
+      to: addr,
+      subject: `angar Edge request — ${quantity} device${quantity === 1 ? "" : "s"} for ${o.name}`,
+      text: `${s.email} (${o.name}) asked for ${quantity} angar Edge device${quantity === 1 ? "" : "s"}.\n\nWorkspace: ${o.id}`,
+    }).catch(() => undefined);
+  }
+  redirect(`/billing?notice=${encodeURIComponent(`Request for ${quantity} Edge device${quantity === 1 ? "" : "s"} sent — we'll contact you within one working day.`)}#edge`);
+}

@@ -11,7 +11,7 @@ export default function AreaTabs() {
   const here = locate(pathname);
   if (!here || here.area.tabs.length < 2) return null;
   return (
-    <nav className="print:hidden mb-5 flex flex-wrap items-center gap-1 text-sm lg:pr-[8.25rem]" aria-label={here.area.label}>
+    <nav className="print:hidden mb-5 flex flex-wrap items-center gap-1 text-sm lg:pr-[var(--hdr-tools,8.25rem)]" aria-label={here.area.label}>
       {here.area.tabs.map((t) => {
         const active = t === here.tab;
         return (
