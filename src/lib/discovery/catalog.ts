@@ -117,6 +117,61 @@ export const AI_SERVICES: AiService[] = [
   { id: "deepinfra", name: "DeepInfra", vendor: "DeepInfra", type: "AI_API", domains: ["deepinfra.com"] },
 ];
 
+/**
+ * Domini dei produttori che NON sono un'AI in uso (sito aziendale, documentazione,
+ * assistenza, stato): visitarli non vuol dire usare l'AI. Mai "AI da rivedere".
+ */
+export const VENDOR_SITES = [
+  "anthropic.com", "openai.com", "x.ai", "mistral.ai", "deepmind.google", "ai.google", "ai.google.dev", "ai.meta.com", "llama.com",
+  "cohere.com", "stability.ai", "midjourney.com/docs", "huggingface.co/docs", "status.openai.com", "status.anthropic.com",
+];
+
+/** Altri indirizzi della stessa AI (stesso prodotto, dominio diverso). */
+export const DOMAIN_ALIASES: Record<string, string> = {
+  "claude.com": "claude",
+  "anthropic.claude.ai": "claude",
+  "platform.openai.com": "openai-api",
+  "chatgpt.co": "chatgpt",
+  "deepseek.ai": "deepseek",
+  "perplexity.com": "perplexity",
+  "grok.x.ai": "grok",
+  "copilot.com": "copilot",
+  "bing.com/chat": "copilot",
+  "gemini.com": "gemini",
+  "cursor.ai": "cursor",
+};
+
+/** Parte registrabile di un dominio (a.b.example.co.uk → example.co.uk, grossolana ma sufficiente). */
+export function registrable(domain: string): string {
+  const parts = domain.toLowerCase().replace(/\.$/, "").split(".").filter(Boolean);
+  if (parts.length <= 2) return parts.join(".");
+  const sld2 = ["co", "com", "org", "net", "gov", "ac", "edu"].includes(parts[parts.length - 2]) && parts[parts.length - 1].length === 2;
+  return parts.slice(sld2 ? -3 : -2).join(".");
+}
+
+/**
+ * Un dominio "che sembra AI" (non nel catalogo): è un sito del produttore da
+ * ignorare, un altro indirizzo di un'AI nota, o davvero una nuova AI?
+ */
+export function resolveCandidateDomain(domain: string): { kind: "ignore" } | { kind: "service"; service: AiService } | { kind: "new" } {
+  const d = domain.toLowerCase().replace(/\.$/, "");
+  const known = matchDomain(d);
+  if (known) return { kind: "service", service: known };
+  for (const [alias, id] of Object.entries(DOMAIN_ALIASES)) {
+    if (d === alias || d.endsWith("." + alias)) {
+      const svc = AI_SERVICES.find((s) => s.id === id);
+      if (svc) return { kind: "service", service: svc };
+    }
+  }
+  if (VENDOR_SITES.some((v) => d === v || d.endsWith("." + v))) return { kind: "ignore" };
+  // Stesso dominio registrabile di un'unica AI del catalogo (es. www.gamma.app → Gamma).
+  const reg = registrable(d);
+  const owners = AI_SERVICES.filter((s) => s.domains.some((p) => !p.includes("/") && registrable(p) === reg));
+  if (owners.length === 1) return { kind: "service", service: owners[0] };
+  if (owners.length > 1) return { kind: "ignore" }; // es. openai.com: più prodotti, il sito non è nessuno dei due
+  return { kind: "new" };
+}
+
 export function matchDomain(domain: string): AiService | null {
   const full = domain.toLowerCase().replace(/^\*\./, "");
   const [host, ...rest] = full.split("/");

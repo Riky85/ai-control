@@ -1,13 +1,10 @@
 import Link from "next/link";
 import { currentOrgId } from "@/lib/org";
-import { featureEnabled } from "@/lib/plan-gate";
-import LockedFeature from "@/components/LockedFeature";
 import { AssetLimitNotice } from "@/components/PlanBanner";
 import { db } from "@/lib/db";
 import CsvDropzone from "@/components/CsvDropzone";
 import AiTable from "@/components/AiTable";
 import { StatCard, PageHeader } from "@/components/ui";
-import LineChart from "@/components/LineChart";
 import ExportMenu from "@/components/ExportMenu";
 import { computeSavingsCached, monthlyOf, loadAssets } from "@/lib/savings";
 import { desktopDeviceCounts } from "@/lib/discovery/devices";
@@ -17,8 +14,6 @@ import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
 import SetupWizard from "@/components/SetupWizard";
-import BenchmarkCard from "@/components/BenchmarkCard";
-import SavedSoFar from "@/components/SavedSoFar";
 
 export const dynamic = "force-dynamic";
 
@@ -30,12 +25,12 @@ function greeting(name?: string | null) {
   return first ? `${part}, ${first}` : "Welcome to angar";
 }
 
-// Home = i numeri (cliccabili), l'andamento nel tempo e la tabella delle AI.
+// Home = i numeri (cliccabili) e la tabella delle AI. Andamento e benchmark stanno nel report mensile.
 export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string; spend?: string } & AiFilterParams }) {
   const orgId = currentOrgId();
   const session = currentSession();
   // Tutto in parallelo; risparmi e computer collegati sono condivisi con il layout (React cache).
-  const [org, { items: savings, totalMonthly: canSave, assets }, all, broken, toReview, spendCount, { total: devicesCount }, memberCount, records] = await Promise.all([
+  const [org, { items: savings, totalMonthly: canSave, assets }, all, broken, toReview, spendCount, { total: devicesCount }, memberCount] = await Promise.all([
     db.organization.findUnique({ where: { id: orgId } }),
     computeSavingsCached(orgId),
     loadAssets(orgId, { includeRejected: true }),
@@ -45,12 +40,11 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
     db.spendRecord.count({ where: { organizationId: orgId } }),
     desktopDeviceCounts(orgId),
     db.workspaceMember.count({ where: { organizationId: orgId } }),
-    db.spendRecord.findMany({ where: { organizationId: orgId, date: { gte: new Date(Date.now() - 400 * 86400000) } }, select: { date: true, amountEur: true } }),
   ]);
   const wizardSteps = [
-    { key: "costs", title: "See what you pay for AI", desc: "Drop a bank statement or connect your bank — angar lists every AI subscription and cost.", href: "/sources", cta: "Add costs", done: spendCount > 0 },
-    { key: "usage", title: "See who really uses each AI", desc: "Install the desktop app on your computers to see real usage and unused paid seats.", href: "/download", cta: "Get the app", done: devicesCount > 0 },
-    { key: "team", title: "Invite your team", desc: "Add colleagues so usage is counted for each person across the company.", href: "/workspace", cta: "Invite", done: memberCount > 1 },
+    { key: "costs", title: "See what you pay for AI", desc: "Drop a bank statement or invoices.", href: "/sources", cta: "Add costs", done: spendCount > 0 },
+    { key: "usage", title: "See who really uses each AI", desc: "Install the desktop app on your computers.", href: "/download", cta: "Get the app", done: devicesCount > 0 },
+    { key: "team", title: "Invite your team", desc: "Add your colleagues.", href: "/workspace", cta: "Invite", done: memberCount > 1 },
   ];
 
   const costed = assets.map((a) => monthlyOf(a)).filter((m): m is NonNullable<typeof m> => !!m && m.eur > 0);
@@ -59,41 +53,12 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   const unpaid = assets.filter((a) => !monthlyOf(a)).length;
   const shown = filterAssets(all, searchParams);
 
-  // Ultimi 12 mesi: spesa AI reale (addebiti) oppure, senza addebiti, AI in uso.
-  const months: { key: string; label: string }[] = [];
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date();
-    d.setUTCDate(1);
-    d.setUTCMonth(d.getUTCMonth() - i);
-    months.push({ key: d.toISOString().slice(0, 7), label: d.toLocaleString("en-GB", { month: "short" }) });
-  }
-  const spendByMonth = months.map((m) => records.filter((r) => r.date.toISOString().slice(0, 7) === m.key).reduce((t, r) => t + r.amountEur, 0));
-  const firstMonth = spendByMonth.findIndex((v) => v > 0);
-  const hasSpend = firstMonth >= 0;
-  const from = hasSpend ? Math.max(0, Math.min(firstMonth, months.length - 3)) : 0;
-  const chartLabels = months.slice(from).map((m) => m.label);
-  const ratio = spend ? Math.max(0, 1 - canSave / spend) : 1;
-  const chartSeries = hasSpend
-    ? [
-        { name: "AI spend", values: spendByMonth.slice(from).map((v) => Math.round(v)) },
-        ...(canSave > 0 ? [{ name: "With savings", style: "ghost" as const, values: spendByMonth.slice(from).map((v) => Math.round(v * ratio)) }] : []),
-      ]
-    : [{ name: "AI in use", values: months.map((m) => all.filter((a) => a.firstSeenAt.toISOString().slice(0, 7) <= m.key).length) }];
-  // Ultimo mese completo con dati e variazione sul precedente.
-  const mainValues = chartSeries[0].values;
-  const labelsShown = hasSpend ? chartLabels : months.map((m) => m.label);
-  const li = Math.max(0, mainValues.length - (hasSpend && mainValues.length > 1 && new Date().getUTCDate() < 25 ? 2 : 1));
-  const lastValue = mainValues[li] ?? 0;
-  const lastLabel = labelsShown[li] ?? "";
-  const prevValue = li > 0 ? mainValues[li - 1] : 0;
-  const delta = prevValue > 0 ? Math.round(((lastValue - prevValue) / prevValue) * 100) : null;
-
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title={greeting(session?.name)} subtitle={`${org?.name ?? ""} — your AI at a glance.`} action={
+      <PageHeader title={greeting(session?.name)} subtitle={org?.name ?? undefined} action={
           assets.length ? (
             <div className="flex items-center gap-2">
-              {(await featureEnabled(orgId, "registerExport")) ? <a href="/api/export/register" className="btn btn-secondary" title="AI register for the EU AI Act and GDPR records (Excel)">AI register</a> : <LockedFeature feature="registerExport" label="AI register" />}
+              {spendCount > 0 && <Link href="/report" className="btn btn-ghost btn-sm">Monthly report →</Link>}
               <ExportMenu dataset="assets" />
             </div>
           ) : undefined
@@ -113,7 +78,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       )}
       {broken > 0 && (
         <Link href="/sources" className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">
-          {broken} source{broken === 1 ? " stopped" : "s stopped"} syncing — open Sources to fix.
+          {broken} source{broken === 1 ? " stopped" : "s stopped"} syncing — open Connect to fix.
         </Link>
       )}
 
@@ -122,7 +87,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
           <div>
             <h2 className="text-2xl font-semibold tracking-tight text-ink-100">Which AI does your company pay for?</h2>
             <p className="text-sm text-ink-400 mt-1.5 max-w-xl">
-              Drop a bank or card statement (or your e-invoices). In a few seconds angar lists every AI subscription, what it really costs and where you can save. Nothing to type.
+              Drop a bank statement or invoices — angar lists every AI subscription and its cost.
             </p>
           </div>
           <form action={uploadSpendAction} className="w-full max-w-xl flex flex-col gap-3">
@@ -147,45 +112,12 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/download"} />
           </div>
 
-          {/* Affiancati; se uno manca l'altro prende tutta la riga. */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:[&>*:only-child]:col-span-2 empty:hidden">
-            <SavedSoFar orgId={orgId} />
-            <BenchmarkCard orgId={orgId} />
-          </div>
-
-          <section className="rounded-xl border border-line bg-panel p-5 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6 items-center animate-rise">
-            <div className="flex flex-col gap-3">
-              <div className="text-sm text-ink-400">{hasSpend ? "AI spend by month" : "AI in use over time"}</div>
-              <div className="flex items-baseline gap-2">
-                <span className="font-display text-[28px] leading-none font-semibold tracking-tight tabular text-ink-100">{hasSpend ? fmtEur(lastValue) : String(lastValue)}</span>
-                {delta !== null && (
-                  <span className={`text-xs font-medium rounded-full px-1.5 py-0.5 tabular ${delta > 0 ? "text-alarm bg-alarm/10" : "text-steady bg-steady/10"}`}>
-                    {delta > 0 ? "▲" : "▼"} {Math.abs(delta)}%
-                  </span>
-                )}
-              </div>
-              <div className="text-xs text-ink-400">{lastLabel}{delta !== null ? " vs previous month" : ""}</div>
-              <div className="flex flex-col gap-1.5 text-xs text-ink-400 pt-1">
-                {chartSeries.map((s) => (
-                  <span key={s.name} className="flex items-center gap-2">
-                    <span className={`inline-block w-4 border-t-2 ${"style" in s && s.style === "ghost" ? "border-dashed border-ink-400" : "border-accent"}`} />
-                    {s.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <LineChart labels={hasSpend ? chartLabels : months.map((m) => m.label)} series={chartSeries} unit={hasSpend ? "eur" : "count"} height={140} />
-          </section>
-
           <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">
             <div className="flex items-end justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-ink-100">Your AI</h2>
-                <p className="text-sm text-ink-400">Most expensive first. Open one to see its passport.</p>
-              </div>
-              <Link href="/sources" className="btn btn-secondary btn-sm">+ Add sources</Link>
+              <h2 className="text-base font-semibold text-ink-100">Your AI</h2>
+              <Link href="/sources" className="btn btn-ghost btn-sm">+ Add sources</Link>
             </div>
-            <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all)} right={`${shown.length} of ${all.length}`} />
+            <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />
             <AiTable assets={shown} savings={savings} empty="Nothing matches these filters." />
           </div>
         </>

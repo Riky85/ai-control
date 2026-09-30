@@ -196,7 +196,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
       <nav className={`flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden flex-1 min-h-0 ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>
         {AREAS.map((item) => {
           const badge = item.key === "review" && reviewCount > 0 ? reviewCount : 0;
-          const online = item.key === "devices" && connectedComputers > 0;
+          const online = item.key === "connect" && connectedComputers > 0;
           return (
             <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href))}>
               <span className="relative shrink-0">

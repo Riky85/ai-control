@@ -609,3 +609,23 @@ export async function reviewAssetAction(formData: FormData) {
   const skip = String(formData.get("skip") ?? "");
   redirect(`/review?reviewed=${encodeURIComponent(before.name)}${skip ? `&skip=${encodeURIComponent(skip)}` : ""}`);
 }
+
+/** "Approve all": stessa logica di reviewAssetAction (approve) per tutta la coda, nel rispetto dei limiti del piano. */
+export async function approveAllReviewAction() {
+  const s = await guard("EDITOR", "asset.review.all", undefined, "/review");
+  const pending = await db.aiAsset.findMany({
+    where: { organizationId: s.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } },
+    select: { id: true, status: true },
+  });
+  let done = 0;
+  for (const a of pending) {
+    const gate = await assetManageable(s.orgId, a.id);
+    if (!gate.ok) continue;
+    await db.aiAsset.update({ where: { id: a.id }, data: { status: "APPROVED" } });
+    await db.assetChange.create({ data: { aiAssetId: a.id, field: "status", oldValue: a.status, newValue: "APPROVED" } });
+    await recomputeAssuranceFor(a.id);
+    done++;
+  }
+  revalidatePath("/", "layout");
+  redirect(`/review?reviewed=${done}`);
+}

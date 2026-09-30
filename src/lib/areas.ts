@@ -1,6 +1,6 @@
 /**
- * Le 8 aree della piattaforma (+ impostazioni): una voce in sidebar ciascuna,
- * dentro le schede in alto. Unica fonte per sidebar e schede.
+ * Le 7 voci della piattaforma (+ impostazioni): una voce, una pagina — niente
+ * sotto-schede (le pagine di dettaglio si raggiungono dai link nella pagina). Unica fonte per sidebar e schede.
  */
 export interface AreaTab {
   href: string;
@@ -19,72 +19,13 @@ export interface Area {
 }
 
 export const AREAS: Area[] = [
-  { key: "overview", label: "Overview", href: "/", icon: "home", tabs: [{ href: "/", label: "Overview", match: ["/assets"] }] },
-  {
-    key: "review",
-    label: "Review",
-    href: "/review",
-    icon: "review",
-    tabs: [
-      { href: "/review", label: "To review", match: ["/review"] },
-      { href: "/alerts", label: "Alerts", match: ["/alerts"] },
-    ],
-  },
-  {
-    key: "savings",
-    label: "Savings",
-    href: "/savings",
-    icon: "savings",
-    tabs: [
-      { href: "/savings", label: "Savings", match: ["/savings"] },
-      { href: "/providers", label: "Providers", match: ["/providers"] },
-      { href: "/advisor", label: "Advisor", match: ["/advisor"] },
-    ],
-  },
-  {
-    key: "budgets",
-    label: "Budgets & reports",
-    href: "/budgets",
-    icon: "budget",
-    tabs: [
-      { href: "/budgets", label: "Budgets", match: ["/budgets"] },
-      { href: "/report", label: "Reports", match: ["/report", "/group"] },
-    ],
-  },
-  {
-    key: "usage",
-    label: "Usage",
-    href: "/usage",
-    icon: "usage",
-    tabs: [
-      { href: "/usage", label: "Usage", match: ["/usage"] },
-      { href: "/people", label: "People", match: ["/people"] },
-    ],
-  },
-  {
-    key: "governance",
-    label: "Governance",
-    href: "/governance",
-    icon: "assurance",
-    tabs: [
-      { href: "/governance", label: "Policies", match: ["/governance", "/policies", "/approvals", "/assurance"] },
-      { href: "/compliance", label: "AI Act", match: ["/compliance", "/evidence"] },
-      { href: "/data", label: "Data exposure", match: ["/data"] },
-      { href: "/activity", label: "Activity", match: ["/activity", "/changes"] },
-      { href: "/audit", label: "Audit log", match: ["/audit"] },
-    ],
-  },
-  { key: "sources", label: "Sources", href: "/sources", icon: "connectors", tabs: [{ href: "/sources", label: "Connections", match: ["/sources", "/connectors"] }] },
-  {
-    key: "devices",
-    label: "Devices",
-    href: "/download",
-    icon: "computer",
-    tabs: [
-      { href: "/download", label: "Desktop app", match: ["/download", "/computers", "/discover"] },
-      { href: "/edge/sensors", label: "angar Edge", match: ["/edge"] },
-    ],
-  },
+  { key: "overview", label: "Overview", href: "/", icon: "home", tabs: [{ href: "/", label: "Overview", match: ["/assets", "/report", "/alerts", "/group"] }] },
+  { key: "review", label: "To review", href: "/review", icon: "review", tabs: [{ href: "/review", label: "To review", match: ["/review"] }] },
+  { key: "savings", label: "Savings", href: "/savings", icon: "savings", tabs: [{ href: "/savings", label: "Savings", match: ["/savings", "/providers", "/advisor"] }] },
+  { key: "usage", label: "Usage", href: "/usage", icon: "usage", tabs: [{ href: "/usage", label: "Usage", match: ["/usage", "/people"] }] },
+  { key: "budgets", label: "Budgets", href: "/budgets", icon: "budget", tabs: [{ href: "/budgets", label: "Budgets", match: ["/budgets"] }] },
+  { key: "governance", label: "Governance", href: "/governance", icon: "assurance", tabs: [{ href: "/governance", label: "Governance", match: ["/governance", "/compliance", "/data", "/activity", "/changes", "/audit", "/policies", "/approvals", "/assurance", "/evidence"] }] },
+  { key: "connect", label: "Connect", href: "/sources", icon: "connectors", tabs: [{ href: "/sources", label: "Connect", match: ["/sources", "/connectors", "/download", "/computers", "/discover", "/edge"] }] },
 ];
 
 /** Impostazioni: nel menu utente, stesse schede in alto. */

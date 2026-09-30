@@ -1,7 +1,8 @@
 import { currentOrgId } from "@/lib/org";
 import { currentSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { PageHeader, StatCard, Tabs } from "@/components/ui";
+import { PageHeader, StatCard } from "@/components/ui";
+import { vendorRiskFor, vendorFlags } from "@/lib/vendor-risk";
 import ExportMenu from "@/components/ExportMenu";
 import Badge from "@/components/Badge";
 import StatusDot from "@/components/StatusDot";
@@ -39,28 +40,80 @@ interface CheckRow {
   detail: string;
 }
 
-const TABS = [
-  { key: "policies", label: "Policies" },
-  { key: "assurance", label: "Assurance" },
-] as const;
+const RECORDS = [
+  { href: "/data", label: "Data exposure" },
+  { href: "/activity", label: "Activity" },
+  { href: "/audit", label: "Audit log" },
+  { href: "/compliance/evidence", label: "Evidence pack" },
+  { href: "/governance?tab=assurance", label: "Assurance checks" },
+];
 
+// Una pagina: tre riquadri in alto (AI Act, policy, registri), poi le policy.
 export default async function GovernancePage({ searchParams }: { searchParams: { tab?: string; ack?: string; n?: string; error?: string } }) {
-  const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "policies";
+  const orgId = currentOrgId();
+  const assurance = searchParams.tab === "assurance";
+  const [policyCount, unclassified, vendorAssets] = await Promise.all([
+    db.policy.count({ where: { organizationId: orgId, enabled: true } }),
+    db.aiAsset.count({ where: { organizationId: orgId, deletedAt: null, euAiActTier: "UNCLASSIFIED" } }),
+    db.aiAsset.findMany({
+      where: { organizationId: orgId, deletedAt: null, status: { not: "UNAPPROVED" } },
+      select: { vendor: true, serviceId: true, type: true, cost: { select: { planId: true } }, dataAccess: { select: { dataAsset: { select: { sensitivity: true } } } } },
+      take: 500,
+    }),
+  ]);
+  const vendorFlagged = vendorAssets.filter((a) => vendorFlags(vendorRiskFor(a), { type: a.type, dataSensitivities: a.dataAccess.map((d) => d.dataAsset.sensitivity), paidPlan: !!a.cost?.planId }).length > 0).length;
+  const ackOpen = Boolean(searchParams.ack || searchParams.n || searchParams.error);
+  const card = "rounded-xl border border-line bg-panel p-5 flex flex-col gap-2";
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Governance"
-        subtitle="Policies and assurance for every AI. New AI is reviewed in the review queue."
-        action={<ExportMenu dataset="assets" />}
-      />
+    <div className="flex flex-col gap-4">
+      <PageHeader title="Governance" subtitle="Rules and records for every AI." action={<ExportMenu dataset="assets" />} />
 
-      <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/governance?tab=${t.key}` }))} />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link href="/compliance" className={`${card} hover:border-ink-400 transition-colors`}>
+          <span className="text-sm text-ink-400">AI Act readiness</span>
+          <span className="text-sm text-ink-100">{unclassified ? `${unclassified} AI to classify` : "All AI classified"}</span>
+          <span className="text-sm text-accent mt-auto">Open →</span>
+        </Link>
+        <a href="#policies" className={`${card} hover:border-ink-400 transition-colors`}>
+          <span className="text-sm text-ink-400">Policies</span>
+          <span className="font-display text-[28px] leading-none font-semibold tabular text-ink-100">{policyCount}</span>
+          <span className="text-xs text-ink-400">active</span>
+        </a>
+        <div className={card}>
+          <span className="text-sm text-ink-400">Records</span>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+            {RECORDS.map((r) => (
+              <Link key={r.href} href={r.href} className="text-ink-100 hover:underline">{r.label}</Link>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      {tab === "policies" && <VendorRiskFlags orgId={currentOrgId()} />}
-      {tab === "policies" && <PolicyAckPanel orgId={currentOrgId()} flash={searchParams} />}
-      {tab === "policies" && <PoliciesTab />}
-      {tab === "assurance" && <AssuranceTab />}
+      {assurance ? (
+        <>
+          <Link href="/governance" className="text-sm text-ink-400 hover:text-ink-100 w-fit">← Back to policies</Link>
+          <AssuranceTab />
+        </>
+      ) : (
+        <>
+          <details className="group" open={ackOpen}>
+            <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 inline-flex items-center gap-1.5 select-none">
+              <span className="transition-transform group-open:rotate-90">›</span> Employee acknowledgement &amp; AI literacy
+            </summary>
+            <div className="mt-3"><PolicyAckPanel orgId={orgId} flash={searchParams} /></div>
+          </details>
+          {vendorFlagged > 0 && (
+            <details className="group">
+              <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 inline-flex items-center gap-1.5 select-none">
+                <span className="transition-transform group-open:rotate-90">›</span> Vendor risk to check · {vendorFlagged}
+              </summary>
+              <div className="mt-3"><VendorRiskFlags orgId={orgId} /></div>
+            </details>
+          )}
+          <PoliciesTab />
+        </>
+      )}
     </div>
   );
 }
@@ -72,12 +125,12 @@ async function PoliciesTab() {
   const availableTemplates = POLICY_LIBRARY.filter((t) => !activeNames.has(t.name));
 
   return (
-    <div className="flex flex-col gap-8">
+    <div id="policies" className="flex flex-col gap-6 scroll-mt-6">
       <div>
-        <h2 className="text-base font-semibold text-ink-100 mb-3">Active policies</h2>
+        <h2 className="text-base font-semibold text-ink-100 mb-3">Policies</h2>
         {policies.length === 0 && (
           <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400">
-            No policies yet. Add one from the library below, or write a custom one.
+            No policies yet — add one from the library.
           </div>
         )}
         <div className="flex flex-col gap-5">
@@ -121,8 +174,10 @@ async function PoliciesTab() {
       </div>
 
       {canEdit && availableTemplates.length > 0 && (
-        <div>
-          <h2 className="text-base font-semibold text-ink-100 mb-3">Policy library</h2>
+        <details className="group" open={policies.length === 0}>
+          <summary className="cursor-pointer list-none text-sm font-medium text-ink-100 inline-flex items-center gap-1.5 select-none mb-3">
+            <span className="text-ink-400 transition-transform group-open:rotate-90">›</span> Add from the library · {availableTemplates.length}
+          </summary>
           <div className="rounded-xl border border-line bg-panel divide-y divide-line">
             {availableTemplates.map((t) => (
               <div key={t.name} className="px-5 py-4 flex items-start justify-between gap-4">
@@ -144,12 +199,14 @@ async function PoliciesTab() {
               </div>
             ))}
           </div>
-        </div>
+        </details>
       )}
 
       {canEdit && (
-      <div>
-        <h2 className="text-base font-semibold text-ink-100 mb-3">Write a custom policy</h2>
+      <details className="group">
+        <summary className="cursor-pointer list-none text-sm font-medium text-ink-100 inline-flex items-center gap-1.5 select-none mb-3">
+          <span className="text-ink-400 transition-transform group-open:rotate-90">›</span> Write a custom policy
+        </summary>
         <form action={createPolicyAction} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-ink-400">Name</label>
@@ -175,7 +232,7 @@ async function PoliciesTab() {
             </button>
           </div>
         </form>
-      </div>
+      </details>
       )}
     </div>
   );
@@ -198,11 +255,8 @@ async function AssuranceTab() {
   }));
 
   return (
-    <div className="flex flex-col gap-8">
-      <p className="text-xs text-ink-400">
-        Every check is a fact read from the database — never a guess. {totalChecks} checks across {withReport.length} asset
-        {withReport.length === 1 ? "" : "s"}.
-      </p>
+    <div className="flex flex-col gap-6">
+      <p className="text-xs text-ink-400">{totalChecks} checks across {withReport.length} AI.</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Passed" value={String(totalPassed)} />
@@ -248,7 +302,7 @@ async function AssuranceTab() {
 
       {withReport.length === 0 && (
         <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400">
-          No assurance reports yet — they're generated automatically after the first connector sync.
+          No assurance reports yet.
         </div>
       )}
     </div>

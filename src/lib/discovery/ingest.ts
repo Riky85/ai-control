@@ -4,7 +4,7 @@ import { persistSyncResult } from "@/lib/connectors/upsert";
 import { recordInventorySnapshot } from "@/lib/evidence";
 import { notifyNewAi } from "@/lib/chat-actions";
 import type { ObservedAsset } from "@/lib/connectors/types";
-import { AI_SERVICES, matchApp, matchDomain, type AiService } from "./catalog";
+import { AI_SERVICES, matchApp, matchDomain, registrable, resolveCandidateDomain, type AiService } from "./catalog";
 import { identitiesFor } from "./pseudonym";
 
 export interface Finding {
@@ -53,7 +53,9 @@ function candidateService(kind: "candidate" | "candidate_app", raw: string): AiS
   const v = raw.trim().toLowerCase();
   if (kind === "candidate") {
     if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(v) || v.length > 80) return null;
-    return { id: `cand:${v}`, name: v, vendor: v, type: "AI_APPLICATION", domains: [v] };
+    // Un solo candidato per sito: app.foo.ai e foo.ai sono la stessa AI.
+    const reg = registrable(v);
+    return { id: `cand:${reg}`, name: reg, vendor: reg, type: "AI_APPLICATION", domains: [reg] };
   }
   const name = raw.trim().replace(/\.(exe|app)$/i, "").slice(0, 60);
   if (!/^[\w .+-]{2,60}$/.test(name)) return null;
@@ -79,7 +81,12 @@ export async function ingestFindings(organizationId: string, device: string, fin
     else if (f.kind === "port") svc = AI_SERVICES.find((s) => s.id === value) ?? null;
     else if (f.kind === "candidate" || f.kind === "candidate_app") {
       // Prima si riprova col catalogo (magari nel frattempo l'abbiamo aggiunta).
-      svc = f.kind === "candidate" ? matchDomain(value) : matchApp(value);
+      if (f.kind === "candidate") {
+        // Sito del produttore (anthropic.com…) → niente; altro indirizzo di un'AI nota (claude.com) → quella AI.
+        const r = resolveCandidateDomain(value);
+        if (r.kind === "ignore") continue;
+        svc = r.kind === "service" ? r.service : null;
+      } else svc = matchApp(value);
       if (!svc) {
         svc = candidateService(f.kind, value);
         candidate = !!svc;
@@ -132,6 +139,7 @@ export async function ingestFindings(organizationId: string, device: string, fin
   });
   const since = new Date();
   await persistSyncResult(organizationId, connector.id, { provider: "NETWORK", assets, syncedAt: new Date(), warnings: [] });
+  await cleanupCandidateAssets(organizationId).catch(() => 0);
   await recordInventorySnapshot(organizationId);
   // AI appena comparse: webhook "ai.discovered" + messaggio Slack/Teams con i pulsanti (mai bloccante).
   const fresh = await db.aiAsset.findMany({ where: { organizationId, connectorId: connector.id, deletedAt: null, status: "UNKNOWN", createdAt: { gte: since } }, select: { id: true, name: true, vendor: true }, take: 50 });
@@ -172,4 +180,33 @@ export async function ensureWorkspaceToken(organizationId: string) {
   }
   if (Object.keys(data).length) await db.organization.update({ where: { id: organizationId }, data });
   return { token, joinCode };
+}
+
+
+/**
+ * Pulizia dei doppioni già salvati: AI "da rivedere" che in realtà sono il sito
+ * del produttore (anthropic.com) o un altro indirizzo di un'AI nota (claude.com),
+ * o lo stesso sito due volte (app.foo.ai e foo.ai). Si nascondono (deletedAt).
+ */
+export async function cleanupCandidateAssets(organizationId: string) {
+  const cands = await db.aiAsset.findMany({
+    where: { organizationId, deletedAt: null, externalId: { startsWith: "net:cand:" } },
+    select: { id: true, externalId: true, status: true },
+    orderBy: { createdAt: "asc" },
+  });
+  const seen = new Set<string>();
+  const hide: string[] = [];
+  for (const a of cands) {
+    const domain = (a.externalId ?? "").slice("net:cand:".length);
+    if (a.status === "APPROVED" || a.status === "UNAPPROVED") {
+      seen.add(registrable(domain)); // decisa da qualcuno: resta
+      continue;
+    }
+    const r = resolveCandidateDomain(domain);
+    const reg = registrable(domain);
+    if (r.kind !== "new" || seen.has(reg)) hide.push(a.id);
+    else seen.add(reg);
+  }
+  if (hide.length) await db.aiAsset.updateMany({ where: { id: { in: hide }, organizationId }, data: { deletedAt: new Date() } });
+  return hide.length;
 }

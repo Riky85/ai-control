@@ -1,36 +1,38 @@
-import { PageHeader } from "@/components/ui";
+import { PageHeader, Notice } from "@/components/ui";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import Badge from "@/components/Badge";
 import { VendorBadge } from "@/components/VendorIcon";
-import { reviewAssetAction } from "@/lib/actions";
+import { reviewAssetAction, approveAllReviewAction } from "@/lib/actions";
 import { currentSession } from "@/lib/auth";
-import { isPseudonym } from "@/lib/discovery/pseudonym";
 
 export const dynamic = "force-dynamic";
 
-const INPUT = "field w-full";
-const SENSITIVE = ["PII", "FINANCIAL", "SOURCE_CODE"];
 const LEVEL_RANK: Record<string, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
 
-// Coda di revisione: lista a sinistra, pannello di decisione a destra.
-export default async function ReviewPage({ searchParams }: { searchParams: { id?: string; skip?: string; reviewed?: string; from?: string; found?: string } }) {
+// Dove angar l'ha vista: il collegamento che l'ha trovata.
+const SEEN_IN: Record<string, string> = {
+  NETWORK: "Desktop app / network",
+  MICROSOFT_365: "Microsoft 365",
+  GOOGLE_WORKSPACE: "Google Workspace",
+  GITHUB: "GitHub",
+  BANK: "Bank",
+  ACCOUNTING: "Accounting",
+  FATTURE_IN_CLOUD: "Invoices",
+};
+const seenIn = (provider?: string | null) =>
+  provider ? SEEN_IN[provider] ?? provider.replace(/_/g, " ").toLowerCase().replace(/^\w/, (m) => m.toUpperCase()) : "Added manually";
+
+// Coda di revisione: una riga per AI, due pulsanti.
+export default async function ReviewPage({ searchParams }: { searchParams: { reviewed?: string; found?: string; error?: string } }) {
   const orgId = currentOrgId();
   // I viewer vedono la coda ma non decidono (l'azione lo ricontrolla comunque).
   const canDecide = currentSession()?.role !== "VIEWER";
-  const skipped = (searchParams.skip ?? "").split(",").filter(Boolean);
-  const [pending, users, reviewedCount] = await Promise.all([
+  const [pending, reviewedCount] = await Promise.all([
     db.aiAsset.findMany({
       where: { organizationId: orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } },
-      include: {
-        owner: true,
-        cost: true,
-        riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 },
-        dataAccess: { include: { dataAsset: true } },
-      },
+      include: { connector: { select: { provider: true } }, riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 } },
     }),
-    db.user.findMany({ where: { organizationId: orgId }, orderBy: { name: "asc" } }),
     db.aiAsset.count({ where: { organizationId: orgId, deletedAt: null, status: { in: ["APPROVED", "UNAPPROVED"] } } }),
   ]);
   // Prima i più rischiosi, poi i più recenti.
@@ -39,154 +41,67 @@ export default async function ReviewPage({ searchParams }: { searchParams: { id?
       (LEVEL_RANK[a.riskAssessments[0]?.level ?? "LOW"] ?? 4) - (LEVEL_RANK[b.riskAssessments[0]?.level ?? "LOW"] ?? 4) ||
       b.firstSeenAt.getTime() - a.firstSeenAt.getTime()
   );
-  const open = queue.filter((a) => !skipped.includes(a.id));
-  const current = queue.find((a) => a.id === searchParams.id) ?? open[0] ?? null;
-  const risk = current?.riskAssessments[0];
-  const nextSkip = current ? [...skipped, current.id].join(",") : "";
 
-  if (!current) {
-    return (
-      <div className="max-w-3xl mx-auto flex flex-col gap-8 py-4">
+  return (
+    <div className="flex flex-col gap-4">
+      <PageHeader
+        title="To review"
+        subtitle={queue.length ? `${queue.length} AI found by angar — allowed or not?` : undefined}
+        action={
+          <>
+            {searchParams.reviewed && <span className="text-sm text-steady mr-2">✓ {/^\d+$/.test(searchParams.reviewed) ? `${searchParams.reviewed} approved` : `${searchParams.reviewed} reviewed`}</span>}
+            {canDecide && queue.length > 3 && (
+              <form action={approveAllReviewAction}>
+                <button className="btn btn-secondary btn-sm">Approve all</button>
+              </form>
+            )}
+          </>
+        }
+      />
+      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
+      {searchParams.found && <Notice>Scan done — {searchParams.found} AI service{searchParams.found === "1" ? "" : "s"} found.</Notice>}
+      {!canDecide && queue.length > 0 && <Notice>Viewers can&apos;t decide — ask an editor.</Notice>}
+
+      {queue.length === 0 ? (
         <div className="rounded-xl border border-line bg-panel p-10 text-center">
           <div className="mx-auto h-12 w-12 rounded-full bg-steady/10 text-steady flex items-center justify-center">
             <svg width="22" height="22" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </div>
-          <h1 className="text-xl font-semibold text-ink-100 mt-4">{queue.length === 0 ? "All caught up" : "You've been through the list"}</h1>
-          <p className="text-sm text-ink-400 mt-1">
-            {queue.length === 0
-              ? `${reviewedCount} AI system${reviewedCount === 1 ? "" : "s"} reviewed. New ones will appear here as angar finds them.`
-              : `${queue.length} left for later.`}
-          </p>
-          <div className="flex justify-center gap-3 mt-6">
-            {queue.length > 0 && <Link href="/review" className="btn btn-secondary">Review the ones I skipped</Link>}
-            <Link href="/" className="btn btn-primary">See your AI estate</Link>
-          </div>
+          <h2 className="text-xl font-semibold text-ink-100 mt-4">All caught up</h2>
+          <p className="text-sm text-ink-400 mt-1">{reviewedCount} AI reviewed. New ones will appear here.</p>
+          <Link href="/" className="btn btn-primary mt-6">See your AI</Link>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-6">
-      {searchParams.found && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
-          <b>Scan done — {searchParams.found} AI service{searchParams.found === "1" ? "" : "s"} found.</b> Mark each one as allowed or not; that's all.
-        </div>
-      )}
-      <PageHeader
-        title="Review"
-        subtitle={`${open.length} AI system${open.length === 1 ? "" : "s"} angar found on its own — is each one allowed? One click, angar keeps watching afterwards.`}
-        action={searchParams.reviewed ? <span className="text-sm text-steady mr-2">✓ {searchParams.reviewed} reviewed</span> : undefined}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 items-start">
+      ) : (
         <ul className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
           {queue.map((a) => {
             const lvl = a.riskAssessments[0]?.level;
-            const active = a.id === current.id;
+            const candidate = a.externalId?.startsWith("net:cand");
             return (
-              <li key={a.id}>
-                <Link
-                  href={`/review?id=${a.id}${searchParams.skip ? `&skip=${searchParams.skip}` : ""}`}
-                  className={`flex items-center gap-3 px-4 py-3 transition-colors ${active ? "bg-accent-soft/60" : "hover:bg-ink-100/[0.02]"} ${skipped.includes(a.id) ? "opacity-50" : ""}`}
-                >
-                  <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={30} />
-                  <span className="flex-1 min-w-0">
-                    <span className="block text-sm font-medium text-ink-100 truncate">{a.name}</span>
-                    <span className="block text-xs text-ink-400 truncate">{a.vendor ?? "Unknown vendor"}</span>
+              <li key={a.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 px-4 py-3">
+                <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={30} />
+                <Link href={`/assets/${a.id}`} className="flex-1 min-w-0 hover:underline">
+                  <span className="flex items-center gap-2 text-sm font-medium text-ink-100 truncate">
+                    {lvl && <span title={`Risk: ${lvl.toLowerCase()}`} className={`h-2 w-2 rounded-full shrink-0 ${lvl === "HIGH" || lvl === "CRITICAL" ? "bg-alarm" : lvl === "MEDIUM" ? "bg-signal" : "bg-steady"}`} />}
+                    {a.name}
+                    {candidate && <span className="text-[11px] font-medium text-signal bg-signal/10 rounded-full px-2 py-0.5">Possible AI</span>}
                   </span>
-                  {lvl && <span className={`h-2 w-2 rounded-full shrink-0 ${lvl === "HIGH" || lvl === "CRITICAL" ? "bg-alarm" : lvl === "MEDIUM" ? "bg-signal" : "bg-steady"}`} />}
+                  <span className="block text-xs text-ink-400 truncate">
+                    {a.vendor ?? "Unknown vendor"} · seen in {seenIn(a.connector?.provider)}
+                  </span>
                 </Link>
+                {canDecide && (
+                  <form action={reviewAssetAction} className="flex items-center gap-2 shrink-0">
+                    <input type="hidden" name="assetId" value={a.id} />
+                    <button name="decision" value="notai" className="text-xs text-ink-400 hover:text-ink-100 underline mr-1">Not AI</button>
+                    <button name="decision" value="reject" className="btn btn-secondary btn-sm">Not allowed</button>
+                    <button name="decision" value="approve" className="btn btn-primary btn-sm">Approve</button>
+                  </form>
+                )}
               </li>
             );
           })}
         </ul>
-
-        <section className="rounded-xl border border-line bg-panel p-6 flex flex-col gap-6">
-          <div className="flex items-start gap-4">
-            <VendorBadge vendor={current.vendor ?? ""} name={current.name} size={48} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-semibold text-ink-100">{current.name}</h2>
-                {current.externalId?.startsWith("net:cand") && (
-                  <span className="text-[11px] font-medium text-signal bg-signal/10 rounded-full px-2 py-0.5">Possible AI</span>
-                )}
-              </div>
-              <p className="text-sm text-ink-400">
-                {current.externalId?.startsWith("net:cand")
-                  ? "Not in angar's list yet: the desktop app saw people use it and it looks like an AI tool. Approve it, mark it not allowed, or dismiss it if it isn't AI."
-                  : [current.vendor ?? "Unknown vendor", current.type.replace(/_/g, " ").toLowerCase(), current.model].filter(Boolean).join(" · ")}
-              </p>
-            </div>
-            {risk && <Badge>{risk.level}</Badge>}
-            <Link href={`/assets/${current.id}`} className="btn btn-secondary btn-sm">Open passport</Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-sm font-medium text-ink-100 mb-2">Why it matters</h3>
-              <ul className="flex flex-col gap-1.5 text-sm text-ink-400">
-                {((risk?.reasons as string[] | undefined) ?? []).filter((r) => !/^status:/i.test(r)).slice(0, 4).map((r, i) => (
-                  <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-alarm shrink-0" />{r}</li>
-                ))}
-                {!risk && <li>Not assessed yet.</li>}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-ink-100 mb-2">Data it touches</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {current.dataAccess.map((d) => (
-                  <span key={d.id} className={`text-xs rounded-full px-2.5 py-1 ${SENSITIVE.includes(d.dataAsset.sensitivity) ? "bg-alarm/10 text-alarm" : "bg-ink text-ink-400"}`}>
-                    {d.dataAsset.name}
-                  </span>
-                ))}
-                {current.dataAccess.length === 0 && <span className="text-sm text-ink-400">None declared</span>}
-              </div>
-            </div>
-          </div>
-
-          <form action={reviewAssetAction} className="flex flex-col gap-4 pt-6 border-t border-line">
-            <input type="hidden" name="assetId" value={current.id} />
-            <input type="hidden" name="skip" value={searchParams.skip ?? ""} />
-            <p className="text-sm text-ink-400">
-              {current.owner ? <>Owner: <span className="text-ink-100">{current.owner.name ?? current.owner.email}</span></> : "No owner yet — you can add one later."}
-              {" · "}
-              {current.cost?.monthlyCostEstimate != null ? (
-                <>Cost: <span className="text-ink-100">€{current.cost.monthlyCostEstimate.toLocaleString("en-GB")}/month</span>{current.cost.basis === "billing_connector" ? " (from billing)" : ""}</>
-              ) : (
-                "Cost fills in automatically from your bank statement or billing."
-              )}
-            </p>
-            <details className="group">
-              <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 inline-flex items-center gap-1.5 select-none">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="transition-transform group-open:rotate-90"><path d="M3.5 2l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                Change owner (optional)
-              </summary>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
-                <label className="flex flex-col gap-1.5 text-sm text-ink-100">
-                  Owner
-                  <select name="ownerId" defaultValue={current.ownerId ?? ""} className={INPUT}>
-                    <option value="">Keep as is</option>
-                    {users.filter((u) => !isPseudonym(u.email)).map((u) => (
-                      <option key={u.id} value={u.id}>{u.name ?? u.email}</option>
-                    ))}
-                  </select>
-                </label>
-
-              </div>
-            </details>
-            <div className="flex items-center gap-3">
-              {!canDecide && <span className="text-sm text-ink-400">Viewers can&apos;t decide — ask an editor.</span>}
-              {canDecide && <button name="decision" value="approve" className="btn btn-primary">Approve</button>}
-              {canDecide && <button name="decision" value="reject" className="btn btn-secondary">Not allowed</button>}
-              {canDecide && current.externalId?.startsWith("net:cand") && (
-                <button name="decision" value="notai" className="btn btn-secondary">Not AI — remove</button>
-              )}
-              <Link href={`/review?skip=${nextSkip}`} className="ml-auto text-sm text-ink-400 hover:text-ink-100">Decide later →</Link>
-            </div>
-          </form>
-        </section>
-      </div>
+      )}
     </div>
   );
 }

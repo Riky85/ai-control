@@ -118,48 +118,48 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       : [];
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title="Usage" subtitle={individual ? "Who uses which AI and how often, in the last 30 days — and which paid seats nobody uses." : "How much each AI is used in the last 30 days — and which paid seats nobody uses."} />
+    <div className="flex flex-col gap-4">
+      <PageHeader
+        title="Usage"
+        subtitle="Last 30 days."
+        action={
+          <Tabs
+            active={view === "ai" ? "ai" : ""}
+            items={[
+              { key: "ai", label: "By AI", href: "/usage" },
+              { key: "people", label: "People", href: "/people" },
+            ]}
+          />
+        }
+      />
       <PrivacyNotice mode={mode} what="Usage" />
 
       {!hasData && (
-        <div className="rounded-xl border border-accent/50 bg-panel p-6 flex items-center gap-6">
-          <div className="flex-1">
-            <h2 className="text-base font-semibold text-ink-100">No usage data yet</h2>
-            <p className="text-sm text-ink-400 mt-1">Install the angar desktop app (one minute, it also reads the last 30 days) or connect Microsoft 365 / Google Workspace. Usage appears here within a few minutes.</p>
-          </div>
+        <div className="rounded-xl border border-accent/50 bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <p className="flex-1 text-sm text-ink-400"><b className="text-ink-100">No usage data yet.</b> Install the desktop app to see who uses which AI.</p>
           <Link href="/download" className="btn btn-primary">Get the desktop app</Link>
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="People using AI" value={count(people.size)} hint="Last 30 days" tone="accent" href={individual ? "/usage?view=people" : mode === "department" ? "/usage?view=departments" : "/usage?view=ai"} />
-        <StatCard label="AI used" value={String(new Set(pairs.map((p) => p.assetId)).size)} hint={`${events.length} connections recorded`} href="/usage?view=ai" />
-        <StatCard label="Paid seats not used" value={String(idleSeats)} hint={idleSeats ? "Nobody used them in 30 days" : "Every paid seat is used"} tone={idleSeats ? "signal" : undefined} href="/usage?view=ai" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard label="People using AI" value={count(people.size)} hint={`${new Set(pairs.map((p) => p.assetId)).size} AI used`} tone="accent" href={individual ? "/usage?view=people" : mode === "department" ? "/usage?view=departments" : "/usage"} />
+        <StatCard label="Paid seats not used" value={String(idleSeats)} hint={idleSeats ? "Nobody used them in 30 days" : "Every paid seat is used"} tone={idleSeats ? "signal" : undefined} href={individual && idleSeats ? "/usage?view=cleanup" : "/usage"} />
         <StatCard label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} href="/savings?kind=seats" />
       </div>
 
-      <Tabs
-        active={view}
-        items={[
-          { key: "ai", label: "By AI", href: "/usage?view=ai" },
-          { key: "people", label: "By person", href: "/usage?view=people", count: people.size },
-          { key: "departments", label: "By department", href: "/usage?view=departments" },
-          { key: "log", label: "Connection log", href: "/usage?view=log" },
-          { key: "cleanup", label: "Seat clean-up", href: "/usage?view=cleanup", count: toRemove.length || undefined },
-        ].filter((t) => views.includes(t.key))}
-      />
+      {view !== "ai" && (
+        <Link href="/usage" className="text-sm text-ink-400 hover:text-ink-100 w-fit">← Back to usage by AI</Link>
+      )}
+      {view === "ai" && toRemove.length > 0 && (
+        <Link href="/usage?view=cleanup" className="rounded-xl bg-signal/10 px-4 py-3 text-sm text-ink-100 hover:bg-signal/15 transition-colors">
+          {toRemove.length} seat{toRemove.length === 1 ? " is" : "s are"} ready to remove →
+        </Link>
+      )}
 
       {view === "cleanup" && !individual && (
-        <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-2">
-          <h2 className="text-base font-semibold text-ink-100">Seat clean-up needs per-person data</h2>
-          <p className="text-sm text-ink-400">
-            To free a paid seat, angar has to know <i>who</i> hasn&apos;t used it and ask them by email. With employee privacy set to {mode === "department" ? "“By department”" : "“Company totals only”"}, angar doesn&apos;t show or use names, so reminders are switched off.
-          </p>
-          <p className="text-sm text-ink-400">
-            You still see how many paid seats are unused for each AI in <Link href="/usage?view=ai" className="underline hover:text-ink-100">By AI</Link>. To clean up by person, an admin can switch to &ldquo;By person&rdquo; in <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">Settings → Employee privacy</Link> — in Italy and Germany, only with a works-council agreement or after informing employees (<Link href="/compliance/employee-notice" className="underline hover:text-ink-100">employee notice</Link>).
-          </p>
-        </section>
+        <Notice>
+          Seat clean-up needs per-person data — an admin can enable it in <Link href="/settings?tab=privacy" className="underline">Settings → Employee privacy</Link> (see the <Link href="/compliance/employee-notice" className="underline">employee notice</Link>).
+        </Notice>
       )}
 
       {view === "departments" && (
@@ -181,20 +181,16 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
               ),
             )}
           </Table>
-          <p className="text-xs text-ink-400">Only groups of at least {MIN_GROUP} people are shown; smaller teams are merged. Counts under {MIN_GROUP} show as &ldquo;&lt;{MIN_GROUP}&rdquo;.</p>
+          <p className="text-xs text-ink-400">Groups under {MIN_GROUP} people are merged.</p>
         </>
       )}
 
       {view === "cleanup" && individual && (
         <div className="flex flex-col gap-4">
           {searchParams.asked && <Notice tone="success">Asked {searchParams.asked} {searchParams.asked === "1" ? "person" : "people"} by email. Their answers appear here.</Notice>}
+          {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
           <section className="rounded-xl border border-line bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="flex-1">
-              <h2 className="text-base font-semibold text-ink-100">Free the seats nobody uses</h2>
-              <p className="text-sm text-ink-400 mt-0.5">
-                angar emails everyone who hasn&apos;t used a paid AI in 30 days: &ldquo;do you still need it?&rdquo;. No answer in 7 days, or &ldquo;no&rdquo;, and the seat lands here, ready to remove.
-              </p>
-            </div>
+            <p className="flex-1 text-sm text-ink-400"><b className="text-ink-100">Free unused seats.</b> angar asks inactive people by email if they still need it.</p>
             {currentSession()?.role !== "VIEWER" && (
               <form action={askAllInactiveAction}>
                 <button className="btn btn-primary">Ask inactive people now</button>
@@ -241,8 +237,8 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       )}
 
       {view === "ai" && (
-        <Table columns={["AI", { label: "Active people", className: "text-right" }, { label: "Paid seats", className: "text-right" }, { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, { label: "Unused seats", className: "text-right" }, { label: "Could save", className: "text-right" }]} empty={byAi.length === 0 && "No usage yet."}>
-          {byAi.map(({ a, active, seats, visits, minutes, idle, save }) => (
+        <Table columns={["AI", { label: "Active people", className: "text-right" }, { label: "Paid seats", className: "text-right" }, { label: "Unused seats", className: "text-right" }, { label: "Could save", className: "text-right" }, ""]} empty={byAi.length === 0 && "No usage yet."}>
+          {byAi.map(({ a, active, seats, idle, save }) => (
             <tr key={a.id} className="hover:bg-ink-100/[0.02] transition-colors">
               <td className={td}>
                 <Link href={`/assets/${a.id}?tab=people`} className="flex items-center gap-3 group">
@@ -252,10 +248,11 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
               </td>
               <td className={`${td} text-right tabular text-ink-100`}>{count(active)}</td>
               <td className={`${td} text-right tabular text-ink-400`}>{seats ?? "—"}</td>
-              <td className={`${td} text-right tabular text-ink-400`}>{visits || "—"}</td>
-              <td className={`${td} text-right tabular text-ink-400`}>{fmtMinutes(minutes)}</td>
               <td className={`${td} text-right tabular ${idle ? "text-signal font-medium" : "text-ink-400"}`}>{seats ? idle : "—"}</td>
-              <td className={`${td} text-right tabular`}>{save >= 1 ? <Link href={`/assets/${a.id}?tab=people`} className="font-medium text-accent hover:underline">{fmtEur(save)}/mo</Link> : <span className="text-ink-400">—</span>}</td>
+              <td className={`${td} text-right tabular ${save >= 1 ? "font-medium text-accent" : "text-ink-400"}`}>{save >= 1 ? `${fmtEur(save)}/mo` : "—"}</td>
+              <td className={`${td} text-right whitespace-nowrap`}>
+                {idle > 0 && <Link href={individual ? "/usage?view=cleanup" : `/assets/${a.id}?tab=people`} className="btn btn-secondary btn-sm">Clean up</Link>}
+              </td>
             </tr>
           ))}
         </Table>
@@ -310,6 +307,15 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
               ))}
           </Table>
         </>
+      )}
+
+      {view === "ai" && (individual || mode === "department") && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-400">
+          {individual && <Link href="/usage?view=people" className="hover:text-ink-100 hover:underline">Usage per person</Link>}
+          {individual && <Link href="/usage?view=log" className="hover:text-ink-100 hover:underline">Connection log</Link>}
+          {individual && <Link href="/usage?view=cleanup" className="hover:text-ink-100 hover:underline">Seat clean-up</Link>}
+          {mode === "department" && <Link href="/usage?view=departments" className="hover:text-ink-100 hover:underline">By department</Link>}
+        </div>
       )}
     </div>
   );

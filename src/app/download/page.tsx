@@ -1,5 +1,4 @@
 import { headers } from "next/headers";
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { PageHeader, Tabs } from "@/components/ui";
@@ -12,9 +11,8 @@ import { DESKTOP_OS_LABEL, DESKTOP_VERSION, osFromUserAgent, type DesktopOs } fr
 
 export const dynamic = "force-dynamic";
 
-// Area download, in una schermata: a sinistra il download per questo computer
-// (sistema rilevato) con l'anteprima dell'app; sotto tre schede compatte —
-// tutta l'azienda, IT (installazione silenziosa), telefono e rete.
+// Area download: il download per questo computer, il link per tutti e
+// (chiuso) l'installazione silenziosa per l'IT.
 const VIEWS = [
   { key: "download", label: "Download" },
   { key: "computers", label: "Computers" },
@@ -50,7 +48,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
     <>
       <PageHeader
         title="Desktop app"
-        subtitle="The desktop app shows which AI tools are used at work and for how long — never pages, prompts or anything anyone writes."
+        subtitle="See which AI is used at work — never pages or prompts."
       />
       <Tabs active={view} items={VIEWS.map((v) => ({ key: v.key, label: v.label, href: v.key === "download" ? "/download" : `/download?view=${v.key}` }))} />
     </>
@@ -71,7 +69,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
     );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {header}
 
       {/* Download principale + anteprima dell'app */}
@@ -84,7 +82,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
           </div>
           <div>
             <h2 className="font-display text-[30px] leading-tight font-semibold tracking-tight text-ink-100">angar for {DESKTOP_OS_LABEL[detected]}</h2>
-            <p className="text-sm text-ink-400 mt-1.5 max-w-md">Install once, type your work email, and forget about it. It starts with the computer and uses almost no resources.</p>
+            <p className="text-sm text-ink-400 mt-1.5 max-w-md">Install once, type your work email, done.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <a href={href(detected)} className="btn btn-primary h-11 px-5 text-[15px]">
@@ -98,88 +96,42 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
               </a>
             ))}
           </div>
-          <ol className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
-            {[
-              ["Open the file", firstRun[detected]],
-              ["Type your work email", "Only once — on company PCs it's read from Windows"],
-              ["Done", "Runs quietly in the background, no admin rights"],
-            ].map(([t, d], i) => (
-              <li key={t} className="flex gap-2.5">
-                <span className="h-6 w-6 shrink-0 rounded-full border border-line text-xs font-medium text-ink-100 flex items-center justify-center">{i + 1}</span>
-                <span className="text-sm leading-snug">
-                  <span className="block text-ink-100 font-medium">{t}</span>
-                  <span className="text-ink-400">{d}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-          <p className="text-xs text-ink-400">Windows 10 and 11 · macOS 12 or later (Intel and Apple silicon) · Linux x64 · Shares only AI tool names and time spent.</p>
+          <p className="text-xs text-ink-400">{firstRun[detected]}. Windows 10+, macOS 12+, Linux x64.</p>
         </div>
         <div className="relative hidden lg:flex items-end justify-center px-9 pt-8">
           <AppPreview company={company} email={s.email} />
         </div>
       </section>
 
-      {/* Tutta l'azienda · IT · telefono e rete */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
-          <CardTitle title="Roll it out to everyone" hint="Each person downloads from this link" />
-          <div className="flex items-center gap-2">
-            <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{joinUrl}</code>
-            <CopyButton text={joinUrl} label="Copy" />
-          </div>
+      {/* Tutta l'azienda: un link da mandare a tutti */}
+      <section className="rounded-xl border border-line bg-panel px-5 py-4 flex flex-col md:flex-row md:items-center gap-3">
+        <span className="text-sm font-semibold text-ink-100 shrink-0">Send the link to everyone</span>
+        <div className="flex flex-1 min-w-0 items-center gap-2">
+          <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{joinUrl}</code>
+          <CopyButton text={joinUrl} label="Copy" />
           <CopyButton
             text={`Hi! We use angar to see which AI tools we use and stop paying for seats nobody needs. It takes a minute: open ${joinUrl}, download the app and type your work email. Only the names of AI tools and the time spent are shared — never pages, prompts or anything you write. Thanks!`}
-            label="Copy invitation message"
-            className="btn btn-secondary btn-sm self-start mt-auto"
+            label="Copy message"
+            className="btn btn-ghost btn-sm shrink-0"
           />
-        </section>
+        </div>
+      </section>
 
-        <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
-          <CardTitle title="For IT: silent install" hint="Intune, Jamf, GPO or scripts — run as the signed-in user" />
-          <div className="flex flex-col gap-2">
-            {it.map((x) => (
-              <div key={x.os} className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-xs text-ink-400">{x.os}</span>
-                <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-2.5 py-1.5 text-[11px] text-ink-100" title={x.cmd}>{x.cmd}</code>
-                <CopyButton text={x.cmd} label="Copy" className="btn btn-ghost btn-sm" />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
-          <CardTitle title="More ways" hint="Phones and whole networks" />
-          <Link href="/edge" className="group flex items-center gap-3 rounded-lg border border-line px-3 py-2.5 hover:bg-ink-100/[0.04] transition-colors">
-            <span className="h-8 w-8 shrink-0 rounded-lg border border-line flex items-center justify-center text-accent">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1.5" y="5" width="13" height="6.5" rx="1.5" /><path d="M4.5 8.25h.01M7 8.25h.01" strokeLinecap="round" strokeWidth="2" /></svg>
-            </span>
-            <span className="text-sm leading-snug min-w-0">
-              <span className="block text-ink-100 font-medium">angar Edge</span>
-              <span className="text-ink-400">Every device on the network, nothing to install</span>
-            </span>
-            <span className="ml-auto text-ink-400 group-hover:text-ink-100">→</span>
-          </Link>
-          <div className="flex items-center gap-3 rounded-lg border border-line px-3 py-2.5">
-            <span className="h-8 w-8 shrink-0 rounded-lg border border-line flex items-center justify-center text-ink-100">
-              <svg width="14" height="16" viewBox="0 0 14 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1.5" y="0.75" width="11" height="14.5" rx="2" /><path d="M5.5 12.5h3" strokeLinecap="round" /></svg>
-            </span>
-            <span className="text-sm leading-snug">
-              <span className="block text-ink-100 font-medium">angar on your phone</span>
-              <span className="text-ink-400">Open angar in the browser → Share → Add to Home Screen</span>
-            </span>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
-}
-
-function CardTitle({ title, hint }: { title: string; hint: string }) {
-  return (
-    <div>
-      <div className="text-sm font-semibold text-ink-100">{title}</div>
-      <div className="text-xs text-ink-400 mt-0.5">{hint}</div>
+      <details className="group">
+        <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 inline-flex items-center gap-1.5 select-none">
+          <span className="transition-transform group-open:rotate-90">›</span> For IT (silent install)
+        </summary>
+        <div className="mt-3 rounded-xl border border-line bg-panel p-5 flex flex-col gap-2">
+          <p className="text-xs text-ink-400">Intune, Jamf, GPO or scripts — run as the signed-in user.</p>
+          {it.map((x) => (
+            <div key={x.os} className="flex items-center gap-2">
+              <span className="w-16 shrink-0 text-xs text-ink-400">{x.os}</span>
+              <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-2.5 py-1.5 text-[11px] text-ink-100" title={x.cmd}>{x.cmd}</code>
+              <CopyButton text={x.cmd} label="Copy" className="btn btn-ghost btn-sm" />
+            </div>
+          ))}
+        </div>
+      </details>
     </div>
   );
 }
