@@ -16,7 +16,7 @@ interface DocLink {
   summary: string;
 }
 
-const SUGGESTIONS = ["How does angar find my AI costs?", "How do I install the desktop app?", "How are savings calculated?", "How do I connect Microsoft 365?"];
+const SUGGESTIONS = ["How does angar find my AI costs?", "How do I install the desktop app?", "How are savings calculated?", "What does angar Edge do?"];
 
 // Pannello di aiuto (assistente + guide): si apre dal pulsante a libro in
 // alto a destra di ogni pagina (evento "angar:toggle-docs"), niente più
@@ -31,7 +31,11 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
   const [filter, setFilter] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, loading]);
+  // Graffe: nei Chrome recenti scrollIntoView restituisce una Promise, e React
+  // la tratterebbe come funzione di pulizia (crash "n is not a function").
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
   useEffect(() => {
     const toggle = () => setOpen((v) => !v);
     const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);

@@ -27,11 +27,11 @@ export default function FilterBar({
   const pathname = usePathname();
   const params = useSearchParams();
   const sp = search?.param ?? "q";
-  const [q, setQ] = useState(params.get(sp) ?? "");
+  const [q, setQ] = useState(params?.get(sp) ?? "");
   const first = useRef(true);
 
   const push = (changes: Record<string, string | null>) => {
-    const next = new URLSearchParams(params.toString());
+    const next = new URLSearchParams(params?.toString() ?? "");
     for (const [k, v] of Object.entries(changes)) (v ? next.set(k, v) : next.delete(k));
     const qs = next.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
@@ -45,14 +45,14 @@ export default function FilterBar({
       return;
     }
     const t = setTimeout(() => {
-      if ((params.get(sp) ?? "") !== q.trim()) push({ [sp]: q.trim() || null });
+      if ((params?.get(sp) ?? "") !== q.trim()) push({ [sp]: q.trim() || null });
     }, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
-  const active = filters.filter((f) => params.get(f.param));
-  const any = active.length > 0 || Boolean(params.get(sp));
+  const active = filters.filter((f) => params?.get(f.param));
+  const any = active.length > 0 || Boolean(params?.get(sp));
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -76,7 +76,7 @@ export default function FilterBar({
         </label>
       )}
       {filters.map((f) => (
-        <FilterMenu key={f.param} def={f} value={params.get(f.param)} onChange={(v) => push({ [f.param]: v })} />
+        <FilterMenu key={f.param} def={f} value={params?.get(f.param) ?? null} onChange={(v) => push({ [f.param]: v })} />
       ))}
       {any && (
         <button

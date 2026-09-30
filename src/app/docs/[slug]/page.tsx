@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/ui";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { DOCS, DOC_SECTIONS, docBySlug } from "@/lib/docs";
+import { notFound, redirect } from "next/navigation";
+import { DOCS, DOC_ALIASES, DOC_SECTIONS, docBySlug } from "@/lib/docs";
 import DocBody from "@/components/DocBody";
 import ExportMenu from "@/components/ExportMenu";
 
@@ -10,6 +10,7 @@ export function generateStaticParams() {
 }
 
 export default function DocArticlePage({ params }: { params: { slug: string } }) {
+  if (DOC_ALIASES[params.slug]) redirect(`/docs/${DOC_ALIASES[params.slug]}`);
   const doc = docBySlug(params.slug);
   if (!doc) notFound();
   const idx = DOCS.findIndex((d) => d.slug === doc.slug);
@@ -17,8 +18,8 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
   const next = DOCS[idx + 1];
 
   return (
-    <div className="grid grid-cols-[220px_1fr] gap-10">
-      <nav className="print:hidden sticky top-0 self-start flex flex-col gap-5 text-sm">
+    <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 lg:gap-10">
+      <nav className="hidden lg:flex print:hidden sticky top-0 self-start flex-col gap-5 text-sm">
         <Link href="/docs" className="text-ink-400 hover:text-ink-100">← All docs</Link>
         {DOC_SECTIONS.map((s) => (
           <div key={s}>
@@ -40,7 +41,7 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
         <div className="mt-4 border-t border-line pt-2">
           <DocBody body={doc.body} />
         </div>
-        <div className="grid grid-cols-2 gap-4 mt-10 print:hidden">
+        <div className="grid grid-cols-2 gap-4 mt-8 print:hidden">
           {prev ? (
             <Link href={`/docs/${prev.slug}`} className="rounded-xl border border-line p-4 hover:border-ink-400 transition-colors">
               <div className="text-xs text-ink-400">Previous</div>

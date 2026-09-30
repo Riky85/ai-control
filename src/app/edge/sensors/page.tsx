@@ -108,7 +108,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        crumbs={[{ label: "Devices", href: "/download" }, { label: "angar Edge", href: "/edge" }, { label: "Sensors" }]}
+        crumbs={[{ label: "angar Edge", href: "/edge" }, { label: "Sensors" }]}
         title="Sensors"
         subtitle="Network sensors that see every AI your company reaches — from DNS, firewall or cloud logs. Never content or URLs."
         action={<Link href="/edge" className="btn btn-secondary">About angar Edge</Link>}

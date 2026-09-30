@@ -7,7 +7,7 @@ import { signOutAction } from "@/lib/auth-actions";
 import Logo, { Wordmark } from "./Logo";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 import WorkspaceSwitcher, { type WorkspaceOption } from "./WorkspaceSwitcher";
-import { AREAS, locate } from "@/lib/areas";
+import { AREAS, activeChild, locate } from "@/lib/areas";
 
 // Icone minimali, un solo stroke-width, coerenti tra loro — niente set di
 // icone eterogeneo preso da librerie diverse.
@@ -197,8 +197,10 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
         {AREAS.map((item) => {
           const badge = item.key === "review" && reviewCount > 0 ? reviewCount : 0;
           const online = item.key === "connect" && connectedComputers > 0;
+          const child = item.children ? activeChild(item, pathname) : null;
           return (
-            <Link key={item.href} href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href))}>
+            <div key={item.href} className="flex flex-col gap-0.5">
+            <Link href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href) && !(child && !collapsed))}>
               <span className="relative shrink-0">
                 <Icon name={item.icon} />
                 {collapsed && badge > 0 && (
@@ -219,6 +221,13 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
                 </span>
               )}
             </Link>
+            {!collapsed &&
+              item.children?.map((c) => (
+                <Link key={c.href} href={c.href} className={`${itemClass(child?.href === c.href, true)} !text-[14px]`}>
+                  {c.label}
+                </Link>
+              ))}
+            </div>
           );
         })}
       </nav>

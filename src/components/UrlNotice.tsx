@@ -20,6 +20,7 @@ export default function UrlNotice() {
   const [msg, setMsg] = useState<Msg | null>(null);
 
   useEffect(() => {
+    if (!params) return;
     const error = params.get("error");
     const notice = params.get("notice");
     if (!error && !notice) return;

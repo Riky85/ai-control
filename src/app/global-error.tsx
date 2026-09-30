@@ -1,9 +1,10 @@
 "use client";
 
-import { useReportError } from "@/components/ErrorReport";
+import { useAutoRecover, useReportError } from "@/components/ErrorReport";
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useReportError(error);
+  if (useAutoRecover(error)) return <html lang="en"><body style={{ background: "#202327" }} /></html>;
   return (
     <html lang="en">
       {/* Fuori dal layout normale: stili inline, colori del tema scuro. */}

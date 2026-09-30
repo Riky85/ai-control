@@ -7,8 +7,8 @@ export default function DocsIndex({ searchParams }: { searchParams: { q?: string
   const match = (d: (typeof DOCS)[number]) => !q || `${d.title} ${d.summary} ${d.body} ${(d.keywords ?? []).join(" ")}`.toLowerCase().includes(q);
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title="Documentation" subtitle="Guides for connecting your AI, reading your estate and sharing it. Or ask the assistant — bottom right." />
+    <div className="flex flex-col gap-5">
+      <PageHeader title="Documentation" subtitle="Short guides, in the same order as the sidebar. Or ask the assistant with the book icon at the top right." />
       <form className="w-full max-w-xl">
         <label className="flex items-center gap-2 border border-line rounded-lg bg-panel px-3 py-2.5 focus-within:border-ink-400">
           <svg width="15" height="15" viewBox="0 0 14 14" fill="none" className="text-ink-400 shrink-0">
@@ -24,10 +24,10 @@ export default function DocsIndex({ searchParams }: { searchParams: { q?: string
         if (!docs.length) return null;
         return (
           <section key={section}>
-            <h2 className="text-base font-semibold text-ink-100 mb-3">{section}</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <h2 className="text-base font-semibold text-ink-100 mb-2">{section}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {docs.map((d) => (
-                <Link key={d.slug} href={`/docs/${d.slug}`} className="rounded-xl border border-line bg-panel p-5 hover:border-ink-400 transition-colors">
+                <Link key={d.slug} href={`/docs/${d.slug}`} className="rounded-xl border border-line bg-panel p-4 hover:border-ink-400 transition-colors">
                   <div className="text-sm font-semibold text-ink-100">{d.title}</div>
                   <p className="text-sm text-ink-400 mt-1">{d.summary}</p>
                 </Link>
@@ -36,7 +36,7 @@ export default function DocsIndex({ searchParams }: { searchParams: { q?: string
           </section>
         );
       })}
-      {DOCS.every((d) => !match(d)) && <p className="text-sm text-ink-400">No article matches “{searchParams.q}”. Try the assistant in the bottom right.</p>}
+      {DOCS.every((d) => !match(d)) && <p className="text-sm text-ink-400">No article matches “{searchParams.q}”. Try the assistant (book icon, top right).</p>}
     </div>
   );
 }

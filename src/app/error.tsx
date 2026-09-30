@@ -1,9 +1,10 @@
 "use client";
 
-import { useReportError } from "@/components/ErrorReport";
+import { useAutoRecover, useReportError } from "@/components/ErrorReport";
 
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useReportError(error);
+  if (useAutoRecover(error)) return null;
   return (
     <div className="max-w-md mx-auto mt-24 text-center">
       <h1 className="text-lg font-semibold text-ink-100">Something went wrong on this page</h1>

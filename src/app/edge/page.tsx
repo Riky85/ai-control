@@ -15,7 +15,7 @@ export default function EdgePage() {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        crumbs={[{ label: "Devices", href: "/download" }]}
+        crumbs={[{ label: "Connect", href: "/sources" }]}
         title="angar Edge"
         subtitle="The network sensor: every AI on your network, the ones you don't approve blocked — nothing installed on anyone's computer."
         action={

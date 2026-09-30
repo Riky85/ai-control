@@ -13,7 +13,9 @@ const longDate = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", mo
  */
 export default function CheckReport() {
   const [snap, setSnap] = useState<CheckSnapshot | null | undefined>(undefined);
-  useEffect(() => setSnap(loadSnapshot()), []);
+  useEffect(() => {
+    setSnap(loadSnapshot());
+  }, []);
 
   if (snap === undefined) return <div className="min-h-[60vh]" />;
   if (!snap)

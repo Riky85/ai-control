@@ -16,6 +16,8 @@ export interface Area {
   tabs: AreaTab[];
   /** Percorsi dell'area senza una scheda propria (dettagli). */
   extra?: string[];
+  /** Voci figlie mostrate sempre aperte sotto la voce nella sidebar. */
+  children?: AreaTab[];
 }
 
 export const AREAS: Area[] = [
@@ -25,7 +27,19 @@ export const AREAS: Area[] = [
   { key: "usage", label: "Usage", href: "/usage", icon: "usage", tabs: [{ href: "/usage", label: "Usage", match: ["/usage", "/people"] }] },
   { key: "budgets", label: "Budgets", href: "/budgets", icon: "budget", tabs: [{ href: "/budgets", label: "Budgets", match: ["/budgets"] }] },
   { key: "governance", label: "Governance", href: "/governance", icon: "assurance", tabs: [{ href: "/governance", label: "Governance", match: ["/governance", "/compliance", "/data", "/activity", "/changes", "/audit", "/policies", "/approvals", "/assurance", "/evidence"] }] },
-  { key: "connect", label: "Connect", href: "/sources", icon: "connectors", tabs: [{ href: "/sources", label: "Connect", match: ["/sources", "/connectors", "/download", "/computers", "/discover", "/edge"] }] },
+  {
+    key: "connect",
+    label: "Connect",
+    href: "/sources",
+    icon: "connectors",
+    tabs: [{ href: "/sources", label: "Connect", match: ["/sources", "/connectors", "/download", "/computers", "/discover", "/edge"] }],
+    children: [
+      { href: "/sources", label: "Sources", match: ["/sources", "/discover"] },
+      { href: "/connectors", label: "AI provider keys", match: ["/connectors"] },
+      { href: "/download", label: "Desktop app", match: ["/download", "/computers"] },
+      { href: "/edge/sensors", label: "angar Edge", match: ["/edge"] },
+    ],
+  },
 ];
 
 /** Impostazioni: nel menu utente, stesse schede in alto. */
@@ -55,4 +69,15 @@ export function locate(path: string): { area: Area; tab: AreaTab } | null {
     }
   }
   return best ? { area: best.area, tab: best.tab } : null;
+}
+
+/** Voce figlia attiva (prefisso più lungo). */
+export function activeChild(area: Area, path: string): AreaTab | null {
+  let best: { tab: AreaTab; len: number } | null = null;
+  for (const tab of area.children ?? []) {
+    for (const p of [tab.href, ...tab.match]) {
+      if (matches(path, p) && (!best || p.length > best.len)) best = { tab, len: p.length };
+    }
+  }
+  return best?.tab ?? null;
 }
