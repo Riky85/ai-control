@@ -153,8 +153,21 @@ export function registrable(domain: string): string {
  * Un dominio "che sembra AI" (non nel catalogo): è un sito del produttore da
  * ignorare, un altro indirizzo di un'AI nota, o davvero una nuova AI?
  */
+/** angar stesso (cloud o server on-premises), indirizzi IP e reti locali: mai un'AI. */
+const OWN_HOSTS = ["ai-control-production.up.railway.app", "angar.ai", "angar.com", "angar.eu", "angar.io", "localhost"];
+function isOwnOrLocal(d: string): boolean {
+  let app = "";
+  try {
+    app = new URL(process.env.APP_URL ?? "").hostname;
+  } catch {}
+  if (app && (d === app || d.endsWith("." + app))) return true;
+  if (OWN_HOSTS.some((h) => d === h || d.endsWith("." + h))) return true;
+  return /^\d{1,3}(\.\d{1,3}){3}(:\d+)?$/.test(d) || /\.(local|lan|internal|home\.arpa)$/.test(d);
+}
+
 export function resolveCandidateDomain(domain: string): { kind: "ignore" } | { kind: "service"; service: AiService } | { kind: "new" } {
   const d = domain.toLowerCase().replace(/\.$/, "");
+  if (isOwnOrLocal(d)) return { kind: "ignore" };
   const known = matchDomain(d);
   if (known) return { kind: "service", service: known };
   for (const [alias, id] of Object.entries(DOMAIN_ALIASES)) {

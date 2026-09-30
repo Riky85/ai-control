@@ -176,7 +176,7 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
     return {
       handled: true,
       answer: pending.length
-        ? L(`${pending.length} AI waiting for a decision: ${pending.slice(0, 4).map((a) => a.name).join(", ")}${pending.length > 4 ? "…" : ""}.`, `${pending.length} AI in attesa di una decisione: ${pending.slice(0, 4).map((a) => a.name).join(", ")}${pending.length > 4 ? "…" : ""}.`)
+        ? L(`${pending.length} AI waiting for a decision: ${pending.slice(0, 4).map((a) => a.name).join(", ")}${pending.length > 4 ? "…" : "."}`, `${pending.length} AI in attesa di una decisione: ${pending.slice(0, 4).map((a) => a.name).join(", ")}${pending.length > 4 ? "…" : "."}`)
         : L("Nothing to review — all caught up.", "Niente da rivedere, tutto in ordine."),
       href: "/review",
       hrefLabel: L("Open To review", "Apri To review"),
@@ -190,7 +190,7 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
     return {
       handled: true,
       answer: fresh.length
-        ? L(`${fresh.length} new AI in the last 30 days: ${fresh.slice(0, 5).map((a) => a.name).join(", ")}${fresh.length > 5 ? "…" : ""}.`, `${fresh.length} nuove AI negli ultimi 30 giorni: ${fresh.slice(0, 5).map((a) => a.name).join(", ")}${fresh.length > 5 ? "…" : ""}.`)
+        ? L(`${fresh.length} new AI in the last 30 days: ${fresh.slice(0, 5).map((a) => a.name).join(", ")}${fresh.length > 5 ? "…" : "."}`, `${fresh.length} nuove AI negli ultimi 30 giorni: ${fresh.slice(0, 5).map((a) => a.name).join(", ")}${fresh.length > 5 ? "…" : "."}`)
         : L("No new AI in the last 30 days.", "Nessuna nuova AI negli ultimi 30 giorni."),
       href: "/",
       hrefLabel: "Overview",
@@ -206,7 +206,7 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
     return {
       handled: true,
       answer: rows.length
-        ? L(`About ${fmtEur(total)} a month on AI (${fmtEur(total * 12)} a year) across ${rows.length} tools. Biggest: ${top}.`, `Circa ${fmtEur(total)} al mese in AI (${fmtEur(total * 12)} all'anno) su ${rows.length} strumenti. I più cari: ${top}.`)
+        ? L(`About ${fmtEur(total)} a month on AI (${fmtEur(total * 12)} a year) across ${rows.length} ${rows.length === 1 ? "tool" : "tools"}. Biggest: ${top}.`, `Circa ${fmtEur(total)} al mese in AI (${fmtEur(total * 12)} all'anno) su ${rows.length} ${rows.length === 1 ? "strumento" : "strumenti"}. I più cari: ${top}.`)
         : L("angar doesn't know your AI costs yet — drop a bank statement in Sources.", "angar non conosce ancora i costi dell'AI: caricate un estratto conto in Sources."),
       href: rows.length ? "/report" : "/sources",
       hrefLabel: rows.length ? L("Open the report", "Apri il report") : L("Add costs", "Aggiungi i costi"),
