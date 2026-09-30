@@ -2,7 +2,9 @@ import { currentOrgId } from "@/lib/org";
 import { currentSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PageHeader } from "@/components/ui";
-import { vendorRiskFor, vendorFlags } from "@/lib/vendor-risk";
+import { vendorRiskFor, vendorFlags, planTier, trainsOnYourData } from "@/lib/vendor-risk";
+import { PLANS } from "@/lib/pricing/catalog";
+import { listExposedKeys } from "@/lib/secrets-scan";
 import ExportMenu from "@/components/ExportMenu";
 import { POLICY_LIBRARY } from "@/lib/policy-library";
 import PolicyAckPanel from "@/components/PolicyAckPanel";
@@ -14,6 +16,8 @@ import { GovernanceHeader, DecisionsCard, AiActCard, RecordsCard, type Holdback,
 import PoliciesSection from "@/components/governance/PoliciesSection";
 import AssuranceView from "@/components/governance/AssuranceView";
 import { Chevron } from "@/components/governance/parts";
+import VendorFacts, { type VendorFactRow } from "@/components/governance/VendorFacts";
+import ExposedKeys from "@/components/governance/ExposedKeys";
 
 export const dynamic = "force-dynamic";
 
@@ -29,17 +33,39 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
   const assurance = searchParams.tab === "assurance";
   const canEdit = ["ADMIN", "OWNER"].includes(currentSession()?.role ?? "");
 
-  const [score, r, policies, vendorAssets, registerOk] = await Promise.all([
+  const [score, r, policies, vendorAssets, registerOk, exposed, github] = await Promise.all([
     computeScoreCached(orgId).catch(() => null),
     readiness(orgId),
     db.policy.findMany({ where: { organizationId: orgId }, orderBy: { createdAt: "desc" } }),
     db.aiAsset.findMany({
       where: { organizationId: orgId, deletedAt: null, status: { not: "UNAPPROVED" } },
-      select: { vendor: true, serviceId: true, type: true, cost: { select: { planId: true } }, dataAccess: { select: { dataAsset: { select: { sensitivity: true } } } } },
+      select: {
+        vendor: true,
+        serviceId: true,
+        type: true,
+        cost: { select: { planId: true, monthlyCostEstimate: true, basis: true } },
+        dataAccess: { select: { dataAsset: { select: { sensitivity: true } } } },
+      },
       take: 500,
     }),
     featureEnabled(orgId, "registerExport").catch(() => false),
+    listExposedKeys(orgId).catch(() => []),
+    db.connector.findUnique({ where: { organizationId_provider: { organizationId: orgId, provider: "GITHUB" } }, select: { status: true } }).catch(() => null),
   ]);
+  // Fornitori delle AI in uso: una riga ciascuno, con quante AI addestrano sui dati col piano in uso.
+  const byVendor = new Map<string, VendorFactRow>();
+  for (const a of vendorAssets) {
+    const v = vendorRiskFor(a);
+    if (!v) continue;
+    const plan = a.cost?.planId ? PLANS.find((p) => p.id === a.cost!.planId) : undefined;
+    const paid = (a.cost?.monthlyCostEstimate ?? 0) > 0 && a.cost?.basis !== "estimate";
+    const trains = trainsOnYourData(v, planTier({ type: a.type, planBusiness: plan ? plan.business : null, paidByCompany: paid })) === "yes";
+    const row = byVendor.get(v.key) ?? { key: v.key, vendor: v.vendor, hq: v.hq, aiCount: 0, trainsCount: 0, euResidency: v.euResidency, hasDpa: !!v.dpaUrl, verified: v.verified };
+    row.aiCount += 1;
+    if (trains) row.trainsCount += 1;
+    byVendor.set(v.key, row);
+  }
+  const vendorRows = [...byVendor.values()].sort((a, b) => b.trainsCount - a.trainsCount || b.aiCount - a.aiCount || a.vendor.localeCompare(b.vendor));
   const vendorFlagged = vendorAssets.filter((a) => vendorFlags(vendorRiskFor(a), { type: a.type, dataSensitivities: a.dataAccess.map((d) => d.dataAsset.sensitivity), paidPlan: !!a.cost?.planId }).length > 0).length;
 
   // Cosa tiene giù il punteggio: driver dell'asse Governance, altrimenti i controlli AI Act non superati.
@@ -97,20 +123,34 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
             />
           </div>
 
-          {vendorFlagged > 0 && (
+          {(vendorFlagged > 0 || vendorRows.length > 0) && (
             <details id="vendor-risk" className="group scroll-mt-6">
               <summary className="cursor-pointer list-none select-none rounded-xl border border-line bg-panel px-4 py-3 flex items-center gap-3 text-sm hover:border-ink-400 transition-colors animate-rise">
-                <span className="h-2 w-2 shrink-0 rounded-full bg-signal" aria-hidden />
+                <span className={`h-2 w-2 shrink-0 rounded-full ${vendorFlagged > 0 ? "bg-signal" : "bg-steady"}`} aria-hidden />
                 <span className="flex-1 min-w-0 text-ink-100">
-                  <b className="font-medium tabular">{vendorFlagged}</b> AI with vendor terms to check
+                  {vendorFlagged > 0 ? (
+                    <>
+                      <b className="font-medium tabular">{vendorFlagged}</b> AI with vendor terms to check
+                    </>
+                  ) : (
+                    <>
+                      Vendor terms · <b className="font-medium tabular">{vendorRows.length}</b> {vendorRows.length === 1 ? "vendor" : "vendors"} in use
+                    </>
+                  )}
                 </span>
                 <Chevron />
               </summary>
-              <div className="mt-3">
+              <div className="mt-3 flex flex-col gap-3">
+                <VendorFacts rows={vendorRows} />
                 <VendorRiskFlags orgId={orgId} />
               </div>
             </details>
           )}
+
+          <ExposedKeys
+            githubConnected={github?.status === "CONNECTED" || github?.status === "SYNCING"}
+            rows={exposed.map((k) => ({ repo: k.repo, path: k.path, url: k.url, provider: k.provider, masked: k.masked, firstSeen: k.firstSeen.toISOString() }))}
+          />
 
           <PoliciesSection
             canEdit={canEdit}

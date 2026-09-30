@@ -37,8 +37,8 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
             <form action={sendReportNowAction}>
               <button className="btn btn-secondary">Email it to me</button>
             </form>
-            <Link href="/report/board" className="btn btn-secondary">Board pack</Link>
             <PrintButton />
+            <Link href="/report/board" className="btn btn-primary" title="Quarterly board report: angar Score, 12-month forecast, verified savings and top risks — ready to print as PDF">Board report</Link>
           </div>
         }
       />

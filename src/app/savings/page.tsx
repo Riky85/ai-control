@@ -63,6 +63,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
           <>
             <Link href="/providers" className="btn btn-ghost btn-sm">Providers</Link>
             <Link href="/advisor" className="btn btn-ghost btn-sm">Advisor</Link>
+            <Link href="/simulate" className="btn btn-secondary btn-sm">Simulate</Link>
             <ExportMenu dataset="savings" />
           </>
         }
@@ -327,7 +328,7 @@ function Contracts({ rows }: { rows: Awaited<ReturnType<typeof contractRows>> })
         )}
       </div>
       <Table
-        columns={["AI", "Cost centre", "Owner", "Auto-renew", "Term ends", "Notice deadline", { label: "Cost", className: "text-right" }]}
+        columns={["AI", "Cost centre", "Owner", "Auto-renew", "Term ends", "Notice deadline", { label: "Cost", className: "text-right" }, ""]}
         empty={rows.length === 0 ? "No contracts yet — add one from an AI's page." : false}
       >
         {rows.map((r) => (
@@ -354,6 +355,9 @@ function Contracts({ rows }: { rows: Awaited<ReturnType<typeof contractRows>> })
               )}
             </td>
             <td className={`${td} text-right tabular text-ink-100`}>{r.monthlyEur != null ? `${fmtEur(r.monthlyEur)}/mo` : "—"}</td>
+            <td className={`${td} text-right whitespace-nowrap`}>
+              <Link href={`/negotiate/${r.assetId}`} className="btn btn-secondary btn-sm">Prepare negotiation</Link>
+            </td>
           </tr>
         ))}
       </Table>

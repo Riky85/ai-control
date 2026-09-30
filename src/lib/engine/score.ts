@@ -10,7 +10,8 @@
  * Assi (più alto = meglio):
  *  - efficiency  (30%) spreco trovato dal motore dei risparmi rispetto alla spesa, bonus per i risparmi verificati
  *  - governance  (25%) AI revisionate, con un responsabile, classificate AI Act, policy attive
- *  - risk        (25%) AI non consentite ancora in uso, AI ad alto rischio, dati sensibili, AI non pagate dall'azienda
+ *  - risk        (25%) AI non consentite ancora in uso, AI ad alto rischio, dati sensibili, AI non pagate dall'azienda,
+ *                      AI il cui fornitore addestra i modelli sui vostri dati di default (vendor-risk.ts)
  *  - adoption    (20%) persone che usano AI approvate negli ultimi 30 giorni, quota d'uso su AI approvate
  */
 import * as React from "react";
@@ -18,6 +19,8 @@ import { db } from "@/lib/db";
 import { computeSavingsCached, monthlyOf, type Saving } from "@/lib/savings";
 import { assessAssetRisk } from "@/lib/risk-engine";
 import { SEAT_WINDOW_DAYS } from "@/lib/seats";
+import { vendorRiskFor, planTier, trainsOnYourData } from "@/lib/vendor-risk";
+import { PLANS } from "@/lib/pricing/catalog";
 import { AXES, AXIS_WEIGHT, NEUTRAL, GRADE_VERDICT, gradeOf, type Axis, type Axes, type Grade, type ScoreConfidence } from "@/lib/engine/score-meta";
 
 const DAY = 86400000;
@@ -58,6 +61,8 @@ export interface ScoreFacts {
   highRiskCount: number;
   sensitiveExposed: number;
   shadowCount: number;
+  /** AI in uso il cui fornitore addestra sui dati di default, col piano in uso (facoltativo: 0 se assente). */
+  trainsOnDataCount?: number;
   usageKnown: boolean;
   activePeople: number;
   activeApprovedPeople: number;
@@ -166,6 +171,14 @@ function risk(f: ScoreFacts): RawDriver[] {
     const p = Math.min(20, Math.round(40 * (f.shadowCount / f.activeAiCount)));
     if (p > 0) d.push({ axis: "risk", label: `${plural(f.shadowCount, "AI", "AI")} on personal or free accounts`, impact: -p, href: "/?paid=no#your-ai" });
   }
+  // Fornitori che addestrano sui vostri dati di default: −3 per AI, massimo −9, mai oltre lo spazio rimasto sull'asse
+  // (così la somma dei driver resta uguale al valore dell'asse, che non scende sotto 0).
+  const trains = f.trainsOnDataCount ?? 0;
+  if (trains > 0) {
+    const used = -d.reduce((s, x) => s + x.impact, 0);
+    const p = Math.min(9, trains * 3, 100 - used);
+    if (p > 0) d.push({ axis: "risk", label: `${plural(trains, "AI", "AI")} in use ${trains === 1 ? "trains" : "train"} on your data by default`, impact: -p, href: "/governance#vendor-risk" });
+  }
   return d;
 }
 
@@ -252,7 +265,7 @@ export async function loadScoreFacts(orgId: string, now = new Date()): Promise<S
     db.user.count({ where: { organizationId: orgId } }),
     db.spendRecord.count({ where: { organizationId: orgId } }),
     db.desktopDevice.count({ where: { organizationId: orgId } }),
-    db.connector.findMany({ where: { organizationId: orgId, status: { in: ["CONNECTED", "SYNCING"] } }, select: { provider: true } }),
+    db.connector.findMany({ where: { organizationId: orgId, status: { in: ["CONNECTED", "SYNCING"] }, provider: { notIn: ["JIRA", "SERVICENOW"] } }, select: { provider: true } }),
   ]);
 
   const active = assets.filter((a) => a.status !== "UNAPPROVED");
@@ -260,8 +273,12 @@ export async function loadScoreFacts(orgId: string, now = new Date()): Promise<S
   let estimated = 0;
   let realCost = false;
   let shadow = 0;
+  let trainsOnData = 0;
   for (const a of active) {
     const m = monthlyOf(a);
+    const plan = a.cost?.planId ? PLANS.find((p) => p.id === a.cost!.planId) : undefined;
+    const tier = planTier({ type: a.type, planBusiness: plan ? plan.business : null, paidByCompany: !!m && m.eur > 0 && !m.estimated });
+    if (trainsOnYourData(vendorRiskFor(a), tier) === "yes") trainsOnData += 1;
     if (!m || m.eur <= 0) {
       shadow += 1;
       continue;
@@ -322,6 +339,7 @@ export async function loadScoreFacts(orgId: string, now = new Date()): Promise<S
     highRiskCount,
     sensitiveExposed,
     shadowCount: shadow,
+    trainsOnDataCount: trainsOnData,
     usageKnown,
     activePeople: people.size,
     activeApprovedPeople: approvedPeople.size,

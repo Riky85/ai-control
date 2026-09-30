@@ -17,6 +17,7 @@ import UsageChart from "@/components/usage/UsageChart";
 import { UsageSummary, ByAiList, RankList, ViewNav, type AiUsageRow, type RankRow } from "@/components/usage/cards";
 import { Pill, Section, NextStep, StackBar, type Tone } from "@/components/governance/parts";
 import type { CleanupRow } from "@/lib/seats";
+import RightsizeCard, { loadRightsizeCard } from "@/components/engine/RightsizeCard";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,8 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const views = individual ? ["ai", "people", "log", "cleanup"] : mode === "department" ? ["ai", "departments", "cleanup"] : ["ai", "cleanup"];
   const view = views.includes(searchParams.view ?? "") ? searchParams.view! : "ai";
   const cleanup = individual ? await cleanupRows(orgId) : [];
+  // Piano giusto per ogni persona: solo nella vista By AI.
+  const rightsize = view === "ai" ? await loadRightsizeCard(orgId) : null;
   const toRemove = cleanup.filter((c) => c.state === "release" || c.state === "no_reply");
   const since = new Date(Date.now() - SEAT_WINDOW_DAYS * DAY);
   const [events, assets, users] = await Promise.all([
@@ -269,6 +272,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
           ) : null}
 
           <ByAiList rows={aiRows} />
+          {rightsize && <RightsizeCard {...rightsize} />}
 
           {individual && hasData && <RankList id="by-person" title="By person" meta="Most active in the last 30 days" rows={personRows} href="/usage?view=people" cta="Everyone" empty="No usage yet." />}
           {mode === "department" && hasData && (

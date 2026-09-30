@@ -289,3 +289,21 @@ export function vendorRiskColumns(a: { vendor: string | null; serviceId: string 
     "Vendor info reviewed": r ? `${r.lastReviewed}${r.verified ? "" : " (unverified)"}` : null,
   };
 }
+
+/**
+ * Condizioni del fornitore che valgono per QUESTA AI: piano business (o API)
+ * → condizioni business; AI non pagata dall'azienda o piano personale →
+ * condizioni consumer. Piano sconosciuto ma pagato dall'azienda → business
+ * (nel dubbio non si penalizza).
+ */
+export function planTier(a: { type?: string | null; planBusiness?: boolean | null; paidByCompany?: boolean }): "business" | "consumer" {
+  if (a.type === "AI_API") return "business";
+  if (a.planBusiness != null) return a.planBusiness ? "business" : "consumer";
+  return a.paidByCompany ? "business" : "consumer";
+}
+
+/** Il fornitore addestra i modelli sui dati di questa AI? (in base al piano in uso) */
+export function trainsOnYourData(risk: VendorRisk | null, tier: "business" | "consumer"): Training {
+  if (!risk) return "unknown";
+  return tier === "business" ? risk.trainsBusiness : risk.trainsConsumer;
+}

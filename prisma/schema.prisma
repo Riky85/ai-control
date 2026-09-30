@@ -31,6 +31,8 @@ enum ConnectorProvider {
   BANK // conti bancari via Enable Banking (PSD2), per i costi
   ACCOUNTING // software di contabilità europei via Chift, per i costi
   NETWORK // scoperta automatica: scanner angar sui computer / log DNS e firewall
+  JIRA // ticket automatici per anomalie e AI non consentite
+  SERVICENOW // idem, per chi usa ServiceNow
 }
 
 enum ConnectorStatus {

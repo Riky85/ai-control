@@ -41,7 +41,15 @@ export default async function ScorePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="angar Score" subtitle="How well your company runs AI — cost, control, risk and use." />
+      <PageHeader
+        title="angar Score"
+        subtitle="How well your company runs AI — cost, control, risk and use."
+        action={
+          <Link href="/simulate" className="btn btn-secondary btn-sm">
+            What if…
+          </Link>
+        }
+      />
 
       {/* Hero: anello, voto, verdetto, andamento */}
       <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise">

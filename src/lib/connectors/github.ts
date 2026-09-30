@@ -17,7 +17,8 @@
  *   GITHUB_APP_SLUG          (per costruire il link di installazione)
  *
  * Permessi GitHub App richiesti: Organization members (read),
- * Organization administration (read), Repository metadata (read).
+ * Organization administration (read), Repository metadata (read); Repository
+ * contents (read) serve alla ricerca di chiavi AI esposte nel codice (facoltativo).
  *
  * LIMITE NOTO: non vediamo l'uso di tool AI di terze parti non integrati
  * con GitHub (es. Cursor usato localmente). La disponibilità e il formato
@@ -28,6 +29,7 @@
 import { createSign } from "node:crypto";
 import type { Connector, ConnectorSyncResult, ObservedAsset } from "./types";
 import { decryptJson } from "@/lib/crypto";
+import { scanGithubForKeys, recordSecretFindings } from "@/lib/secrets-scan";
 
 // Due modi di collegare GitHub:
 //  - GitHub App (installationId): un clic, richiede la configurazione di piattaforma;
@@ -270,6 +272,16 @@ export const githubConnector: Connector = {
       } catch (err) {
         warnings.push(`Unable to scan ${repo.full_name} for AI dependencies: ${(err as Error).message}`);
       }
+    }
+
+    // Chiavi API di AI esposte nel codice (code search di GitHub): diventano
+    // avvisi critici, mai salvate per intero. Best-effort: non blocca il sync.
+    try {
+      const scan = await scanGithubForKeys(token, { login: org, personal });
+      warnings.push(...scan.warnings);
+      if (scan.findings.length) await recordSecretFindings(connectorRow.organizationId, scan.findings);
+    } catch (err) {
+      warnings.push(`Unable to scan code for exposed AI keys: ${(err as Error).message}`);
     }
 
     // Eventi "agentic" dall'audit log (schema in evoluzione lato GitHub —

@@ -5,6 +5,7 @@ import { departmentSpend, UNASSIGNED } from "@/lib/budgets";
 import { setBudgetAction, deleteBudgetAction } from "@/lib/budget-actions";
 import { PageHeader, StatCard, Table, Tabs, td, Notice } from "@/components/ui";
 import Chargeback from "./Chargeback";
+import TeamValue from "./TeamValue";
 import { fmtEur } from "@/lib/format";
 import { maskCount, orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
@@ -72,6 +73,8 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
         <StatCard label={`Spend in ${month}`} value={`${fmtEur(totalSpend)}/mo`} hint={totalBudget ? `${Math.round((totalSpend / totalBudget) * 100)}% of the total budget` : "Split by who uses each AI"} tone="accent" />
         <StatCard label="Teams over budget" value={String(over)} hint={over ? "angar has sent an alert" : "All within budget"} tone={over ? "alarm" : undefined} />
       </div>
+
+      <TeamValue orgId={orgId} />
 
       {named.length === 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

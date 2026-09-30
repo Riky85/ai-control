@@ -23,7 +23,7 @@ export default async function ConnectPage() {
         organizationId: orgId,
         status: "CONNECTED",
         credentialsEncrypted: { not: null },
-        provider: { notIn: ["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK", "FATTURE_IN_CLOUD", "BANK", "ACCOUNTING"] },
+        provider: { notIn: ["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK", "FATTURE_IN_CLOUD", "BANK", "ACCOUNTING", "JIRA", "SERVICENOW"] },
       },
     }),
     desktopDeviceCounts(orgId),

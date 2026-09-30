@@ -20,6 +20,8 @@ import { computeSavingsCached, categoryOf, monthlyOf } from "@/lib/savings";
 import { CATEGORY_LABEL, PLANS, MANAGE_URL } from "@/lib/pricing/catalog";
 import { priceForAsset } from "@/lib/engine/price-index";
 import { MarketPriceStrip, pickRow } from "@/components/engine/PriceIndexCard";
+import VendorTermsCard from "@/components/engine/VendorRiskCard";
+import { vendorRiskFor, planTier } from "@/lib/vendor-risk";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +72,9 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const cat = categoryOf(asset);
   const plan = asset.cost?.planId ? PLANS.find((p) => p.id === asset.cost!.planId) : null;
   const seats = asset.cost?.seats ?? null;
+  // Condizioni del fornitore col piano in uso (business o personale).
+  const vendorRisk = vendorRiskFor(asset);
+  const tier = planTier({ type: asset.type, planBusiness: plan ? plan.business : null, paidByCompany: !!m && m.eur > 0 && !m.estimated });
   const active = asset.usages.filter((u) => u.lastSeenAt && Date.now() - u.lastSeenAt.getTime() < 30 * DAY).length;
   // Per un doppione, il suggerimento compare solo sulle AI da togliere.
   const manage = asset.serviceId ? MANAGE_URL[asset.serviceId] : undefined;
@@ -162,6 +167,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           {tab === "overview" && (
             <>
               {market && market.verdict !== "unknown" && <MarketPriceStrip row={pickRow(market)} />}
+              {vendorRisk && <VendorTermsCard risk={vendorRisk} tier={tier} detailsHref={`/assets/${asset.id}?tab=risk`} />}
               <Panel title="How to save" subtitle="Calculated automatically from your bills, seats and list prices">
                 <div className="divide-y divide-line -mx-5 border-t border-line">
                   {mine.map((i) => (

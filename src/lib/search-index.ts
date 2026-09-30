@@ -32,6 +32,7 @@ export const NAV_PAGES: NavPage[] = [
   { href: "/docs", label: "Documentation", keywords: "help guide how to docs" },
   { href: "/pricing", label: "Pricing", keywords: "plans price cost tiers compare" },
   { href: "/advisor", label: "AI Advisor", keywords: "recommend stack standardise consolidate what should we buy suggestions" },
+  { href: "/simulate", label: "Simulator", keywords: "what if simulate scenario standardise yearly billing unused seats block" },
   { href: "/budgets", label: "Budgets", keywords: "budget department team limit overspend alert" },
   { href: "/compliance", label: "AI Act", keywords: "eu ai act compliance gdpr dpo register risk classification obligations" },
   { href: "/alerts", label: "Alerts", keywords: "notifications renewals warnings bell" },

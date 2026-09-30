@@ -2,7 +2,6 @@ import { db } from "@/lib/db";
 import { createAlert, postToChat, appUrl } from "@/lib/alerts";
 import { upcomingRenewals } from "@/lib/renewals";
 import { checkBudgets } from "@/lib/budgets";
-import { computeSavings, monthlyOf } from "@/lib/savings";
 import { fmtEur, fmtDate } from "@/lib/format";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 import { countActive, idleSeats, SEAT_WINDOW_DAYS } from "@/lib/seats";
@@ -69,7 +68,7 @@ export async function renewalAlerts(orgId: string) {
       severity: r.annual || idle > 0 ? "warning" : "info",
       title: `${r.name} renews on ${fmtDate(r.date)} — ${fmtEur(r.amountEur)}${r.annual ? " (yearly)" : ""}`,
       body: idle > 0 ? `${idle} of ${seats} seats haven't been used in ${SEAT_WINDOW_DAYS} days. Remove them before the renewal to stop paying for them.` : `Decide now if you still need it${r.annual ? ": a yearly plan can't be reduced until the next term" : ""}.`,
-      href: `/assets/${r.assetId}`,
+      href: `/negotiate/${r.assetId}`,
       dedupeKey: `renewal:${r.assetId}:${r.date.toISOString().slice(0, 10)}`,
     });
     if (created) n++;
@@ -106,24 +105,46 @@ export async function seatFollowups(orgId: string) {
   return n;
 }
 
-// ── Riepilogo settimanale su Slack / Teams (lunedì mattina) ──────────────
-export async function weeklyDigest(orgId: string) {
-  const [org, { totalMonthly, assets }, toReview, alerts] = await Promise.all([
-    db.organization.findUnique({ where: { id: orgId }, select: { name: true, chatWebhookEncrypted: true } }),
-    computeSavings(orgId),
-    db.aiAsset.count({ where: { organizationId: orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } }),
-    db.alert.count({ where: { organizationId: orgId, readAt: null } }),
+// ── Brief settimanale con decisioni one-click (lunedì mattina) ───────────
+/**
+ * Le 3 decisioni della settimana (weekly-brief.ts) come card con pulsanti su
+ * Slack / Teams e per email a owner e admin, con gli stessi link firmati.
+ * Restituisce true se è partito almeno un messaggio.
+ */
+export async function weeklyDigest(orgId: string, now = new Date()) {
+  const [{ loadBrief, withButtons, briefText, briefSlackBlocks, briefTeamsCard, briefEmailHtml }, { chatActionUrl, slackInteractive, savingRef }, { sendEmail, emailEnabled }] = await Promise.all([
+    import("@/lib/weekly-brief"),
+    import("@/lib/chat-actions"),
+    import("@/lib/mail"),
   ]);
-  if (!org?.chatWebhookEncrypted) return false;
-  const spend = assets.reduce((t, a) => t + (monthlyOf(a)?.eur ?? 0), 0);
-  const lines = [
-    `*angar weekly — ${org.name}*`,
-    `• ${assets.length} AI in use · ${fmtEur(spend)}/month`,
-    totalMonthly >= 1 ? `• You could save ${fmtEur(totalMonthly)}/month — ${appUrl()}/savings` : "• No new savings this week",
-    toReview ? `• ${toReview} new AI to review — ${appUrl()}/review` : null,
-    alerts ? `• ${alerts} open alert${alerts === 1 ? "" : "s"} — ${appUrl()}/alerts` : null,
-  ].filter(Boolean);
-  return postToChat(orgId, lines.join("\n"));
+  const { org, summary, decisions } = await loadBrief(orgId, now);
+  if (!org) return false;
+  const base = appUrl();
+  const link = (act: "approve" | "reject" | "accept_saving", target: string) =>
+    chatActionUrl({ act, org: orgId, asset: act === "accept_saving" ? savingRef(target) : target });
+  const withLinks = decisions.map((d) => withButtons(d, base, link));
+  const s = { ...summary, base };
+  const text = briefText(s, withLinks);
+  let sent = false;
+
+  if (org.chatWebhookEncrypted) {
+    sent = await postToChat(orgId, text, { slack: briefSlackBlocks(s, withLinks, slackInteractive(), orgId), teams: briefTeamsCard(s, withLinks) }).catch(() => false);
+  }
+  // Email solo se c'è qualcosa da decidere (niente rumore nelle settimane tranquille).
+  if (emailEnabled() && withLinks.length) {
+    const members = await db.workspaceMember.findMany({ where: { organizationId: orgId, status: "active", role: { in: ["OWNER", "ADMIN"] } }, select: { email: true } });
+    const subject = `angar weekly: ${withLinks.length === 1 ? "1 decision" : `${withLinks.length} decisions`} for ${summary.orgName}`;
+    const html = briefEmailHtml(s, withLinks);
+    for (const m of members) {
+      const r = await sendEmail({ to: m.email, subject, text, html }).catch(() => ({ sent: false }));
+      if (r.sent) sent = true;
+    }
+  }
+  if (sent) {
+    const { audit } = await import("@/lib/audit");
+    await audit("brief.sent", "weekly", { decisions: withLinks.map((d) => ({ kind: d.kind, id: d.id.slice(0, 120) })) }, { orgId, actorEmail: null });
+  }
+  return sent;
 }
 
 // ── Costi: sincronizza banche, contabilità e Fatture in Cloud (ogni giorno) ──
@@ -212,7 +233,7 @@ export async function runDueJobs(now = new Date()) {
   if (weekday === "Mon" && hour >= 8 && (await claim("weekly", isoWeek(now)))) {
     for (const o of orgs) {
       try {
-        if (await weeklyDigest(o.id)) summary.digests++;
+        if (await weeklyDigest(o.id, now)) summary.digests++;
         // Promemoria della policy AI non confermata da 7+ giorni (max 2 per persona).
         await (await import("@/lib/policy-ack")).sendAckReminders(o.id, undefined, now).catch((err) => console.error("[jobs] policy ack reminders failed", o.id, err));
       } catch (err) {

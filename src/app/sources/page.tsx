@@ -33,7 +33,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
   const accountingState: RowState = accountingRow?.lastSyncedAt ? "connected" : chiftConfigured() ? "available" : "soon";
   const ficState: RowState = fic?.credentialsEncrypted ? "connected" : ficConfigured() ? "available" : "soon";
   const workplaceEnabled = await featureEnabled(orgId, "microsoft365");
-  const keys = connectors.filter((c) => !["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK", "FATTURE_IN_CLOUD", "BANK", "ACCOUNTING"].includes(c.provider));
+  const keys = connectors.filter((c) => !["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK", "FATTURE_IN_CLOUD", "BANK", "ACCOUNTING", "JIRA", "SERVICENOW"].includes(c.provider));
 
   return (
     <div className="flex flex-col gap-4">
@@ -49,6 +49,14 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
             <a href="/api/spend/sample" className="text-xs text-ink-400 hover:text-ink-100 underline">Try a sample</a>
           </div>
         </form>
+        {/* Contratti, order form e fatture in PDF: lettura dei campi del contratto. */}
+        <Link href="/contracts/upload" className="flex items-center justify-between gap-3 border-t border-line pt-3 text-sm group">
+          <span className="min-w-0">
+            <span className="text-ink-100 group-hover:underline">Read a contract (PDF)</span>
+            <span className="text-ink-400"> — plan, seats, price, renewal and notice from a contract, order form or invoice</span>
+          </span>
+          <span className="text-ink-400 group-hover:text-ink-100 shrink-0" aria-hidden>→</span>
+        </Link>
       </Card>
 
       <section id="accounts" className="flex flex-col gap-2 scroll-mt-6">

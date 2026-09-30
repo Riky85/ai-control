@@ -94,7 +94,7 @@ export async function noticeDeadlineAlerts(organizationId: string, now = Date.no
       severity: "warning",
       title: `${r.name}: notice deadline in ${r.daysLeft} day${r.daysLeft === 1 ? "" : "s"} (${fmtDate(r.deadline)})`,
       body: `${r.autoRenew === false ? "The contract ends" : "The contract renews"} on ${fmtDate(r.termEnd!)}${yearly}. To cancel or reduce seats, give notice by ${fmtDate(r.deadline)}${r.owner ? ` — contract owner: ${r.owner}` : ""}.`,
-      href: `/assets/${r.assetId}`,
+      href: `/negotiate/${r.assetId}`,
       dedupeKey: `notice:${r.assetId}:${r.deadline.toISOString().slice(0, 10)}`,
     });
     if (created) n++;

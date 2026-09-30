@@ -49,6 +49,9 @@ const BLOCK = /^(?:please |per favore )?(block|ban|disallow|reject|blocca|vieta|
 
 /** Pagine riconosciute a voce, con parole italiane e inglesi. */
 const PAGES: { href: string; label: string; words: RegExp }[] = [
+  { href: "/simulate", label: "Simulator", words: /\b(simula\w*|simulat\w*|what if|e se|scenari\w*)\b/ },
+  { href: "/report/board", label: "Board report", words: /\b(board|consiglio|cda|board report)\b/ },
+  { href: "/contracts/upload", label: "Read a contract", words: /\b(contratt\w*|contract\w*|pdf)\b/ },
   { href: "/savings", label: "Savings", words: /\b(savings?|risparmi\w*)\b/ },
   { href: "/usage", label: "Usage", words: /\b(usage|utilizzo|uso)\b/ },
   { href: "/review", label: "To review", words: /\b(review|da rivedere)\b/ },

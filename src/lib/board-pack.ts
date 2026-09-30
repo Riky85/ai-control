@@ -3,6 +3,11 @@
  * trimestri (regressione lineare sugli ultimi 12 mesi di addebiti, sempre
  * etichettata come stima), spesa per dipendente vs benchmark, risparmi
  * realizzati, AI principali, shadow AI, stato AI Act e copertura Edge.
+ *
+ * angar Engine: angar Score (voto, assi, andamento 90 giorni), previsione a
+ * 12 mesi (forecastSpend), risparmi verificati sugli addebiti, rischi
+ * principali e un riassunto esecutivo di 3 righe scritto in modo
+ * deterministico (executiveSummary, niente LLM). Il motore è in sola lettura.
  */
 import { db } from "@/lib/db";
 import { computeSavings, monthlyOf } from "@/lib/savings";
@@ -62,6 +67,88 @@ export function linearForecast(monthly: number[], horizon: number): { values: nu
   return { values, slope, intercept };
 }
 
+// ── angar Engine nel board pack ──────────────────────────────────────────
+
+export interface BoardRisk {
+  label: string;
+  detail: string;
+  severity: "critical" | "warning" | "info";
+}
+
+/**
+ * Rischi principali: anomalie gravi, AI non consentite ancora in uso e i
+ * driver di rischio/governance dell'angar Score che pesano di più. Pura.
+ */
+export function topRisks(
+  input: {
+    anomalies: { severity: string; title: string; body: string }[];
+    blockedInUse: number;
+    drivers: { axis: string; label: string; scoreImpact: number; missingData?: boolean }[];
+  },
+  n = 5
+): BoardRisk[] {
+  const out: BoardRisk[] = [];
+  if (input.blockedInUse > 0) {
+    out.push({ label: `${input.blockedInUse} AI not allowed but still used`, detail: "Seen in the last 30 days despite the policy.", severity: "critical" });
+  }
+  for (const a of input.anomalies.filter((x) => x.severity === "critical" || x.severity === "warning").slice(0, 3)) {
+    out.push({ label: a.title, detail: a.body, severity: a.severity as BoardRisk["severity"] });
+  }
+  const seen = new Set(out.map((r) => r.label.toLowerCase()));
+  const drivers = input.drivers
+    .filter((d) => (d.axis === "risk" || d.axis === "governance") && d.scoreImpact < 0 && !d.missingData && !/not allowed but still used/i.test(d.label))
+    .sort((a, b) => a.scoreImpact - b.scoreImpact);
+  for (const d of drivers) {
+    if (seen.has(d.label.toLowerCase())) continue;
+    out.push({ label: d.label, detail: `Costs ${Math.abs(Math.round(d.scoreImpact * 10) / 10)} points of the angar Score (${d.axis}).`, severity: d.scoreImpact <= -5 ? "warning" : "info" });
+  }
+  const order = { critical: 0, warning: 1, info: 2 };
+  return out.sort((a, b) => order[a.severity] - order[b.severity]).slice(0, n);
+}
+
+export interface SummaryInput {
+  aiCount: number;
+  monthlyRunRate: number;
+  quarterLabel: string;
+  quarterSpend: number | null;
+  quarterToDate: boolean;
+  qoqPct: number | null;
+  next12Eur: number | null;
+  growthPct: number | null;
+  verifiedMonthly: number;
+  doneMonthly: number;
+  identifiedMonthly: number;
+  score: number | null;
+  grade: string | null;
+  scoreDelta90: number | null;
+  topRisk: string | null;
+  aiActScore: number;
+}
+
+const eur0 = (n: number) => "€" + Math.round(n).toLocaleString("en-GB");
+const signed = (n: number) => `${n >= 0 ? "+" : "−"}${Math.abs(Math.round(n))}`;
+
+/** Riassunto esecutivo in 3 righe: spesa e previsione, risparmi, controllo e rischio. Deterministico. */
+export function executiveSummary(i: SummaryInput): [string, string, string] {
+  const spend =
+    (i.monthlyRunRate > 0
+      ? `${i.aiCount} AI tools cost ${eur0(i.monthlyRunRate)} a month (${eur0(i.monthlyRunRate * 12)} a year at today's rate)`
+      : `${i.aiCount} AI tools in use, no costs recorded yet`) +
+    (i.quarterSpend != null ? `; ${i.quarterLabel} charges${i.quarterToDate ? " so far" : ""} ${eur0(i.quarterSpend)}${i.qoqPct != null && !i.quarterToDate ? ` (${signed(i.qoqPct)}% on the previous quarter)` : ""}` : "") +
+    (i.next12Eur != null && i.next12Eur > 0 ? `. Forecast for the next 12 months: ${eur0(i.next12Eur)}${i.growthPct != null && Math.abs(i.growthPct) >= 1 ? `, with the run rate ${i.growthPct > 0 ? "rising" : "falling"} ${Math.abs(Math.round(i.growthPct))}%` : ", flat"}.` : ".");
+  const savedNow = i.verifiedMonthly + i.doneMonthly;
+  const savings =
+    savedNow >= 1
+      ? `${eur0(savedNow)} a month saved (${eur0(savedNow * 12)} a year)${i.verifiedMonthly >= 1 ? `, ${eur0(i.verifiedMonthly)} of it verified on the charges` : ", confirmed on the next charges"}${i.identifiedMonthly >= 1 ? `; ${eur0(i.identifiedMonthly)} a month more identified.` : "."}`
+      : i.identifiedMonthly >= 1
+        ? `${eur0(i.identifiedMonthly)} a month of savings identified (${eur0(i.identifiedMonthly * 12)} a year), not yet acted on.`
+        : "No waste found in the current AI estate.";
+  const control =
+    (i.score != null ? `angar Score ${i.score} (${i.grade})${i.scoreDelta90 != null && Math.abs(i.scoreDelta90) >= 1 ? `, ${signed(i.scoreDelta90)} points in 90 days` : ""}` : `AI Act readiness ${i.aiActScore}%`) +
+    (i.topRisk ? `; top risk: ${/^[A-Z][a-z]/.test(i.topRisk) ? i.topRisk.charAt(0).toLowerCase() + i.topRisk.slice(1) : i.topRisk}.` : "; no open high risks.");
+  return [spend, savings, control];
+}
+
 export interface QuarterBar {
   key: string;
   label: string;
@@ -92,6 +179,16 @@ export async function buildBoardPack(organizationId: string, asked?: string | nu
     db.aiAsset.count({ where: { organizationId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } }),
     db.aiAsset.count({ where: { organizationId, deletedAt: null, status: "UNAPPROVED", lastSeenAt: { gte: new Date(now.getTime() - 30 * DAY) } } }),
     db.aiAsset.count({ where: { organizationId, deletedAt: null, status: { not: "APPROVED" }, firstSeenAt: { gte: selected.from, lt: selected.to } } }),
+  ]);
+
+  // ── angar Engine (sola lettura; ogni parte può mancare senza rompere il pack) ──
+  const [{ computeScore, scoreHistory, AXES, AXIS_LABEL }, { forecastSpend, detectAnomalies }] = await Promise.all([import("@/lib/engine/score"), import("@/lib/engine/forecast")]);
+  const [score, history, forecast, anomalies, verifiedRows] = await Promise.all([
+    computeScore(organizationId).catch((err) => (console.error("[board-pack] score failed", err), null)),
+    scoreHistory(organizationId, 90, now).catch(() => []),
+    forecastSpend(organizationId, 12).catch((err) => (console.error("[board-pack] forecast failed", err), null)),
+    detectAnomalies(organizationId).catch(() => []),
+    db.savingAction.findMany({ where: { organizationId, status: "verified" }, orderBy: { verifiedMonthlyEur: "desc" }, take: 5, select: { title: true, verifiedMonthlyEur: true, expectedMonthlyEur: true, verifiedAt: true } }),
   ]);
 
   // ── Spesa: run rate (costo mensile attuale) e addebiti per mese ──
@@ -151,9 +248,61 @@ export async function buildBoardPack(organizationId: string, asked?: string | nu
   const edgeOnline = edgeSensors.filter((s) => s.lastSeenAt && s.lastSeenAt >= onlineSince && !(s.kind === "device" && !s.device)).length;
   const devices = new Set(edgeEvents.filter((e) => e.client && e.client !== "*").map((e) => e.client)).size;
 
+  const quarterToDate = selected.key === current.key;
+  const qoqPct = selectedActual != null && prevActual ? Math.round(((selectedActual - prevActual) / prevActual) * 100) : null;
+  const trend = history.map((p) => ({ day: p.day, score: p.score }));
+  const scoreDelta90 = score && trend.length ? score.score - trend[0].score : null;
+  const risks = topRisks({ anomalies, blockedInUse, drivers: score?.drivers ?? [] });
+  const engine = {
+    score: score
+      ? {
+          score: score.score,
+          grade: score.grade,
+          verdict: score.verdict,
+          confidence: score.confidence,
+          axes: AXES.map((k) => ({ key: k, label: AXIS_LABEL[k], value: score.axes[k] })),
+          trend,
+          delta90: scoreDelta90,
+        }
+      : null,
+    forecast: forecast
+      ? {
+          next12Eur: forecast.next12Eur,
+          growthPct: forecast.growthPct,
+          runRateEur: forecast.runRateEur,
+          basis: forecast.growthBasis,
+          drivers: forecast.drivers,
+          history: forecast.history.slice(-12),
+          projection: forecast.projection.slice(0, 12),
+        }
+      : null,
+    verified: verifiedRows.map((r) => ({ title: r.title, monthlyEur: r.verifiedMonthlyEur ?? r.expectedMonthlyEur, verifiedAt: r.verifiedAt })),
+    risks,
+  };
+  const summary = executiveSummary({
+    aiCount: savings.assets.length,
+    monthlyRunRate,
+    quarterLabel: `Q${selected.q} ${selected.year}`,
+    quarterSpend: selectedActual,
+    quarterToDate,
+    qoqPct,
+    next12Eur: forecast?.next12Eur ?? null,
+    growthPct: forecast?.growthPct ?? null,
+    verifiedMonthly: saved?.verifiedMonthly ?? 0,
+    doneMonthly: saved?.doneMonthly ?? 0,
+    identifiedMonthly: savings.totalMonthly,
+    score: score?.score ?? null,
+    grade: score?.grade ?? null,
+    scoreDelta90,
+    topRisk: risks[0]?.label ?? null,
+    aiActScore: ai.score,
+  });
+
   return {
     org,
     now,
+    engine,
+    summary,
     current,
     selected,
     quarters: Array.from({ length: 4 }, (_, i) => shiftQuarter(current, -i)),

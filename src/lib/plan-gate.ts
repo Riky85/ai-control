@@ -84,7 +84,8 @@ export function countConnections(orgId: string, exceptProvider?: ConnectorProvid
       organizationId: orgId,
       status: "CONNECTED",
       credentialsEncrypted: { not: null },
-      ...(exceptProvider ? { provider: { not: exceptProvider } } : {}),
+      // Jira e ServiceNow ricevono ticket, non sono fonti: non contano nel limite.
+      provider: { notIn: ["JIRA", "SERVICENOW", ...(exceptProvider ? [exceptProvider] : [])] },
     },
   });
 }

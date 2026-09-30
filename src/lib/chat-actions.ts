@@ -12,7 +12,7 @@
  * - "Seat check": con SLACK_BOT_TOKEN la persona inattiva riceve anche un
  *   messaggio diretto su Slack con Keep / Release (stessa logica di /seat/[token]).
  */
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHash, createHmac, timingSafeEqual } from "crypto";
 import type { AiAssetStatus, MemberRole } from "@prisma/client";
 import { db } from "@/lib/db";
 import { appUrl, postToChat } from "@/lib/alerts";
@@ -28,14 +28,25 @@ const RANK: Record<MemberRole, number> = { VIEWER: 0, EDITOR: 1, ADMIN: 2, OWNER
 export const slackInteractive = () => Boolean(process.env.SLACK_SIGNING_SECRET);
 export const slackBot = () => Boolean(process.env.SLACK_BOT_TOKEN);
 
-// ── Token firmati per i link one-click (Teams / Slack senza app) ─────────
+// ── Token firmati per i link one-click (Teams / Slack senza app / email) ─
+/** Decisioni sulle AI (Slack interattivo e link). */
 export type ChatAct = "approve" | "reject";
+/** Tutte le azioni dei link firmati: anche "accetta un risparmio" (brief settimanale). */
+export type LinkAct = ChatAct | "accept_saving";
 export interface ChatActionToken {
-  act: ChatAct;
+  act: LinkAct;
   org: string;
+  /** approve/reject: id dell'AI. accept_saving: riferimento corto del risparmio (savingRef). */
   asset: string;
   exp: number; // unix secondi
 }
+const LINK_ACTS: LinkAct[] = ["approve", "reject", "accept_saving"];
+
+/**
+ * Riferimento corto e stabile di un risparmio (le chiavi dei doppioni possono
+ * essere lunghe): hash della chiave, ricalcolato al clic su computeSavings.
+ */
+export const savingRef = (key: string) => createHash("sha256").update(`saving:${key}`).digest("base64url").slice(0, 22);
 
 function sessionSecret() {
   const s = process.env.SESSION_SECRET;
@@ -57,7 +68,7 @@ export function verifyChatAction(token: string, now = Date.now()): ChatActionTok
     const b = Buffer.from(s);
     if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
     const t = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as ChatActionToken;
-    if (!["approve", "reject"].includes(t.act) || typeof t.org !== "string" || typeof t.asset !== "string") return null;
+    if (!LINK_ACTS.includes(t.act) || typeof t.org !== "string" || typeof t.asset !== "string" || !t.asset || typeof t.exp !== "number") return null;
     return t.exp * 1000 > now ? t : null;
   } catch {
     return null;
@@ -102,6 +113,40 @@ export async function reviewAssetCore(organizationId: string, assetId: string, a
   }
   await audit("asset.review", asset.name, { decision: act, via }, { orgId: organizationId, actorEmail });
   return { ok: true as const, name: asset.name, status, changed: asset.status !== status };
+}
+
+/**
+ * Stesso "Accept" della pagina Savings (acceptSavingAction): titolo e importo
+ * si ricalcolano qui dal motore dei risparmi, mai dal link. Idempotente.
+ */
+export async function acceptSavingCore(organizationId: string, ref: string, actorEmail: string, via: string) {
+  const { computeSavings } = await import("@/lib/savings");
+  const { ledgerKindOf, ledgerAssetOf } = await import("@/lib/savings-ledger");
+  const [{ items }, accepted] = await Promise.all([
+    computeSavings(organizationId),
+    db.savingAction.findMany({ where: { organizationId, savingKey: { not: null }, status: { not: "failed" } }, select: { savingKey: true, title: true } }),
+  ]);
+  // Già accettato (computeSavings non lo mostra più): risposta tranquilla, nessun doppione.
+  const done = accepted.find((a) => a.savingKey && savingRef(a.savingKey) === ref);
+  if (done) return { ok: true as const, title: done.title, changed: false };
+  const item = items.find((i) => savingRef(i.key) === ref);
+  if (!item) return { ok: false as const, error: "That saving isn't there any more — it may have changed with new data. Open Savings to see the current list." };
+  const now = new Date();
+  await db.savingAction.create({
+    data: {
+      organizationId,
+      assetId: ledgerAssetOf(item),
+      kind: ledgerKindOf(item.kind),
+      title: item.title.slice(0, 200),
+      expectedMonthlyEur: Math.round(item.monthlyEur * 100) / 100,
+      status: "accepted",
+      savingKey: item.key,
+      acceptedAt: now,
+      createdBy: actorEmail,
+    },
+  });
+  await audit("saving.accepted", item.title, { key: item.key, monthlyEur: item.monthlyEur, via }, { orgId: organizationId, actorEmail });
+  return { ok: true as const, title: item.title, changed: true };
 }
 
 /** Stessa risposta di /seat/[token] (respondSeatAction). */

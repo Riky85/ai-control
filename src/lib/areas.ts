@@ -24,7 +24,7 @@ export const AREAS: Area[] = [
   { key: "overview", label: "Overview", href: "/", icon: "home", tabs: [{ href: "/", label: "Overview", match: ["/assets", "/report", "/alerts", "/group"] }] },
   { key: "score", label: "Score", href: "/score", icon: "score", tabs: [{ href: "/score", label: "Score", match: ["/score"] }] },
   { key: "review", label: "To review", href: "/review", icon: "review", tabs: [{ href: "/review", label: "To review", match: ["/review"] }] },
-  { key: "savings", label: "Savings", href: "/savings", icon: "savings", tabs: [{ href: "/savings", label: "Savings", match: ["/savings", "/providers", "/advisor"] }] },
+  { key: "savings", label: "Savings", href: "/savings", icon: "savings", tabs: [{ href: "/savings", label: "Savings", match: ["/savings", "/providers", "/advisor", "/simulate", "/negotiate"] }] },
   { key: "usage", label: "Usage", href: "/usage", icon: "usage", tabs: [{ href: "/usage", label: "Usage", match: ["/usage", "/people"] }] },
   { key: "budgets", label: "Budgets", href: "/budgets", icon: "budget", tabs: [{ href: "/budgets", label: "Budgets", match: ["/budgets"] }] },
   { key: "governance", label: "Governance", href: "/governance", icon: "assurance", tabs: [{ href: "/governance", label: "Governance", match: ["/governance", "/compliance", "/data", "/activity", "/changes", "/audit", "/policies", "/approvals", "/assurance", "/evidence"] }] },

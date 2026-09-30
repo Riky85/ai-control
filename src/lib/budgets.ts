@@ -136,3 +136,143 @@ export async function checkBudgets(organizationId: string, now = new Date()): Pr
   }
   return out;
 }
+
+// ── Valore per team: spesa AI, persone attive vs posti, verdetto ──────────
+
+/**
+ * Una persona (o un posto) su un'AI: la riga base del "Value by team".
+ * `person` null = costo senza persone note (reparto dichiarato sull'AI).
+ */
+export interface TeamValueRow {
+  person: string | null;
+  department: string | null;
+  /** Quota del costo mensile dell'AI che porta questa riga. */
+  eur: number;
+  /** Strumento a posti (licenza per persona). */
+  seat: boolean;
+  /** Usata negli ultimi 30 giorni (stessa definizione di Usage e Savings). */
+  active: boolean;
+}
+
+export type TeamVerdict = "high" | "fair" | "under" | "idle" | "none";
+
+export interface TeamValue {
+  department: string;
+  merged: boolean;
+  monthlyEur: number;
+  people: number;
+  activePeople: number;
+  seats: number;
+  activeSeats: number;
+  /** Posti usati / posti (se a posti), altrimenti persone attive / persone. 0..1, null senza persone. */
+  utilisation: number | null;
+  /** Spesa / persone attive (null senza persone attive). */
+  eurEachActive: number | null;
+  /** Costo dei posti non usati da 30 giorni. */
+  idleEur: number;
+  verdict: TeamVerdict;
+}
+
+/** Soglie del verdetto (utilizzo). */
+export const TEAM_VALUE = { high: 0.75, fair: 0.5, minIdleEur: 1 } as const;
+
+export function teamVerdict(t: Pick<TeamValue, "monthlyEur" | "utilisation" | "idleEur" | "activePeople">): TeamVerdict {
+  if (t.monthlyEur <= 0 || t.utilisation == null) return "none";
+  if (t.activePeople === 0) return "idle";
+  if (t.utilisation >= TEAM_VALUE.high) return "high";
+  if (t.utilisation < TEAM_VALUE.fair && t.idleEur >= TEAM_VALUE.minIdleEur) return "under";
+  return "fair";
+}
+
+/**
+ * Righe → team, con il k-anonimato di privacy.ts (gruppi sotto MIN_GROUP
+ * persone uniti in "Other (small teams)"). Pura: nessun nome esce da qui.
+ */
+export function computeTeamValue(rows: TeamValueRow[], group: <T>(rows: T[], personOf: (r: T) => string | null | undefined, departmentOf: (r: T) => string | null | undefined) => { department: string; merged: boolean; suppressed: boolean; rows: T[] }[]): { teams: TeamValue[]; suppressed: boolean } {
+  const groups = group(rows, (r) => r.person, (r) => r.department);
+  if (groups.length === 1 && groups[0].suppressed) return { teams: [], suppressed: true };
+  const teams = groups.map((g) => {
+    const people = new Set<string>();
+    const active = new Set<string>();
+    let eur = 0;
+    let seats = 0;
+    let activeSeats = 0;
+    let idleEur = 0;
+    for (const r of g.rows) {
+      eur += r.eur;
+      if (r.person) {
+        people.add(r.person);
+        if (r.active) active.add(r.person);
+      }
+      if (r.seat && r.person) {
+        seats++;
+        if (r.active) activeSeats++;
+        else idleEur += r.eur;
+      }
+    }
+    const utilisation = seats > 0 ? activeSeats / seats : people.size > 0 ? active.size / people.size : null;
+    const t = {
+      department: g.department,
+      merged: g.merged,
+      monthlyEur: Math.round(eur * 100) / 100,
+      people: people.size,
+      activePeople: active.size,
+      seats,
+      activeSeats,
+      utilisation,
+      eurEachActive: active.size > 0 ? Math.round((eur / active.size) * 100) / 100 : null,
+      idleEur: Math.round(idleEur * 100) / 100,
+    };
+    return { ...t, verdict: teamVerdict(t) };
+  });
+  teams.sort((a, b) => Number(a.merged) - Number(b.merged) || b.monthlyEur - a.monthlyEur || a.department.localeCompare(b.department));
+  return { teams, suppressed: false };
+}
+
+/**
+ * Dal database: ogni AI non rifiutata, il suo costo mensile diviso per chi la
+ * ha (a posti: costo / max(posti, persone); condivisa: costo / persone). I
+ * posti pagati senza persona non vanno a nessun team (li mostra Chargeback).
+ */
+export async function teamValue(organizationId: string, now = new Date()) {
+  const [{ isPerSeat }, { groupByDepartment }, { SEAT_WINDOW_DAYS }] = await Promise.all([import("@/lib/chargeback"), import("@/lib/privacy"), import("@/lib/seats")]);
+  const cutoff = now.getTime() - SEAT_WINDOW_DAYS * 86400000;
+  const assets = await db.aiAsset.findMany({
+    where: { organizationId, deletedAt: null, status: { not: "UNAPPROVED" } },
+    select: {
+      id: true,
+      name: true,
+      vendor: true,
+      type: true,
+      serviceId: true,
+      department: true,
+      cost: true,
+      usages: { select: { id: true, userId: true, externalUserRef: true, lastSeenAt: true, user: { select: { department: true } } } },
+    },
+  });
+  const rows: TeamValueRow[] = [];
+  let unassignedSeatsEur = 0;
+  for (const a of assets) {
+    const m = monthlyOf(a);
+    const eur = m && m.eur > 0 ? m.eur : 0;
+    if (eur <= 0) continue;
+    if (a.usages.length === 0) {
+      if (a.department?.trim()) rows.push({ person: null, department: a.department.trim(), eur, seat: false, active: false });
+      continue;
+    }
+    const seat = isPerSeat(a);
+    const units = seat ? Math.max(a.cost?.seats ?? 0, a.usages.length) : a.usages.length;
+    const each = eur / units;
+    if (seat && units > a.usages.length) unassignedSeatsEur += each * (units - a.usages.length);
+    for (const u of a.usages) {
+      rows.push({
+        person: u.userId ?? u.externalUserRef ?? u.id,
+        department: u.user?.department ?? null,
+        eur: each,
+        seat,
+        active: !!u.lastSeenAt && u.lastSeenAt.getTime() >= cutoff,
+      });
+    }
+  }
+  return { ...computeTeamValue(rows, groupByDepartment), unassignedSeatsEur: Math.round(unassignedSeatsEur * 100) / 100 };
+}

@@ -6,6 +6,10 @@ import { resetWorkspaceDataAction, loadDemoDataAction } from "@/lib/test-data-ac
 import { addUserAction } from "@/lib/actions";
 import { setEmployeesAction } from "@/lib/spend-actions";
 import { setIndustryAction, setChatWebhookAction, setPrivacyModeAction } from "@/lib/settings-actions";
+import { saveJiraAction, saveServiceNowAction, disconnectTicketingAction, testTicketAction } from "@/lib/ticketing-actions";
+import { decryptJson } from "@/lib/crypto";
+import type { JiraConfig, ServiceNowConfig } from "@/lib/ticketing";
+import { fmtAgo } from "@/lib/format";
 import { erasePastNamesAction } from "@/lib/discovery/privacy-actions";
 import { PRIVACY_MODES, privacyModeOf, showsPeople } from "@/lib/privacy";
 import { INDUSTRIES } from "@/lib/industries";
@@ -33,15 +37,19 @@ const TABS: { key: Tab; label: string }[] = [
 
 // Impostazioni a schede: ogni scheda è una colonna di righe "etichetta · controllo",
 // poche parole, un blocco per argomento.
-export default async function SettingsPage({ searchParams }: { searchParams: { tab?: string; reset?: string; chat?: string; privacy?: string; signin?: string; webhook?: string } }) {
+export default async function SettingsPage({ searchParams }: { searchParams: { tab?: string; reset?: string; chat?: string; privacy?: string; signin?: string; webhook?: string; error?: string; ticket?: string; key?: string } }) {
   const orgId = currentOrgId();
   // Vecchi link senza scheda: si apre quella giusta dal parametro.
-  const tab: Tab = (TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab : searchParams.privacy ? "privacy" : searchParams.signin ? "security" : searchParams.chat || searchParams.webhook ? "integrations" : searchParams.reset ? "data" : "general") as Tab;
-  const [org, userCount, connectors] = await Promise.all([
+  const tab: Tab = (TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab : searchParams.privacy ? "privacy" : searchParams.signin ? "security" : searchParams.chat || searchParams.webhook || searchParams.ticket ? "integrations" : searchParams.reset ? "data" : "general") as Tab;
+  const [org, userCount, allConnectors] = await Promise.all([
     db.organization.findUnique({ where: { id: orgId } }),
     db.user.count({ where: { organizationId: orgId } }),
     db.connector.findMany({ where: { organizationId: orgId, status: "CONNECTED" } }),
   ]);
+  // Jira / ServiceNow sono destinazioni dei ticket, non fonti di dati.
+  const connectors = allConnectors.filter((c) => c.provider !== "JIRA" && c.provider !== "SERVICENOW");
+  const jiraRow = allConnectors.find((c) => c.provider === "JIRA" && c.credentialsEncrypted);
+  const snowRow = allConnectors.find((c) => c.provider === "SERVICENOW" && c.credentialsEncrypted);
   const privacy = privacyModeOf(org);
   const role = currentSession()?.role;
   const isAdmin = role === "ADMIN" || role === "OWNER";
@@ -153,6 +161,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
         <>
           {searchParams.chat === "ok" && <Notice tone="success">Connected — a test message was sent.</Notice>}
           {searchParams.chat === "off" && <Notice tone="success">Slack or Teams disconnected.</Notice>}
+          {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
+          {searchParams.ticket === "jira-connected" && <Notice tone="success">Jira connected — send a test ticket to check where it lands.</Notice>}
+          {searchParams.ticket === "servicenow-connected" && <Notice tone="success">ServiceNow connected — send a test ticket to check where it lands.</Notice>}
+          {searchParams.ticket === "test" && <Notice tone="success">Test ticket {searchParams.key ? <b className="font-medium">{searchParams.key}</b> : null} created.</Notice>}
+          {searchParams.ticket === "off" && <Notice tone="success">Ticketing disconnected.</Notice>}
           <Section>
             <Row title="Sources" hint={connectors.length ? `${connectors.length} connected` : "Nothing connected yet"}>
               {connectors.slice(0, 6).map((c) => (
@@ -182,6 +195,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
               </form>
             </Row>
           </Section>
+          <TicketsSection
+            isAdmin={isAdmin}
+            jira={jiraRow ? { cfg: decryptJson<JiraConfig>(jiraRow.credentialsEncrypted), lastSyncedAt: jiraRow.lastSyncedAt, lastSyncError: jiraRow.lastSyncError } : null}
+            snow={snowRow ? { cfg: decryptJson<ServiceNowConfig>(snowRow.credentialsEncrypted), lastSyncedAt: snowRow.lastSyncedAt, lastSyncError: snowRow.lastSyncError } : null}
+          />
           <DevelopersPanel orgId={orgId} canEdit={isAdmin} webhookStatus={searchParams.webhook} />
         </>
       )}
@@ -205,5 +223,72 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
         </>
       )}
     </div>
+  );
+}
+
+type TicketRow<T> = { cfg: T | null; lastSyncedAt: Date | null; lastSyncError: string | null } | null;
+
+/** Ticket in Jira / ServiceNow: stato, modulo di collegamento (a scomparsa), prova, scollega. */
+function TicketsSection({ isAdmin, jira, snow }: { isAdmin: boolean; jira: TicketRow<JiraConfig>; snow: TicketRow<ServiceNowConfig> }) {
+  const status = (r: TicketRow<unknown>, where: string) =>
+    r ? (r.lastSyncError ? <span className="text-alarm">Last ticket failed: {r.lastSyncError}</span> : r.lastSyncedAt ? `Connected · last ticket ${fmtAgo(r.lastSyncedAt)}` : `Connected · ${where}`) : "Not connected";
+  const pill = (on: boolean) => (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${on ? "text-steady bg-steady/10" : "text-ink-400 bg-ink-100/[0.06]"}`}>{on ? "On" : "Off"}</span>
+  );
+  const actions = (provider: "JIRA" | "SERVICENOW") => (
+    <>
+      <form action={testTicketAction}>
+        <input type="hidden" name="provider" value={provider} />
+        <button className="btn btn-secondary btn-sm" disabled={!isAdmin}>Send test ticket</button>
+      </form>
+      <form action={disconnectTicketingAction}>
+        <input type="hidden" name="provider" value={provider} />
+        <button className="btn btn-ghost btn-sm" disabled={!isAdmin}>Disconnect</button>
+      </form>
+    </>
+  );
+  const panel = "absolute right-0 z-20 mt-2 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-line bg-panel p-3 shadow-card flex flex-col gap-2";
+  return (
+    <Section title="Tickets" id="tickets">
+      <Row title="What opens a ticket" hint="One ticket for each alert, never twice.">
+        <span className="text-xs text-ink-400 text-right">AI not allowed but in use · spend anomalies · leaked AI keys — warning or critical</span>
+      </Row>
+      <Row title={<span className="inline-flex items-center gap-2">Jira {pill(!!jira)}</span>} hint={jira?.cfg ? <>{status(jira, `project ${jira.cfg.projectKey}`)}</> : "Jira Cloud · REST API"}>
+        {jira && actions("JIRA")}
+        <details className="relative">
+          <summary className="btn btn-secondary btn-sm list-none cursor-pointer">{jira ? "Edit" : "Connect"}</summary>
+          <form action={saveJiraAction} className={panel}>
+            <fieldset disabled={!isAdmin} className="flex flex-col gap-2">
+              <input name="site" required defaultValue={jira?.cfg?.site ?? ""} placeholder="https://yourcompany.atlassian.net" aria-label="Jira site" className="field" />
+              <input name="email" type="email" required defaultValue={jira?.cfg?.email ?? ""} placeholder="Email of the Jira user" aria-label="Jira user email" className="field" />
+              <input name="apiToken" type="password" autoComplete="off" required={!jira} placeholder={jira ? "API token — leave empty to keep" : "API token"} aria-label="Jira API token" className="field" />
+              <div className="flex gap-2">
+                <input name="projectKey" required defaultValue={jira?.cfg?.projectKey ?? ""} placeholder="Project key, e.g. IT" aria-label="Jira project key" className="field flex-1 min-w-0 uppercase" />
+                <input name="issueType" defaultValue={jira?.cfg?.issueType ?? "Task"} placeholder="Task" aria-label="Issue type" className="field w-24" />
+              </div>
+              <button className="btn btn-primary btn-sm">{jira ? "Save" : "Connect"}</button>
+              <p className="text-[11px] text-ink-400">Token from id.atlassian.com → Security → API tokens. angar checks it before saving and stores it encrypted.</p>
+            </fieldset>
+          </form>
+        </details>
+        {!isAdmin && <span className="text-xs text-ink-400">Admins only</span>}
+      </Row>
+      <Row title={<span className="inline-flex items-center gap-2">ServiceNow {pill(!!snow)}</span>} hint={snow?.cfg ? <>{status(snow, snow.cfg.assignmentGroup ? `group ${snow.cfg.assignmentGroup}` : "incidents")}</> : "Incidents · Table API"}>
+        {snow && actions("SERVICENOW")}
+        <details className="relative">
+          <summary className="btn btn-secondary btn-sm list-none cursor-pointer">{snow ? "Edit" : "Connect"}</summary>
+          <form action={saveServiceNowAction} className={panel}>
+            <fieldset disabled={!isAdmin} className="flex flex-col gap-2">
+              <input name="instance" required defaultValue={snow?.cfg?.instance ?? ""} placeholder="https://yourcompany.service-now.com" aria-label="ServiceNow instance" className="field" />
+              <input name="user" defaultValue={snow?.cfg?.user ?? ""} placeholder="Integration user (empty for a token)" aria-label="ServiceNow user" className="field" />
+              <input name="secret" type="password" autoComplete="off" required={!snow} placeholder={snow ? "Password or token — leave empty to keep" : "Password or token"} aria-label="ServiceNow password or token" className="field" />
+              <input name="assignmentGroup" defaultValue={snow?.cfg?.assignmentGroup ?? ""} placeholder="Assignment group (optional)" aria-label="Assignment group" className="field" />
+              <button className="btn btn-primary btn-sm">{snow ? "Save" : "Connect"}</button>
+              <p className="text-[11px] text-ink-400">The user needs the itil role to create incidents. angar checks access before saving and stores it encrypted.</p>
+            </fieldset>
+          </form>
+        </details>
+      </Row>
+    </Section>
   );
 }

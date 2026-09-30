@@ -33,7 +33,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
   const [state, aiSystems, connections, members, sharedDashboards] = await Promise.all([
     getPlanState(currentOrgId()),
     db.aiAsset.count({ where: { organizationId: currentOrgId(), deletedAt: null } }),
-    db.connector.count({ where: { organizationId: currentOrgId(), status: "CONNECTED", credentialsEncrypted: { not: null } } }),
+    db.connector.count({ where: { organizationId: currentOrgId(), status: "CONNECTED", credentialsEncrypted: { not: null }, provider: { notIn: ["JIRA", "SERVICENOW"] } } }),
     db.workspaceMember.count({ where: { organizationId: currentOrgId() } }),
     // Come in Workspace: contano solo i link non revocati e non scaduti.
     db.shareLink.count({ where: { organizationId: currentOrgId(), revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } }),

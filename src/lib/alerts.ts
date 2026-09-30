@@ -2,8 +2,10 @@ import { db } from "@/lib/db";
 import { decryptJson } from "@/lib/crypto";
 import { emitWebhook } from "@/lib/webhooks";
 
-export type AlertKind = "renewal" | "budget" | "policy" | "seats" | "new_ai" | "anomaly" | "autopilot" | "info";
+export type AlertKind = "renewal" | "budget" | "policy" | "seats" | "new_ai" | "anomaly" | "autopilot" | "info" | "secret";
 export type AlertSeverity = "info" | "warning" | "critical";
+/** Tipi di avviso che aprono un ticket (vedi ticketing.ts, TICKET_KINDS). */
+const TICKET_ALERT_KINDS: string[] = ["policy", "anomaly", "secret"];
 
 /**
  * Crea un avviso (campanella) una sola volta per dedupeKey e, se l'azienda
@@ -26,6 +28,12 @@ export async function createAlert(
   if (a.kind === "renewal") emitWebhook(organizationId, "renewal.upcoming", evt);
   if (a.severity === "warning" || a.severity === "critical") {
     await postToChat(organizationId, `*${a.title}*\n${a.body}${a.href ? `\n${appUrl()}${a.href}` : ""}`).catch(() => {});
+    // Ticket in Jira / ServiceNow per gli avvisi importanti (policy, anomalie, chiavi):
+    // spara e dimentica, mai bloccante; no-op se non collegati. Uno per avviso (avviso nuovo = dedupeKey nuova).
+    if (TICKET_ALERT_KINDS.includes(a.kind)) {
+      const ticket = { kind: a.kind, severity: a.severity, title: a.title, body: a.body, url: evt.url, dedupeKey: a.dedupeKey.slice(0, 300) };
+      void import("@/lib/ticketing").then((m) => m.ticketForAlert(organizationId, ticket)).catch(() => {});
+    }
   }
   return true;
 }
