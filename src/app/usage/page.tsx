@@ -1,19 +1,22 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
+import { PageHeader, Table, Tabs, td, Notice } from "@/components/ui";
 import FilterBar from "@/components/FilterBar";
 import { VendorBadge } from "@/components/VendorIcon";
 import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
-import { Notice } from "@/components/ui";
 import { cleanupRows, seatStats, idleSeats as idleSeatsOf, SEAT_WINDOW_DAYS } from "@/lib/seats";
 import { isPseudonym } from "@/lib/discovery/pseudonym";
 import { currentSession } from "@/lib/auth";
 import { askAllInactiveAction, markSeatRemovedAction } from "@/lib/seat-actions";
 import PrivacyNotice from "@/components/PrivacyNotice";
 import SeatRemoveButton from "@/components/SeatRemoveButton";
-import { Insight, TrendPanel, dailySeries, pctChange, trendWord } from "@/components/insight";
+import { Insight, dailySeries, pctChange } from "@/components/insight";
 import { groupByDepartment, maskCount, orgPrivacyMode, showsPeople, MIN_GROUP } from "@/lib/privacy";
+import UsageChart from "@/components/usage/UsageChart";
+import { UsageSummary, ByAiList, RankList, ViewNav, type AiUsageRow, type RankRow } from "@/components/usage/cards";
+import { Pill, Section, NextStep, StackBar, type Tone } from "@/components/governance/parts";
+import type { CleanupRow } from "@/lib/seats";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +27,14 @@ const COUNTED = ["desktop.active", "extension.active"];
 
 const SOURCE_LABEL = (e: string) =>
   e === "desktop.active" ? "Desktop app" : e === "extension.active" ? "Browser extension" : e === "signin" ? "Microsoft 365" : e === "copilot.active" ? "Copilot report" : e.startsWith("oauth.") ? "Google Workspace" : e;
+
+const STATE: Record<CleanupRow["state"], { label: string; tone: Tone }> = {
+  waiting: { label: "Waiting", tone: "muted" },
+  keep: { label: "Still needs it", tone: "steady" },
+  release: { label: "Doesn't need it", tone: "signal" },
+  no_reply: { label: "No answer in 7 days", tone: "signal" },
+  removed: { label: "Removed", tone: "muted" },
+};
 
 // Chi usa quale AI e quanto: dai dati dell'estensione, di Microsoft 365 e di
 // Google Workspace. Da qui si vedono i posti pagati che nessuno usa.
@@ -89,7 +100,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       const monthly = a.cost?.monthlyCostEstimate ?? null;
       const idle = idleSeatsOf(seats, st?.active ?? 0, st?.known ?? 0);
       const save = idle && monthly && seats ? (monthly / seats) * idle : 0;
-      return { a, active, seats, visits: rows.reduce((t, r) => t + r.visits, 0), minutes: rows.reduce((t, r) => t + r.minutes, 0), idle, save };
+      return { a, active, seats, measured: (st?.known ?? 0) > 0, visits: rows.reduce((t, r) => t + r.visits, 0), minutes: rows.reduce((t, r) => t + r.minutes, 0), idle, save };
     })
     .filter((x) => x.active > 0 || x.seats)
     .sort((x, y) => y.save - x.save || y.active - x.active);
@@ -97,6 +108,11 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const people = new Set(pairs.map((p) => p.email));
   const idleSeats = byAi.reduce((t, x) => t + x.idle, 0);
   const canSave = byAi.reduce((t, x) => t + x.save, 0);
+  // Posti misurabili (si sa chi li usa): pagati e usati, coerenti con i posti non usati.
+  const measured = byAi.filter((x) => x.seats && x.measured);
+  const seatsPaid = measured.reduce((t, x) => t + (x.seats ?? 0), 0);
+  const seatsUsed = seatsPaid - measured.reduce((t, x) => t + x.idle, 0);
+  const aiInUse = new Set([...pairs.map((p) => p.assetId), ...byAi.filter((x) => x.active > 0).map((x) => x.a.id)]).size;
   const q = searchParams.q?.toLowerCase().trim();
   const match = (email: string, ai: string) => (!q || email.includes(q) || nameOf(email).toLowerCase().includes(q) || ai.toLowerCase().includes(q)) && (!searchParams.ai || searchParams.ai === ai);
   const aiOptions = [...new Set(pairs.map((p) => p.name))].sort().map((n) => ({ value: n, label: n, count: pairs.filter((p) => p.name === n).length }));
@@ -109,6 +125,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const mostUsed = [...byAi].sort((x, y) => y.active - x.active)[0];
   const biggestSave = byAi[0] && byAi[0].save >= 1 ? byAi[0] : null;
   const count = (n: number) => (individual ? String(n) : maskCount(n));
+  const cleanupHref = (assetId: string) => (individual ? "/usage?view=cleanup" : `/assets/${assetId}?tab=people`);
 
   // Per reparto (k-anonimato: gruppi di almeno MIN_GROUP persone).
   const departments =
@@ -124,6 +141,69 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
           };
         })
       : [];
+
+  // Anteprima "per persona" (solo in modalità individuale) e "per reparto" (solo gruppi mostrabili).
+  const personRows: RankRow[] = individual
+    ? [...people]
+        .map((email) => {
+          const mine = pairs.filter((p) => p.email === email);
+          const days = new Set(mine.flatMap((p) => [...p.days]));
+          const visits = mine.reduce((t, p) => t + p.visits, 0);
+          const last = mine.reduce((d, p) => (p.last > d ? p.last : d), mine[0].last);
+          return { email, ais: mine.length, days: days.size, visits, last };
+        })
+        .sort((a, b) => b.visits - a.visits || b.days - a.days)
+        .slice(0, 5)
+        .map((p) => ({
+          key: p.email,
+          label: nameOf(p.email),
+          sub: `${p.ais} AI · ${p.visits.toLocaleString("en-GB")} visits`,
+          bar: p.days,
+          barMax: SEAT_WINDOW_DAYS,
+          barLabel: `${p.days}/${SEAT_WINDOW_DAYS} days`,
+          right: `Last ${fmtDate(p.last)}`,
+        }))
+    : [];
+  const shownDepts = departments.filter((d) => !d.suppressed);
+  const maxDeptVisits = Math.max(1, ...shownDepts.map((d) => d.visits));
+  const deptRows: RankRow[] = shownDepts.slice(0, 5).map((d) => ({
+    key: d.department,
+    label: d.department,
+    sub: `${d.people} people${d.top[0] ? ` · mostly ${d.top[0][0]}` : ""}`,
+    bar: d.visits,
+    barMax: maxDeptVisits,
+    barLabel: d.visits.toLocaleString("en-GB"),
+    right: fmtMinutes(d.minutes),
+  }));
+
+  const aiRows: AiUsageRow[] = byAi.map((x) => ({
+    id: x.a.id,
+    name: x.a.name,
+    vendor: x.a.vendor,
+    people: count(x.active),
+    visits: x.visits,
+    seats: x.seats,
+    measured: x.measured,
+    idle: x.idle,
+    save: x.save,
+    cleanupHref: cleanupHref(x.a.id),
+  }));
+
+  const navItems = [
+    { key: "ai", label: "Overview", href: "/usage" },
+    ...(individual
+      ? [
+          { key: "people", label: "By person", href: "/usage?view=people" },
+          { key: "log", label: "Connection log", href: "/usage?view=log" },
+        ]
+      : mode === "department"
+        ? [{ key: "departments", label: "By department", href: "/usage?view=departments" }]
+        : []),
+    { key: "cleanup", label: "Seat clean-up", href: "/usage?view=cleanup", count: toRemove.length || undefined },
+  ];
+
+  const removable = toRemove.reduce((t, c) => t + (c.perSeatEur ?? 0), 0);
+  const stateCount = (s: CleanupRow["state"]) => cleanup.filter((c) => c.state === s).length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -144,60 +224,93 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
 
       {!hasData && (
         <div className="rounded-xl border border-accent/50 bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-          <p className="flex-1 text-sm text-ink-400"><b className="text-ink-100">No usage data yet.</b> Install the desktop app to see who uses which AI.</p>
-          <Link href="/download" className="btn btn-primary">Get the desktop app</Link>
+          <p className="flex-1 text-sm text-ink-400">
+            <b className="text-ink-100">No usage data yet.</b> Install the desktop app to see who uses which AI.
+          </p>
+          <Link href="/download" className="btn btn-primary">
+            Get the desktop app
+          </Link>
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label="People using AI" value={count(people.size)} hint={`${new Set(pairs.map((p) => p.assetId)).size} AI used`} tone="accent" href={individual ? "/usage?view=people" : mode === "department" ? "/usage?view=departments" : "/usage"} />
-        <StatCard label="Paid seats not used" value={String(idleSeats)} hint={idleSeats ? "Nobody used them in 30 days" : "Every paid seat is used"} tone={idleSeats ? "signal" : undefined} href={individual && idleSeats ? "/usage?view=cleanup" : "/usage"} />
-        <StatCard label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} href="/savings?kind=seats" />
-      </div>
+      <UsageSummary
+        d={{
+          people: count(people.size),
+          peopleHref: individual ? "/usage?view=people" : mode === "department" ? "/usage?view=departments" : "/usage",
+          aiInUse,
+          seatsPaid: seatsPaid || null,
+          seatsUsed: seatsPaid ? seatsUsed : null,
+          unusedSeats: idleSeats,
+          seatsHref: individual && idleSeats ? "/usage?view=cleanup" : "/usage#by-ai",
+          unusedEur: canSave,
+        }}
+      />
 
-      {view === "ai" && hasData && (
+      <ViewNav items={navItems} active={view} />
+
+      {view === "ai" && (
         <>
-          <TrendPanel
-            title="Visits each day"
-            note={weekChange != null ? `${trendWord(weekChange)} vs the week before` : `Last ${SEAT_WINDOW_DAYS} days`}
-            values={trend.values}
-            labels={trend.labels}
-            unit=" visits"
-          />
-          {biggestSave && toRemove.length === 0 ? (
-            <Insight tone="signal" href={individual ? "/usage?view=cleanup" : `/assets/${biggestSave.a.id}?tab=people`} cta="Clean up">
-              <b className="font-medium">{biggestSave.a.name}</b> has {biggestSave.idle} paid seat{biggestSave.idle === 1 ? "" : "s"} nobody used in 30 days — {fmtEur(biggestSave.save)}/mo back.
+          {hasData && <UsageChart values={trend.values} labels={trend.labels} unit="visits" weekChange={weekChange} />}
+          {toRemove.length > 0 ? (
+            <Insight tone="signal" href="/usage?view=cleanup" cta="Clean up">
+              <b className="font-medium">
+                {toRemove.length} seat{toRemove.length === 1 ? " is" : "s are"} ready to remove
+              </b>
+              {removable >= 1 ? ` — ${fmtEur(Math.round(removable))} a month back.` : "."}
             </Insight>
-          ) : mostUsed && mostUsed.active > 0 ? (
+          ) : biggestSave ? (
+            <Insight tone="signal" href={cleanupHref(biggestSave.a.id)} cta="Clean up">
+              <b className="font-medium">{biggestSave.a.name}</b> has {biggestSave.idle} paid seat{biggestSave.idle === 1 ? "" : "s"} nobody used in 30 days — {fmtEur(Math.round(biggestSave.save))} a month back.
+            </Insight>
+          ) : hasData && mostUsed && mostUsed.active > 0 ? (
             <Insight href={`/assets/${mostUsed.a.id}?tab=people`} cta={`Open ${mostUsed.a.name}`}>
               <b className="font-medium">{mostUsed.a.name}</b> is the most used AI — {count(mostUsed.active)} {mostUsed.active === 1 && individual ? "person" : "people"} in the last 30 days.
             </Insight>
           ) : null}
-        </>
-      )}
 
-      {view !== "ai" && (
-        <Link href="/usage" className="text-sm text-ink-400 hover:text-ink-100 w-fit">← Back to usage by AI</Link>
-      )}
-      {view === "ai" && toRemove.length > 0 && (
-        <Link href="/usage?view=cleanup" className="rounded-xl bg-signal/10 px-4 py-3 text-sm text-ink-100 hover:bg-signal/15 transition-colors">
-          {toRemove.length} seat{toRemove.length === 1 ? " is" : "s are"} ready to remove →
-        </Link>
+          <ByAiList rows={aiRows} />
+
+          {individual && hasData && <RankList id="by-person" title="By person" meta="Most active in the last 30 days" rows={personRows} href="/usage?view=people" cta="Everyone" empty="No usage yet." />}
+          {mode === "department" && hasData && (
+            <RankList
+              id="by-department"
+              title="By department"
+              meta={`Visits and time · groups of at least ${MIN_GROUP} people`}
+              rows={deptRows}
+              href="/usage?view=departments"
+              cta="All departments"
+              empty={`Fewer than ${MIN_GROUP} people used AI — nothing can be shown by department.`}
+            />
+          )}
+        </>
       )}
 
       {view === "cleanup" && !individual && (
         <Notice>
-          Seat clean-up needs per-person data — an admin can enable it in <Link href="/settings?tab=privacy" className="underline">Settings → Employee privacy</Link> (see the <Link href="/compliance/employee-notice" className="underline">employee notice</Link>).
+          Seat clean-up needs per-person data — an admin can enable it in{" "}
+          <Link href="/settings?tab=privacy" className="underline">
+            Settings → Employee privacy
+          </Link>{" "}
+          (see the{" "}
+          <Link href="/compliance/employee-notice" className="underline">
+            employee notice
+          </Link>
+          ).
         </Notice>
       )}
 
       {view === "departments" && (
         <>
-          <Table columns={["Department", { label: "People using AI", className: "text-right" }, { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, "Most used AI"]} empty={departments.length === 0 && "No usage yet."}>
+          <Table
+            columns={["Department", { label: "People using AI", className: "text-right" }, { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, "Most used AI"]}
+            empty={departments.length === 0 && "No usage yet."}
+          >
             {departments.map((d) =>
               d.suppressed ? (
                 <tr key="suppressed">
-                  <td className={`${td} text-ink-400`} colSpan={5}>Fewer than {MIN_GROUP} people used AI — nothing can be shown by department.</td>
+                  <td className={`${td} text-ink-400`} colSpan={5}>
+                    Fewer than {MIN_GROUP} people used AI — nothing can be shown by department.
+                  </td>
                 </tr>
               ) : (
                 <tr key={d.department}>
@@ -216,20 +329,50 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
 
       {view === "cleanup" && individual && (
         <div className="flex flex-col gap-4">
-          {searchParams.asked && <Notice tone="success">Asked {searchParams.asked} {searchParams.asked === "1" ? "person" : "people"} by email. Their answers appear here.</Notice>}
+          {searchParams.asked && (
+            <Notice tone="success">
+              Asked {searchParams.asked} {searchParams.asked === "1" ? "person" : "people"} by email. Their answers appear here.
+            </Notice>
+          )}
           {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
-          <section className="rounded-xl border border-line bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-            <p className="flex-1 text-sm text-ink-400"><b className="text-ink-100">Free unused seats.</b> angar asks inactive people by email if they still need it.</p>
-            {currentSession()?.role !== "VIEWER" && (
-              <form action={askAllInactiveAction}>
-                <button className="btn btn-primary">Ask inactive people now</button>
-              </form>
-            )}
-          </section>
-          <Table
-            columns={["AI", "Person", "Asked", "Answer", { label: "Saves", className: "text-right" }, ""]}
-            empty={cleanup.length === 0 && "Nobody has been asked yet."}
+          <Section
+            id="cleanup"
+            title="Free unused seats"
+            meta="angar asks inactive people by email if they still need it."
+            action={
+              currentSession()?.role !== "VIEWER" && (
+                <form action={askAllInactiveAction}>
+                  <button className="btn btn-primary btn-sm">Ask inactive people now</button>
+                </form>
+              )
+            }
+            footer={
+              toRemove.length > 0 ? (
+                <NextStep label={`Remove ${toRemove.length} seat${toRemove.length === 1 ? "" : "s"} below${removable >= 1 ? ` — ${fmtEur(Math.round(removable))} a month` : ""}`} />
+              ) : cleanup.length ? (
+                <NextStep done label="Nothing to remove right now" />
+              ) : idleSeats > 0 ? (
+                <NextStep label={`${idleSeats} paid seat${idleSeats === 1 ? "" : "s"} unused — ask who still needs them`} />
+              ) : (
+                <NextStep done label="Every paid seat is used" />
+              )
+            }
           >
+            {cleanup.length > 0 && (
+              <div className="px-5 pb-4">
+                <StackBar
+                  label="Seat requests"
+                  parts={[
+                    { key: "rm", label: "Ready to remove", value: toRemove.length, bar: "bg-signal/60", dot: "bg-signal" },
+                    { key: "wait", label: "Waiting", value: stateCount("waiting"), bar: "bg-ink-400/40", dot: "bg-ink-400" },
+                    { key: "keep", label: "Still needed", value: stateCount("keep"), bar: "bg-steady/60", dot: "bg-steady" },
+                    { key: "done", label: "Removed", value: stateCount("removed"), bar: "bg-accent/50", dot: "bg-accent" },
+                  ]}
+                />
+              </div>
+            )}
+          </Section>
+          <Table columns={["AI", "Person", "Asked", "Answer", { label: "Saves", className: "text-right" }, ""]} empty={cleanup.length === 0 && "Nobody has been asked yet."}>
             {cleanup.map((c) => (
               <tr key={c.id}>
                 <td className={td}>
@@ -241,21 +384,17 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                 <td className={`${td} text-ink-100`}>{c.email}</td>
                 <td className={`${td} text-ink-400 tabular`}>{fmtDate(c.sentAt)}</td>
                 <td className={td}>
-                  <span
-                    className={`text-xs font-medium rounded-full px-2 py-0.5 ${
-                      c.state === "keep" ? "text-steady bg-steady/10" : c.state === "release" || c.state === "no_reply" ? "text-signal bg-signal/10" : c.state === "removed" ? "text-ink-400 bg-ink-400/10" : "text-ink-400 bg-ink-400/10"
-                    }`}
-                  >
-                    {c.state === "keep" ? "Still needs it" : c.state === "release" ? "Doesn't need it" : c.state === "no_reply" ? "No answer in 7 days" : c.state === "removed" ? "Removed" : "Waiting"}
-                  </span>
+                  <Pill tone={STATE[c.state].tone}>{STATE[c.state].label}</Pill>
                 </td>
-                <td className={`${td} text-right tabular text-ink-100`}>{c.perSeatEur && c.state !== "keep" ? `${fmtEur(c.perSeatEur)}/mo` : "—"}</td>
+                <td className={`${td} text-right tabular text-ink-100`}>{c.perSeatEur && c.state !== "keep" ? `${fmtEur(c.perSeatEur)} a month` : "—"}</td>
                 <td className={`${td} text-right whitespace-nowrap`}>
                   {(c.state === "release" || c.state === "no_reply") && <SeatRemoveButton assetId={c.assetId} email={c.email} back="cleanup" />}
                   {(c.state === "release" || c.state === "no_reply") && (
                     <form action={markSeatRemovedAction} className="inline-block ml-2">
                       <input type="hidden" name="id" value={c.id} />
-                      <button className="btn btn-secondary btn-sm" title="Remove the seat in the provider's admin page first, then mark it here">Mark removed</button>
+                      <button className="btn btn-secondary btn-sm" title="Remove the seat in the provider's admin page first, then mark it here">
+                        Mark removed
+                      </button>
                     </form>
                   )}
                 </td>
@@ -265,32 +404,13 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         </div>
       )}
 
-      {view === "ai" && (
-        <Table columns={["AI", { label: "Active people", className: "text-right" }, { label: "Paid seats", className: "text-right" }, { label: "Unused seats", className: "text-right" }, { label: "Could save", className: "text-right" }, ""]} empty={byAi.length === 0 && "No usage yet."}>
-          {byAi.map(({ a, active, seats, idle, save }) => (
-            <tr key={a.id} className="hover:bg-ink-100/[0.02] transition-colors">
-              <td className={td}>
-                <Link href={`/assets/${a.id}?tab=people`} className="flex items-center gap-3 group">
-                  <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={30} />
-                  <span className="font-medium text-ink-100 group-hover:underline">{a.name}</span>
-                </Link>
-              </td>
-              <td className={`${td} text-right tabular text-ink-100`}>{count(active)}</td>
-              <td className={`${td} text-right tabular text-ink-400`}>{seats ?? "—"}</td>
-              <td className={`${td} text-right tabular ${idle ? "text-signal font-medium" : "text-ink-400"}`}>{seats ? idle : "—"}</td>
-              <td className={`${td} text-right tabular ${save >= 1 ? "font-medium text-accent" : "text-ink-400"}`}>{save >= 1 ? `${fmtEur(save)}/mo` : "—"}</td>
-              <td className={`${td} text-right whitespace-nowrap`}>
-                {idle > 0 && <Link href={individual ? "/usage?view=cleanup" : `/assets/${a.id}?tab=people`} className="btn btn-secondary btn-sm">Clean up</Link>}
-              </td>
-            </tr>
-          ))}
-        </Table>
-      )}
-
       {view === "people" && (
         <>
           <FilterBar search={{ placeholder: "Search a person or AI" }} filters={aiOptions.length > 1 ? [{ param: "ai", label: "AI", options: aiOptions }] : []} />
-          <Table columns={["Person", "AI", { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, { label: "Active days", className: "text-right" }, "Last used", "Seen by"]} empty={pairs.length === 0 && "No usage yet."}>
+          <Table
+            columns={["Person", "AI", { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, { label: "Active days", className: "text-right" }, "Last used", "Seen by"]}
+            empty={pairs.length === 0 && "No usage yet."}
+          >
             {pairs
               .filter((p) => match(p.email, p.name))
               .sort((x, y) => y.last.getTime() - x.last.getTime())
@@ -308,7 +428,14 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                   </td>
                   <td className={`${td} text-right tabular text-ink-100`}>{p.visits}</td>
                   <td className={`${td} text-right tabular text-ink-400`}>{fmtMinutes(p.minutes)}</td>
-                  <td className={`${td} text-right tabular text-ink-400`}>{p.days.size} / 30</td>
+                  <td className={`${td} text-right tabular text-ink-400`}>
+                    <span className="inline-flex items-center gap-2 justify-end">
+                      <span className="relative h-1.5 w-12 rounded-full bg-ink-100/[0.06] overflow-hidden" aria-hidden>
+                        <span className="absolute inset-y-0 left-0 rounded-full bg-accent/50" style={{ width: `${Math.min(100, (p.days.size / SEAT_WINDOW_DAYS) * 100)}%` }} />
+                      </span>
+                      {p.days.size} / 30
+                    </span>
+                  </td>
                   <td className={`${td} text-ink-400 tabular`}>{fmtDate(p.last)}</td>
                   <td className={`${td} text-xs text-ink-400`}>{[...p.sources].join(", ")}</td>
                 </tr>
@@ -336,15 +463,6 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
               ))}
           </Table>
         </>
-      )}
-
-      {view === "ai" && (individual || mode === "department") && (
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-400">
-          {individual && <Link href="/usage?view=people" className="hover:text-ink-100 hover:underline">Usage by person</Link>}
-          {individual && <Link href="/usage?view=log" className="hover:text-ink-100 hover:underline">Connection log</Link>}
-          {individual && <Link href="/usage?view=cleanup" className="hover:text-ink-100 hover:underline">Seat clean-up</Link>}
-          {mode === "department" && <Link href="/usage?view=departments" className="hover:text-ink-100 hover:underline">By department</Link>}
-        </div>
       )}
     </div>
   );

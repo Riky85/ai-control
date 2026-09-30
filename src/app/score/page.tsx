@@ -66,7 +66,7 @@ export default async function ScorePage() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {AXES.map((a) => (
-                <AxisGauge key={a} label={AXIS_LABEL[a]} value={result.axes[a]} size={76} />
+                <AxisGauge key={a} label={AXIS_LABEL[a]} value={result.axes[a]} size={76} href={`#axis-${a}`} />
               ))}
             </div>
             <Trend points={points} />
@@ -106,7 +106,7 @@ export default async function ScorePage() {
 
 function AxisCard({ axis, value, drivers }: { axis: Axis; value: number; drivers: Driver[] }) {
   return (
-    <section className="rounded-xl border border-line bg-panel p-5 animate-rise flex flex-col gap-4">
+    <section id={`axis-${axis}`} className="scroll-mt-6 rounded-xl border border-line bg-panel p-5 animate-rise flex flex-col gap-4 target:border-ink-400">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-base font-semibold text-ink-100">{AXIS_LABEL[axis]}</h3>
@@ -114,7 +114,10 @@ function AxisCard({ axis, value, drivers }: { axis: Axis; value: number; drivers
             {AXIS_HINT[axis]} · {Math.round(AXIS_WEIGHT[axis] * 100)}% of the score
           </p>
         </div>
-        <AxisGauge label="" value={value} size={56} />
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="font-display text-[28px] leading-none font-semibold tabular text-ink-100">{value}</div>
+          <AxisGauge label="" value={value} />
+        </div>
       </div>
       {drivers.length === 0 ? (
         <div className="text-sm text-steady">Nothing to fix.</div>
