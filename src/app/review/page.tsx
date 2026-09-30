@@ -1,4 +1,5 @@
-import { PageHeader, Notice } from "@/components/ui";
+import { PageHeader, Notice, StatCard } from "@/components/ui";
+import { Insight } from "@/components/insight";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
@@ -42,6 +43,15 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
       b.firstSeenAt.getTime() - a.firstSeenAt.getTime()
   );
 
+  // Riepilogo della coda: rischio, novità della settimana, da dove arrivano.
+  const risky = queue.filter((a) => ["HIGH", "CRITICAL"].includes(a.riskAssessments[0]?.level ?? ""));
+  const candidates = queue.filter((a) => a.externalId?.startsWith("net:cand")).length;
+  const newThisWeek = queue.filter((a) => a.firstSeenAt.getTime() >= Date.now() - 7 * 86400000).length;
+  const bySource = new Map<string, number>();
+  for (const a of queue) bySource.set(seenIn(a.connector?.provider), (bySource.get(seenIn(a.connector?.provider)) ?? 0) + 1);
+  const topSource = [...bySource.entries()].sort((a, b) => b[1] - a[1])[0];
+  const decided = reviewedCount + queue.length ? Math.round((reviewedCount / (reviewedCount + queue.length)) * 100) : 100;
+
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -61,6 +71,31 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
       {searchParams.found && <Notice>Scan done — {searchParams.found} AI service{searchParams.found === "1" ? "" : "s"} found.</Notice>}
       {!canDecide && queue.length > 0 && <Notice>Viewers can&apos;t decide — ask an editor.</Notice>}
+
+      {queue.length > 0 && (
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="To decide" value={String(queue.length)} hint={candidates ? `${candidates} only possibly AI` : "Found by angar"} tone="accent" />
+            <StatCard label="High risk" value={String(risky.length)} hint={risky.length ? "Decide these first" : "None in the queue"} tone={risky.length ? "alarm" : undefined} />
+            <StatCard label="New this week" value={String(newThisWeek)} hint="First seen in the last 7 days" />
+            <StatCard label="Already decided" value={`${decided}%`} hint={`${reviewedCount} AI allowed or not`} href="/#your-ai" />
+          </div>
+          {risky.length > 0 ? (
+            <Insight tone="alarm" href={`/assets/${risky[0].id}`} cta={`Open ${risky[0].name}`}>
+              Start with <b className="font-medium">{risky[0].name}</b>
+              {risky.length > 1 ? ` and ${risky.length - 1} more at high risk` : " — it's at high risk"}; they&apos;re at the top of the list.
+            </Insight>
+          ) : candidates > 0 ? (
+            <Insight tone="signal">
+              {candidates} {candidates === 1 ? "service is" : "services are"} only possibly AI — mark {candidates === 1 ? "it" : "them"} &ldquo;Not AI&rdquo; if you know {candidates === 1 ? "it isn't" : "they aren't"}.
+            </Insight>
+          ) : topSource && queue.length > 1 ? (
+            <Insight href="/download" cta="How angar finds AI">
+              {topSource[1]} of {queue.length} came from {topSource[0] === "Added manually" ? "manual entries" : topSource[0]} — none of them is high risk.
+            </Insight>
+          ) : null}
+        </>
+      )}
 
       {queue.length === 0 ? (
         <div className="rounded-xl border border-line bg-panel p-10 text-center">

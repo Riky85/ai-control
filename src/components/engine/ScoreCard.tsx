@@ -13,20 +13,35 @@ export interface ScoreCardData {
   delta?: number | null;
 }
 
-/** Barretta di un asse: etichetta, valore e barra sottile. */
-export function AxisBar({ label, value }: { label: string; value: number }) {
+/** Colore di un valore 0..100: verde buono, giallo da migliorare, rosso debole. */
+export function levelColor(value: number) {
+  return value >= 70 ? "rgb(var(--c-steady))" : value >= 45 ? "rgb(var(--c-signal))" : "rgb(var(--c-alarm))";
+}
+
+/** Anello di un asse: valore al centro, etichetta sotto. */
+export function AxisGauge({ label, value, size = 64 }: { label: string; value: number; size?: number }) {
+  const stroke = Math.max(4, Math.round(size / 11));
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const v = Math.max(0, Math.min(100, value));
   return (
-    <div className="min-w-0">
-      <div className="flex items-baseline justify-between gap-2 text-xs">
-        <span className="text-ink-400 truncate">{label}</span>
-        <span className="tabular font-medium text-ink-100">{value}</span>
+    <div className="flex flex-col items-center gap-1.5 min-w-0">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden>
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-ink-100/[0.08]" />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round" stroke={levelColor(v)} strokeDasharray={c} strokeDashoffset={c * (1 - Math.max(0.02, v / 100))} />
+        </svg>
+        <span className="absolute inset-0 flex items-center justify-center font-display font-semibold tabular text-ink-100" style={{ fontSize: Math.round(size * 0.3) }}>
+          {v}
+        </span>
       </div>
-      <div className="mt-1.5 h-1 rounded-full bg-ink-100/[0.08] overflow-hidden">
-        <div className="h-full rounded-full bg-accent" style={{ width: `${Math.max(2, Math.min(100, value))}%` }} />
-      </div>
+      {label && <span className="text-xs text-ink-400 truncate max-w-full">{label}</span>}
     </div>
   );
 }
+
+/** Compatibilità: il vecchio nome ora disegna l'anello. */
+export const AxisBar = AxisGauge;
 
 /**
  * Card dell'angar Score per la home: anello, i 4 assi, il primo modo per
@@ -54,9 +69,9 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-3 flex-1 min-w-0">
+        <div className="grid grid-cols-4 gap-3 flex-1 min-w-0 md:max-w-md md:ml-auto">
           {AXES.map((a) => (
-            <AxisBar key={a} label={AXIS_LABEL[a]} value={axes[a]} />
+            <AxisGauge key={a} label={AXIS_LABEL[a]} value={axes[a]} size={60} />
           ))}
         </div>
       </div>

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 import { displayableRef } from "@/lib/discovery/pseudonym";
+import { TrendPanel, dailySeries } from "@/components/insight";
 
 export const dynamic = "force-dynamic";
 
@@ -35,9 +36,18 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
   const risk = activity.aiAsset.riskAssessments[0];
   // Il payload grezzo può contenere email, username o nomi di dispositivi.
   const people = showsPeople(await orgPrivacyMode(currentOrgId()));
+  // Contesto: gli altri eventi della stessa AI (30 giorni), senza attori.
+  const siblings = await db.aiAssetActivity.findMany({
+    where: { aiAssetId: activity.aiAssetId, occurredAt: { gte: new Date(Date.now() - 30 * 86400000) } },
+    select: { id: true, eventType: true, occurredAt: true },
+    orderBy: { occurredAt: "desc" },
+    take: 5000,
+  });
+  const trend = dailySeries(siblings, 30, (e) => e.occurredAt);
+  const others = siblings.filter((e) => e.id !== activity.id).slice(0, 5);
 
   return (
-    <div className="flex flex-col gap-6 max-w-2xl">
+    <div className="flex flex-col gap-4 max-w-2xl">
       <PageHeader
         crumbs={[{ label: "Activity", href: "/activity" }]}
         title={activity.eventType}
@@ -67,6 +77,24 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
           <Row label="Asset risk level">{risk ? <Badge>{risk.level}</Badge> : <span className="text-ink-400">Not assessed</span>}</Row>
         </dl>
       </div>
+
+      {siblings.length > 1 && (
+        <TrendPanel title={`${activity.aiAsset.name}: ${siblings.length} events in 30 days`} note="Each day" values={trend.values} labels={trend.labels} unit=" events" />
+      )}
+
+      {others.length > 0 && (
+        <div className="rounded-xl border border-line bg-panel divide-y divide-line">
+          {others.map((e) => (
+            <Link key={e.id} href={`/activity/${e.id}`} className="flex items-center justify-between gap-4 px-5 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
+              <span className="text-ink-100 truncate">{e.eventType}</span>
+              <span className="tabular text-xs text-ink-400 shrink-0">{fmtDateTime(e.occurredAt)}</span>
+            </Link>
+          ))}
+          <Link href={`/activity?q=${encodeURIComponent(activity.aiAsset.name)}`} className="block px-5 py-2.5 text-xs text-ink-400 hover:text-ink-100">
+            All events for {activity.aiAsset.name} →
+          </Link>
+        </div>
+      )}
 
       {activity.payload != null && people && (
         <div className="rounded-xl border border-line bg-panel p-5">

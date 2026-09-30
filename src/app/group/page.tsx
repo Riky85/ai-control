@@ -6,6 +6,7 @@ import { switchWorkspaceAction } from "@/lib/workspace-actions";
 import { currentMonth, monthLabel, recentMonths } from "@/lib/chargeback";
 import { Notice, PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
+import { Insight } from "@/components/insight";
 
 export const dynamic = "force-dynamic";
 
@@ -45,11 +46,17 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
     (a, r) => ({ spend: a.spend + r.monthlySpend, save: a.save + r.canSave, saved: a.saved + r.savedMonthly, ai: a.ai + r.aiCount, budget: a.budget + r.budget, budgetSpend: a.budgetSpend + r.budgetSpend }),
     { spend: 0, save: 0, saved: 0, ai: 0, budget: 0, budgetSpend: 0 }
   );
+  // Una frase per il gruppo: budget sforati prima, poi dove si concentra il risparmio.
+  const over = rows.filter((r) => r.teamsOver > 0);
+  const bestSave = [...rows].sort((a, b) => b.canSave - a.canSave)[0];
+  const bestShare = bestSave && t.save ? Math.round((bestSave.canSave / t.save) * 100) : 0;
+  const biggest = [...rows].sort((a, b) => b.monthlySpend - a.monthlySpend)[0];
+  const biggestShare = biggest && t.spend ? Math.round((biggest.monthlySpend / t.spend) * 100) : 0;
   const addable = orgs.filter((o) => o.groupId !== group.id && !o.groupId);
   const months = recentMonths(12);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={group.name}
         subtitle={`Group view · ${rows.length} compan${rows.length === 1 ? "y" : "ies"} you administer`}
@@ -68,12 +75,26 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
       {groups.length > 1 && <Tabs items={groups.map((g) => ({ key: g.id, label: g.name, href: `/group?id=${g.id}` }))} active={group.id} />}
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Group AI spend" value={t.spend ? `${fmtEur(t.spend)}/mo` : "—"} hint={t.spend ? `${fmtEur(t.spend * 12)} a year` : "No costs yet"} tone="accent" />
         <StatCard label="Saved" value={t.saved ? `${fmtEur(t.saved)}/mo` : "—"} hint={t.saved ? `${fmtEur(t.saved * 12)} a year` : "Nothing done yet"} />
         <StatCard label="Could still save" value={t.save ? `${fmtEur(t.save)}/mo` : "—"} hint={t.save ? `${fmtEur(t.save * 12)} a year` : "Nothing found"} />
         <StatCard label="AI in use" value={String(t.ai)} hint={t.budget ? `Budgets: ${fmtEur(t.budgetSpend)} of ${fmtEur(t.budget)}/mo` : "No team budgets set"} />
       </div>
+
+      {over.length > 0 ? (
+        <Insight tone="alarm" href={over.some((r) => r.id === s.orgId) ? "/budgets" : undefined} cta="Open budgets">
+          {over.reduce((n, r) => n + r.teamsOver, 0)} team budget{over.reduce((n, r) => n + r.teamsOver, 0) === 1 ? " is" : "s are"} over this month, in {over.map((r) => r.name).join(", ")}.
+        </Insight>
+      ) : bestSave && t.save >= 1 && rows.length > 1 ? (
+        <Insight href={bestSave.id === s.orgId ? "/savings" : undefined} cta="Open savings">
+          <b className="font-medium">{bestSave.name}</b> holds {bestShare}% of the group&apos;s possible savings ({fmtEur(bestSave.canSave)}/mo) — start there.
+        </Insight>
+      ) : biggest && t.spend > 0 && rows.length > 1 ? (
+        <Insight>
+          <b className="font-medium">{biggest.name}</b> is {biggestShare}% of the group&apos;s AI spend.
+        </Insight>
+      ) : null}
 
       <Table
         columns={[

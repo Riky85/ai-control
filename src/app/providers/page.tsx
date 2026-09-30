@@ -6,13 +6,16 @@ import ExportMenu from "@/components/ExportMenu";
 import { VendorBadge } from "@/components/VendorIcon";
 import { computeSavingsCached, monthlyOf } from "@/lib/savings";
 import { savingsByAsset } from "@/components/AiTable";
+import PriceIndexCard, { loadPriceIndexCard } from "@/components/engine/PriceIndexCard";
+import { EmptyState, Insight } from "@/components/insight";
 
 export const dynamic = "force-dynamic";
 
 // Da chi dipendi e quanto paghi a ciascuno: quota di spesa, AI coinvolte,
 // risparmi possibili e rischio di concentrazione.
 export default async function ProvidersPage() {
-  const { items, assets } = await computeSavingsCached(currentOrgId());
+  const orgId = currentOrgId();
+  const [{ items, assets }, priceIndex] = await Promise.all([computeSavingsCached(orgId), loadPriceIndexCard(orgId)]);
   const save = savingsByAsset(items);
 
   const byVendor = new Map<string, typeof assets>();
@@ -34,12 +37,22 @@ export default async function ProvidersPage() {
   const top = rows[0];
   const topShare = total && top ? Math.round((top.spend / total) * 100) : 0;
   const totalSave = rows.reduce((t, r) => t + r.couldSave, 0);
+  // Dall'indice prezzi: le AI per cui paghi un posto più del mercato (o del listino).
+  const above = priceIndex.rows.filter((r) => r.verdict === "above");
+
+  if (assets.length === 0)
+    return (
+      <div className="flex flex-col gap-4">
+        <PageHeader title="Providers" subtitle="Who your company depends on for AI, and how much you pay each one." />
+        <EmptyState title="No providers yet" text="Drop a bank statement or invoices — angar finds every AI provider you pay." href="/sources" cta="Add costs" />
+      </div>
+    );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Providers" subtitle="Who your company depends on for AI, and how much you pay each one." action={<ExportMenu dataset="providers" />} />
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard href="/#your-ai" label="Providers" value={String(rows.length)} hint={`${assets.length} AI in total`} tone="accent" />
         <StatCard href="/?paid=yes#your-ai" label="Monthly spend" value={total ? fmtEur(total) : "—"} hint={total ? `${fmtEur(total * 12)} a year` : "Add a bank statement"} />
         <StatCard
@@ -52,6 +65,12 @@ export default async function ProvidersPage() {
         <StatCard href="/savings" label="Could save" value={totalSave >= 1 ? `${fmtEur(totalSave)}/mo` : "—"} hint={totalSave >= 1 ? `${fmtEur(totalSave * 12)} a year` : "Nothing found"} />
       </div>
 
+      {above.length > 0 && (
+        <Insight tone="signal" href={`/assets/${above[0].assetIds[0]}`} cta={`Open ${above[0].name}`}>
+          You pay more than the {priceIndex.networkCompanies ? "market" : "list price"} for {above.slice(0, 2).map((r) => r.name).join(" and ")}
+          {above.length > 2 ? ` and ${above.length - 2} more` : ""} — worth asking for a better price.
+        </Insight>
+      )}
       {total > 0 && (
         <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4 animate-rise">
           <div className="flex items-baseline justify-between">
@@ -128,6 +147,8 @@ export default async function ProvidersPage() {
           );
         })}
       </Table>
+
+      {priceIndex.rows.length > 0 && <PriceIndexCard {...priceIndex} />}
     </div>
   );
 }

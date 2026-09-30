@@ -12,6 +12,7 @@ import { currentSession } from "@/lib/auth";
 import { askAllInactiveAction, markSeatRemovedAction } from "@/lib/seat-actions";
 import PrivacyNotice from "@/components/PrivacyNotice";
 import SeatRemoveButton from "@/components/SeatRemoveButton";
+import { Insight, TrendPanel, dailySeries, pctChange, trendWord } from "@/components/insight";
 import { groupByDepartment, maskCount, orgPrivacyMode, showsPeople, MIN_GROUP } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
@@ -100,6 +101,13 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const match = (email: string, ai: string) => (!q || email.includes(q) || nameOf(email).toLowerCase().includes(q) || ai.toLowerCase().includes(q)) && (!searchParams.ai || searchParams.ai === ai);
   const aiOptions = [...new Set(pairs.map((p) => p.name))].sort().map((n) => ({ value: n, label: n, count: pairs.filter((p) => p.name === n).length }));
   const hasData = events.length > 0;
+  // Andamento: visite al giorno (solo totali, nessun nome) e confronto con la settimana prima.
+  const trend = dailySeries(events, SEAT_WINDOW_DAYS, (e) => e.occurredAt, visitsOf);
+  const lastWeek = trend.values.slice(-7).reduce((t, v) => t + v, 0);
+  const weekBefore = trend.values.slice(-14, -7).reduce((t, v) => t + v, 0);
+  const weekChange = pctChange(lastWeek, weekBefore);
+  const mostUsed = [...byAi].sort((x, y) => y.active - x.active)[0];
+  const biggestSave = byAi[0] && byAi[0].save >= 1 ? byAi[0] : null;
   const count = (n: number) => (individual ? String(n) : maskCount(n));
 
   // Per reparto (k-anonimato: gruppi di almeno MIN_GROUP persone).
@@ -146,6 +154,27 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         <StatCard label="Paid seats not used" value={String(idleSeats)} hint={idleSeats ? "Nobody used them in 30 days" : "Every paid seat is used"} tone={idleSeats ? "signal" : undefined} href={individual && idleSeats ? "/usage?view=cleanup" : "/usage"} />
         <StatCard label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} href="/savings?kind=seats" />
       </div>
+
+      {view === "ai" && hasData && (
+        <>
+          <TrendPanel
+            title="Visits each day"
+            note={weekChange != null ? `${trendWord(weekChange)} vs the week before` : `Last ${SEAT_WINDOW_DAYS} days`}
+            values={trend.values}
+            labels={trend.labels}
+            unit=" visits"
+          />
+          {biggestSave && toRemove.length === 0 ? (
+            <Insight tone="signal" href={individual ? "/usage?view=cleanup" : `/assets/${biggestSave.a.id}?tab=people`} cta="Clean up">
+              <b className="font-medium">{biggestSave.a.name}</b> has {biggestSave.idle} paid seat{biggestSave.idle === 1 ? "" : "s"} nobody used in 30 days — {fmtEur(biggestSave.save)}/mo back.
+            </Insight>
+          ) : mostUsed && mostUsed.active > 0 ? (
+            <Insight href={`/assets/${mostUsed.a.id}?tab=people`} cta={`Open ${mostUsed.a.name}`}>
+              <b className="font-medium">{mostUsed.a.name}</b> is the most used AI — {count(mostUsed.active)} {mostUsed.active === 1 && individual ? "person" : "people"} in the last 30 days.
+            </Insight>
+          ) : null}
+        </>
+      )}
 
       {view !== "ai" && (
         <Link href="/usage" className="text-sm text-ink-400 hover:text-ink-100 w-fit">← Back to usage by AI</Link>
@@ -311,7 +340,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
 
       {view === "ai" && (individual || mode === "department") && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-400">
-          {individual && <Link href="/usage?view=people" className="hover:text-ink-100 hover:underline">Usage per person</Link>}
+          {individual && <Link href="/usage?view=people" className="hover:text-ink-100 hover:underline">Usage by person</Link>}
           {individual && <Link href="/usage?view=log" className="hover:text-ink-100 hover:underline">Connection log</Link>}
           {individual && <Link href="/usage?view=cleanup" className="hover:text-ink-100 hover:underline">Seat clean-up</Link>}
           {mode === "department" && <Link href="/usage?view=departments" className="hover:text-ink-100 hover:underline">By department</Link>}

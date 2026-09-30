@@ -1,5 +1,6 @@
 import { PageHeader, StatCard } from "@/components/ui";
-import { fmtDateTime } from "@/lib/format";
+import { fmtAgo, fmtDateTime } from "@/lib/format";
+import { Insight } from "@/components/insight";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
@@ -47,8 +48,15 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
     include: { aiAsset: true },
   });
 
+  // Uso nei 30 giorni: AI attive, AI non usate da un mese, AI non consentite in uso.
+  const since = Date.now() - 30 * 86400000;
+  const lastSeen = person.usages.reduce<Date | null>((m, u) => (u.lastSeenAt && (!m || u.lastSeenAt > m) ? u.lastSeenAt : m), null);
+  const active = person.usages.filter((u) => u.lastSeenAt && u.lastSeenAt.getTime() >= since);
+  const notAllowed = person.usages.filter((u) => u.aiAsset.status === "UNAPPROVED" && !u.aiAsset.deletedAt);
+  const dormant = person.usages.filter((u) => u.lastSeenAt && u.lastSeenAt.getTime() < since && !u.aiAsset.deletedAt);
+
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <PageHeader
         crumbs={[{ label: "People", href: "/people" }]}
         title={person.name ?? person.email}
@@ -73,11 +81,23 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label="AI assets owned" value={String(person.ownedAssets.length)} />
-        <StatCard label="High risk owned" value={String(highRiskOwned)} tone={highRiskOwned > 0 ? "alarm" : undefined} />
-        <StatCard label="Status" value={highRiskOwned > 0 ? "Attention" : "Good"} tone={highRiskOwned > 0 ? "alarm" : undefined} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="AI used" value={String(person.usages.length)} hint={`${active.length} in the last 30 days`} tone="accent" />
+        <StatCard label="Last active" value={lastSeen ? fmtAgo(lastSeen) : "—"} hint={lastSeen ? fmtDateTime(lastSeen) : "No usage seen yet"} />
+        <StatCard label="AI assets owned" value={String(person.ownedAssets.length)} hint={person.ownedAssets.length ? "Accountable for them" : "Owns none"} />
+        <StatCard label="High risk owned" value={String(highRiskOwned)} hint={highRiskOwned > 0 ? "Status: attention" : "Status: good"} tone={highRiskOwned > 0 ? "alarm" : undefined} />
       </div>
+      {notAllowed.length > 0 ? (
+        <Insight tone="alarm" href={`/assets/${notAllowed[0].aiAssetId}`} cta={`Open ${notAllowed[0].aiAsset.name}`}>
+          Uses <b className="font-medium">{notAllowed[0].aiAsset.name}</b>
+          {notAllowed.length > 1 ? ` and ${notAllowed.length - 1} more AI` : ""}, which {notAllowed.length > 1 ? "aren't" : "isn't"} allowed — point them to an approved alternative.
+        </Insight>
+      ) : dormant.length > 0 ? (
+        <Insight tone="signal" href="/usage?view=cleanup" cta="Seat clean-up">
+          Hasn&apos;t used <b className="font-medium">{dormant[0].aiAsset.name}</b>
+          {dormant.length > 1 ? ` and ${dormant.length - 1} more AI` : ""} in 30 days — the seat could be freed.
+        </Insight>
+      ) : null}
 
       <div>
         <h2 className="text-base font-semibold text-ink-100 mb-3">Assets owned</h2>
@@ -103,11 +123,16 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
           {person.usages.map((u) => (
             <Link key={u.id} href={`/assets/${u.aiAssetId}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="font-medium text-ink-100">{u.aiAsset.name}</span>
-              {u.aiAsset.riskAssessments[0] && <Badge>{u.aiAsset.riskAssessments[0].level}</Badge>}
+              <div className="flex items-center gap-3 text-xs">
+                <span className="text-ink-400 tabular">{u.lastSeenAt ? `Last used ${fmtAgo(u.lastSeenAt)}` : "Not seen yet"}</span>
+                {u.aiAsset.riskAssessments[0] && <Badge>{u.aiAsset.riskAssessments[0].level}</Badge>}
+              </div>
             </Link>
           ))}
           {person.usages.length === 0 && (
-            <div className="px-4 py-4 text-sm text-ink-400">No usage on record.</div>
+            <div className="px-4 py-4 text-sm text-ink-400">
+              No usage on record — <Link href="/download" className="underline hover:text-ink-100">install the desktop app</Link> to see which AI they use.
+            </div>
           )}
         </div>
       </div>

@@ -4,7 +4,7 @@ import { Wordmark } from "@/components/Logo";
 import { currentSession } from "@/lib/auth";
 import { networkStats } from "@/lib/engine/price-index";
 import ScoreRing from "@/components/engine/ScoreRing";
-import { AxisBar } from "@/components/engine/ScoreCard";
+import { AxisGauge } from "@/components/engine/ScoreCard";
 import ForecastCard, { type ForecastCardProps } from "@/components/engine/ForecastCard";
 import PriceIndexCard, { type PriceRow } from "@/components/engine/PriceIndexCard";
 import { fmtEur } from "@/lib/format";
@@ -93,11 +93,11 @@ export default async function EnginePage() {
           </div>
           <div className="relative flex flex-col items-center gap-4">
             <ScoreRing score={72} grade="B" size={220} />
-            <div className="w-full max-w-xs flex flex-col gap-2">
-              <AxisBar label="Efficiency" value={58} />
-              <AxisBar label="Governance" value={81} />
-              <AxisBar label="Risk" value={77} />
-              <AxisBar label="Adoption" value={74} />
+            <div className="grid grid-cols-4 gap-3">
+              <AxisGauge label="Efficiency" value={58} />
+              <AxisGauge label="Governance" value={81} />
+              <AxisGauge label="Risk" value={77} />
+              <AxisGauge label="Adoption" value={74} />
             </div>
             <span className="text-[11px] text-ink-400">Example company</span>
           </div>

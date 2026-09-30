@@ -5,7 +5,7 @@ import ScoreRing from "@/components/engine/ScoreRing";
 import ForecastCard, { loadForecastCard } from "@/components/engine/ForecastCard";
 import AnomalyList, { loadAnomalyList } from "@/components/engine/AnomalyList";
 import PriceIndexCard, { loadPriceIndexCard } from "@/components/engine/PriceIndexCard";
-import { formatPts } from "@/components/engine/ScoreCard";
+import { formatPts, AxisGauge } from "@/components/engine/ScoreCard";
 import { computeScoreCached, recordScoreSnapshot, scoreHistory, romeDay, type ScorePoint, type Driver } from "@/lib/engine/score";
 import { AXES, AXIS_LABEL, AXIS_WEIGHT, type Axis } from "@/lib/engine/score-meta";
 
@@ -42,7 +42,7 @@ export default async function ScorePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="angar Score" crumbs={[{ label: "Overview", href: "/" }, { label: "angar Score" }]} />
+      <PageHeader title="angar Score" subtitle="How well your company runs AI — cost, control, risk and use." />
 
       {/* Hero: anello, voto, verdetto, andamento */}
       <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise">
@@ -64,15 +64,9 @@ export default async function ScorePage() {
               <h2 className="font-display text-[26px] leading-tight font-semibold tracking-tight text-ink-100 mt-2">{result.verdict}</h2>
               <p className="text-sm text-ink-400 mt-1">Computed only from your data. Every point has a reason below.</p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-3 max-w-lg">
               {AXES.map((a) => (
-                <div key={a} className="min-w-0">
-                  <div className="text-xs text-ink-400">{AXIS_LABEL[a]}</div>
-                  <div className="font-display text-[22px] leading-tight font-semibold tabular text-ink-100">{result.axes[a]}</div>
-                  <div className="mt-1 h-1 rounded-full bg-ink-100/[0.08] overflow-hidden">
-                    <div className="h-full rounded-full bg-accent" style={{ width: `${Math.max(2, result.axes[a])}%` }} />
-                  </div>
-                </div>
+                <AxisGauge key={a} label={AXIS_LABEL[a]} value={result.axes[a]} size={76} />
               ))}
             </div>
             <Trend points={points} />
@@ -120,10 +114,7 @@ function AxisCard({ axis, value, drivers }: { axis: Axis; value: number; drivers
             {AXIS_HINT[axis]} · {Math.round(AXIS_WEIGHT[axis] * 100)}% of the score
           </p>
         </div>
-        <div className="font-display text-[30px] leading-none font-semibold tabular text-ink-100">{value}</div>
-      </div>
-      <div className="h-1.5 rounded-full bg-ink-100/[0.08] overflow-hidden">
-        <div className="h-full rounded-full bg-accent" style={{ width: `${Math.max(2, value)}%` }} />
+        <AxisGauge label="" value={value} size={56} />
       </div>
       {drivers.length === 0 ? (
         <div className="text-sm text-steady">Nothing to fix.</div>

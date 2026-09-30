@@ -15,6 +15,8 @@ function Icon({ name }: { name: string }) {
   const common = { width: 18, height: 18, viewBox: "0 0 18 18", fill: "none" as const };
   const stroke = { stroke: "currentColor", strokeWidth: 1.4, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   switch (name) {
+    case "score":
+      return <svg {...common}><path {...stroke} d="M3.2 13.2a6.5 6.5 0 1 1 11.6 0" /><path {...stroke} d="M9 9.5l2.6-2.6" /><circle cx="9" cy="9.5" r="1" fill="currentColor" /></svg>;
     case "home":
       return <svg {...common}><rect {...stroke} x="2.5" y="2.5" width="13" height="13" rx="1.5" /><path {...stroke} d="M2.5 7h13" /><path {...stroke} d="M7 7v8.5" /></svg>;
     case "assets":

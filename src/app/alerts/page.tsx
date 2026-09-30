@@ -1,12 +1,24 @@
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, StatCard } from "@/components/ui";
+import { Insight } from "@/components/insight";
+import AnomalyList, { loadAnomalyList } from "@/components/engine/AnomalyList";
 import { fmtAgo } from "@/lib/format";
 import { markAllAlertsReadAction, openAlertAction } from "@/lib/alert-actions";
 
 export const dynamic = "force-dynamic";
 
 const KIND: Record<string, string> = { renewal: "Renewal", budget: "Budget", policy: "Policy", seats: "Seats", new_ai: "New AI", anomaly: "Anomaly", autopilot: "Autopilot", info: "Info" };
+// Dove si risolve ogni tipo di avviso.
+const KIND_HREF: Record<string, { href: string; cta: string; noun: string }> = {
+  renewal: { href: "/savings?view=contracts", cta: "See contracts", noun: "renewals" },
+  budget: { href: "/budgets", cta: "Open budgets", noun: "budget alerts" },
+  policy: { href: "/governance", cta: "Open governance", noun: "policy alerts" },
+  seats: { href: "/usage?view=cleanup", cta: "Clean up seats", noun: "seat alerts" },
+  new_ai: { href: "/review", cta: "Review new AI", noun: "new AI" },
+  anomaly: { href: "/savings", cta: "Open savings", noun: "anomalies" },
+};
+const DAY = 86400000;
 const SEV: Record<string, string> = { critical: "bg-alarm", warning: "bg-signal", info: "bg-ink-400/60" };
 
 // Centro avvisi: tutto ciò che angar ha notato e richiede una decisione.
@@ -14,9 +26,17 @@ export default async function AlertsPage() {
   const orgId = currentOrgId();
   const alerts = await db.alert.findMany({ where: { organizationId: orgId }, orderBy: { createdAt: "desc" }, take: 200 });
   const unread = alerts.filter((a) => !a.readAt).length;
+  const anomalies = alerts.length ? (await loadAnomalyList(orgId)).anomalies : [];
+  const critical = alerts.filter((a) => a.severity === "critical" && !a.readAt).length;
+  const thisWeek = alerts.filter((a) => a.createdAt.getTime() >= Date.now() - 7 * DAY).length;
+  const lastWeek = alerts.filter((a) => a.createdAt.getTime() < Date.now() - 7 * DAY && a.createdAt.getTime() >= Date.now() - 14 * DAY).length;
+  // Il tipo di avviso non letto più frequente: è lì che conviene agire.
+  const kinds = new Map<string, number>();
+  for (const a of alerts) if (!a.readAt) kinds.set(a.kind, (kinds.get(a.kind) ?? 0) + 1);
+  const topKind = [...kinds.entries()].filter(([k]) => KIND_HREF[k]).sort((a, b) => b[1] - a[1])[0];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Alerts"
         subtitle="Renewals coming up, budgets running out, AI that isn't allowed, seats to free — checked every day."
@@ -28,6 +48,22 @@ export default async function AlertsPage() {
           ) : undefined
         }
       />
+      {alerts.length > 0 && (
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="Unread" value={String(unread)} hint={unread ? `of ${alerts.length} alerts` : "You're up to date"} tone={unread ? "accent" : undefined} />
+            <StatCard label="Critical, unread" value={String(critical)} hint={critical ? "Decide these first" : "Nothing critical"} tone={critical ? "alarm" : undefined} />
+            <StatCard label="This week" value={String(thisWeek)} hint={lastWeek ? `${lastWeek} the week before` : "New in the last 7 days"} />
+            <StatCard label="Anomalies now" value={String(anomalies.length)} hint={anomalies.length ? "Spend or usage out of the ordinary" : "Nothing unusual"} tone={anomalies.some((x) => x.severity === "critical") ? "alarm" : anomalies.length ? "signal" : undefined} />
+          </div>
+          {topKind && topKind[1] >= 2 && (
+            <Insight tone="signal" href={KIND_HREF[topKind[0]].href} cta={KIND_HREF[topKind[0]].cta}>
+              {topKind[1]} of your {unread} unread alerts are {KIND_HREF[topKind[0]].noun} — deal with them in one go.
+            </Insight>
+          )}
+          {anomalies.length > 0 && <AnomalyList anomalies={anomalies} limit={5} />}
+        </>
+      )}
       {alerts.length === 0 ? (
         <div className="rounded-xl border border-dashed border-line p-10 text-center">
           <h2 className="text-base font-semibold text-ink-100">Nothing needs your attention</h2>

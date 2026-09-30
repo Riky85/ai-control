@@ -1,7 +1,8 @@
-import { fmtDateTime, fmtEur } from "@/lib/format";
+import { fmtAgo, fmtDateTime, fmtEur } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requirePlatformAdmin } from "@/lib/auth";
-import { PageHeader, Panel, Table, td } from "@/components/ui";
+import { PageHeader, Panel, StatCard, Table, td } from "@/components/ui";
+import { Insight } from "@/components/insight";
 import Badge from "@/components/Badge";
 import { emailEnabled } from "@/lib/mail";
 import { stripeEnabled } from "@/lib/stripe";
@@ -49,9 +50,30 @@ export default async function SystemPage() {
     ["Scheduler (alerts, costs, reports)", jobs.length > 0, jobs[0] ? `Last run: ${jobs[0].name} ${jobs[0].key} at ${fmtDateTime(jobs[0].ranAt)}` : "Waiting for the first daily run (after 7:00 Rome time)"],
   ];
 
+  const okCount = checks.filter(([, ok]) => ok).length;
+  // I controlli davvero critici (database, sessioni, cifratura, backup) prima di quelli opzionali.
+  const critical = checks.slice(0, 4).find(([, ok]) => !ok);
+  const leads7 = leads.filter((l) => l.createdAt.getTime() >= Date.now() - 7 * 86400_000).length;
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title="System" subtitle="Health of the whole platform: configuration, backups and recorded errors. Platform administrator only." />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Checks passing" value={`${okCount}/${checks.length}`} hint={okCount === checks.length ? "Everything set up" : `${checks.length - okCount} need setup`} tone={critical ? "alarm" : okCount < checks.length ? "signal" : "accent"} />
+        <StatCard label="Errors, 24 h" value={String(errors24h)} hint={errors[0] ? `Last ${fmtAgo(errors[0].createdAt)}` : "None recorded"} tone={errors24h >= 10 ? "alarm" : errors24h ? "signal" : undefined} />
+        <StatCard label="Last good backup" value={lastOkBackup ? fmtAgo(lastOkBackup.startedAt) : "—"} hint={lastOkBackup ? `${lastOkBackup.rows.toLocaleString()} rows` : "No successful backup yet"} tone={backupFresh ? undefined : "alarm"} />
+        <StatCard label="Leads, 7 days" value={String(leads7)} hint={`${leads.length} in the latest list`} />
+      </div>
+      {critical ? (
+        <Insight tone="alarm">
+          <b className="font-medium">{critical[0]}</b>: {critical[2]}.
+        </Insight>
+      ) : errors24h >= 10 && errors[0] ? (
+        <Insight tone="signal">
+          {errors24h} errors in 24 h — latest on {errors[0].path ?? "an unknown page"}: {errors[0].message.slice(0, 120)}
+        </Insight>
+      ) : null}
 
       <Panel title="Status">
         <div className="divide-y divide-line -mx-5 border-t border-line">

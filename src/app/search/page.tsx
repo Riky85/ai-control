@@ -38,12 +38,35 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
     .slice(0, 8);
 
   const empty = ai.length === 0 && persons.length === 0 && pages.length === 0;
+  // Senza ricerca: le pagine più usate, per partire da qualcosa.
+  const QUICK = ["/savings", "/usage", "/review", "/providers", "/report", "/compliance"];
+  const quick = q ? [] : QUICK.map((h) => NAV_PAGES.find((p) => p.href === h)).filter((p): p is (typeof NAV_PAGES)[number] => !!p);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Search" subtitle={q ? `Results for "${q}"` : "Press Ctrl-K anywhere for instant search."} />
 
-      {q && empty && <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400">No matches for "{q}".</div>}
+      <form action="/search" method="get" className="flex items-center gap-2">
+        <input name="q" defaultValue={q} placeholder="Search AI, people, pages…" aria-label="Search" className="field flex-1 max-w-xl" />
+        <button className="btn btn-secondary">Search</button>
+      </form>
+
+      {q && empty && (
+        <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400">
+          No matches for &ldquo;{q}&rdquo; — try a provider name, or browse <Link href="/#your-ai" className="underline hover:text-ink-100">all your AI</Link>.
+        </div>
+      )}
+
+      {quick.length > 0 && (
+        <Group title="Jump to">
+          {quick.map((p) => (
+            <Link key={p.href} href={p.href} className="flex items-center justify-between px-4 py-3 text-sm text-ink-100 hover:bg-ink-100/[0.02] transition-colors">
+              {p.label.replace(/^Overview → /, "")}
+              <span className="text-ink-400">→</span>
+            </Link>
+          ))}
+        </Group>
+      )}
 
       {ai.length > 0 && (
         <Group title="AI systems">
