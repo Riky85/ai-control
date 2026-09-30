@@ -135,8 +135,9 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
 
           <AiTable
             id="your-ai"
+            band
             title="Your AI"
-            action={<Link href="/connect" className="btn btn-ghost btn-sm">+ Add sources</Link>}
+            action={<Link href="/connect" className="btn btn-secondary btn-sm">+ Add sources</Link>}
             toolbar={<FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />}
             assets={shown}
             savings={savings}

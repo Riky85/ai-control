@@ -35,6 +35,7 @@ export default function AiTable({
   action?: React.ReactNode;
   toolbar?: React.ReactNode;
   id?: string;
+  band?: boolean;
 }) {
   const save = savingsByAsset(savings);
   const now = Date.now();

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Tabs } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import { AxisTrack } from "@/components/engine/ScoreCard";
 import { fmtEur } from "@/lib/format";
@@ -37,11 +38,11 @@ export interface UsageSummaryData {
 
 /** Una sola riga di numeri: persone attive, AI in uso, posti usati/pagati, posti non usati in €. */
 export function UsageSummary({ d }: { d: UsageSummaryData }) {
-  const cell = "bg-panel px-5 py-4 flex flex-col gap-1 min-w-0";
+  const cell = "rounded-xl border border-line bg-panel px-5 py-4 flex flex-col gap-1 min-w-0";
   const link = `${cell} hover:bg-ink-100/[0.02] transition-colors`;
   const big = "font-display text-[26px] leading-tight font-semibold tracking-tight tabular";
   return (
-    <section className="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-2xl border border-line bg-line animate-rise" aria-label="Usage summary">
+    <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-rise" aria-label="Usage summary">
       <Link href={d.peopleHref} className={link}>
         <span className="text-xs text-ink-400">Active people · 30 days</span>
         <span className={`${big} text-ink-100`}>{d.people}</span>
@@ -211,19 +212,6 @@ export function RankList({ id, title, meta, rows, href, cta, empty }: { id: stri
 
 /** Viste della pagina (?view=): schede leggere, sottolineate quando attive. */
 export function ViewNav({ items, active }: { items: { key: string; label: string; href: string; count?: number }[]; active: string }) {
-  return (
-    <nav className="flex gap-5 border-b border-line overflow-x-auto" aria-label="Usage views">
-      {items.map((t) => (
-        <Link
-          key={t.key}
-          href={t.href}
-          aria-current={active === t.key ? "page" : undefined}
-          className={`shrink-0 -mb-px border-b-2 pb-2 text-sm transition-colors ${active === t.key ? "border-accent text-ink-100 font-medium" : "border-transparent text-ink-400 hover:text-ink-100"}`}
-        >
-          {t.label}
-          {t.count ? <span className="ml-1.5 text-ink-400 tabular font-normal">{t.count}</span> : null}
-        </Link>
-      ))}
-    </nav>
-  );
+  // Stesse schede della pagina Savings.
+  return <Tabs items={items} active={active} />;
 }

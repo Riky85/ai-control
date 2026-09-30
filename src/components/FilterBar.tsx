@@ -57,7 +57,7 @@ export default function FilterBar({
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {search && (
-        <label className="flex items-center gap-2 h-9 w-72 border border-line rounded-lg bg-panel px-3 focus-within:border-ink-400 transition-colors">
+        <label className="flex items-center gap-2 h-9 w-full sm:w-72 border border-line rounded-lg bg-panel px-3 focus-within:border-ink-400 transition-colors">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-ink-400 shrink-0" aria-hidden>
             <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.3" />
             <path d="M9.2 9.2L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />

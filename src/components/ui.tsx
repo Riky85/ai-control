@@ -166,6 +166,7 @@ export function Table({
   action,
   toolbar,
   id,
+  band = false,
 }: {
   columns: (string | { label: string; className?: string })[];
   children: React.ReactNode;
@@ -176,12 +177,24 @@ export function Table({
   action?: React.ReactNode;
   toolbar?: React.ReactNode;
   id?: string;
+  /** Titolo, ricerca, filtri e azione in un'unica fascia grigia, fusa con la riga delle colonne. */
+  band?: boolean;
 }) {
   const top = title || toolbar;
   return (
     <div id={id} className="rounded-xl border border-line bg-panel animate-rise scroll-mt-6">
-      {title && <BlockHead title={title} note={note} action={action} />}
-      {toolbar && <div className={`px-5 py-3 border-b border-line ${title ? "" : "rounded-t-xl"}`}>{toolbar}</div>}
+      {band ? (
+        <div className="bg-ink rounded-t-xl px-5 pt-3 pb-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+          {title && <h2 className="text-sm font-semibold text-ink-100 shrink-0">{title}</h2>}
+          {action && <div className="shrink-0 flex items-center gap-2 ml-auto sm:order-last">{action}</div>}
+          {toolbar && <div className="w-full sm:w-auto sm:flex-1 min-w-0">{toolbar}</div>}
+        </div>
+      ) : (
+        <>
+          {title && <BlockHead title={title} note={note} action={action} />}
+          {toolbar && <div className={`px-5 py-3 border-b border-line ${title ? "" : "rounded-t-xl"}`}>{toolbar}</div>}
+        </>
+      )}
       <div className={`overflow-x-auto ${top ? "" : "rounded-t-xl"} ${footer ? "" : "rounded-b-xl"}`}>
       <table className="w-full text-sm">
         <thead>
@@ -222,7 +235,7 @@ export const td = "px-5 py-3";
  */
 export function Tabs({ items, active }: { items: { key: string; label: string; href: string; count?: number }[]; active: string }) {
   return (
-    <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit max-w-full overflow-x-auto">
+    <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {items.map((t) => (
         <Link
           key={t.key}
