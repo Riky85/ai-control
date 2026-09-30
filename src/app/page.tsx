@@ -133,16 +133,14 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/download"} />
           </div>
 
-          <AiTable
-            id="your-ai"
-            band
-            title="Your AI"
-            action={<Link href="/connect" className="btn btn-secondary btn-sm">+ Add sources</Link>}
-            toolbar={<FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />}
-            assets={shown}
-            savings={savings}
-            empty="Nothing matches these filters."
-          />
+          <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">
+            <div className="flex items-end justify-between">
+              <h2 className="text-base font-semibold text-ink-100">Your AI</h2>
+              <Link href="/connect" className="btn btn-ghost btn-sm">+ Add sources</Link>
+            </div>
+            <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />
+            <AiTable assets={shown} savings={savings} empty="Nothing matches these filters." />
+          </div>
         </>
       )}
     </div>

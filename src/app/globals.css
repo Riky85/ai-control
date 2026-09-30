@@ -126,3 +126,8 @@ body {
 :where(*):has(> .bar-head) > .bar-foot { background-color: transparent; }
 :where(*):has(.bar-thead, thead .bar-head) > .bar-head { background-color: transparent; }
 :where(*):has(.bar-thead, thead .bar-head) > .bar-foot { background-color: transparent; }
+
+/* Niente fasce grigie su blocchi e tabelle (scelta del proprietario): le barre restano, senza sfondo. */
+.bar-head,
+.bar-foot,
+.bar-thead { background-color: transparent !important; }
