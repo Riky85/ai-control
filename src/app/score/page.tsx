@@ -3,9 +3,8 @@ import { currentOrgId } from "@/lib/org";
 import { PageHeader } from "@/components/ui";
 import ScoreRing from "@/components/engine/ScoreRing";
 import ForecastCard, { loadForecastCard } from "@/components/engine/ForecastCard";
-import AnomalyList, { loadAnomalyList } from "@/components/engine/AnomalyList";
 import PriceIndexCard, { loadPriceIndexCard } from "@/components/engine/PriceIndexCard";
-import { formatPts, AxisGauge } from "@/components/engine/ScoreCard";
+import { formatPts, AxisGauge, AxisTrack } from "@/components/engine/ScoreCard";
 import { computeScoreCached, recordScoreSnapshot, scoreHistory, romeDay, type ScorePoint, type Driver } from "@/lib/engine/score";
 import { AXES, AXIS_LABEL, AXIS_WEIGHT, type Axis } from "@/lib/engine/score-meta";
 
@@ -27,7 +26,7 @@ const CONFIDENCE_TEXT = {
 // angar Score: voto del parco AI, i 4 assi con i punti persi o recuperati e come sistemarli.
 export default async function ScorePage() {
   const orgId = currentOrgId();
-  const [forecast, anomalies, priceIndex] = await Promise.all([loadForecastCard(orgId), loadAnomalyList(orgId), loadPriceIndexCard(orgId)]);
+  const [forecast, priceIndex] = await Promise.all([loadForecastCard(orgId), loadPriceIndexCard(orgId)]);
   const [result, history] = await Promise.all([computeScoreCached(orgId), scoreHistory(orgId, 90)]);
 
   // Fotografia di oggi se manca (il lavoro giornaliero la aggiorna comunque).
@@ -46,7 +45,7 @@ export default async function ScorePage() {
 
       {/* Hero: anello, voto, verdetto, andamento */}
       <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise">
-        <div aria-hidden className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
         <div className="relative grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 p-6 lg:p-8 items-center">
           <div className="flex justify-center">
             <ScoreRing score={result.score} grade={result.grade} size={210} />
@@ -75,17 +74,14 @@ export default async function ScorePage() {
       </section>
 
       {/* I 4 assi con i loro driver */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {AXES.map((a) => (
           <AxisCard key={a} axis={a} value={result.axes[a]} drivers={result.drivers.filter((d) => d.axis === a)} />
         ))}
       </div>
 
       {/* angar Engine: previsione, anomalie e prezzi di mercato */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4">
-        <ForecastCard {...forecast} />
-        <AnomalyList {...anomalies} />
-      </div>
+      <ForecastCard {...forecast} />
       <PriceIndexCard {...priceIndex} />
 
       {/* Confidenza: quanto sa angar */}
@@ -106,35 +102,27 @@ export default async function ScorePage() {
 
 function AxisCard({ axis, value, drivers }: { axis: Axis; value: number; drivers: Driver[] }) {
   return (
-    <section id={`axis-${axis}`} className="scroll-mt-6 rounded-xl border border-line bg-panel p-5 animate-rise flex flex-col gap-4 target:border-ink-400">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-base font-semibold text-ink-100">{AXIS_LABEL[axis]}</h3>
-          <p className="text-xs text-ink-400 mt-0.5">
-            {AXIS_HINT[axis]} · {Math.round(AXIS_WEIGHT[axis] * 100)}% of the score
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-1.5">
-          <div className="font-display text-[28px] leading-none font-semibold tabular text-ink-100">{value}</div>
-          <AxisGauge label="" value={value} />
-        </div>
+    <section id={`axis-${axis}`} className="scroll-mt-6 rounded-xl border border-line bg-panel p-4 animate-rise flex flex-col gap-3 min-w-0 target:border-ink-400">
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="text-sm font-semibold text-ink-100">{AXIS_LABEL[axis]}</h3>
+        <span className="font-display text-[26px] leading-none font-semibold tabular text-ink-100">{value}</span>
       </div>
+      <AxisTrack value={value} />
+      <p className="text-xs text-ink-400 -mt-1">
+        {AXIS_HINT[axis]} · {Math.round(AXIS_WEIGHT[axis] * 100)}% of the score
+      </p>
       {drivers.length === 0 ? (
         <div className="text-sm text-steady">Nothing to fix.</div>
       ) : (
         <ul className="flex flex-col divide-y divide-line -my-1">
           {drivers.map((d) => (
             <li key={d.label}>
-              <Link href={d.href} className="flex items-center gap-3 py-2 text-sm group">
-                <span className={`w-10 shrink-0 tabular font-medium ${d.impact > 0 ? "text-steady" : d.missingData ? "text-ink-400" : "text-alarm"}`}>
+              <Link href={d.href} className="flex items-start gap-2 py-2 text-sm group" title={`${d.impact > 0 ? "+" : "−"}${formatPts(Math.abs(d.scoreImpact))} on the angar Score`}>
+                <span className={`w-8 shrink-0 tabular font-medium ${d.impact > 0 ? "text-steady" : d.missingData ? "text-ink-400" : "text-alarm"}`}>
                   {d.impact > 0 ? "+" : "−"}
                   {Math.abs(d.impact)}
                 </span>
-                <span className="flex-1 min-w-0 truncate text-ink-100 group-hover:underline">{d.label}</span>
-                <span className="text-xs text-ink-400 tabular shrink-0" title="Points on the angar Score">
-                  {d.impact > 0 ? "+" : "−"}
-                  {formatPts(Math.abs(d.scoreImpact))} total
-                </span>
+                <span className="flex-1 min-w-0 text-ink-100 leading-snug group-hover:underline">{d.label}</span>
               </Link>
             </li>
           ))}

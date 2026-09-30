@@ -13,9 +13,10 @@ import FilterBar from "@/components/FilterBar";
 import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
+import { cookies } from "next/headers";
 import SetupWizard from "@/components/SetupWizard";
+import { WIZARD_COOKIE } from "@/lib/wizard";
 import ScoreCard, { type ScoreCardData } from "@/components/engine/ScoreCard";
-import ForecastCard, { loadForecastCard } from "@/components/engine/ForecastCard";
 import { computeScoreCached, scoreHistory, topImprovement } from "@/lib/engine/score";
 
 export const dynamic = "force-dynamic";
@@ -51,8 +52,6 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   ];
 
   // angar Score: solo se c'è almeno un'AI (altrimenti non c'è niente da valutare).
-  // Previsione dei prossimi 12 mesi (solo se ci sono costi: altrimenti non si mostra).
-  const forecast = await loadForecastCard(orgId).catch(() => null);
   let scoreCard: ScoreCardData | null = null;
   if (all.length > 0) {
     const [score, history] = await Promise.all([computeScoreCached(orgId), scoreHistory(orgId, 30)]);
@@ -124,7 +123,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         </div>
       ) : (
         <>
-          <SetupWizard steps={wizardSteps} />
+          <SetupWizard steps={wizardSteps} initialHidden={cookies().get(WIZARD_COOKIE)?.value === "1"} />
           {scoreCard && <ScoreCard data={scoreCard} />}
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -133,8 +132,6 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"} →` : "Nothing found yet"} href="/savings" />
             <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/download"} />
           </div>
-
-          {forecast && forecast.next12Eur > 0 && <ForecastCard {...forecast} />}
 
           <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">
             <div className="flex items-end justify-between">

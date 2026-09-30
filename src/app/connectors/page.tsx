@@ -137,77 +137,57 @@ export default async function ConnectorsPage({
         })}
       </Section>
 
-      <section id="GITHUB" className="scroll-mt-6">
+      {/* Codice: una riga sola, il modulo si apre solo quando serve. */}
+      <section id="GITHUB" className="scroll-mt-6 flex flex-col gap-2">
         <h2 className="text-base font-semibold text-ink-100">Code</h2>
-        <p className="text-sm text-ink-400 mb-3">Find the AI your developers have built into your own products.</p>
-        <div className="rounded-xl border border-line bg-panel p-5 grid grid-cols-5 gap-8">
-          <div className="col-span-2 flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <VendorBadge vendor="GitHub" size={40} />
-              <div>
-                <div className="text-sm font-medium text-ink-100">GitHub</div>
-                <div className="mt-1">
-                  <Badge>{githubConnected ? "CONNECTED" : "DISCONNECTED"}</Badge>
-                </div>
+        <div className="rounded-xl border border-line bg-panel">
+          <div className="flex flex-wrap items-center gap-3 px-4 py-3">
+            <VendorBadge vendor="GitHub" size={32} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-ink-100">GitHub</span>
+                {githubConnected && <span className="text-xs text-steady">✓ Connected</span>}
+              </div>
+              <div className="text-xs text-ink-400 truncate">
+                {githubConnected
+                  ? `${githubOrg ?? "Personal repositories"}${github?.lastSyncedAt ? ` · scanned ${fmtDateTime(github.lastSyncedAt)}` : ""}`
+                  : "Finds the AI libraries in your repositories. Read-only."}
               </div>
             </div>
-            <p className="text-sm text-ink-400">
-              angar reads each repository&apos;s dependency files (<code className="text-ink-100">package.json</code>, <code className="text-ink-100">requirements.txt</code>, <code className="text-ink-100">pyproject.toml</code>) and lists every project that uses OpenAI, Anthropic, Google AI, LangChain or LlamaIndex — one AI Passport each.
-            </p>
-            <p className="text-xs text-ink-400">Read-only. Your code is never copied or stored — only which AI libraries each project uses.</p>
-            {githubConnected && (
-              <div className="flex items-center gap-2 mt-auto">
-                <span className="text-xs text-ink-400 flex-1">
-                  {githubOrg ? `Organization: ${githubOrg}` : "Your personal repositories"}
-                  {github?.lastSyncedAt && ` · scanned ${fmtDateTime(github.lastSyncedAt)}`}
-                </span>
+            {githubConnected ? (
+              <div className="flex items-center gap-2">
                 <form action={syncConnectorAction}>
                   <input type="hidden" name="provider" value="GITHUB" />
                   <button className="btn btn-secondary btn-sm">Scan again</button>
                 </form>
                 <form action={disconnectConnectorAction}>
                   <input type="hidden" name="provider" value="GITHUB" />
-                  <button className="btn btn-danger btn-sm">Disconnect</button>
+                  <button className="btn btn-ghost btn-sm">Disconnect</button>
                 </form>
               </div>
-            )}
+            ) : githubReady ? (
+              <a href="/api/connectors/github/install" className="btn btn-secondary btn-sm">Connect</a>
+            ) : null}
           </div>
-
-          <div className="col-span-3 border-l border-line pl-8">
-            {githubConnected ? (
-              <div className="text-sm text-ink-400">
-                Connected. New projects that add an AI library appear in <a href="/" className="text-ink-100 underline">Your AI</a> after each scan.
-                {github?.lastSyncError && <p className="text-alarm mt-2">{github.lastSyncError}</p>}
-              </div>
-            ) : (
-              <form action={connectGithubTokenAction} className="flex flex-col gap-3">
-                <div className="text-sm font-medium text-ink-100">Connect in 2 steps</div>
-                <ol className="text-sm text-ink-400 flex flex-col gap-1.5 list-decimal list-inside">
-                  <li>
-                    On GitHub,{" "}
-                    <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer" className="text-ink-100 underline">
-                      create a fine-grained token
-                    </a>
-                    : choose the organization (or your account) as owner, <b className="text-ink-100">All repositories</b>, and permission <b className="text-ink-100">Contents: Read-only</b>.
-                  </li>
-                  <li>Paste it here. Add the organization name, or leave it empty to scan your personal repositories.</li>
-                </ol>
-                <div className="grid grid-cols-5 gap-2">
-                  <input name="token" type="password" required autoComplete="off" placeholder="github_pat_…" className={`${input} col-span-3`} />
-                  <input name="org" placeholder="Organization (optional)" className={`${input} col-span-2`} />
+          {githubConnected && github?.lastSyncError && <p className="px-4 pb-3 text-xs text-alarm">{github.lastSyncError}</p>}
+          {!githubConnected && (
+            <details className="group border-t border-line" open={searchParams.provider === "GITHUB"}>
+              <summary className="cursor-pointer list-none px-4 py-2.5 text-xs text-ink-400 hover:text-ink-100 select-none">
+                {githubReady ? "Or use a token" : "Connect with a token"} <span className="inline-block transition-transform group-open:rotate-90">›</span>
+              </summary>
+              <form action={connectGithubTokenAction} className="px-4 pb-4 flex flex-col gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_200px_auto] gap-2">
+                  <input name="token" type="password" required autoComplete="off" placeholder="github_pat_…" className={input} />
+                  <input name="org" placeholder="Organization (optional)" className={input} />
+                  <button className="btn btn-primary btn-sm">Connect</button>
                 </div>
-                {searchParams.error && searchParams.provider === "GITHUB" && <p className="text-sm text-alarm">{searchParams.error}</p>}
-                <div className="flex items-center gap-3">
-                  <button className="btn btn-primary">Connect GitHub</button>
-                  {githubReady && (
-                    <a href="/api/connectors/github/install" className="text-sm text-ink-400 hover:text-ink-100 underline">
-                      or sign in with the GitHub App
-                    </a>
-                  )}
-                </div>
+                <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer" className="text-xs text-ink-400 hover:text-ink-100 underline self-start">
+                  Create a token — All repositories, Contents: Read-only
+                </a>
+                {searchParams.error && searchParams.provider === "GITHUB" && <p className="text-xs text-alarm">{searchParams.error}</p>}
               </form>
-            )}
-          </div>
+            </details>
+          )}
         </div>
       </section>
 

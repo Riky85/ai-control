@@ -17,10 +17,15 @@ export interface WizardStep {
 // (costi → uso → team). Ogni passo si spunta da solo dai dati reali.
 // Aperto: come il blocco Download (bagliore arancio, anteprima a destra).
 // Chiuso: una barra sottile con l'avanzamento e il prossimo passo.
-export default function SetupWizard({ steps }: { steps: WizardStep[] }) {
-  // Sempre aperto quando si arriva sulla home; "chiudi" lo riduce solo per questa visita.
-  const [hidden, setHidden] = useState(false);
-  const store = (v: boolean) => setHidden(v);
+import { WIZARD_COOKIE } from "@/lib/wizard";
+
+export default function SetupWizard({ steps, initialHidden = false }: { steps: WizardStep[]; initialHidden?: boolean }) {
+  // Aperto la prima volta; se lo chiudi resta chiuso (cookie), anche ricaricando la pagina.
+  const [hidden, setHidden] = useState(initialHidden);
+  const store = (v: boolean) => {
+    setHidden(v);
+    document.cookie = `${WIZARD_COOKIE}=${v ? "1" : "0"}; path=/; max-age=31536000; samesite=lax`;
+  };
 
   const doneCount = steps.filter((s) => s.done).length;
   if (doneCount === steps.length) return null;
