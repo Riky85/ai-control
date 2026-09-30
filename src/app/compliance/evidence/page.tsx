@@ -40,7 +40,7 @@ export default async function EvidencePackPage() {
       </div>
 
       <section className="rounded-xl border border-line bg-panel p-5">
-        <h1 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">AI Act / NIS2 evidence pack — {pack.organisation.name}</h1>
+        <h1 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">AI Act / NIS2 evidence pack — {pack.organisation.name}</h1>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1.5 text-sm">
           <Row label="Organisation" value={pack.organisation.name} />
           <Row label="Country" value={pack.organisation.country ?? "—"} />

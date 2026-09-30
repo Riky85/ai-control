@@ -57,7 +57,7 @@ export default function ForecastCard({ history, projection, next12Eur, growthPct
   return (
     <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="forecast-title">
       {/* Barra grigia in alto: titolo e legenda del grafico. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
         <h2 id="forecast-title" className="font-semibold text-ink-100">Next 12 months</h2>
         {!empty && (
           <div className="flex items-center gap-4 text-[11px] text-ink-400" aria-hidden>
@@ -89,24 +89,14 @@ export default function ForecastCard({ history, projection, next12Eur, growthPct
         </p>
       ) : (
         <figure className="relative px-5 pt-3">
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto text-accent" role="img" aria-label={summary}>
-            <line x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b} className="stroke-line" strokeWidth={1} />
-            {hist.length > 0 && proj.length > 0 && <line x1={x(off - 0.5)} x2={x(off - 0.5)} y1={PAD.t - 6} y2={H - PAD.b} className="stroke-line" strokeDasharray="2 3" />}
+          {/* Il disegno si allarga con il blocco (linee a spessore fisso); scritte e punto sono HTML sopra, così restano nitidi. */}
+          <div className="relative">
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="block w-full h-44 text-accent" role="img" aria-label={summary}>
+            <line x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b} className="stroke-line" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+            {hist.length > 0 && proj.length > 0 && <line x1={x(off - 0.5)} x2={x(off - 0.5)} y1={PAD.t - 6} y2={H - PAD.b} className="stroke-line" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />}
             {band && <path d={band} fill="currentColor" opacity={0.12} />}
-            {projPts.length > 1 && <path d={line(projPts)} fill="none" stroke="currentColor" strokeWidth={2} strokeDasharray="5 4" strokeLinecap="round" strokeLinejoin="round" />}
-            {hist.length > 1 && <path d={histPath} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />}
-            {hist.length > 0 && <circle cx={x(off - 1)} cy={y(hist[off - 1].eur)} r={4} fill="currentColor" className="stroke-panel" strokeWidth={2} />}
-            {proj.length > 0 && (
-              <text x={x(n - 1)} y={Math.max(PAD.t - 2, y(proj[proj.length - 1].high) - 5)} textAnchor="end" className="fill-ink-400 text-[11px] tabular">
-                {compact(proj[proj.length - 1].eur)}
-              </text>
-            )}
-            {/* Etichette: primo mese, "Now", ultimo mese. */}
-            {n > 0 && <text x={x(0)} y={H - 6} className="fill-ink-400 text-[11px]">{short(all[0].month)}</text>}
-            {proj.length > 0 && (
-              <text x={x(off)} y={H - 6} textAnchor={off === 0 ? "start" : "middle"} className="fill-ink-100 text-[11px] font-medium">Now</text>
-            )}
-            {n > 1 && <text x={x(n - 1)} y={H - 6} textAnchor="end" className="fill-ink-400 text-[11px]">{monthLabel(all[n - 1].month)}</text>}
+            {projPts.length > 1 && <path d={line(projPts)} fill="none" stroke="currentColor" strokeWidth={2} strokeDasharray="5 4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />}
+            {hist.length > 1 && <path d={histPath} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />}
             {/* Aree di passaggio: tooltip nativo per ogni mese. */}
             {all.map((m, i) => (
               <rect key={m.month} x={x(i) - step / 2} y={0} width={step} height={H} fill="transparent" className="hover:fill-ink-100/[0.04]">
@@ -114,6 +104,26 @@ export default function ForecastCard({ history, projection, next12Eur, growthPct
               </rect>
             ))}
           </svg>
+          {/* Punto di oggi e valore finale, in HTML sopra il disegno. */}
+          {hist.length > 0 && (
+            <span aria-hidden className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent ring-2 ring-panel" style={{ left: `${(x(off - 1) / W) * 100}%`, top: `${(y(hist[off - 1].eur) / H) * 100}%` }} />
+          )}
+          {proj.length > 0 && (
+            <span aria-hidden className="absolute right-0 -translate-y-full text-[11px] text-ink-400 tabular" style={{ top: `${(Math.max(PAD.t + 10, y(proj[proj.length - 1].high)) / H) * 100}%` }}>
+              {compact(proj[proj.length - 1].eur)}
+            </span>
+          )}
+          </div>
+          {/* Etichette dell'asse: primo mese, "Now", ultimo mese — mai sovrapposte. */}
+          <div aria-hidden className="relative h-5 mt-1 text-[11px]">
+            {n > 0 && off > 0 && (x(off) - x(0)) / W > 0.12 && <span className="absolute left-0 text-ink-400">{short(all[0].month)}</span>}
+            {proj.length > 0 && (
+              <span className={`absolute font-medium text-ink-100 ${off === 0 ? "left-0" : "-translate-x-1/2"}`} style={off === 0 ? undefined : { left: `${(x(off) / W) * 100}%` }}>
+                Now
+              </span>
+            )}
+            {n > 1 && (x(n - 1) - x(off)) / W > 0.14 && <span className="absolute right-0 text-ink-400">{monthLabel(all[n - 1].month)}</span>}
+          </div>
           <figcaption className="sr-only">
             <table>
               <caption>{summary}</caption>
@@ -149,7 +159,7 @@ export default function ForecastCard({ history, projection, next12Eur, growthPct
       )}
 
       {!empty && drivers.length > 0 && (
-        <ul className="relative mt-4 bg-ink border-t border-line rounded-b-2xl px-5 py-3 flex flex-col gap-1.5 text-xs text-ink-400">
+        <ul className="relative mt-4 bg-ink border-t border-line rounded-b-2xl px-5 py-3 flex flex-col gap-1.5 text-xs text-ink-400 bar-foot">
           {drivers.slice(0, 3).map((d) => (
             <li key={d} className="flex items-start gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ink-400" aria-hidden />

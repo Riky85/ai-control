@@ -87,7 +87,7 @@ export default async function AdvisorPage() {
 
       <section className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
         {/* Barra grigia in alto: titolo e ordine dei passi. */}
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line px-5 py-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line px-5 py-3 bar-head">
           <h2 className="text-sm font-semibold text-ink-100">How to get there</h2>
           <p className="text-xs text-ink-400">In order: consolidate first, then fix plans, seats and billing.</p>
         </div>
@@ -101,7 +101,7 @@ export default async function AdvisorPage() {
           </ol>
         )}
         {/* Barra grigia in basso: da dove vengono le stime. */}
-        <p className="bg-ink border-t border-line px-5 py-3 text-xs text-ink-400">Based on usage seen in the last 30 days and today&apos;s list prices ({PRICES_AS_OF}). Estimates — check before changing a plan.</p>
+        <p className="bg-ink border-t border-line px-5 py-3 text-xs text-ink-400 bar-foot">Based on usage seen in the last 30 days and today&apos;s list prices ({PRICES_AS_OF}). Estimates — check before changing a plan.</p>
       </section>
     </div>
   );

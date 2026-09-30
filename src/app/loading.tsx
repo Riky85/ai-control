@@ -18,7 +18,7 @@ export default function Loading() {
       </div>
       <div className={`${block} h-64`} />
       <div className={`${block} overflow-hidden`}>
-        <div className="h-9 bg-ink border-b border-line" />
+        <div className="h-9 bg-ink border-b border-line bar-head" />
         {[0, 1, 2, 3, 4].map((i) => (
           <div key={i} className="flex items-center gap-4 px-5 py-3.5 border-b border-line last:border-0">
             <div className="h-7 w-7 rounded-lg bg-ink-100/[0.07]" />

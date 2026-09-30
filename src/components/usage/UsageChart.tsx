@@ -26,7 +26,7 @@ export default function UsageChart({ values, labels, unit = "visits", weekChange
   return (
     <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="usage-chart-title">
       {/* Barra grigia in alto con il titolo. */}
-      <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+      <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
         <h2 id="usage-chart-title" className="font-semibold text-ink-100">
           Last {n} days
         </h2>

@@ -99,7 +99,7 @@ export default async function ConnectPage() {
             </div>
             <div className="mt-auto flex items-end justify-center px-6 pt-2 h-[176px] overflow-hidden">{c.art}</div>
             {/* Barra grigia in fondo: stato e azione */}
-            <div className="relative flex items-center gap-3 border-t border-line bg-ink px-5 py-3 text-sm">
+            <div className="relative flex items-center gap-3 border-t border-line bg-ink px-5 py-3 text-sm bar-foot">
               <span className="flex-1 min-w-0 truncate text-xs">
                 {c.status ? <span className="text-ink-100"><span className="text-steady">✓</span> {c.status}</span> : <span className="text-ink-400">Not connected</span>}
               </span>

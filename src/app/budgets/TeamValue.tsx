@@ -56,7 +56,7 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
   const idleTotal = teams.reduce((s, t) => s + t.idleEur, 0);
   return (
     <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="team-value-title">
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3 bar-head">
         <div className="min-w-0">
           <h2 id="team-value-title" className="text-sm font-semibold text-ink-100">Value by team</h2>
           <p className="text-xs text-ink-400 mt-0.5">
@@ -104,7 +104,7 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
         </ul>
       )}
 
-      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-xs text-ink-400">
+      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-xs text-ink-400 bar-foot">
         <span>
           Active = used in the last 30 days · teams under {MIN_GROUP} people are grouped, no names
           {unassignedSeatsEur >= 1 ? ` · ${fmtEur(unassignedSeatsEur)} a month on seats with nobody assigned` : ""}

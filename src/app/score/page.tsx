@@ -79,7 +79,7 @@ export default async function ScorePage() {
           </div>
         </div>
         {/* Barra grigia in basso: quanto sa angar e cosa manca. */}
-        <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ink rounded-b-2xl px-5 py-3 text-sm">
+        <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ink rounded-b-2xl px-5 py-3 text-sm bar-foot">
           <span className="flex items-center gap-2 text-ink-100">
             <span className={`h-2 w-2 rounded-full ${result.confidence === "high" ? "bg-steady" : result.confidence === "medium" ? "bg-signal" : "bg-alarm"}`} />
             {CONFIDENCE_TEXT[result.confidence]}
@@ -110,7 +110,7 @@ function AxisCard({ axis, value, drivers }: { axis: Axis; value: number; drivers
   return (
     <section id={`axis-${axis}`} className="scroll-mt-6 rounded-xl border border-line bg-panel animate-rise flex flex-col min-w-0 target:border-ink-400">
       {/* Barra grigia in alto: nome dell'asse e valore. */}
-      <div className="flex items-baseline justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3">
+      <div className="flex items-baseline justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3 bar-head">
         <h3 className="text-sm font-semibold text-ink-100">{AXIS_LABEL[axis]}</h3>
         <span className="font-display text-xl leading-none font-semibold tabular text-ink-100">{value}</span>
       </div>

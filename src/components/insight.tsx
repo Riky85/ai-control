@@ -67,7 +67,7 @@ export function DayBars({ values, labels, height = 44, unit = "" }: { values: nu
 export function TrendPanel({ title, note, values, labels, unit }: { title: string; note?: React.ReactNode; values: number[]; labels?: string[]; unit?: string }) {
   return (
     <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
-      <div className="bg-ink border-b border-line rounded-t-xl px-5 py-3 flex items-baseline justify-between gap-3 text-sm">
+      <div className="bg-ink border-b border-line rounded-t-xl px-5 py-3 flex items-baseline justify-between gap-3 text-sm bar-head">
         <span className="font-semibold text-ink-100">{title}</span>
         {note && <span className="text-xs text-ink-400 truncate">{note}</span>}
       </div>

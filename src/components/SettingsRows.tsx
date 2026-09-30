@@ -23,13 +23,13 @@ export function Section({
   return (
     <section id={id} className="scroll-mt-6 rounded-xl border border-line bg-panel">
       {(title || action) && (
-        <div className="flex items-center justify-between gap-3 min-h-11 px-5 py-2 bg-ink border-b border-line rounded-t-xl">
+        <div className="flex items-center justify-between gap-3 min-h-11 px-5 py-2 bg-ink border-b border-line rounded-t-xl bar-head">
           {title && <h2 className="text-sm font-semibold text-ink-100 min-w-0 truncate">{title}</h2>}
           {action && <div className="flex items-center gap-2 shrink-0 text-xs text-ink-400">{action}</div>}
         </div>
       )}
       <div className="divide-y divide-line">{children}</div>
-      {footer && <div className="flex flex-wrap items-center justify-end gap-3 px-5 py-3 bg-ink border-t border-line rounded-b-xl">{footer}</div>}
+      {footer && <div className="flex flex-wrap items-center justify-end gap-3 px-5 py-3 bg-ink border-t border-line rounded-b-xl bar-foot">{footer}</div>}
     </section>
   );
 }

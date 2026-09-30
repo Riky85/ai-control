@@ -49,7 +49,7 @@ export default function VendorRiskCard({ risk, tier, detailsHref }: { risk: Vend
   );
   return (
     <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="vendor-risk-title">
-      <div className="flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-4 py-2.5">
+      <div className="flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-4 py-2.5 bar-head">
         <div className="min-w-0 flex items-baseline gap-2">
           <h2 id="vendor-risk-title" className="text-sm font-semibold text-ink-100 truncate">
             Vendor terms · {risk.vendor}

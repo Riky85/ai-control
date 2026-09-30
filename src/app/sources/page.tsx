@@ -90,7 +90,7 @@ function Card({ title, text, status, children }: { title: string; text: string; 
   return (
     <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4 animate-rise">
       {/* Barra grigia in alto: titolo e stato. */}
-      <div className="-mx-5 -mt-5 flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+      <div className="-mx-5 -mt-5 flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
         <h2 className="text-sm font-semibold text-ink-100">{title}</h2>
         {status && <span className="text-xs text-steady">✓ {status}</span>}
       </div>

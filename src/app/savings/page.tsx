@@ -150,7 +150,7 @@ async function Suggestions({
             ))}
           </div>
           {/* Barra grigia in basso: nota sulle stime e suggerimenti nascosti. */}
-          <div className="flex items-center justify-between gap-3 bg-ink border-t border-line px-5 py-3 text-xs text-ink-400">
+          <div className="flex items-center justify-between gap-3 bg-ink border-t border-line px-5 py-3 text-xs text-ink-400 bar-foot">
             <span>Estimates, list prices as of {PRICES_AS_OF}.</span>
             {dismissed > 0 && (
               <form action={restoreSavingsAction}>
@@ -163,7 +163,7 @@ async function Suggestions({
 
       {soon.length > 0 && (
         <details className="rounded-xl border border-line bg-panel overflow-hidden group">
-          <summary className="cursor-pointer list-none bg-ink px-5 py-3 text-sm font-semibold text-ink-100 flex items-center justify-between select-none group-open:border-b group-open:border-line">
+          <summary className="cursor-pointer list-none bg-ink px-5 py-3 text-sm font-semibold text-ink-100 flex items-center justify-between select-none group-open:border-b group-open:border-line bar-head">
             Coming renewals · {soon.length}
             <span className="text-ink-400 transition-transform group-open:rotate-90">›</span>
           </summary>
@@ -264,7 +264,7 @@ function Progress({ saved, canSave, org }: { saved: SavedSoFar; canSave: number;
     <>
       {price ? (
         <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
-          <div className="flex items-baseline justify-between gap-4 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+          <div className="flex items-baseline justify-between gap-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
             <h2 className="text-sm font-semibold text-ink-100">90-day guarantee</h2>
             <span className="text-xs text-ink-400">{day <= 90 ? `Day ${day} of 90` : "First 90 days completed"}</span>
           </div>

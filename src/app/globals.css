@@ -119,3 +119,10 @@ body {
 }
 .sb-fade { animation: sb-fade 0.26s cubic-bezier(0.32, 0.72, 0, 1) 0.06s both; }
 @media (prefers-reduced-motion: reduce) { .sb-fade { animation: none; } }
+
+/* Blocchi: fascia grigia sopra O sotto, mai tutte e due.
+   - Se un blocco ha la barra del titolo grigia, il piede resta chiaro.
+   - Nelle tabelle la fascia grigia è la riga delle colonne: titolo e piede restano chiari. */
+:where(*):has(> .bar-head) > .bar-foot { background-color: transparent; }
+:where(*):has(.bar-thead, thead .bar-head) > .bar-head { background-color: transparent; }
+:where(*):has(.bar-thead, thead .bar-head) > .bar-foot { background-color: transparent; }

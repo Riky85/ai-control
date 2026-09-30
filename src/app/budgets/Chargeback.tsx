@@ -117,7 +117,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
       )}
 
       <details className="rounded-xl border border-line bg-panel overflow-hidden group">
-        <summary className="cursor-pointer list-none flex items-center justify-between gap-3 bg-ink px-5 py-3 group-open:border-b group-open:border-line [&::-webkit-details-marker]:hidden">
+        <summary className="cursor-pointer list-none flex items-center justify-between gap-3 bg-ink px-5 py-3 group-open:border-b group-open:border-line [&::-webkit-details-marker]:hidden bar-head">
           <span>
             <span className="text-sm font-semibold text-ink-100">Accounts for DATEV and TeamSystem</span>
             <span className="block text-xs text-ink-400 mt-0.5">

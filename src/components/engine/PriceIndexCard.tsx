@@ -123,7 +123,7 @@ export default function PriceIndexCard({ rows, networkCompanies, minCompanies }:
         </ul>
       )}
 
-      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-xs text-ink-400">
+      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-xs text-ink-400 bar-foot">
         <span>{networkCompanies ? `Based on ${networkCompanies} companies on angar · anonymous` : `Market data unlocks at ${minCompanies} similar companies — showing list prices`}</span>
         {rows.length > MAX_ROWS && <span className="tabular shrink-0">+{rows.length - MAX_ROWS} more</span>}
       </div>

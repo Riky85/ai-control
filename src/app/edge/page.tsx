@@ -90,19 +90,19 @@ export default function EdgePage() {
           },
         ].map((x) => (
           <div key={x.t} className="rounded-xl border border-line bg-panel flex flex-col">
-            <div className="flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3">
+            <div className="flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3 bar-head">
               <span className="text-sm font-semibold text-ink-100">{x.t}</span>
               <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5 whitespace-nowrap">{x.tag}</span>
             </div>
             <p className="flex-1 px-4 py-3 text-sm text-ink-400">{x.d}</p>
-            <p className="bg-ink border-t border-line rounded-b-xl px-4 py-2.5 text-xs text-ink-400">{x.foot}</p>
+            <p className="bg-ink border-t border-line rounded-b-xl px-4 py-2.5 text-xs text-ink-400 bar-foot">{x.foot}</p>
           </div>
         ))}
       </section>
 
       {/* Cosa fa */}
       <section className="rounded-xl border border-line bg-panel p-5">
-        <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">What it does</h2>
+        <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">What it does</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3">
           {[
             ["Discover", "Every AI reached from the network, 24/7 — incl. phones, servers and BYOD."],
@@ -128,7 +128,7 @@ export default function EdgePage() {
       {/* Cosa mai + Edge vs app desktop */}
       <section className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-3">
         <div className="rounded-xl border border-line bg-panel p-4">
-          <h3 className="-mx-4 -mt-4 mb-3 bg-ink border-b border-line rounded-t-xl px-4 py-3 text-sm font-semibold text-ink-100">What it never does</h3>
+          <h3 className="-mx-4 -mt-4 mb-3 bg-ink border-b border-line rounded-t-xl px-4 py-3 text-sm font-semibold text-ink-100 bar-head">What it never does</h3>
           <ul className="flex flex-col gap-1.5 text-sm text-ink-400">
             {[
               "Read content — no URLs, prompts, messages or files",
@@ -146,9 +146,9 @@ export default function EdgePage() {
         </div>
         <div className="rounded-xl border border-line bg-panel overflow-hidden">
           <div className="grid grid-cols-[6rem_1fr_1fr] text-xs">
-            <div className="px-3 py-2.5 bg-ink border-b border-line" />
-            <div className="px-3 py-2.5 bg-ink border-b border-line font-semibold text-ink-100 text-sm">angar Edge</div>
-            <div className="px-3 py-2.5 bg-ink border-b border-line font-semibold text-ink-100 text-sm">Desktop app</div>
+            <div className="px-3 py-2.5 bg-ink border-b border-line bar-head" />
+            <div className="px-3 py-2.5 bg-ink border-b border-line font-semibold text-ink-100 text-sm bar-head">angar Edge</div>
+            <div className="px-3 py-2.5 bg-ink border-b border-line font-semibold text-ink-100 text-sm bar-head">Desktop app</div>
             {[
               ["Install", "One sensor for each network, or cloud logs", "One download on each computer, no admin rights"],
               ["Covers", "Whole network: phones, servers, scripts", "That computer, anywhere it goes"],
@@ -166,7 +166,7 @@ export default function EdgePage() {
       {/* Tutto in azienda: angar intero sul server del cliente o sul dispositivo Edge. */}
       {!isOnPrem() && (
         <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
-          <div className="-mx-5 -mt-5 mb-1 flex items-center gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+          <div className="-mx-5 -mt-5 mb-1 flex items-center gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
             <h2 className="text-sm font-semibold text-ink-100">Keep every piece of data in your company</h2>
             <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Enterprise</span>
           </div>

@@ -67,7 +67,7 @@ export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin
   return (
     <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="autopilot-title">
       {/* Barra grigia in alto: titolo, stato e modalità. */}
-      <header className="relative flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-2.5 text-sm">
+      <header className="relative flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-2.5 text-sm bar-head">
         <div className="flex items-center gap-2.5">
           <span aria-hidden className={`relative inline-flex h-2 w-2 rounded-full ${off ? "bg-ink-400/50" : "bg-steady"}`} />
           <h2 id="autopilot-title" className="font-semibold text-ink-100">Autopilot</h2>
@@ -95,7 +95,7 @@ export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin
             </ul>
           )}
 
-          <footer className="relative flex flex-wrap items-center justify-between gap-2 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-[11px] text-ink-400">
+          <footer className="relative flex flex-wrap items-center justify-between gap-2 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-[11px] text-ink-400 bar-foot">
             <span className="flex items-center gap-3">
               <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-accent" />angar does this</span>
               <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full ring-1 ring-ink-400" />you do this</span>

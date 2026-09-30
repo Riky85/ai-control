@@ -301,7 +301,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         </div>
 
         <aside className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-5">
-          <h2 className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">Manage</h2>
+          <h2 className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">Manage</h2>
 
           <NetworkBlock asset={asset} orgId={orgId} error={tab !== "people" ? searchParams.error : undefined} />
 

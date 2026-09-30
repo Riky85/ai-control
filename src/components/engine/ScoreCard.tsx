@@ -99,7 +99,7 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
         </div>
       </div>
 
-      <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ink rounded-b-2xl px-5 py-3 text-sm">
+      <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ink rounded-b-2xl px-5 py-3 text-sm bar-foot">
         {top ? (
           <Link href={top.href} className="flex-1 min-w-0 flex items-baseline gap-2 group">
             <span className="text-ink-400 shrink-0">Top way to improve</span>

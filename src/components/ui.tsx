@@ -43,8 +43,8 @@ export function StatCard({
  * una barra grigia in alto (titolo) o in basso (azioni, totali, link), come il
  * piè della card angar Score e l'intestazione delle tabelle.
  */
-export const BAR_HEAD = "bg-ink border-b border-line px-5 py-3 text-sm";
-export const BAR_FOOT = "bg-ink border-t border-line px-5 py-3 text-sm";
+export const BAR_HEAD = "bg-ink border-b border-line px-5 py-3 text-sm bar-head";
+export const BAR_FOOT = "bg-ink border-t border-line px-5 py-3 text-sm bar-foot";
 
 /** Barra grigia in alto: titolo a sinistra, nota/legenda e azione a destra. */
 export function BlockHead({
@@ -185,8 +185,8 @@ export function Table({
       <div className={`overflow-x-auto ${top ? "" : "rounded-t-xl"} ${footer ? "" : "rounded-b-xl"}`}>
       <table className="w-full text-sm">
         <thead>
-          {/* Con la barra del titolo grigia subito sopra, le colonne restano senza sfondo (niente doppia fascia grigia). */}
-          <tr className={`text-left text-xs text-ink-400 border-b border-line ${title && !toolbar ? "" : "bg-ink"}`}>
+          {/* La riga delle colonne è la fascia grigia della tabella: titolo e piede restano chiari (globals.css). */}
+          <tr className="bar-thead text-left text-xs text-ink-400 bg-ink border-b border-line">
             {columns.map((c, i) => {
               const col = typeof c === "string" ? { label: c } : c;
               return (

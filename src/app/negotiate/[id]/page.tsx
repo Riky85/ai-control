@@ -46,7 +46,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
       {/* La richiesta */}
       <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise">
         {/* Barra grigia in alto: la richiesta, piano e categoria. */}
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
           <span className="font-semibold text-ink-100">The ask</span>
           {(d.asset.planName || d.asset.categoryLabel) && (
             <span className="text-xs text-ink-400">{[d.asset.planName, d.asset.categoryLabel].filter(Boolean).join(" · ")}</span>

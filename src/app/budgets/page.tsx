@@ -152,7 +152,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
 function AddBudget({ named }: { named: string[] }) {
   return (
     <section className="rounded-xl border border-line bg-panel animate-rise">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
         <h2 className="text-sm font-semibold text-ink-100">Add a team budget</h2>
         <p className="text-xs text-ink-400">Same name as the department in your directory. Empty or 0 removes it.</p>
       </div>

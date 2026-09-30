@@ -21,7 +21,7 @@ export function GovernanceHeader({ governance, readiness, holds }: { governance:
   return (
     <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="gov-readiness-title">
       {/* Barra grigia in alto con il titolo del blocco. */}
-      <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+      <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
         <h2 id="gov-readiness-title" className="font-semibold text-ink-100">Governance readiness</h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] gap-5 p-5">

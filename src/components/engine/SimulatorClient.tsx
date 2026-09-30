@@ -94,7 +94,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start">
         {/* Scenari */}
         <section className="rounded-2xl border border-line bg-panel animate-rise">
-          <div className="flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+          <div className="flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
             <h2 className="font-semibold text-ink-100">Scenarios</h2>
             {active && (
               <button type="button" className="text-xs text-ink-400 hover:text-ink-100 underline" onClick={() => setSc(EMPTY_SCENARIO)}>
@@ -166,7 +166,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
         <div className="flex flex-col gap-4">
           {/* Effetto sugli assi */}
           <section className="rounded-2xl border border-line bg-panel animate-rise">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
               <h2 className="font-semibold text-ink-100">Effect on the score</h2>
               <p className="text-xs text-ink-400">Approximate — same rules as the angar Score</p>
             </div>
@@ -206,7 +206,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
 
           {/* Cosa cambia */}
           <section className="rounded-2xl border border-line bg-panel animate-rise">
-            <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+            <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
               <h2 className="font-semibold text-ink-100">What changes</h2>
             </div>
             {r.changes.length === 0 ? (

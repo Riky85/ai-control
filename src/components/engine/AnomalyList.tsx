@@ -28,7 +28,7 @@ export default function AnomalyList({ anomalies, limit = 5 }: AnomalyListProps &
   const shown = anomalies.slice(0, limit);
   return (
     <section className="overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="anomaly-title">
-      <div className="flex items-baseline justify-between gap-3 bg-ink border-b border-line px-5 py-3 text-sm">
+      <div className="flex items-baseline justify-between gap-3 bg-ink border-b border-line px-5 py-3 text-sm bar-head">
         <h2 id="anomaly-title" className="font-semibold text-ink-100">Anomalies</h2>
         {anomalies.length > 0 && <span className="text-xs text-ink-400 tabular">{anomalies.length} found</span>}
       </div>
@@ -60,7 +60,7 @@ export default function AnomalyList({ anomalies, limit = 5 }: AnomalyListProps &
         </ul>
       )}
       {anomalies.length > limit && (
-        <div className="bg-ink border-t border-line px-5 py-3 text-xs text-ink-400">
+        <div className="bg-ink border-t border-line px-5 py-3 text-xs text-ink-400 bar-foot">
           <Link href="/alerts" className="hover:text-ink-100">+{anomalies.length - limit} more in alerts →</Link>
         </div>
       )}

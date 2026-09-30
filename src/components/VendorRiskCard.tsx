@@ -17,7 +17,7 @@ export default function VendorRiskCard({ asset }: { asset: { vendor: string | nu
   );
   return (
     <div className="rounded-xl border border-line bg-panel p-5 animate-rise">
-      <div className="-mx-5 -mt-5 mb-4 flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+      <div className="-mx-5 -mt-5 mb-4 flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-ink-100">Vendor risk — {r.vendor}</h2>
           <p className="text-xs text-ink-400 mt-0.5">{r.verified ? `Checked against public vendor documents on ${r.lastReviewed}.` : "Unverified — check with the vendor."} Not legal advice.</p>
@@ -62,7 +62,7 @@ export async function VendorRiskFlags({ orgId }: { orgId: string }) {
   const shown = hits.slice(0, 6);
   return (
     <div className="rounded-xl border border-line bg-panel p-5 animate-rise">
-      <h2 className="-mx-5 -mt-5 mb-2 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">Vendor risk to check ({hits.length})</h2>
+      <h2 className="-mx-5 -mt-5 mb-2 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">Vendor risk to check ({hits.length})</h2>
       <ul className="flex flex-col divide-y divide-line">
         {shown.map(({ a, flags }) => (
           <li key={a.id} className="py-2 flex items-start gap-3">
@@ -74,7 +74,7 @@ export async function VendorRiskFlags({ orgId }: { orgId: string }) {
           </li>
         ))}
       </ul>
-      {hits.length > shown.length && <p className="-mx-5 -mb-5 mt-2 bg-ink border-t border-line rounded-b-xl px-5 py-3 text-xs text-ink-400">+{hits.length - shown.length} more — see the Risk tab of each AI.</p>}
+      {hits.length > shown.length && <p className="-mx-5 -mb-5 mt-2 bg-ink border-t border-line rounded-b-xl px-5 py-3 text-xs text-ink-400 bar-foot">+{hits.length - shown.length} more — see the Risk tab of each AI.</p>}
     </div>
   );
 }

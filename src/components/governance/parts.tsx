@@ -47,7 +47,7 @@ export function Section({
       {/* Barra grigia in alto: titolo a sinistra, contesto e azioni a destra (regola della casa). */}
       <BlockHead id={id ? `${id}-title` : undefined} title={title} note={meta} action={action} rounded="rounded-t-2xl" />
       {children && <div className="flex-1">{children}</div>}
-      {footer && <div className="bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-sm">{footer}</div>}
+      {footer && <div className="bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-sm bar-foot">{footer}</div>}
     </section>
   );
 }
