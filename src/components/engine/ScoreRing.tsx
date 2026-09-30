@@ -20,7 +20,6 @@ export default function ScoreRing({ score, grade, size = 200, label = true }: { 
 
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }} role="img" aria-label={`angar Score ${s} out of 100, grade ${grade}`}>
-      <div aria-hidden className="pointer-events-none absolute inset-[22%] rounded-full blur-2xl opacity-25" style={{ background: lv.hex }} />
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="relative">
         <defs>
           <linearGradient id={id} x1="0" y1="1" x2="1" y2="0">
