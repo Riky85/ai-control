@@ -12,7 +12,7 @@
   --c-panel: 255 255 255;
   --c-line: 230 230 235;
   --c-accent-soft: 255 241 232;
-  --c-signal: 176 133 0;
+  --c-signal: 202 150 0;
   --c-steady: 31 146 84;
   --c-alarm: 196 67 59;
   --c-edge: 201 201 214;
@@ -29,7 +29,7 @@ html.dark,
   --c-panel: 32 35 39;
   --c-line: 52 56 61;
   --c-accent-soft: 46 30 20;
-  --c-signal: 217 169 40;
+  --c-signal: 250 204 21;
   --c-steady: 63 182 122;
   --c-alarm: 229 98 90;
   --c-edge: 70 70 76;

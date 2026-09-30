@@ -98,7 +98,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
           <div className="flex items-center gap-4 text-sm text-ink-400">
             <a href="/api/spend/sample" className="underline hover:text-ink-100">Download a sample statement</a>
             <span>·</span>
-            <Link href="/sources" className="underline hover:text-ink-100">Other sources</Link>
+            <Link href="/connect" className="underline hover:text-ink-100">Other sources</Link>
           </div>
         </div>
       ) : (
@@ -115,7 +115,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
           <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">
             <div className="flex items-end justify-between">
               <h2 className="text-base font-semibold text-ink-100">Your AI</h2>
-              <Link href="/sources" className="btn btn-ghost btn-sm">+ Add sources</Link>
+              <Link href="/connect" className="btn btn-ghost btn-sm">+ Add sources</Link>
             </div>
             <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />
             <AiTable assets={shown} savings={savings} empty="Nothing matches these filters." />

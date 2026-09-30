@@ -4,6 +4,11 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { VendorBadge } from "./VendorIcon";
 import type { SearchHit } from "@/app/api/search/route";
+import { MicButton, useVoice } from "./Voice";
+import CommandReply, { type CommandReplyData } from "./CommandReply";
+
+// Frasi che sono domande o istruzioni: "Chiedi ad angar" diventa la prima riga.
+const QUESTION = /(\?\s*$)|^(how|what|who|which|where|when|why|show|open|go|approve|block|allow|ban|list|quanto|quanti|quante|quali|quale|chi|come|dove|perche|mostra|apri|vai|approva|blocca|vieta|consenti|installa|dammi|fammi|portami|ci sono|abbiamo|spendiamo)\b/i;
 
 const GROUP_LABEL: Record<SearchHit["type"], string> = { ai: "AI systems", person: "People", page: "Pages" };
 const GROUP_ORDER: SearchHit["type"][] = ["ai", "person", "page"];
@@ -19,13 +24,45 @@ export default function SearchPalette() {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const seq = useRef(0);
+  const [reply, setReply] = useState<CommandReplyData | null>(null);
+  const [asking, setAsking] = useState(false);
 
   const close = useCallback(() => {
     setOpen(false);
     setQ("");
     setHits([]);
     setActive(0);
+    setReply(null);
   }, []);
+
+  // Domanda o istruzione ad angar (scritta o a voce).
+  const ask = useCallback(
+    async (text: string) => {
+      const t = text.trim();
+      if (!t) return;
+      setAsking(true);
+      setReply(null);
+      try {
+        const r = await fetch("/api/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: t }) });
+        const data = await r.json();
+        if (data.go && data.href) {
+          close();
+          router.push(data.href);
+          return;
+        }
+        setReply({ answer: data.answer || "I didn't get that — try other words.", href: data.href, hrefLabel: data.hrefLabel, confirm: data.confirm, sources: data.sources });
+      } catch {
+        setReply({ answer: "Something went wrong — try again." });
+      } finally {
+        setAsking(false);
+      }
+    },
+    [router, close]
+  );
+  const voice = useVoice((t) => {
+    setQ(t);
+    ask(t);
+  });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -86,6 +123,13 @@ export default function SearchPalette() {
 
   if (!open) return null;
 
+  const query = q.trim();
+  const askFirst = QUESTION.test(query);
+  // Righe navigabili: "Chiedi ad angar" (prima se è una domanda, altrimenti ultima) + risultati.
+  const askIdx = !query ? -1 : askFirst ? 0 : hits.length;
+  const hitAt = (i: number) => hits[askFirst && query ? i - 1 : i];
+  const rows = hits.length + (query ? 1 : 0);
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[12vh]" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={close} />
@@ -98,28 +142,49 @@ export default function SearchPalette() {
           <input
             ref={inputRef}
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setReply(null);
+            }}
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") {
                 e.preventDefault();
-                setActive((i) => Math.min(i + 1, hits.length - 1));
+                setActive((i) => Math.min(i + 1, rows - 1));
               } else if (e.key === "ArrowUp") {
                 e.preventDefault();
                 setActive((i) => Math.max(i - 1, 0));
               } else if (e.key === "Enter") {
                 e.preventDefault();
-                go(hits[active]);
+                if (active === askIdx) ask(query);
+                else go(hitAt(active));
               }
             }}
-            placeholder="Search AI, people, pages…"
+            placeholder={voice.listening ? voice.interim || "Listening…" : "Search, or ask — “how much do we spend on ChatGPT?”"}
             className="flex-1 bg-transparent py-3.5 text-[15px] text-white placeholder:text-[#8A8884] outline-none"
           />
+          <MicButton voice={voice} />
           <kbd className="text-[10px] text-[#A3A19C] border border-white/15 rounded px-1.5 py-0.5 shrink-0">Esc</kbd>
         </div>
 
+        {(reply || asking || voice.error) && (
+          <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
+            {asking ? <p className="text-sm text-[#A3A19C]">Thinking…</p> : reply ? <CommandReply reply={reply} onNavigate={close} /> : <p className="text-sm text-[#A3A19C]">{voice.error}</p>}
+          </div>
+        )}
         <div className="max-h-[52vh] overflow-y-auto py-2">
-          {q.trim() && !loading && hits.length === 0 && <p className="px-4 py-6 text-center text-sm text-[#A3A19C]">No matches for "{q}".</p>}
-          {!q.trim() && <p className="px-4 py-6 text-center text-sm text-[#A3A19C]">Type to search across your AI, people and pages.</p>}
+          {!query && (
+            <div className="px-4 py-5 text-sm text-[#A3A19C] flex flex-col gap-2">
+              <p>Search your AI, people and pages — or ask{voice.supported ? " (or press the mic and speak)" : ""}:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {["How much do we spend on AI?", "Where can we save?", "Unused seats", "What's new this month?", "What needs review?"].map((x) => (
+                  <button key={x} onClick={() => { setQ(x); ask(x); }} className="text-xs rounded-full border border-white/15 px-2.5 py-1 text-[#C8C6C1] hover:text-white hover:bg-white/[0.06]">
+                    {x}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {query && askFirst && <AskRow q={query} active={active === askIdx} onHover={() => setActive(askIdx)} onClick={() => ask(query)} />}
           {GROUP_ORDER.map((type) => {
             const group = hits.filter((h) => h.type === type);
             if (group.length === 0) return null;
@@ -127,7 +192,7 @@ export default function SearchPalette() {
               <div key={type} className="mb-1">
                 <div className="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8A8884]">{GROUP_LABEL[type]}</div>
                 {group.map((h) => {
-                  const idx = hits.indexOf(h);
+                  const idx = hits.indexOf(h) + (askFirst && query ? 1 : 0);
                   return (
                     <button
                       key={h.href + h.label}
@@ -153,9 +218,24 @@ export default function SearchPalette() {
               </div>
             );
           })}
+          {query && !askFirst && <AskRow q={query} active={active === askIdx} onHover={() => setActive(askIdx)} onClick={() => ask(query)} />}
         </div>
       </div>
     </div>
+  );
+}
+
+function AskRow({ q, active, onHover, onClick }: { q: string; active: boolean; onHover: () => void; onClick: () => void }) {
+  return (
+    <button onMouseEnter={onHover} onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${active ? "bg-white/[0.08]" : "hover:bg-white/[0.04]"}`}>
+      <span className="h-[26px] w-[26px] shrink-0 rounded-lg bg-accent/15 text-accent flex items-center justify-center">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z" /></svg>
+      </span>
+      <span className="min-w-0 flex-1 text-sm text-white truncate">
+        Ask angar: <span className="text-[#C8C6C1]">“{q}”</span>
+      </span>
+      {active && <span className="text-[11px] text-[#A3A19C] shrink-0">↵</span>}
+    </button>
   );
 }
 

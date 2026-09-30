@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { MicButton, useVoice } from "./Voice";
+import CommandReply, { type CommandReplyData } from "./CommandReply";
 
 interface Msg {
   role: "user" | "assistant";
   content: string;
-  sources?: { slug: string; title: string }[];
+  reply?: CommandReplyData;
 }
 interface DocLink {
   slug: string;
@@ -16,7 +18,7 @@ interface DocLink {
   summary: string;
 }
 
-const SUGGESTIONS = ["How does angar find my AI costs?", "How do I install the desktop app?", "How are savings calculated?", "What does angar Edge do?"];
+const SUGGESTIONS = ["How much do we spend on AI?", "Where can we save?", "How do I install the desktop app?", "What does angar Edge do?"];
 
 // Pannello di aiuto (assistente + guide): si apre dal pulsante a libro in
 // alto a destra di ogni pagina (evento "angar:toggle-docs"), niente più
@@ -30,6 +32,7 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
+  const voice = useVoice((t) => ask(t));
 
   // Graffe: nei Chrome recenti scrollIntoView restituisce una Promise, e React
   // la tratterebbe come funzione di pulizia (crash "n is not a function").
@@ -56,9 +59,11 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q, history }) });
+      // Prima i dati del workspace e le istruzioni, poi la documentazione (tutto nello stesso endpoint).
+      const res = await fetch("/api/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: q, history }) });
       const json = await res.json();
-      setMessages((m) => [...m, { role: "assistant", content: json.answer, sources: json.sources }]);
+      const answer = String(json.answer || "I didn't get that — try other words, or browse the Docs tab.");
+      setMessages((m) => [...m, { role: "assistant", content: answer, reply: { answer, href: json.href, hrefLabel: json.hrefLabel, confirm: json.confirm, sources: json.sources } }]);
     } catch {
       setMessages((m) => [...m, { role: "assistant", content: "Something went wrong — try again, or browse the Docs tab." }]);
     } finally {
@@ -79,7 +84,7 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-ink-100">angar help</div>
-                <div className="text-xs text-ink-400">Answers from the angar documentation</div>
+                <div className="text-xs text-ink-400">Answers from your data and the documentation</div>
               </div>
               <button onClick={() => setOpen(false)} aria-label="Close" className="h-7 w-7 rounded-lg text-ink-400 hover:text-ink-100 hover:bg-ink-100/[0.04] flex items-center justify-center">
                 ✕
@@ -99,7 +104,8 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
               <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
                 {messages.length === 0 && (
                   <div className="flex flex-col gap-2">
-                    <p className="text-sm text-ink-400">Hi! Ask how to do something in angar.</p>
+                    <p className="text-sm text-ink-400">Ask about your AI, costs and savings, give an instruction (“block DeepSeek”), or ask how to do something.{voice.supported ? " You can also speak." : ""}</p>
+                    {voice.error && <p className="text-xs text-alarm">{voice.error}</p>}
                     {SUGGESTIONS.map((s) => (
                       <button key={s} onClick={() => ask(s)} className="text-left text-sm text-ink-100 border border-line rounded-lg px-3 py-2 hover:bg-ink-100/[0.03] transition-colors">
                         {s}
@@ -109,14 +115,11 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
                 )}
                 {messages.map((m, i) => (
                   <div key={i} className={m.role === "user" ? "self-end max-w-[85%]" : "self-start max-w-[92%]"}>
-                    <div className={`text-sm rounded-2xl px-3.5 py-2 whitespace-pre-line ${m.role === "user" ? "bg-ink-100 text-panel rounded-br-md" : "bg-ink text-ink-100 rounded-bl-md"}`}>{m.content}</div>
-                    {m.sources && m.sources.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-1.5">
-                        {m.sources.map((s) => (
-                          <Link key={s.slug} href={`/docs/${s.slug}`} className="text-xs text-ink-400 border border-line rounded-full px-2 py-0.5 hover:text-ink-100 hover:border-ink-400 transition-colors">
-                            {s.title} →
-                          </Link>
-                        ))}
+                    {m.role === "user" || !m.reply ? (
+                      <div className={`text-sm rounded-2xl px-3.5 py-2 whitespace-pre-line ${m.role === "user" ? "bg-ink-100 text-panel rounded-br-md" : "bg-ink text-ink-100 rounded-bl-md"}`}>{m.content}</div>
+                    ) : (
+                      <div className="rounded-2xl rounded-bl-md bg-ink px-3.5 py-2.5">
+                        <CommandReply reply={m.reply} tone="panel" onNavigate={() => setOpen(false)} />
                       </div>
                     )}
                   </div>
@@ -134,9 +137,10 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask a question…"
+                  placeholder={voice.listening ? voice.interim || "Listening…" : "Ask a question or give an instruction…"}
                   className="flex-1 min-w-0 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 placeholder:text-ink-400 outline-none focus:border-ink-400"
                 />
+                <MicButton voice={voice} className="!h-auto self-stretch w-9 border border-line !text-ink-400 hover:!text-ink-100" />
                 <button disabled={loading || !input.trim()} className="btn btn-primary disabled:opacity-50">Send</button>
               </form>
             </>

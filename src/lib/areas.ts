@@ -30,9 +30,9 @@ export const AREAS: Area[] = [
   {
     key: "connect",
     label: "Connect",
-    href: "/sources",
+    href: "/connect",
     icon: "connectors",
-    tabs: [{ href: "/sources", label: "Connect", match: ["/sources", "/connectors", "/download", "/computers", "/discover", "/edge"] }],
+    tabs: [{ href: "/connect", label: "Connect", match: ["/connect", "/sources", "/connectors", "/download", "/computers", "/discover", "/edge"] }],
     children: [
       { href: "/sources", label: "Sources", match: ["/sources", "/discover"] },
       { href: "/connectors", label: "AI provider keys", match: ["/connectors"] },

@@ -51,6 +51,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
   const header = (
     <>
       <PageHeader
+        crumbs={[{ label: "Connect", href: "/connect" }]}
         title="Desktop app"
         subtitle="See which AI is used at work — never pages or prompts."
       />
