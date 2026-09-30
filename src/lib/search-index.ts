@@ -8,6 +8,7 @@ export interface NavPage {
 
 export const NAV_PAGES: NavPage[] = [
   { href: "/", label: "Overview", keywords: "home dashboard start" },
+  { href: "/score", label: "angar Score", keywords: "score rating health grade maturity" },
   { href: "/savings", label: "Savings", keywords: "save money risparmi cut costs waste unused seats" },
   { href: "/usage", label: "Usage", keywords: "who uses people activity seats active for each person" },
   { href: "/review", label: "Overview → To review", keywords: "approve pending new found shadow ai decide" },

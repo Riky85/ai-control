@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { decryptJson } from "@/lib/crypto";
 import { emitWebhook } from "@/lib/webhooks";
 
-export type AlertKind = "renewal" | "budget" | "policy" | "seats" | "new_ai" | "info";
+export type AlertKind = "renewal" | "budget" | "policy" | "seats" | "new_ai" | "anomaly" | "autopilot" | "info";
 export type AlertSeverity = "info" | "warning" | "critical";
 
 /**

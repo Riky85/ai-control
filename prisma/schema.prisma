@@ -124,6 +124,8 @@ model Organization {
   billingInterval           String?  // "month" | "year" (dall'ultimo checkout)
   // Angar Edge: dispositivi fisici in abbonamento (abbonamento Stripe separato).
   edgeDevices              Int     @default(0)
+  // angar Engine — Autopilot dei risparmi: "off" | "approve" (propone, un clic per eseguire) | "auto" (esegue ciò che è sicuro e reversibile).
+  autopilotMode            String  @default("approve")
   stripeEdgeSubscriptionId String?
 
   members    WorkspaceMember[]
@@ -188,6 +190,8 @@ model Organization {
   // Posti liberati ("non mi serve" o nessuna risposta in 7 giorni): toglierli da soli via API del fornitore.
   autoRemoveSeats Boolean @default(false)
   savingActions   SavingAction[]
+  engineSnapshots EngineSnapshot[]
+  autopilotTasks  AutopilotTask[]
 }
 
 // Avvisi della piattaforma (campanella in alto a destra): rinnovi in arrivo,
@@ -942,4 +946,41 @@ model Webhook {
   lastSentAt      DateTime?
 
   @@index([organizationId])
+}
+
+// angar Engine — fotografia giornaliera dell'angar Score (per l'andamento nel tempo).
+model EngineSnapshot {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  day            String       // AAAA-MM-GG (ora di Roma)
+  score          Int          // 0..100
+  axes           Json         // { efficiency, governance, risk, adoption } 0..100
+  monthlySpendEur Float?
+  wasteMonthlyEur Float?
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, day])
+  @@index([organizationId, createdAt])
+}
+
+// angar Engine — Autopilot: un'azione di risparmio pianificata, approvata ed eseguita da angar.
+model AutopilotTask {
+  id                 String       @id @default(cuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  savingKey          String       // chiave del suggerimento (savings.ts)
+  kind               String       // "seats" | "annual" | "duplicate" | "premium" | "model" | "idle" | "alternative" | "renewal"
+  title              String
+  expectedMonthlyEur Float
+  status             String       @default("proposed") // "proposed" | "approved" | "running" | "done" | "failed" | "dismissed"
+  steps              Json         // [{ label, auto: boolean, done: boolean, at?: string, detail?: string }]
+  result             String?
+  approvedBy         String?
+  approvedAt         DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@unique([organizationId, savingKey])
+  @@index([organizationId, status])
 }

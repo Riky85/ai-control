@@ -141,6 +141,38 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
     return { handled: true, answer: `${one.name}: ${parts.join(" · ")}.`, href: `/assets/${one.id}`, hrefLabel: L(`Open ${one.name}`, `Apri ${one.name}`) };
   }
 
+  // ——— angar Score ———
+  if (/\b(score|punteggio|rating|voto|valutazione|health|salute|maturit\w*)\b/.test(t)) {
+    const { computeScore, topImprovement } = await import("@/lib/engine/score");
+    const r = await computeScore(orgId);
+    const axes = Object.entries(r.axes) as [string, number][];
+    const weakest = axes.sort((a, b) => a[1] - b[1])[0];
+    const fix = topImprovement(r);
+    return {
+      handled: true,
+      answer: L(
+        `Your angar Score is ${r.score} (${r.grade}). Weakest area: ${weakest[0]} ${weakest[1]}.${fix ? ` Best next step: ${fix.label}.` : ""}`,
+        `Il vostro angar Score è ${r.score} (${r.grade}). Area più debole: ${weakest[0]} ${weakest[1]}.${fix ? ` Prossimo passo migliore: ${fix.label}.` : ""}`
+      ),
+      href: "/score",
+      hrefLabel: L("Open angar Score", "Apri angar Score"),
+    };
+  }
+
+  // ——— Previsione ———
+  if (/\b(forecast|previsione|prevision\w*|spenderemo|will we spend|next year|next 12|prossimo anno|prossimi 12|prossimi mesi|future|futuro)\b/.test(t)) {
+    const { forecastSpend } = await import("@/lib/engine/forecast");
+    const f = await forecastSpend(orgId, 12);
+    return {
+      handled: true,
+      answer: f.next12Eur > 0
+        ? L(`About ${fmtEur(f.next12Eur)} on AI in the next 12 months (${f.growthPct >= 0 ? "+" : ""}${Math.round(f.growthPct)}%).${f.drivers[0] ? ` ${f.drivers[0]}.` : ""}`, `Circa ${fmtEur(f.next12Eur)} in AI nei prossimi 12 mesi (${f.growthPct >= 0 ? "+" : ""}${Math.round(f.growthPct)}%).${f.drivers[0] ? ` ${f.drivers[0]}.` : ""}`)
+        : L("Not enough cost data to forecast yet — add a bank statement.", "Non ci sono ancora abbastanza costi per una previsione: aggiungete un estratto conto."),
+      href: "/score",
+      hrefLabel: L("Open the forecast", "Apri la previsione"),
+    };
+  }
+
   // ——— Posti inutilizzati ———
   if (has(t, SEATS) && (has(t, UNUSED) || has(t, SAVE))) {
     const s = await computeSavings(orgId);

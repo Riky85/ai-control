@@ -21,7 +21,7 @@ export interface Area {
 }
 
 export const AREAS: Area[] = [
-  { key: "overview", label: "Overview", href: "/", icon: "home", tabs: [{ href: "/", label: "Overview", match: ["/assets", "/report", "/alerts", "/group"] }] },
+  { key: "overview", label: "Overview", href: "/", icon: "home", tabs: [{ href: "/", label: "Overview", match: ["/assets", "/report", "/alerts", "/group", "/score"] }] },
   { key: "review", label: "To review", href: "/review", icon: "review", tabs: [{ href: "/review", label: "To review", match: ["/review"] }] },
   { key: "savings", label: "Savings", href: "/savings", icon: "savings", tabs: [{ href: "/savings", label: "Savings", match: ["/savings", "/providers", "/advisor"] }] },
   { key: "usage", label: "Usage", href: "/usage", icon: "usage", tabs: [{ href: "/usage", label: "Usage", match: ["/usage", "/people"] }] },

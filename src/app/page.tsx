@@ -14,6 +14,8 @@ import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
 import SetupWizard from "@/components/SetupWizard";
+import ScoreCard, { type ScoreCardData } from "@/components/engine/ScoreCard";
+import { computeScoreCached, scoreHistory, topImprovement } from "@/lib/engine/score";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +48,22 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
     { key: "usage", title: "See who really uses each AI", desc: "Install the desktop app on your computers.", href: "/download", cta: "Get the app", done: devicesCount > 0 },
     { key: "team", title: "Invite your team", desc: "Add your colleagues.", href: "/workspace", cta: "Invite", done: memberCount > 1 },
   ];
+
+  // angar Score: solo se c'è almeno un'AI (altrimenti non c'è niente da valutare).
+  let scoreCard: ScoreCardData | null = null;
+  if (all.length > 0) {
+    const [score, history] = await Promise.all([computeScoreCached(orgId), scoreHistory(orgId, 30)]);
+    const top = topImprovement(score);
+    scoreCard = {
+      score: score.score,
+      grade: score.grade,
+      verdict: score.verdict,
+      axes: score.axes,
+      confidence: score.confidence,
+      top: top && { label: top.label, scoreImpact: top.scoreImpact, href: top.href },
+      delta: history.length ? score.score - history[0].score : null,
+    };
+  }
 
   const costed = assets.map((a) => monthlyOf(a)).filter((m): m is NonNullable<typeof m> => !!m && m.eur > 0);
   const spend = costed.reduce((s, m) => s + m.eur, 0);
@@ -104,6 +122,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       ) : (
         <>
           <SetupWizard steps={wizardSteps} />
+          {scoreCard && <ScoreCard data={scoreCard} />}
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} found by the scan to decide` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} tone="accent" href={toReview ? "/review" : "/providers"} />

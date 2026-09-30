@@ -15,6 +15,7 @@ import { fmtDate } from "@/lib/format";
 import { db } from "@/lib/db";
 import { GUARANTEE, planById } from "@/lib/plans";
 import FilterBar from "@/components/FilterBar";
+import AutopilotPanel, { loadAutopilotPanel } from "@/components/engine/AutopilotPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +77,8 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
           href="/savings?view=progress"
         />
       </div>
+
+      {view === "suggestions" && <AutopilotPanel {...await loadAutopilotPanel(orgId)} />}
 
       <Tabs
         active={view}

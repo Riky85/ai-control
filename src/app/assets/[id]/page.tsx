@@ -18,6 +18,8 @@ import VendorRiskCard from "@/components/VendorRiskCard";
 import ExportMenu from "@/components/ExportMenu";
 import { computeSavingsCached, categoryOf, monthlyOf } from "@/lib/savings";
 import { CATEGORY_LABEL, PLANS, MANAGE_URL } from "@/lib/pricing/catalog";
+import { priceForAsset } from "@/lib/engine/price-index";
+import { MarketPriceStrip, pickRow } from "@/components/engine/PriceIndexCard";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +39,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "overview";
   const orgId = currentOrgId();
 
-  const [asset, orgUsers, spend, { items, assets }] = await Promise.all([
+  const [asset, orgUsers, spend, { items, assets }, market] = await Promise.all([
     db.aiAsset.findFirst({
       where: { id: params.id, organizationId: orgId },
       include: {
@@ -55,6 +57,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
     db.user.findMany({ where: { organizationId: orgId }, orderBy: { name: "asc" } }),
     db.spendRecord.findMany({ where: { organizationId: orgId, aiAssetId: params.id }, orderBy: { date: "desc" }, take: 100 }),
     computeSavingsCached(orgId),
+    // angar Engine: prezzo di un posto vs mercato o listino (mai bloccante per la pagina).
+    priceForAsset(orgId, params.id).catch(() => null),
   ]);
 
   if (!asset) notFound();
@@ -157,6 +161,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         <div className="lg:col-span-2 flex flex-col gap-4">
           {tab === "overview" && (
             <>
+              {market && market.verdict !== "unknown" && <MarketPriceStrip row={pickRow(market)} />}
               <Panel title="How to save" subtitle="Calculated automatically from your bills, seats and list prices">
                 <div className="divide-y divide-line -mx-5 border-t border-line">
                   {mine.map((i) => (

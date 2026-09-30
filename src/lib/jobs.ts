@@ -193,6 +193,10 @@ export async function runDueJobs(now = new Date()) {
         summary.budgets += (await checkBudgets(o.id)).filter((b) => b.alerted).length;
         summary.renewals += await (await import("@/lib/contracts")).noticeDeadlineAlerts(o.id).catch(() => 0);
         await (await import("@/lib/savings-ledger")).verifySavingActions(o.id, now).catch((err) => console.error("[jobs] saving verification failed", o.id, err));
+        // angar Engine: autopilot dei risparmi, anomalie e fotografia dell'angar Score.
+        await (await import("@/lib/engine/autopilot")).runAutopilot(o.id).catch((err) => console.error("[jobs] autopilot failed", o.id, err));
+        await (await import("@/lib/engine/forecast")).anomalyAlerts(o.id).catch((err) => console.error("[jobs] anomalies failed", o.id, err));
+        await (await import("@/lib/engine/score")).recordScoreSnapshot(o.id, now).catch((err) => console.error("[jobs] score snapshot failed", o.id, err));
       } catch (err) {
         console.error("[jobs] daily failed for", o.id, err);
       }

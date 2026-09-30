@@ -26,6 +26,7 @@ export default function PricingPage({ searchParams }: { searchParams: { billing?
         <header className="max-w-6xl mx-auto px-6 pt-8 flex items-center justify-between">
           <a href="/check" className="text-ink-100" aria-label="angar"><Wordmark size={20} /></a>
           <nav className="flex items-center gap-4 text-sm">
+            <a href="/engine" className="text-ink-400 hover:text-ink-100">Engine</a>
             <a href="/check" className="text-ink-400 hover:text-ink-100">Free AI Spend Check</a>
             <a href="/login" className="text-ink-400 hover:text-ink-100">Sign in</a>
             <a href="/signup" className="btn btn-primary btn-sm">Start free</a>

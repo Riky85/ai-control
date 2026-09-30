@@ -6,7 +6,7 @@ import { markAllAlertsReadAction, openAlertAction } from "@/lib/alert-actions";
 
 export const dynamic = "force-dynamic";
 
-const KIND: Record<string, string> = { renewal: "Renewal", budget: "Budget", policy: "Policy", seats: "Seats", new_ai: "New AI", info: "Info" };
+const KIND: Record<string, string> = { renewal: "Renewal", budget: "Budget", policy: "Policy", seats: "Seats", new_ai: "New AI", anomaly: "Anomaly", autopilot: "Autopilot", info: "Info" };
 const SEV: Record<string, string> = { critical: "bg-alarm", warning: "bg-signal", info: "bg-ink-400/60" };
 
 // Centro avvisi: tutto ciò che angar ha notato e richiede una decisione.
