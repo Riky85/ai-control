@@ -45,16 +45,18 @@ export default async function NegotiatePage({ params }: { params: { id: string }
 
       {/* La richiesta */}
       <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
+        {/* Barra grigia in alto: la richiesta, piano e categoria. */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+          <span className="font-semibold text-ink-100">The ask</span>
+          {(d.asset.planName || d.asset.categoryLabel) && (
+            <span className="text-xs text-ink-400">{[d.asset.planName, d.asset.categoryLabel].filter(Boolean).join(" · ")}</span>
+          )}
+        </div>
         <div className="relative grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_18rem] gap-6 p-5 lg:p-6">
           <div className="flex items-start gap-4 min-w-0">
             <VendorBadge vendor={d.asset.vendor ?? ""} name={d.asset.name} size={44} />
             <div className="min-w-0">
-              <div className="text-xs text-ink-400">
-                The ask{d.asset.planName ? ` · ${d.asset.planName}` : ""}
-                {d.asset.categoryLabel ? ` · ${d.asset.categoryLabel}` : ""}
-              </div>
-              <h2 className="font-display text-[22px] leading-snug font-semibold tracking-tight text-ink-100 mt-1">{d.ask}</h2>
+              <h2 className="font-display text-[22px] leading-snug font-semibold tracking-tight text-ink-100">{d.ask}</h2>
               {d.target.yearlyEur != null && d.cost.yearlyEur != null && d.target.saveYearlyEur >= 1 && (
                 <p className="text-sm text-ink-400 mt-1 tabular">
                   From <b className="font-medium text-ink-100">{fmtEur(d.cost.yearlyEur)}</b> to <b className="font-medium text-ink-100">{fmtEur(d.target.yearlyEur)}</b> a year
@@ -117,7 +119,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Prezzo di un posto */}
         <Section title="What you pay vs the market" meta="One seat, a month" action={<VerdictPill verdict={d.price.verdict} source={source} deltaPct={d.price.deltaPct} />}>
-          <div className="px-5 pb-5 flex flex-col gap-3">
+          <div className="p-5 flex flex-col gap-3">
             <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-400 tabular">
               <span>
                 You <b className="font-medium text-ink-100">{d.price.yourSeatEur != null ? seat(d.price.yourSeatEur) : "—"}</b>
@@ -157,7 +159,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
             ) : undefined
           }
         >
-          <div className="px-5 pb-5">
+          <div className="p-5">
             <UsageSpark weekly={d.trend.weekly} />
           </div>
         </Section>
@@ -185,7 +187,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
         }
       >
         {d.levers.length > 0 && (
-          <ul className="divide-y divide-line border-t border-line">
+          <ul className="divide-y divide-line">
             {d.levers.map((l) => (
               <li key={l.key} className="flex items-center justify-between gap-4 px-5 py-3 text-sm">
                 <span className="text-ink-100">{l.label}</span>
@@ -212,7 +214,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
           </>
         }
       >
-        <pre className="mx-5 mb-5 whitespace-pre-wrap rounded-xl border border-line bg-ink px-4 py-3 font-sans text-sm leading-relaxed text-ink-100">{d.email.body}</pre>
+        <pre className="m-5 whitespace-pre-wrap rounded-xl border border-line bg-ink px-4 py-3 font-sans text-sm leading-relaxed text-ink-100">{d.email.body}</pre>
       </Section>
     </div>
   );

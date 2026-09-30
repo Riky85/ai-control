@@ -14,7 +14,9 @@ const OPTIONS: { id: VoiceMode; label: string; hint: string }[] = [
 export default function VoiceSetting({ initial }: { initial: VoiceMode }) {
   const [mode, setMode] = useState<VoiceMode>(initial);
   const [supported, setSupported] = useState(true);
-  useEffect(() => setSupported("SpeechRecognition" in window || "webkitSpeechRecognition" in window), []);
+  useEffect(() => {
+    setSupported("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+  }, []);
 
   function choose(m: VoiceMode) {
     setMode(m);
@@ -23,21 +25,21 @@ export default function VoiceSetting({ initial }: { initial: VoiceMode }) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="inline-flex self-start gap-1 bg-ink rounded-lg p-1">
+    <div className="flex flex-col gap-2 md:items-end">
+      <div className="inline-flex self-start md:self-end gap-1 bg-ink rounded-lg p-1 max-w-full overflow-x-auto">
         {OPTIONS.map((o) => (
           <button
             key={o.id}
             type="button"
             disabled={!supported && o.id !== "off"}
             onClick={() => choose(o.id)}
-            className={`text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-40 ${mode === o.id ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"}`}
+            className={`text-xs px-3 py-1.5 rounded-md whitespace-nowrap transition-colors disabled:opacity-40 ${mode === o.id ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"}`}
           >
             {o.label}
           </button>
         ))}
       </div>
-      <p className="text-xs text-ink-400">
+      <p className="text-xs text-ink-400 max-w-md md:text-right">
         {supported ? OPTIONS.find((o) => o.id === mode)!.hint : "This browser can't recognise speech — use Chrome, Edge or Safari."}
         {supported && mode !== "off" && " Speech is turned into text by your browser (Chrome uses Google's service); angar only receives the text."}
       </p>

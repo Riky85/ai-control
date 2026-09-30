@@ -27,12 +27,12 @@ const EU: Record<Residency, { tone: Tone; label: string }> = {
 export default function VendorFacts({ rows }: { rows: VendorFactRow[] }) {
   if (!rows.length) return null;
   return (
-    <section className="rounded-xl border border-line bg-panel" aria-label="Vendors of the AI in use">
-      <div className="flex items-baseline justify-between gap-3 px-4 pt-3 pb-2">
-        <h3 className="text-sm font-medium text-ink-100">Vendors in use</h3>
+    <section className="rounded-xl border border-line bg-panel overflow-hidden animate-rise" aria-label="Vendors of the AI in use">
+      <div className="flex items-baseline justify-between gap-3 bg-ink border-b border-line px-4 py-3">
+        <h3 className="text-sm font-semibold text-ink-100">Vendors in use</h3>
         <span className="text-xs text-ink-400">From public vendor documents · not legal advice</span>
       </div>
-      <ul className="divide-y divide-line border-t border-line">
+      <ul className="divide-y divide-line">
         {rows.map((r) => (
           <li key={r.key} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2">
             <span className="min-w-0 flex-1 text-sm text-ink-100 truncate">

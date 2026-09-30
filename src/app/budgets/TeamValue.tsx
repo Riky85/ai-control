@@ -56,10 +56,10 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
   const idleTotal = teams.reduce((s, t) => s + t.idleEur, 0);
   return (
     <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="team-value-title">
-      <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3">
-        <div>
-          <h2 id="team-value-title" className="text-base font-semibold text-ink-100">Value by team</h2>
-          <p className="text-sm text-ink-400 mt-0.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3">
+        <div className="min-w-0">
+          <h2 id="team-value-title" className="text-sm font-semibold text-ink-100">Value by team</h2>
+          <p className="text-xs text-ink-400 mt-0.5">
             AI spend a month and how much of it is used{idleTotal >= 1 ? <> · <b className="font-medium text-ink-100">{fmtEur(idleTotal)}</b> a month on idle seats</> : null}
           </p>
         </div>
@@ -70,13 +70,13 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
       </div>
 
       {suppressed ? (
-        <p className="px-5 pb-5 text-sm text-ink-400">Fewer than {MIN_GROUP} people use paid AI — teams appear once groups are large enough to stay anonymous.</p>
+        <p className="p-5 text-sm text-ink-400">Fewer than {MIN_GROUP} people use paid AI — teams appear once groups are large enough to stay anonymous.</p>
       ) : shown.length === 0 ? (
-        <p className="px-5 pb-5 text-sm text-ink-400">
+        <p className="p-5 text-sm text-ink-400">
           No paid AI with known users yet. <Link href="/sources" className="underline hover:text-ink-100">Add costs</Link> and <Link href="/people" className="underline hover:text-ink-100">set departments</Link> to see value by team.
         </p>
       ) : (
-        <ul className="divide-y divide-line border-t border-line">
+        <ul className="divide-y divide-line">
           {shown.map((t) => (
             <li key={t.department} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] items-center gap-x-5 gap-y-2 px-5 py-3">
               <div className="min-w-0">
@@ -104,7 +104,7 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
         </ul>
       )}
 
-      <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-3 text-xs text-ink-400">
+      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-xs text-ink-400">
         <span>
           Active = used in the last 30 days · teams under {MIN_GROUP} people are grouped, no names
           {unassignedSeatsEur >= 1 ? ` · ${fmtEur(unassignedSeatsEur)} a month on seats with nobody assigned` : ""}

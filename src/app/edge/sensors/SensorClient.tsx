@@ -106,11 +106,11 @@ export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edge
 
   if (created) {
     return (
-      <section className="rounded-xl border border-accent/50 bg-panel p-5 flex flex-col gap-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold text-ink-100">{created.name} is ready</h2>
-            <p className="text-sm text-ink-400 mt-0.5">Copy the token now — it&apos;s shown only once. It appears online here within a few minutes.</p>
+      <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4 animate-rise">
+        <div className="-mx-5 -mt-5 flex items-center justify-between gap-4 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-ink-100">{created.name} is ready</h2>
+            <p className="text-xs text-ink-400 mt-0.5">Copy the token now — it&apos;s shown only once. It appears online here within a few minutes.</p>
           </div>
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setCreated(null); setName(""); }}>Done</button>
         </div>
@@ -127,9 +127,9 @@ export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edge
   ];
   return (
     <section className="rounded-xl border border-line bg-panel p-5">
-      <h2 className="text-base font-semibold text-ink-100">Add a sensor</h2>
+      <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">Add a sensor</h2>
       <form
-        className="mt-3 flex flex-col gap-3"
+        className="flex flex-col gap-3"
         onSubmit={(e) => {
           e.preventDefault();
           setError(null);

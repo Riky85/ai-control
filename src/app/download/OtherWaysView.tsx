@@ -31,9 +31,9 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
   return (
     <div className="flex flex-col gap-4">
       <section id="browser-extension" className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
-        <div>
-          <h2 className="text-base font-semibold text-ink-100">Browser extension</h2>
-          <p className="text-sm text-ink-400 mt-1">For computers where you can&apos;t install apps (e.g. Chromebooks): a Chrome/Edge extension that reports the AI websites each person opens.</p>
+        <div className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+          <h2 className="text-sm font-semibold text-ink-100">Browser extension</h2>
+          <p className="text-xs text-ink-400 mt-0.5">For computers where you can&apos;t install apps (e.g. Chromebooks): a Chrome/Edge extension that reports the AI websites each person opens.</p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="rounded-xl border border-line p-5 flex flex-col gap-3">
@@ -75,14 +75,14 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         <section className="lg:col-span-2 rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
-          <div>
-            <h2 className="text-base font-semibold text-ink-100">One-off scan (command line)</h2>
-            <p className="text-sm text-ink-400 mt-0.5">One command, about a minute. Finds AI websites used in the last 30 days, AI apps, coding assistants, API keys in use and local models.</p>
+          <div className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+            <h2 className="text-sm font-semibold text-ink-100">One-off scan (command line)</h2>
+            <p className="text-xs text-ink-400 mt-0.5">One command, about a minute. Finds AI websites used in the last 30 days, AI apps, coding assistants, API keys in use and local models.</p>
           </div>
           {canAdmin ? <ScannerSetup base={base} token={token} /> : <p className="text-sm text-ink-400">Ask an admin of this workspace to run the scan.</p>}
         </section>
         <aside className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
-          <h3 className="text-sm font-semibold text-ink-100">What leaves the computer</h3>
+          <h3 className="-mx-5 -mt-5 mb-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">What leaves the computer</h3>
           <ul className="text-sm text-ink-400 flex flex-col gap-2">
             <li className="flex gap-2"><Tick />Only AI services angar recognises — e.g. &ldquo;claude.ai, 42 visits&rdquo;.</li>
             <li className="flex gap-2"><Tick />Never the rest of the browsing, page contents, prompts or key values.</li>
@@ -98,9 +98,9 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch" id="network">
         <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
-          <div>
-            <h2 className="text-base font-semibold text-ink-100">Upload a network log</h2>
-            <p className="text-sm text-ink-400 mt-0.5">Covers everyone at once. Export DNS or web logs from your firewall, router or DNS server (Pi-hole, pfSense, FortiGate, Sophos, Windows DNS, Cisco Umbrella…) and drop the file here.</p>
+          <div className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+            <h2 className="text-sm font-semibold text-ink-100">Upload a network log</h2>
+            <p className="text-xs text-ink-400 mt-0.5">Covers everyone at once. Export DNS or web logs from your firewall, router or DNS server (Pi-hole, pfSense, FortiGate, Sophos, Windows DNS, Cisco Umbrella…) and drop the file here.</p>
           </div>
           {canEdit ? (
             <form action={uploadNetworkLogAction} className="flex flex-col gap-3 mt-auto">
@@ -112,26 +112,18 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
           )}
         </section>
         <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
-          <div>
+          <div className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-ink-100">angar Edge</h2>
+              <h2 className="text-sm font-semibold text-ink-100">angar Edge</h2>
               <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Early access</span>
             </div>
-            <p className="text-sm text-ink-400 mt-0.5">A small device you plug into your network. It watches traffic all the time and reports any new AI the moment someone starts using it — nothing to install on computers.</p>
+            <p className="text-xs text-ink-400 mt-0.5">A small device you plug into your network. It watches traffic all the time and reports any new AI the moment someone starts using it — nothing to install on computers.</p>
           </div>
           <Link href="/edge" className="btn btn-secondary self-start mt-auto">Learn about Edge</Link>
         </section>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-ink-100">Found automatically</h2>
-            <p className="text-sm text-ink-400">{connector?.lastSyncedAt ? `Last result ${fmtDateTime(connector.lastSyncedAt)}` : "Nothing yet — install the desktop app on a computer."}</p>
-          </div>
-          {found.some((a) => a.status === "UNKNOWN" || a.status === "UNREVIEWED") && <Link href="/review" className="btn btn-primary">Review what was found</Link>}
-        </div>
-        <Table columns={["AI system", "Seen on", "Last seen", "Status"]} empty={found.length === 0 && "No AI found automatically yet."}>
+      <Table title="Found automatically" note={connector?.lastSyncedAt ? `Last result ${fmtDateTime(connector.lastSyncedAt)}` : "Nothing yet — install the desktop app on a computer."} action={found.some((a) => a.status === "UNKNOWN" || a.status === "UNREVIEWED") ? <Link href="/review" className="btn btn-primary btn-sm">Review what was found</Link> : undefined} columns={["AI system", "Seen on", "Last seen", "Status"]} empty={found.length === 0 && "No AI found automatically yet."}>
           {found.map((a) => {
             const devices = [...new Set(a.connectedSystems.map((c) => c.detail ?? ""))].filter(Boolean);
             return (
@@ -154,7 +146,6 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
             );
           })}
         </Table>
-      </div>
     </div>
   );
 }

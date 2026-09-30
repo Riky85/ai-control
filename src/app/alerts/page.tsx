@@ -71,11 +71,16 @@ export default async function AlertsPage() {
           <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">angar checks every morning for renewals in the next 14 days, budgets over 80%, AI that isn&apos;t allowed being used, and seats nobody needs. Alerts appear here and, if you connect Slack or Teams in Settings, there too.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
+        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
+          {/* Barra grigia in alto: tutti gli avvisi e quanti da leggere. */}
+          <div className="flex items-center justify-between gap-3 bg-ink px-5 py-3 text-sm">
+            <h2 className="font-semibold text-ink-100">All alerts</h2>
+            <span className="text-xs text-ink-400 tabular">{unread ? `${unread} unread` : `${alerts.length} read`}</span>
+          </div>
           {alerts.map((a) => (
             <form key={a.id} action={openAlertAction}>
               <input type="hidden" name="id" value={a.id} />
-              <button className={`w-full text-left flex items-start gap-4 px-5 py-4 transition-colors hover:bg-ink-100/[0.03] ${a.readAt ? "" : "bg-accent/[0.04]"}`}>
+              <button className={`w-full text-left flex items-start gap-4 px-5 py-4 transition-colors hover:bg-ink-100/[0.03] ${a.readAt ? "" : "bg-ink-100/[0.025]"}`}>
                 <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${SEV[a.severity] ?? SEV.info}`} />
                 <span className="flex-1 min-w-0">
                   <span className="flex items-center gap-2">

@@ -53,7 +53,6 @@ export default async function ScorePage() {
 
       {/* Hero: anello, voto, verdetto, andamento */}
       <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
         <div className="relative grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 p-6 lg:p-8 items-center">
           <div className="flex justify-center">
             <ScoreRing score={result.score} grade={result.grade} size={210} />
@@ -61,7 +60,7 @@ export default async function ScorePage() {
           <div className="flex flex-col gap-5 min-w-0">
             <div>
               <div className="flex items-center gap-2 text-xs text-ink-400">
-                <span className="rounded-full border border-accent/40 px-2 py-0.5 text-accent font-medium">Grade {result.grade}</span>
+                <span className="rounded-full border border-line px-2 py-0.5 text-ink-100 font-medium">Grade {result.grade}</span>
                 {delta != null && delta !== 0 && (
                   <span className={`tabular font-medium ${delta > 0 ? "text-steady" : "text-alarm"}`}>
                     {delta > 0 ? "▲" : "▼"} {Math.abs(delta)} since {fmtDay(first.day)}
@@ -79,6 +78,18 @@ export default async function ScorePage() {
             <Trend points={points} />
           </div>
         </div>
+        {/* Barra grigia in basso: quanto sa angar e cosa manca. */}
+        <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ink rounded-b-2xl px-5 py-3 text-sm">
+          <span className="flex items-center gap-2 text-ink-100">
+            <span className={`h-2 w-2 rounded-full ${result.confidence === "high" ? "bg-steady" : result.confidence === "medium" ? "bg-signal" : "bg-alarm"}`} />
+            {CONFIDENCE_TEXT[result.confidence]}
+          </span>
+          {result.gaps.map((g) => (
+            <Link key={g.href + g.label} href={g.href} className="text-ink-400 hover:text-ink-100">
+              {g.label} →
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* I 4 assi con i loro driver */}
@@ -91,30 +102,19 @@ export default async function ScorePage() {
       {/* angar Engine: previsione, anomalie e prezzi di mercato */}
       <ForecastCard {...forecast} />
       <PriceIndexCard {...priceIndex} />
-
-      {/* Confidenza: quanto sa angar */}
-      <section className="rounded-xl border border-line bg-panel px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm animate-rise">
-        <span className="flex items-center gap-2 text-ink-100">
-          <span className={`h-2 w-2 rounded-full ${result.confidence === "high" ? "bg-steady" : result.confidence === "medium" ? "bg-signal" : "bg-alarm"}`} />
-          {CONFIDENCE_TEXT[result.confidence]}
-        </span>
-        {result.gaps.map((g) => (
-          <Link key={g.href + g.label} href={g.href} className="text-ink-400 hover:text-ink-100">
-            {g.label} →
-          </Link>
-        ))}
-      </section>
     </div>
   );
 }
 
 function AxisCard({ axis, value, drivers }: { axis: Axis; value: number; drivers: Driver[] }) {
   return (
-    <section id={`axis-${axis}`} className="scroll-mt-6 rounded-xl border border-line bg-panel p-4 animate-rise flex flex-col gap-3 min-w-0 target:border-ink-400">
-      <div className="flex items-baseline justify-between gap-2">
+    <section id={`axis-${axis}`} className="scroll-mt-6 rounded-xl border border-line bg-panel animate-rise flex flex-col min-w-0 target:border-ink-400">
+      {/* Barra grigia in alto: nome dell'asse e valore. */}
+      <div className="flex items-baseline justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3">
         <h3 className="text-sm font-semibold text-ink-100">{AXIS_LABEL[axis]}</h3>
-        <span className="font-display text-[26px] leading-none font-semibold tabular text-ink-100">{value}</span>
+        <span className="font-display text-xl leading-none font-semibold tabular text-ink-100">{value}</span>
       </div>
+      <div className="p-4 flex flex-col gap-3">
       <AxisTrack value={value} />
       <p className="text-xs text-ink-400 -mt-1">
         {AXIS_HINT[axis]} · {Math.round(AXIS_WEIGHT[axis] * 100)}% of the score
@@ -136,6 +136,7 @@ function AxisCard({ axis, value, drivers }: { axis: Axis; value: number; drivers
           ))}
         </ul>
       )}
+      </div>
     </section>
   );
 }

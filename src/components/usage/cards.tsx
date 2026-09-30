@@ -108,7 +108,7 @@ export function ByAiList({ rows }: { rows: AiUsageRow[] }) {
       footer={top ? <NextStep href={top.cleanupHref} label={`Clean up ${idleTotal} unused seat${idleTotal === 1 ? "" : "s"}, starting with ${top.name}`} /> : rows.length ? <NextStep done label="No unused paid seats" /> : undefined}
     >
       {rows.length > 0 && (
-        <ul className="divide-y divide-line border-t border-line">
+        <ul className="divide-y divide-line">
           {rows.map((r) => {
             const used = r.seats != null ? r.seats - r.idle : null;
             return (
@@ -184,9 +184,9 @@ export function RankList({ id, title, meta, rows, href, cta, empty }: { id: stri
       }
     >
       {rows.length === 0 ? (
-        <p className="px-5 pb-5 text-sm text-ink-400">{empty}</p>
+        <p className="p-5 text-sm text-ink-400">{empty}</p>
       ) : (
-        <ul className="divide-y divide-line border-t border-line">
+        <ul className="divide-y divide-line">
           {rows.map((r) => (
             <li key={r.key} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_minmax(0,16rem)_8rem] items-center gap-x-5 gap-y-1 px-5 py-2.5">
               <div className="min-w-0">
@@ -196,7 +196,7 @@ export function RankList({ id, title, meta, rows, href, cta, empty }: { id: stri
               <div className="hidden sm:flex items-center gap-3 min-w-0" title={r.barLabel}>
                 <div className="relative h-3 flex-1" aria-hidden>
                   <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line" />
-                  <div className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-accent/40" style={{ width: `${Math.max(2, Math.min(100, (r.bar / Math.max(1, r.barMax)) * 100))}%` }} />
+                  <div className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-ink-100/20" style={{ width: `${Math.max(2, Math.min(100, (r.bar / Math.max(1, r.barMax)) * 100))}%` }} />
                 </div>
                 <span className="text-xs text-ink-400 tabular shrink-0 w-20 text-right whitespace-nowrap">{r.barLabel}</span>
               </div>

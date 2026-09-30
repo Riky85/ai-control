@@ -34,9 +34,9 @@ export default function EdgePage() {
       />
 
       {/* Hero */}
-      <section className="rounded-xl border border-accent/50 bg-panel p-5 md:p-6 grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-6 overflow-hidden">
+      <section className="rounded-xl border border-line bg-panel p-5 md:p-6 grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-6 overflow-hidden">
         <div className="flex flex-col gap-3 max-w-xl">
-          <span className="self-start text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Software · cloud logs · device</span>
+          <span className="self-start text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Software · cloud logs · device</span>
           <p className="text-[16px] text-ink-100 leading-relaxed">
             One sensor on your network — as a DNS resolver or reading your firewall logs — sees every AI in use on <span className="font-medium">every device</span>:
             laptops, phones, servers, and the scripts and agents nobody told you about.
@@ -89,20 +89,20 @@ export default function EdgePage() {
             foot: `${EDGE.minMonths}-month minimum · shipping included`,
           },
         ].map((x) => (
-          <div key={x.t} className="rounded-xl border border-line bg-panel p-4 flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+          <div key={x.t} className="rounded-xl border border-line bg-panel flex flex-col">
+            <div className="flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3">
               <span className="text-sm font-semibold text-ink-100">{x.t}</span>
-              <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5 whitespace-nowrap">{x.tag}</span>
+              <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5 whitespace-nowrap">{x.tag}</span>
             </div>
-            <p className="text-sm text-ink-400">{x.d}</p>
-            <p className="text-xs text-ink-400 mt-auto pt-1">{x.foot}</p>
+            <p className="flex-1 px-4 py-3 text-sm text-ink-400">{x.d}</p>
+            <p className="bg-ink border-t border-line rounded-b-xl px-4 py-2.5 text-xs text-ink-400">{x.foot}</p>
           </div>
         ))}
       </section>
 
       {/* Cosa fa */}
       <section className="rounded-xl border border-line bg-panel p-5">
-        <h2 className="text-base font-semibold text-ink-100 mb-3">What it does</h2>
+        <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">What it does</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3">
           {[
             ["Discover", "Every AI reached from the network, 24/7 — incl. phones, servers and BYOD."],
@@ -128,7 +128,7 @@ export default function EdgePage() {
       {/* Cosa mai + Edge vs app desktop */}
       <section className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-3">
         <div className="rounded-xl border border-line bg-panel p-4">
-          <h3 className="text-sm font-semibold text-ink-100 mb-2">What it never does</h3>
+          <h3 className="-mx-4 -mt-4 mb-3 bg-ink border-b border-line rounded-t-xl px-4 py-3 text-sm font-semibold text-ink-100">What it never does</h3>
           <ul className="flex flex-col gap-1.5 text-sm text-ink-400">
             {[
               "Read content — no URLs, prompts, messages or files",
@@ -146,9 +146,9 @@ export default function EdgePage() {
         </div>
         <div className="rounded-xl border border-line bg-panel overflow-hidden">
           <div className="grid grid-cols-[6rem_1fr_1fr] text-xs">
-            <div className="px-3 py-2 border-b border-line" />
-            <div className="px-3 py-2 border-b border-line font-semibold text-ink-100 text-sm">angar Edge</div>
-            <div className="px-3 py-2 border-b border-line font-semibold text-ink-100 text-sm">Desktop app</div>
+            <div className="px-3 py-2.5 bg-ink border-b border-line" />
+            <div className="px-3 py-2.5 bg-ink border-b border-line font-semibold text-ink-100 text-sm">angar Edge</div>
+            <div className="px-3 py-2.5 bg-ink border-b border-line font-semibold text-ink-100 text-sm">Desktop app</div>
             {[
               ["Install", "One sensor for each network, or cloud logs", "One download on each computer, no admin rights"],
               ["Covers", "Whole network: phones, servers, scripts", "That computer, anywhere it goes"],
@@ -159,16 +159,16 @@ export default function EdgePage() {
               <Row key={k} k={k} a={a} b={b} />
             ))}
           </div>
-          <p className="px-3 py-2 text-xs text-ink-400">Most companies use both: Edge for the network, the app for people.</p>
+          <p className="bg-ink px-3 py-2.5 text-xs text-ink-400">Most companies use both: Edge for the network, the app for people.</p>
         </div>
       </section>
 
       {/* Tutto in azienda: angar intero sul server del cliente o sul dispositivo Edge. */}
       {!isOnPrem() && (
         <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-ink-100">Keep every piece of data in your company</h2>
-            <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Enterprise</span>
+          <div className="-mx-5 -mt-5 mb-1 flex items-center gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+            <h2 className="text-sm font-semibold text-ink-100">Keep every piece of data in your company</h2>
+            <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Enterprise</span>
           </div>
           <p className="text-sm text-ink-400 max-w-3xl">
             Run the whole of angar on your own server or on the angar device. Computers, sensors, people and costs all stay on your network — nothing is sent to

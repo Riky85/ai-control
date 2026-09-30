@@ -19,7 +19,11 @@ export interface Holdback {
 /** Testata: asse Governance dell'angar Score + prontezza AI Act, e cosa li tiene giù. */
 export function GovernanceHeader({ governance, readiness, holds }: { governance: number | null; readiness: number; holds: Holdback[] }) {
   return (
-    <section className="rounded-2xl border border-line bg-panel animate-rise" aria-label="Governance readiness">
+    <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="gov-readiness-title">
+      {/* Barra grigia in alto con il titolo del blocco. */}
+      <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+        <h2 id="gov-readiness-title" className="font-semibold text-ink-100">Governance readiness</h2>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] gap-5 p-5">
         <div className="grid grid-cols-2 gap-3">
           {governance != null && <AxisGauge label="Governance" value={governance} size={72} href="/score#axis-governance" />}
@@ -80,7 +84,7 @@ export function DecisionsCard({ d }: { d: DecisionsData }) {
       meta={total ? `${total} AI found` : "No AI found yet"}
       footer={next ? <NextStep href={next.href} label={next.label} /> : <NextStep done label={total ? "Every AI has a decision" : "Connect a source to find AI"} />}
     >
-      <div className="px-5 pb-4 flex flex-col gap-4">
+      <div className="px-5 py-4 flex flex-col gap-4">
         <StackBar
           label="AI decisions"
           parts={[
@@ -163,7 +167,7 @@ export function AiActCard({ d }: { d: AiActData }) {
       }
       footer={next ? <NextStep href={next.href} label={next.label} /> : <NextStep done label="Ready for what is in force today" />}
     >
-      <div className="px-5 pb-4 flex flex-col gap-4">
+      <div className="px-5 py-4 flex flex-col gap-4">
         <AxisTrack value={d.readiness} />
         <ul className="flex flex-col gap-2" aria-label="AI by risk class">
           {TIERS.map((t) => {
@@ -214,7 +218,7 @@ export interface RecordLink {
 export function RecordsCard({ links }: { links: RecordLink[] }) {
   return (
     <Section id="records" title="Records" meta="Proof for auditors, the board and NIS2">
-      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border-t border-line rounded-b-2xl overflow-hidden">
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line rounded-b-2xl overflow-hidden">
         {links.map((l) => {
           const inner = (
             <>

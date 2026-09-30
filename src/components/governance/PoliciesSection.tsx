@@ -56,7 +56,7 @@ export default function PoliciesSection({ policies, templates, canEdit, libraryT
       footer={next ? <NextStep label={next.label} /> : <NextStep done label="Policies are sent to employees with the AI policy" />}
     >
       {rows.length > 0 && (
-        <ul className="divide-y divide-line border-t border-line">
+        <ul className="divide-y divide-line">
           {rows.map((p) => (
             <li key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-5 py-3">
               <div className="min-w-0">

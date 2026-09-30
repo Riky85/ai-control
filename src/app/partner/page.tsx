@@ -195,7 +195,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
 
           {/* Economia partner: stima, solo clienti gestiti. */}
           <section className="rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div className="-mx-4 -mt-4 flex flex-wrap items-baseline justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3">
               <h2 className="text-sm font-semibold text-ink-100">
                 Partner economics <span className="font-normal text-ink-400">· estimate</span>
               </h2>

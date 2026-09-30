@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { priceIndexFor, type PriceIndexRow, type Verdict, type PriceSource } from "@/lib/engine/price-index";
 import { fmtEur } from "@/lib/format";
+import { BlockHead } from "@/components/ui";
 
 /** Riga dell'indice come la usa l'interfaccia (solo dati serializzabili). */
 export type PriceRow = Pick<
@@ -79,21 +80,23 @@ export default function PriceIndexCard({ rows, networkCompanies, minCompanies }:
   const shown = rows.slice(0, MAX_ROWS);
   return (
     <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="price-index-title">
-      <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3">
-        <div>
-          <h2 id="price-index-title" className="text-base font-semibold text-ink-100">What you pay vs the market</h2>
-          <p className="text-sm text-ink-400 mt-0.5">Price of one seat, a month</p>
-        </div>
-        <span className="flex items-center gap-3 text-[11px] text-ink-400 shrink-0" aria-hidden>
-          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-ink-100" />You</span>
-          <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-accent/25" />{networkCompanies ? "Middle 50%" : "List"}</span>
-        </span>
-      </div>
+      <BlockHead
+        id="price-index-title"
+        rounded="rounded-t-2xl"
+        title="What you pay vs the market"
+        note="Price of one seat, a month"
+        action={
+          <span className="flex items-center gap-3 text-[11px] text-ink-400 shrink-0" aria-hidden>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-ink-100" />You</span>
+            <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-accent/25" />{networkCompanies ? "Middle 50%" : "List"}</span>
+          </span>
+        }
+      />
 
       {shown.length === 0 ? (
-        <p className="px-5 pb-5 text-sm text-ink-400">No paid AI with seats yet. <Link href="/sources" className="underline hover:text-ink-100">Add a bank statement</Link> to compare prices.</p>
+        <p className="p-5 text-sm text-ink-400">No paid AI with seats yet. <Link href="/sources" className="underline hover:text-ink-100">Add a bank statement</Link> to compare prices.</p>
       ) : (
-        <ul className="divide-y divide-line border-t border-line">
+        <ul className="divide-y divide-line">
           {shown.map((r) => (
             <li key={r.serviceId} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] items-center gap-x-5 gap-y-2 px-5 py-3">
               <div className="min-w-0">
@@ -120,7 +123,7 @@ export default function PriceIndexCard({ rows, networkCompanies, minCompanies }:
         </ul>
       )}
 
-      <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-3 text-xs text-ink-400">
+      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-xs text-ink-400">
         <span>{networkCompanies ? `Based on ${networkCompanies} companies on angar · anonymous` : `Market data unlocks at ${minCompanies} similar companies — showing list prices`}</span>
         {rows.length > MAX_ROWS && <span className="tabular shrink-0">+{rows.length - MAX_ROWS} more</span>}
       </div>

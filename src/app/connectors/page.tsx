@@ -138,9 +138,9 @@ export default async function ConnectorsPage({
       </Section>
 
       {/* Codice: una riga sola, il modulo si apre solo quando serve. */}
-      <section id="GITHUB" className="scroll-mt-6 flex flex-col gap-2">
-        <h2 className="text-base font-semibold text-ink-100">Code</h2>
-        <div className="rounded-xl border border-line bg-panel">
+      <section id="GITHUB" className="scroll-mt-6">
+        <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
+          <h2 className="bg-ink border-b border-line px-4 py-3 text-sm font-semibold text-ink-100">Code</h2>
           <div className="flex flex-wrap items-center gap-3 px-4 py-3">
             <VendorBadge vendor="GitHub" size={32} />
             <div className="flex-1 min-w-0">

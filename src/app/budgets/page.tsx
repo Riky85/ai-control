@@ -92,7 +92,10 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
           <AddBudget named={named.map((r) => r.department)} />
         </div>
       ) : (
-        <Table columns={["Team", { label: "Spend vs budget", className: "w-[30%]" }, "Top AI", { label: "People", className: "text-right" }, { label: "Monthly budget", className: "w-[260px]" }]}>
+        <Table
+          columns={["Team", { label: "Spend vs budget", className: "w-[30%]" }, "Top AI", { label: "People", className: "text-right" }, { label: "Monthly budget", className: "w-[260px]" }]}
+          footer={<span className="text-xs text-ink-400">Cost is split by how many of each AI&apos;s users are in each team. Alerts go to the bell and, if connected, to Slack or Teams.</span>}
+        >
           {rows.map((r) => {
             const pct = r.budget ? (r.eur / r.budget) * 100 : null;
             const bar = pct == null ? "bg-ink-400/40" : pct > 100 ? "bg-alarm" : pct >= 80 ? "bg-signal" : "bg-steady";
@@ -142,17 +145,18 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
       )}
 
       {named.length > 0 && <AddBudget named={named.map((r) => r.department)} />}
-      <p className="text-xs text-ink-400">Cost is split by how many of each AI&apos;s users are in each team. Alerts go to the bell and, if connected, to Slack or Teams.</p>
     </div>
   );
 }
 
 function AddBudget({ named }: { named: string[] }) {
   return (
-    <section className="rounded-xl border border-line bg-panel p-5">
-      <h2 className="text-base font-semibold text-ink-100">Add a team budget</h2>
-      <p className="text-sm text-ink-400 mt-1 mb-4">Same name as the department in your directory. Empty or 0 removes it.</p>
-      <form action={setBudgetAction} className="flex flex-wrap items-center gap-2">
+    <section className="rounded-xl border border-line bg-panel animate-rise">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+        <h2 className="text-sm font-semibold text-ink-100">Add a team budget</h2>
+        <p className="text-xs text-ink-400">Same name as the department in your directory. Empty or 0 removes it.</p>
+      </div>
+      <form action={setBudgetAction} className="p-5 flex flex-wrap items-center gap-2">
         <input name="department" placeholder="Team, e.g. Marketing" className="field w-48" list="budget-depts" required />
         <datalist id="budget-depts">
           {named.map((d) => (

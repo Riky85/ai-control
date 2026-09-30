@@ -79,35 +79,35 @@ export default async function ConnectPage() {
       <PageHeader title="Connect" subtitle="Connect once — angar keeps everything up to date." />
 
       {rec ? (
-        <section className="relative overflow-hidden rounded-xl border border-accent/30 bg-panel flex flex-wrap sm:flex-nowrap items-center gap-3 pl-4 pr-3 py-3">
-          <div aria-hidden className="pointer-events-none absolute -left-16 -top-20 h-40 w-40 rounded-full bg-accent/15 blur-3xl" />
-          <span className="relative text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5 shrink-0">Next best step</span>
-          <span className="relative flex-1 min-w-0 text-sm text-ink-100 truncate">{rec.title}</span>
-          <Link href={rec.href} className="relative btn btn-primary btn-sm shrink-0">{rec.cta}</Link>
+        <section className="rounded-xl border border-line bg-ink flex flex-wrap sm:flex-nowrap items-center gap-3 pl-4 pr-3 py-3">
+          <span className="text-xs text-ink-400 shrink-0">Next best step</span>
+          <span className="flex-1 min-w-0 text-sm font-medium text-ink-100 truncate">{rec.title}</span>
+          <Link href={rec.href} className="btn btn-primary btn-sm shrink-0">{rec.cta}</Link>
         </section>
       ) : (
-        <section className="rounded-xl border border-steady/30 bg-steady/[0.06] px-4 py-3 text-sm text-steady">✓ All connected — angar keeps everything up to date.</section>
+        <section className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
+          <span className="text-steady">✓</span> All connected — angar keeps everything up to date.
+        </section>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {cards.map((c) => {
-          const recommended = c.key === next;
-          return (
-            <section key={c.key} className={`relative overflow-hidden rounded-2xl border bg-panel flex flex-col ${recommended ? "border-accent/60" : "border-line"}`}>
-              <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
-              <div className="relative p-5 flex flex-col gap-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-base font-semibold text-ink-100">{c.title}</h2>
-                  {recommended && <span className="text-[11px] font-medium text-accent border border-accent/40 rounded-full px-2 py-0.5">Recommended</span>}
-                  {c.status && <span className="text-xs text-steady">✓ {c.status}</span>}
-                </div>
-                <p className="text-sm text-ink-400 -mt-1.5">{c.text}</p>
-                <Link href={c.href} className={`btn btn-sm self-start ${recommended ? "btn-primary" : "btn-secondary"}`}>{c.cta}</Link>
-              </div>
-              <div className="relative mt-auto flex items-end justify-center px-6 pt-4 h-[176px] overflow-hidden">{c.art}</div>
-            </section>
-          );
-        })}
+        {cards.map((c) => (
+          <section key={c.key} className="overflow-hidden rounded-2xl border border-line bg-panel flex flex-col">
+            <div className="p-5 flex flex-col gap-1">
+              <h2 className="text-base font-semibold text-ink-100">{c.title}</h2>
+              <p className="text-sm text-ink-400">{c.text}</p>
+            </div>
+            <div className="mt-auto flex items-end justify-center px-6 pt-2 h-[176px] overflow-hidden">{c.art}</div>
+            {/* Barra grigia in fondo: stato e azione */}
+            <div className="relative flex items-center gap-3 border-t border-line bg-ink px-5 py-3 text-sm">
+              <span className="flex-1 min-w-0 truncate text-xs">
+                {c.status ? <span className="text-ink-100"><span className="text-steady">✓</span> {c.status}</span> : <span className="text-ink-400">Not connected</span>}
+              </span>
+              {/* Solo il passo consigliato usa il pulsante primario */}
+              <Link href={c.href} className={`btn btn-sm shrink-0 ${c.key === next ? "btn-primary" : "btn-secondary"}`}>{c.cta}</Link>
+            </div>
+          </section>
+        ))}
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-400">

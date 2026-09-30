@@ -92,7 +92,8 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
             filters={[{ param: "sensitivity", label: "Sensitivity", options: Object.entries(SENSITIVITY_LABEL).map(([value, label]) => ({ value, label })) }]}
             right={`${dataAssets.length} data categor${dataAssets.length === 1 ? "y" : "ies"}`}
           />
-          <div className="rounded-xl border border-line bg-panel divide-y divide-line">
+          <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
+            <h2 className="bg-ink px-5 py-3 text-sm font-semibold text-ink-100">Data and the AI that reach it</h2>
             {dataAssets.map((d) => (
               <div key={d.id} className="px-5 py-4">
                 <div className="flex items-center gap-2">

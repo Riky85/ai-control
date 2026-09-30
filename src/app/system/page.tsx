@@ -75,8 +75,8 @@ export default async function SystemPage() {
         </Insight>
       ) : null}
 
-      <Panel title="Status">
-        <div className="divide-y divide-line -mx-5 border-t border-line">
+      <Panel flush title="Status">
+        <div className="divide-y divide-line">
           {checks.map(([label, ok, detail]) => (
             <div key={label} className="flex items-center gap-4 px-5 py-3 text-sm">
               <span className="w-56 text-ink-100">{label}</span>
@@ -87,15 +87,7 @@ export default async function SystemPage() {
         </div>
       </Panel>
 
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h2 className="text-base font-semibold text-ink-100">Backups</h2>
-            <p className="text-sm text-ink-400">Full export of every table. It contains all workspaces' data — keep downloaded files somewhere safe.</p>
-          </div>
-          <a href="/api/backup/download" className="btn btn-secondary">Download full backup</a>
-        </div>
-        <Table columns={["Started", "Status", "Tables", "Rows", "Size", "Location"]} empty={backups.length === 0 ? "No backups have run yet." : false}>
+      <Table title="Backups" note="Full export of every table. It contains all workspaces' data — keep downloaded files somewhere safe." action={<a href="/api/backup/download" className="btn btn-secondary btn-sm">Download full backup</a>} columns={["Started", "Status", "Tables", "Rows", "Size", "Location"]} empty={backups.length === 0 ? "No backups have run yet." : false}>
           {backups.map((b) => (
             <tr key={b.id}>
               <td className={`${td} tabular text-ink-400`}>{fmtDateTime(b.startedAt)}</td>
@@ -107,20 +99,8 @@ export default async function SystemPage() {
             </tr>
           ))}
         </Table>
-      </div>
 
-      <div>
-        <div className="flex flex-wrap items-end justify-between gap-3 mb-3">
-          <div>
-            <h2 className="text-base font-semibold text-ink-100">angar devices</h2>
-            <p className="text-sm text-ink-400">
-              {DEVICE_STATUSES.map((st) => `${devCount(st)} ${st}`).join(" · ")}
-              {process.env.EDGE_FACTORY_TOKEN ? " · factory API on" : " · factory API off (EDGE_FACTORY_TOKEN)"}
-            </p>
-          </div>
-          <DeviceBatchForm />
-        </div>
-        <Table columns={["Serial", "Model", "Status", "Workspace", "Sensor", "Claimed", { label: "", className: "w-[1%]" }]} empty={devices.length === 0 ? "No devices yet — create a batch for the next shipment." : false}>
+      <Table title="angar devices" note={`${DEVICE_STATUSES.map((st) => `${devCount(st)} ${st}`).join(" · ")}${process.env.EDGE_FACTORY_TOKEN ? " · factory API on" : " · factory API off (EDGE_FACTORY_TOKEN)"}`} action={<DeviceBatchForm />} columns={["Serial", "Model", "Status", "Workspace", "Sensor", "Claimed", { label: "", className: "w-[1%]" }]} empty={devices.length === 0 ? "No devices yet — create a batch for the next shipment." : false}>
           {devices.map((d) => (
             <tr key={d.id}>
               <td className={`${td} font-mono text-ink-100 whitespace-nowrap`}>
@@ -153,11 +133,8 @@ export default async function SystemPage() {
             </tr>
           ))}
         </Table>
-      </div>
 
-      <div>
-        <h2 className="text-base font-semibold text-ink-100 mb-3">Leads from the free AI spend check</h2>
-        <Table columns={["When", "Email", "Company", { label: "AI", className: "text-right" }, { label: "Yearly spend", className: "text-right" }, { label: "Yearly savings", className: "text-right" }]} empty={leads.length === 0 ? "No leads yet — share /check." : false}>
+      <Table title="Leads from the free AI spend check" columns={["When", "Email", "Company", { label: "AI", className: "text-right" }, { label: "Yearly spend", className: "text-right" }, { label: "Yearly savings", className: "text-right" }]} empty={leads.length === 0 ? "No leads yet — share /check." : false}>
           {leads.map((l) => (
             <tr key={l.id}>
               <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(l.createdAt)}</td>
@@ -169,11 +146,8 @@ export default async function SystemPage() {
             </tr>
           ))}
         </Table>
-      </div>
 
-      <div>
-        <h2 className="text-base font-semibold text-ink-100 mb-3">Recent errors</h2>
-        <Table columns={["When", "Where", "Message", "Page", "Reference"]} empty={errors.length === 0 ? "No errors recorded." : false}>
+      <Table title="Recent errors" columns={["When", "Where", "Message", "Page", "Reference"]} empty={errors.length === 0 ? "No errors recorded." : false}>
           {errors.map((e) => (
             <tr key={e.id}>
               <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(e.createdAt)}</td>
@@ -186,7 +160,6 @@ export default async function SystemPage() {
             </tr>
           ))}
         </Table>
-      </div>
     </div>
   );
 }

@@ -71,8 +71,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
 
       {tab === "members" && (
         <>
-          <Section>
-            <Row title="Invite" hint={`${members.length} of ${plan.limits.members ?? "unlimited"} on ${plan.name}. ${emailEnabled() ? "They get an email." : "You share the sign-up link."}`}>
+          <Section title="Members" action={`${members.length} of ${plan.limits.members ?? "unlimited"} on ${plan.name}`}>
+            <Row title="Invite" hint={emailEnabled() ? "They get an email." : "You share the sign-up link."}>
               <form action={inviteMemberAction} className="grid grid-cols-1 sm:grid-cols-2 items-center gap-2 w-full max-w-md">
                 <input name="email" type="email" required placeholder="Email" aria-label="Email" className={input} />
                 <input name="name" placeholder="Name (optional)" aria-label="Name" className={input} />
@@ -84,8 +84,6 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                 <button className="btn btn-secondary btn-sm justify-self-start sm:justify-self-end">Invite</button>
               </form>
             </Row>
-          </Section>
-          <Section title="Members">
             {members.map((m) => (
               <Row
                 key={m.id}
@@ -108,12 +106,12 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                 {m.status === "active" && (
                   <form action={createMemberResetLinkAction}>
                     <input type="hidden" name="email" value={m.email} />
-                    <button className="btn btn-ghost btn-sm">Reset link</button>
+                    <button className="btn btn-secondary btn-sm">Reset link</button>
                   </form>
                 )}
                 <form action={removeMemberAction}>
                   <input type="hidden" name="memberId" value={m.id} />
-                  <button className="btn btn-ghost btn-sm">Remove</button>
+                  <button className="btn btn-secondary btn-sm">Remove</button>
                 </form>
               </Row>
             ))}
@@ -124,8 +122,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
 
       {tab === "sharing" && (
         <>
-          <Section>
-            <Row title="Share the Overview" hint={`Read-only link. ${activeLinks.length} of ${plan.limits.sharedDashboards ?? "unlimited"} active on ${plan.name}.`}>
+          <Section title="Shared links" action={`${activeLinks.length} of ${plan.limits.sharedDashboards ?? "unlimited"} active on ${plan.name}`}>
+            <Row title="New link" hint="A read-only view of the Overview.">
               <form action={createShareLinkAction} className="flex flex-wrap gap-2 w-full max-w-md">
                 <input name="name" placeholder="Name, e.g. Board Q3" aria-label="Link name" className={`${input} flex-1 min-w-[10rem]`} />
                 <select name="expiresInDays" defaultValue="30" aria-label="Expiry" className={input}>
@@ -137,8 +135,6 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                 <button className="btn btn-secondary btn-sm">Create link</button>
               </form>
             </Row>
-          </Section>
-          <Section title="Links">
             {links.map((l) => {
               const expired = l.expiresAt && l.expiresAt < new Date();
               const live = !l.revokedAt && !expired;
@@ -161,7 +157,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                         </div>
                         <form action={revokeShareLinkAction}>
                           <input type="hidden" name="linkId" value={l.id} />
-                          <button className="btn btn-ghost btn-sm">Revoke</button>
+                          <button className="btn btn-secondary btn-sm">Revoke</button>
                         </form>
                       </>
                     )}
@@ -176,8 +172,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
 
       {tab === "workspaces" && (
         <>
-          <Section>
-            <Row title="New workspace" hint={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on ${plan.name}. One for each company, plant or client.`}>
+          <Section title="Your workspaces" action={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on ${plan.name}`}>
+            <Row title="New workspace" hint="One for each company, plant or client.">
               {plan.limits.workspaces === null || allWorkspaces.length < plan.limits.workspaces ? (
                 <form action={createWorkspaceAction} className="flex gap-2 w-full max-w-md">
                   <input name="name" required placeholder="Workspace name" aria-label="Workspace name" className={`${input} flex-1 min-w-0`} />
@@ -190,8 +186,6 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                 </>
               )}
             </Row>
-          </Section>
-          <Section title="Your workspaces">
             {allWorkspaces.map((w) => (
               <Row
                 key={w.id}

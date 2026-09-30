@@ -1,7 +1,7 @@
 // Anteprime illustrative per i riquadri della pagina Connect: finte schermate
-// (numeri d'esempio) che salgono dal bordo inferiore, come nel wizard della home.
+// (numeri d'esempio) che salgono dal bordo inferiore. Toni neutri, al massimo un dettaglio arancione.
 
-const frame = "rounded-t-xl border border-b-0 border-line bg-sidebar shadow-[0_-10px_60px_rgba(0,0,0,0.35)] select-none";
+const frame = "rounded-t-xl border border-b-0 border-line bg-sidebar select-none";
 
 /** Estratto conto: le righe AI evidenziate, le altre spente. */
 export function BankPreview() {
@@ -15,12 +15,12 @@ export function BankPreview() {
     <div className={`w-[270px] ${frame}`} aria-hidden>
       <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5">
         <span className="text-[10px] text-ink-400">Bank statement · March</span>
-        <span className="text-[10px] text-accent font-medium">3 AI found</span>
+        <span className="text-[10px] text-ink-100 font-medium">3 AI found</span>
       </div>
       <div className="mx-3 mb-3 rounded-lg border border-line bg-panel divide-y divide-line">
         {rows.map(([n, eur, ai]) => (
-          <div key={n} className={`flex items-center gap-2 px-3 py-1.5 ${ai ? "bg-accent/[0.08]" : "opacity-40"}`}>
-            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${ai ? "bg-accent" : "bg-ink-400"}`} />
+          <div key={n} className={`flex items-center gap-2 px-3 py-1.5 ${ai ? "bg-ink-100/[0.04]" : "opacity-40"}`}>
+            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${ai ? "bg-ink-100" : "bg-ink-400"}`} />
             <span className="flex-1 min-w-0 truncate text-[11px] text-ink-100">{n}</span>
             <span className="text-[11px] tabular text-ink-100">{eur}</span>
           </div>
@@ -47,7 +47,7 @@ export function AccountsPreview() {
           {people.map(([who, ai]) => (
             <div key={who} className="flex items-center justify-between gap-1 py-0.5">
               <span className="text-[10px] text-ink-400">{who}</span>
-              <span className="text-[10px] text-accent">{ai}</span>
+              <span className="text-[10px] text-ink-100">{ai}</span>
             </div>
           ))}
         </div>
@@ -72,11 +72,12 @@ export function DesktopPreview() {
         <span className="ml-2 text-[10px] text-ink-400">angar · today</span>
       </div>
       <div className="px-3 py-2.5 flex flex-col gap-2">
-        {rows.map(([n, min]) => (
+        {rows.map(([n, min], i) => (
           <div key={n} className="flex items-center gap-2">
             <span className="w-14 text-[11px] text-ink-100">{n}</span>
             <span className="flex-1 h-1.5 rounded-full bg-ink-100/[0.07] overflow-hidden">
-              <span className="block h-full rounded-full bg-accent" style={{ width: `${(min / 40) * 100}%` }} />
+              {/* un solo dettaglio arancione: la prima barra */}
+              <span className={`block h-full rounded-full ${i === 0 ? "bg-accent" : "bg-ink-400"}`} style={{ width: `${(min / 40) * 100}%` }} />
             </span>
             <span className="w-10 text-right text-[10px] tabular text-ink-400">{min} min</span>
           </div>

@@ -66,24 +66,20 @@ export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin
   const off = summary.mode === "off";
   return (
     <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="autopilot-title">
-      <div aria-hidden className="pointer-events-none absolute -left-24 -top-28 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
-
-      <header className="relative flex flex-wrap items-center justify-between gap-3 px-5 pt-5">
+      {/* Barra grigia in alto: titolo, stato e modalità. */}
+      <header className="relative flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-2.5 text-sm">
         <div className="flex items-center gap-2.5">
-          <span aria-hidden className={`relative flex h-2.5 w-2.5 ${off ? "" : "text-accent"}`}>
-            {!off && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent/50" />}
-            <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${off ? "bg-ink-400/50" : "bg-accent"}`} />
-          </span>
-          <h2 id="autopilot-title" className="text-base font-semibold text-ink-100">Autopilot</h2>
+          <span aria-hidden className={`relative inline-flex h-2 w-2 rounded-full ${off ? "bg-ink-400/50" : "bg-steady"}`} />
+          <h2 id="autopilot-title" className="font-semibold text-ink-100">Autopilot</h2>
         </div>
         <ModeControl mode={summary.mode} canAdmin={canAdmin} />
       </header>
 
       {off ? (
-        <p className="relative px-5 pb-5 pt-3 text-sm text-ink-400">Off. Turn it on and angar turns each saving into a plan it can run.</p>
+        <p className="relative p-5 text-sm text-ink-400">Off. Turn it on and angar turns each saving into a plan it can run.</p>
       ) : (
         <>
-          <dl className="relative grid grid-cols-3 gap-px mt-4 border-y border-line bg-line">
+          <dl className="relative grid grid-cols-3 gap-px border-b border-line bg-line">
             <Figure label="Ready to save" value={`${fmtEur(summary.proposedMonthlyEur)}`} unit="a month" hint={summary.proposedCount ? `${summary.proposedCount} plan${summary.proposedCount === 1 ? "" : "s"} to approve` : "Nothing waiting"} accent={summary.proposedMonthlyEur > 0} />
             <Figure label="In progress" value={String(summary.runningCount)} hint={summary.doneMonthlyEur > 0 ? `${fmtEur(summary.doneMonthlyEur)} a month done` : "plans running"} />
             <Figure label="Verified on bills" value={fmtEur(summary.verifiedMonthlyEur)} unit="a month" hint="from real charges" good={summary.verifiedMonthlyEur > 0} />
@@ -99,7 +95,7 @@ export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin
             </ul>
           )}
 
-          <footer className="relative flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-2.5 text-[11px] text-ink-400">
+          <footer className="relative flex flex-wrap items-center justify-between gap-2 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-[11px] text-ink-400">
             <span className="flex items-center gap-3">
               <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-accent" />angar does this</span>
               <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full ring-1 ring-ink-400" />you do this</span>
@@ -141,7 +137,7 @@ function Figure({ label, value, unit, hint, accent, good }: { label: string; val
     <div className="bg-panel px-5 py-3.5 min-w-0">
       <dt className="text-xs text-ink-400">{label}</dt>
       <dd className="mt-1">
-        <span className={`font-display text-2xl font-semibold tracking-tight tabular ${accent ? "text-accent" : good ? "text-steady" : "text-ink-100"}`}>{value}</span>
+        <span className={`font-display text-2xl font-semibold tracking-tight tabular ${accent ? "text-ink-100" : good ? "text-steady" : "text-ink-100"}`}>{value}</span>
         {unit && <span className="ml-1 text-xs text-ink-400">{unit}</span>}
       </dd>
       <dd className="text-[11px] text-ink-400 mt-0.5 truncate">{hint}</dd>

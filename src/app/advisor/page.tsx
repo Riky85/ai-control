@@ -85,23 +85,24 @@ export default async function AdvisorPage() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
-        <div>
-          <h2 className="text-base font-semibold text-ink-100">How to get there</h2>
-          <p className="text-sm text-ink-400">In order: consolidate first, then fix plans, seats and billing.</p>
+      <section className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
+        {/* Barra grigia in alto: titolo e ordine dei passi. */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line px-5 py-3">
+          <h2 className="text-sm font-semibold text-ink-100">How to get there</h2>
+          <p className="text-xs text-ink-400">In order: consolidate first, then fix plans, seats and billing.</p>
         </div>
         {recommendations.length === 0 ? (
-          <p className="text-sm text-ink-400 rounded-xl border border-line bg-panel p-5">Your stack already matches how people use AI — nothing to change right now.</p>
+          <p className="text-sm text-ink-400 p-5">Your stack already matches how people use AI — nothing to change right now.</p>
         ) : (
-          <ol className="flex flex-col gap-3">
+          <ol className="flex flex-col divide-y divide-line">
             {recommendations.map((r, i) => (
               <RecRow key={r.key} r={r} n={i + 1} />
             ))}
           </ol>
         )}
+        {/* Barra grigia in basso: da dove vengono le stime. */}
+        <p className="bg-ink border-t border-line px-5 py-3 text-xs text-ink-400">Based on usage seen in the last 30 days and today&apos;s list prices ({PRICES_AS_OF}). Estimates — check before changing a plan.</p>
       </section>
-
-      <p className="text-xs text-ink-400">Based on usage seen in the last 30 days and today&apos;s list prices ({PRICES_AS_OF}). Estimates — check before changing a plan.</p>
     </div>
   );
 }
@@ -109,7 +110,7 @@ export default async function AdvisorPage() {
 function RecRow({ r, n }: { r: Recommendation; n: number }) {
   const c = CONF[r.confidence];
   return (
-    <li className="rounded-xl border border-line bg-panel p-5 flex items-center gap-5 animate-rise">
+    <li className="p-5 flex items-center gap-5">
       <span className="h-7 w-7 shrink-0 rounded-full bg-ink text-sm text-ink-400 flex items-center justify-center tabular">{n}</span>
       <div className="flex -space-x-2 shrink-0">
         {r.assets.slice(0, 3).map((a) => (

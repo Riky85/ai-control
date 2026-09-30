@@ -71,8 +71,8 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
       {forecast && <ForecastCard {...forecast} />}
 
       <div className="grid grid-cols-2 gap-4 items-start">
-        <Panel title="Biggest costs">
-          <div className="divide-y divide-line -mx-5 border-t border-line">
+        <Panel flush title="Biggest costs">
+          <div className="divide-y divide-line">
             {r.costed.slice(0, 8).map((x) => (
               <div key={x.a.id} className="flex items-center justify-between px-5 py-2.5 text-sm">
                 <span className="text-ink-100">{x.a.name}</span>
@@ -82,8 +82,8 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
             {r.costed.length === 0 && <p className="px-5 py-3 text-sm text-ink-400">No costs yet.</p>}
           </div>
         </Panel>
-        <Panel title="Top savings">
-          <div className="divide-y divide-line -mx-5 border-t border-line">
+        <Panel flush title="Top savings">
+          <div className="divide-y divide-line">
             {r.savings.slice(0, 6).map((s) => (
               <div key={s.key} className="flex items-center justify-between gap-4 px-5 py-2.5 text-sm">
                 <span className="text-ink-100">{s.title}</span>

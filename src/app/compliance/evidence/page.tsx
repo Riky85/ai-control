@@ -40,8 +40,8 @@ export default async function EvidencePackPage() {
       </div>
 
       <section className="rounded-xl border border-line bg-panel p-5">
-        <h1 className="text-xl font-semibold text-ink-100">AI Act / NIS2 evidence pack — {pack.organisation.name}</h1>
-        <dl className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1.5 text-sm">
+        <h1 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">AI Act / NIS2 evidence pack — {pack.organisation.name}</h1>
+        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1.5 text-sm">
           <Row label="Organisation" value={pack.organisation.name} />
           <Row label="Country" value={pack.organisation.country ?? "—"} />
           <Row label="Employees" value={pack.organisation.employees ? String(pack.organisation.employees) : "—"} />
@@ -56,8 +56,7 @@ export default async function EvidencePackPage() {
         <p className="mt-1 text-xs text-ink-400">The JSON download is generated separately and carries its own fingerprint.</p>
       </section>
 
-      <Section title="1. AI inventory" subtitle={`${pack.aiInventory.length} AI systems (EU AI Act Art. 26 deployer duties; NIS2 Art. 21 asset management).`}>
-        <Table columns={["AI", "Vendor", "Type", "Status", "EU AI Act", "Owner / department", "First seen", "Sources"]} empty={pack.aiInventory.length ? false : "No AI found yet."}>
+      <Table title="1. AI inventory" note={`${pack.aiInventory.length} AI systems (EU AI Act Art. 26 deployer duties; NIS2 Art. 21 asset management).`} columns={["AI", "Vendor", "Type", "Status", "EU AI Act", "Owner / department", "First seen", "Sources"]} empty={pack.aiInventory.length ? false : "No AI found yet."}>
           {pack.aiInventory.map((a) => (
             <tr key={a.name + a.firstSeen}>
               <td className={`${td} font-medium text-ink-100`}>{a.name}</td>
@@ -71,10 +70,8 @@ export default async function EvidencePackPage() {
             </tr>
           ))}
         </Table>
-      </Section>
 
-      <Section title="2. AI Act readiness" subtitle={`Score ${pack.aiActReadiness.score}/100 · ${pack.aiActReadiness.classified}/${pack.aiActReadiness.total} classified · ${pack.aiActReadiness.highRisk} high-risk · ${pack.aiActReadiness.missingOwners} missing owners`}>
-        <Table columns={["Check", "Detail", { label: "Points", className: "text-right" }]}>
+      <Table title="2. AI Act readiness" note={`Score ${pack.aiActReadiness.score}/100 · ${pack.aiActReadiness.classified}/${pack.aiActReadiness.total} classified · ${pack.aiActReadiness.highRisk} high-risk · ${pack.aiActReadiness.missingOwners} missing owners`} columns={["Check", "Detail", { label: "Points", className: "text-right" }]}>
           {pack.aiActReadiness.checks.map((x) => (
             <tr key={x.key}>
               <td className={`${td} text-ink-100`}>{x.label}</td>
@@ -83,16 +80,14 @@ export default async function EvidencePackPage() {
             </tr>
           ))}
         </Table>
-      </Section>
 
-      <Section title="3. AI literacy (Art. 4)" subtitle="Training recorded in angar.">
-        {pack.policyAcknowledgement.policyVersion && (
-          <p className="text-sm text-ink-400 mb-3">
-            AI policy {pack.policyAcknowledgement.policyVersion} shared with employees{pack.policyAcknowledgement.trackedPerPerson ? `: ${pack.policyAcknowledgement.acknowledged} of ${pack.policyAcknowledgement.sent} acknowledged (${pack.policyAcknowledgement.acknowledgementRate ?? 0}%)` : `: ${pack.policyAcknowledgement.anonymousCompletions} anonymous acknowledgements`}
-            {pack.policyAcknowledgement.averageQuizScore != null && `, average literacy check ${pack.policyAcknowledgement.averageQuizScore}/${pack.policyAcknowledgement.quizQuestions}`}.
-          </p>
-        )}
-        <Table columns={["Date", "Training", "Recorded by"]} empty={pack.aiLiteracy.length ? false : "No AI literacy training recorded — record it on the AI Act page."}>
+      <Table
+        title="3. AI literacy (Art. 4)"
+        note="Training recorded in angar."
+        footer={pack.policyAcknowledgement.policyVersion ? <span className="text-xs text-ink-400">AI policy {pack.policyAcknowledgement.policyVersion} shared with employees{pack.policyAcknowledgement.trackedPerPerson ? `: ${pack.policyAcknowledgement.acknowledged} of ${pack.policyAcknowledgement.sent} acknowledged (${pack.policyAcknowledgement.acknowledgementRate ?? 0}%)` : `: ${pack.policyAcknowledgement.anonymousCompletions} anonymous acknowledgements`}
+            {pack.policyAcknowledgement.averageQuizScore != null && `, average literacy check ${pack.policyAcknowledgement.averageQuizScore}/${pack.policyAcknowledgement.quizQuestions}`}.</span> : undefined}
+        columns={["Date", "Training", "Recorded by"]} empty={pack.aiLiteracy.length ? false : "No AI literacy training recorded — record it on the AI Act page."}
+      >
           {pack.aiLiteracy.map((l, i) => (
             <tr key={i}>
               <td className={`${td} text-ink-400 tabular whitespace-nowrap`}>{fmtDate(new Date(l.date))}</td>
@@ -100,11 +95,9 @@ export default async function EvidencePackPage() {
               <td className={`${td} text-ink-400`}>{l.recordedBy ?? "—"}</td>
             </tr>
           ))}
-        </Table>
-      </Section>
+      </Table>
 
-      <Section title="4. Policies">
-        <Table columns={["Policy", "Category", "Status", "Last updated"]} empty={pack.policies.length ? false : "No policies yet."}>
+      <Table title="4. Policies" columns={["Policy", "Category", "Status", "Last updated"]} empty={pack.policies.length ? false : "No policies yet."}>
           {pack.policies.map((p) => (
             <tr key={p.name}>
               <td className={td}>
@@ -117,10 +110,8 @@ export default async function EvidencePackPage() {
             </tr>
           ))}
         </Table>
-      </Section>
 
-      <Section title="5. Network controls" subtitle={`AI blocked on the company network with angar Edge · Sensors: ${pack.edgeSensors.total} (${pack.edgeSensors.online} online)${pack.edgeSensors.lastSeen ? `, last report ${fmtDateTime(new Date(pack.edgeSensors.lastSeen))}` : ""}`}>
-        <Table columns={["Blocked AI", "Vendor", "Suggested instead"]} empty={pack.networkControls.length ? false : "No AI is blocked on the network."}>
+      <Table title="5. Network controls" note={`AI blocked on the company network with angar Edge · Sensors: ${pack.edgeSensors.total} (${pack.edgeSensors.online} online)${pack.edgeSensors.lastSeen ? `, last report ${fmtDateTime(new Date(pack.edgeSensors.lastSeen))}` : ""}`} columns={["Blocked AI", "Vendor", "Suggested instead"]} empty={pack.networkControls.length ? false : "No AI is blocked on the network."}>
           {pack.networkControls.map((n) => (
             <tr key={n.name}>
               <td className={`${td} text-ink-100`}>{n.name}</td>
@@ -129,10 +120,8 @@ export default async function EvidencePackPage() {
             </tr>
           ))}
         </Table>
-      </Section>
 
-      <Section title="6. NIS2 — AI services as ICT third-party providers" subtitle="Supply-chain security (NIS2 Art. 21(2)(d)): every AI vendor, its services and the company data they can reach.">
-        <Table columns={["Vendor", "Services", { label: "Allowed", className: "text-right" }, { label: "Not allowed", className: "text-right" }, { label: "To review", className: "text-right" }, "Data access"]} empty={pack.nis2.ictThirdPartyProviders.length ? false : "No AI vendors yet."}>
+      <Table title="6. NIS2 — AI services as ICT third-party providers" note="Supply-chain security (NIS2 Art. 21(2)(d)): every AI vendor, its services and the company data they can reach." columns={["Vendor", "Services", { label: "Allowed", className: "text-right" }, { label: "Not allowed", className: "text-right" }, { label: "To review", className: "text-right" }, "Data access"]} empty={pack.nis2.ictThirdPartyProviders.length ? false : "No AI vendors yet."}>
           {pack.nis2.ictThirdPartyProviders.map((v) => (
             <tr key={v.vendor}>
               <td className={`${td} font-medium text-ink-100`}>{v.vendor}</td>
@@ -144,10 +133,8 @@ export default async function EvidencePackPage() {
             </tr>
           ))}
         </Table>
-      </Section>
 
-      <Section title="7. NIS2 — critical incidents and alerts, last 12 months">
-        <Table columns={["Date", "Kind", "Alert"]} empty={pack.nis2.criticalIncidents.length ? false : "No critical alerts in the last 12 months."}>
+      <Table title="7. NIS2 — critical incidents and alerts, last 12 months" columns={["Date", "Kind", "Alert"]} empty={pack.nis2.criticalIncidents.length ? false : "No critical alerts in the last 12 months."}>
           {pack.nis2.criticalIncidents.map((a, i) => (
             <tr key={i}>
               <td className={`${td} text-ink-400 tabular whitespace-nowrap`}>{fmtDateTime(new Date(a.date))}</td>
@@ -159,9 +146,11 @@ export default async function EvidencePackPage() {
             </tr>
           ))}
         </Table>
-      </Section>
 
-      <Section title="8. Audit log integrity" subtitle="Every audit entry carries the SHA-256 of the previous one: changing, deleting or inserting an entry breaks the chain.">
+      <Table
+        title="8. Audit log integrity"
+        note="Every audit entry carries the SHA-256 of the previous one: changing, deleting or inserting an entry breaks the chain."
+        toolbar={
         <div className={`rounded-xl px-4 py-3 text-sm ${c.ok ? "bg-steady/10 text-steady" : "bg-alarm/10 text-alarm"}`}>
           {c.ok ? (
             <>
@@ -175,8 +164,10 @@ export default async function EvidencePackPage() {
             </>
           )}
         </div>
-        <div className="mt-3">
-          <Table columns={["When", "Who", "Action", "Target", "Hash", "Previous"]} empty={pack.auditLog.lastEntries.length ? false : "Nothing recorded yet."}>
+        }
+        footer={<span className="text-xs text-ink-400">Full hashes are in the JSON download. Full log: <Link href="/audit" className="underline hover:text-ink-100">Audit log</Link>.</span>}
+        columns={["When", "Who", "Action", "Target", "Hash", "Previous"]} empty={pack.auditLog.lastEntries.length ? false : "Nothing recorded yet."}
+      >
             {pack.auditLog.lastEntries.map((e, i) => (
               <tr key={i}>
                 <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(new Date(e.at))}</td>
@@ -187,27 +178,10 @@ export default async function EvidencePackPage() {
                 <td className={`${td} font-mono text-xs text-ink-400`} title={e.prevHash ?? ""}>{short(e.prevHash)}</td>
               </tr>
             ))}
-          </Table>
-        </div>
-        <p className="text-xs text-ink-400 mt-2">
-          Full hashes are in the JSON download. Full log: <Link href="/audit" className="underline hover:text-ink-100">Audit log</Link>.
-        </p>
-      </Section>
+      </Table>
 
       <p className="text-xs text-ink-400">Generated by angar from its database — not legal advice. Confirm high-risk cases and NIS2 scope with your DPO or counsel.</p>
     </div>
-  );
-}
-
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
-  return (
-    <section className="flex flex-col gap-3">
-      <div>
-        <h2 className="text-base font-semibold text-ink-100">{title}</h2>
-        {subtitle && <p className="text-sm text-ink-400">{subtitle}</p>}
-      </div>
-      {children}
-    </section>
   );
 }
 

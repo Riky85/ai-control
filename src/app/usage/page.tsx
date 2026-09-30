@@ -226,7 +226,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       <PrivacyNotice mode={mode} what="Usage" />
 
       {!hasData && (
-        <div className="rounded-xl border border-accent/50 bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="rounded-xl border border-line bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-4">
           <p className="flex-1 text-sm text-ink-400">
             <b className="text-ink-100">No usage data yet.</b> Install the desktop app to see who uses which AI.
           </p>
@@ -308,6 +308,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
           <Table
             columns={["Department", { label: "People using AI", className: "text-right" }, { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, "Most used AI"]}
             empty={departments.length === 0 && "No usage yet."}
+            footer={<span className="text-xs text-ink-400">Groups under {MIN_GROUP} people are merged.</span>}
           >
             {departments.map((d) =>
               d.suppressed ? (
@@ -327,7 +328,6 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
               ),
             )}
           </Table>
-          <p className="text-xs text-ink-400">Groups under {MIN_GROUP} people are merged.</p>
         </>
       )}
 
@@ -363,7 +363,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
             }
           >
             {cleanup.length > 0 && (
-              <div className="px-5 pb-4">
+              <div className="px-5 py-4">
                 <StackBar
                   label="Seat requests"
                   parts={[

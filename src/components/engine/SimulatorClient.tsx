@@ -94,15 +94,15 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start">
         {/* Scenari */}
         <section className="rounded-2xl border border-line bg-panel animate-rise">
-          <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
-            <h2 className="text-base font-semibold text-ink-100">Scenarios</h2>
+          <div className="flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+            <h2 className="font-semibold text-ink-100">Scenarios</h2>
             {active && (
               <button type="button" className="text-xs text-ink-400 hover:text-ink-100 underline" onClick={() => setSc(EMPTY_SCENARIO)}>
                 Reset
               </button>
             )}
           </div>
-          <div className="divide-y divide-line border-t border-line">
+          <div className="divide-y divide-line">
             {model.categories.map((c) => (
               <div key={c.key} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
                 <span className="min-w-0">
@@ -166,11 +166,11 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
         <div className="flex flex-col gap-4">
           {/* Effetto sugli assi */}
           <section className="rounded-2xl border border-line bg-panel animate-rise">
-            <div className="px-5 pt-5 pb-3">
-              <h2 className="text-base font-semibold text-ink-100">Effect on the score</h2>
-              <p className="text-sm text-ink-400 mt-0.5">Approximate — same rules as the angar Score</p>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+              <h2 className="font-semibold text-ink-100">Effect on the score</h2>
+              <p className="text-xs text-ink-400">Approximate — same rules as the angar Score</p>
             </div>
-            <ul className="divide-y divide-line border-t border-line">
+            <ul className="divide-y divide-line">
               {AXES.map((a) => {
                 const before = model.score.axes[a];
                 const after = r.score.axes[a];
@@ -206,13 +206,13 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
 
           {/* Cosa cambia */}
           <section className="rounded-2xl border border-line bg-panel animate-rise">
-            <div className="px-5 pt-5 pb-3">
-              <h2 className="text-base font-semibold text-ink-100">What changes</h2>
+            <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+              <h2 className="font-semibold text-ink-100">What changes</h2>
             </div>
             {r.changes.length === 0 ? (
-              <p className="border-t border-line px-5 py-4 text-sm text-ink-400">Turn on a scenario to see the changes.</p>
+              <p className="px-5 py-4 text-sm text-ink-400">Turn on a scenario to see the changes.</p>
             ) : (
-              <ul className="divide-y divide-line border-t border-line">
+              <ul className="divide-y divide-line">
                 {r.changes.map((c) => (
                   <li key={c.key} className="flex items-start justify-between gap-4 px-5 py-3 text-sm">
                     <span className="text-ink-100 min-w-0">{c.text}</span>

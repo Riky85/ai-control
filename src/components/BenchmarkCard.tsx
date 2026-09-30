@@ -104,9 +104,9 @@ function RangeBar({ b, className = "" }: { b: Benchmark; className?: string }) {
 function Section({ b }: { b: Benchmark }) {
   return (
     <div className="rounded-xl border border-line bg-panel p-5 animate-rise">
-      <div className="mb-4">
-        <h2 className="text-base font-semibold text-ink-100">Benchmark vs similar companies</h2>
-        <p className="text-sm text-ink-400 mt-0.5">AI spend a month for each employee — anonymous, aggregated across angar customers. Shown only when {b.minCompanies}+ comparable companies exist.</p>
+      <div className="-mx-5 -mt-5 mb-5 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+        <h2 className="text-sm font-semibold text-ink-100">Benchmark vs similar companies</h2>
+        <p className="text-xs text-ink-400 mt-0.5">AI spend a month for each employee — anonymous, aggregated across angar customers. Shown only when {b.minCompanies}+ comparable companies exist.</p>
       </div>
       {b.peers && b.yours !== null ? (
         <div className="grid grid-cols-[1fr_320px] gap-8 items-center">

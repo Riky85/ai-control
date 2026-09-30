@@ -35,7 +35,7 @@ export default function ExposedKeys({ rows, githubConnected }: { rows: ExposedKe
       }
     >
       {rows.length > 0 && (
-        <ul className="divide-y divide-line border-t border-line">
+        <ul className="divide-y divide-line">
           {shown.map((r) => (
             <li key={`${r.repo}|${r.path}|${r.masked}`} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-5 py-2.5">
               <div className="min-w-0">

@@ -116,17 +116,17 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
         </Table>
       )}
 
-      <details className="rounded-xl border border-line bg-panel p-5 group">
-        <summary className="cursor-pointer list-none flex items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+      <details className="rounded-xl border border-line bg-panel overflow-hidden group">
+        <summary className="cursor-pointer list-none flex items-center justify-between gap-3 bg-ink px-5 py-3 group-open:border-b group-open:border-line [&::-webkit-details-marker]:hidden">
           <span>
-            <span className="text-base font-semibold text-ink-100">Accounts for DATEV and TeamSystem</span>
-            <span className="block text-sm text-ink-400 mt-0.5">
+            <span className="text-sm font-semibold text-ink-100">Accounts for DATEV and TeamSystem</span>
+            <span className="block text-xs text-ink-400 mt-0.5">
               {accountsSet ? `Expense ${settings!.expenseAccount}${settings?.clearingAccount ? ` · clearing ${settings.clearingAccount}` : ""}` : "Each team's cost is booked to the expense account with its cost centre, against a clearing account."}
             </span>
           </span>
           <span className="text-xs text-ink-400 group-open:hidden">Edit</span>
         </summary>
-        <form action={setAccountingSettingsAction} className="mt-4 flex flex-wrap items-end gap-3">
+        <form action={setAccountingSettingsAction} className="p-5 flex flex-wrap items-end gap-3">
           <input type="hidden" name="month" value={month} />
           <Field name="expenseAccount" label="Expense account" placeholder="e.g. 4964" value={settings?.expenseAccount} />
           <Field name="clearingAccount" label="Clearing account" placeholder="e.g. 1590" value={settings?.clearingAccount} />

@@ -37,7 +37,7 @@ export default async function AssuranceView({ orgId }: { orgId: string }) {
         ← Back to governance
       </Link>
       <Section id="assurance" title="Assurance checks" meta={`${passed + warning + failed} checks across ${withReport.length} AI`}>
-        <div className="px-5 pb-5">
+        <div className="p-5">
           <StackBar
             label="Assurance checks"
             parts={[
@@ -52,7 +52,7 @@ export default async function AssuranceView({ orgId }: { orgId: string }) {
       {groups.map(({ level, items }) =>
         items.length > 0 ? (
           <Section key={level} title={<span className="flex items-center gap-2">{LEVEL_LABEL[level]} <Pill tone={LEVEL_TONE[level]}>{items.length}</Pill></span>}>
-            <ul className="divide-y divide-line border-t border-line">
+            <ul className="divide-y divide-line">
               {items.map(({ asset, report }) => {
                 const open = (report.checks as unknown as CheckRow[]).filter((c) => c.status !== "PASSED");
                 return (

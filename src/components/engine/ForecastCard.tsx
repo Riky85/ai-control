@@ -56,11 +56,20 @@ export default function ForecastCard({ history, projection, next12Eur, growthPct
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="forecast-title">
-      <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
-      <div className="relative flex flex-wrap items-end justify-between gap-4 px-5 pt-5">
+      {/* Barra grigia in alto: titolo e legenda del grafico. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+        <h2 id="forecast-title" className="font-semibold text-ink-100">Next 12 months</h2>
+        {!empty && (
+          <div className="flex items-center gap-4 text-[11px] text-ink-400" aria-hidden>
+            <span className="flex items-center gap-1.5"><svg width="16" height="4" className="text-accent"><path d="M0 2h16" stroke="currentColor" strokeWidth="2" /></svg>Actual</span>
+            <span className="flex items-center gap-1.5"><svg width="16" height="4" className="text-accent"><path d="M0 2h16" stroke="currentColor" strokeWidth="2" strokeDasharray="4 3" /></svg>Forecast</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-sm bg-accent/15" />Likely range</span>
+          </div>
+        )}
+      </div>
+      <div className="relative flex flex-wrap items-end justify-between gap-4 px-5 pt-4">
         <div>
-          <h2 id="forecast-title" className="text-sm text-ink-400">Next 12 months</h2>
-          <div className="font-display text-[30px] leading-none font-semibold tracking-tight tabular text-ink-100 mt-1.5">{empty ? "—" : fmtEur(next12Eur)}</div>
+          <div className="font-display text-[30px] leading-none font-semibold tracking-tight tabular text-ink-100">{empty ? "—" : fmtEur(next12Eur)}</div>
         </div>
         {!empty && (
           <div className="text-right">
@@ -136,19 +145,14 @@ export default function ForecastCard({ history, projection, next12Eur, growthPct
               </tbody>
             </table>
           </figcaption>
-          <div className="flex items-center gap-4 text-[11px] text-ink-400 mt-1" aria-hidden>
-            <span className="flex items-center gap-1.5"><svg width="16" height="4" className="text-accent"><path d="M0 2h16" stroke="currentColor" strokeWidth="2" /></svg>Actual</span>
-            <span className="flex items-center gap-1.5"><svg width="16" height="4" className="text-accent"><path d="M0 2h16" stroke="currentColor" strokeWidth="2" strokeDasharray="4 3" /></svg>Forecast</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-sm bg-accent/15" />Likely range</span>
-          </div>
         </figure>
       )}
 
       {!empty && drivers.length > 0 && (
-        <ul className="relative mt-4 border-t border-line px-5 py-3 flex flex-col gap-1.5 text-xs text-ink-400">
+        <ul className="relative mt-4 bg-ink border-t border-line rounded-b-2xl px-5 py-3 flex flex-col gap-1.5 text-xs text-ink-400">
           {drivers.slice(0, 3).map((d) => (
             <li key={d} className="flex items-start gap-2">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-accent" aria-hidden />
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ink-400" aria-hidden />
               <span>{d}</span>
             </li>
           ))}

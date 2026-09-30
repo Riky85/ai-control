@@ -20,7 +20,7 @@ export default async function DevelopersPanel({ orgId, canEdit, webhookStatus }:
   return (
     <div className="flex flex-col gap-4">
       {webhookStatus && <Notice tone={okStatus(webhookStatus) ? "success" : "error"}>Test event: {okStatus(webhookStatus) ? `delivered (HTTP ${webhookStatus})` : webhookStatus}</Notice>}
-      <Section id="developers" title="Developers" action={!canEdit ? <span className="text-xs text-ink-400">Admins only</span> : undefined}>
+      <Section id="developers" title="Developers" action={!canEdit ? "Admins only" : undefined}>
         <Row title="REST API" hint={<span className="font-mono">/ai · /spend · /alerts · /savings</span>}>
           <code className="min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-1.5 text-xs text-ink-400">{base}</code>
           <CopyButton text={base} />
@@ -35,7 +35,7 @@ export default async function DevelopersPanel({ orgId, canEdit, webhookStatus }:
             {canEdit && (
               <form action={revokeApiKeyAction}>
                 <input type="hidden" name="id" value={k.id} />
-                <button className="btn btn-ghost btn-sm">Revoke</button>
+                <button className="btn btn-secondary btn-sm">Revoke</button>
               </form>
             )}
           </Row>
@@ -59,8 +59,8 @@ export default async function DevelopersPanel({ orgId, canEdit, webhookStatus }:
             {canEdit && (
               <>
                 <form action={testWebhookAction}><input type="hidden" name="id" value={h.id} /><button className="btn btn-secondary btn-sm">Send test</button></form>
-                <form action={toggleWebhookAction}><input type="hidden" name="id" value={h.id} /><button className="btn btn-ghost btn-sm">{h.active ? "Pause" : "Resume"}</button></form>
-                <form action={deleteWebhookAction}><input type="hidden" name="id" value={h.id} /><button className="btn btn-ghost btn-sm">Delete</button></form>
+                <form action={toggleWebhookAction}><input type="hidden" name="id" value={h.id} /><button className="btn btn-secondary btn-sm">{h.active ? "Pause" : "Resume"}</button></form>
+                <form action={deleteWebhookAction}><input type="hidden" name="id" value={h.id} /><button className="btn btn-secondary btn-sm">Delete</button></form>
               </>
             )}
           </Row>

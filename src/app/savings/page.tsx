@@ -143,20 +143,31 @@ async function Suggestions({
           {!spend && <Link href="/sources" className="btn btn-primary mt-5">Add a bank statement</Link>}
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {items.map((s) => (
-            <SavingRow key={s.key} s={s} />
-          ))}
+        <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
+          <div className="divide-y divide-line">
+            {items.map((s) => (
+              <SavingRow key={s.key} s={s} />
+            ))}
+          </div>
+          {/* Barra grigia in basso: nota sulle stime e suggerimenti nascosti. */}
+          <div className="flex items-center justify-between gap-3 bg-ink border-t border-line px-5 py-3 text-xs text-ink-400">
+            <span>Estimates, list prices as of {PRICES_AS_OF}.</span>
+            {dismissed > 0 && (
+              <form action={restoreSavingsAction}>
+                <button className="underline hover:text-ink-100">Show {dismissed} hidden suggestion{dismissed === 1 ? "" : "s"}</button>
+              </form>
+            )}
+          </div>
         </div>
       )}
 
       {soon.length > 0 && (
-        <details className="rounded-xl border border-line bg-panel group">
-          <summary className="cursor-pointer list-none px-5 py-3 text-sm font-medium text-ink-100 flex items-center justify-between select-none">
+        <details className="rounded-xl border border-line bg-panel overflow-hidden group">
+          <summary className="cursor-pointer list-none bg-ink px-5 py-3 text-sm font-semibold text-ink-100 flex items-center justify-between select-none group-open:border-b group-open:border-line">
             Coming renewals · {soon.length}
             <span className="text-ink-400 transition-transform group-open:rotate-90">›</span>
           </summary>
-          <div className="divide-y divide-line border-t border-line">
+          <div className="divide-y divide-line">
             {soon.map((r) => (
               <Link key={r.assetId + r.date.toISOString()} href={`/assets/${r.assetId}`} className="flex items-center gap-4 px-5 py-3 hover:bg-ink-100/[0.02] transition-colors">
                 <span className="w-24 text-sm text-ink-400 tabular">{fmtDate(r.date)}</span>
@@ -168,14 +179,14 @@ async function Suggestions({
         </details>
       )}
 
-      <div className="flex items-center justify-between text-xs text-ink-400">
-        <span>Estimates, list prices as of {PRICES_AS_OF}.</span>
-        {dismissed > 0 && (
+      {items.length === 0 && dismissed > 0 && (
+        <div className="flex items-center justify-between text-xs text-ink-400">
+          <span>Estimates, list prices as of {PRICES_AS_OF}.</span>
           <form action={restoreSavingsAction}>
             <button className="underline hover:text-ink-100">Show {dismissed} hidden suggestion{dismissed === 1 ? "" : "s"}</button>
           </form>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }
@@ -188,7 +199,7 @@ function manageUrl(s: Saving) {
 function SavingRow({ s }: { s: Saving }) {
   const c = CONF[s.confidence];
   return (
-    <div className="rounded-xl border border-line bg-panel p-4 flex flex-wrap md:flex-nowrap items-center gap-4 animate-rise">
+    <div className="px-5 py-4 flex flex-wrap md:flex-nowrap items-center gap-4">
       <div className="flex -space-x-2 shrink-0">
         {s.assets.slice(0, 3).map((a) => (
           <span key={a.id} className="rounded-lg ring-2 ring-panel">
@@ -252,11 +263,12 @@ function Progress({ saved, canSave, org }: { saved: SavedSoFar; canSave: number;
   return (
     <>
       {price ? (
-        <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
-          <div className="flex items-baseline justify-between gap-4">
+        <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
+          <div className="flex items-baseline justify-between gap-4 bg-ink border-b border-line rounded-t-xl px-5 py-3">
             <h2 className="text-sm font-semibold text-ink-100">90-day guarantee</h2>
             <span className="text-xs text-ink-400">{day <= 90 ? `Day ${day} of 90` : "First 90 days completed"}</span>
           </div>
+          <div className="p-5 flex flex-col gap-3">
           <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-ink-100/[0.06]">
             <span className={`h-full ${pct >= 100 ? "bg-steady" : "bg-accent"}`} style={{ width: `${pct}%` }} />
           </div>
@@ -265,12 +277,14 @@ function Progress({ saved, canSave, org }: { saved: SavedSoFar; canSave: number;
             {pct >= 100 ? " — angar has paid for itself." : "."}
             <span className="block text-xs mt-1">{GUARANTEE}</span>
           </p>
+          </div>
         </section>
       ) : null}
 
       <Table
         columns={["Change", "Type", "Status", { label: "Expected", className: "text-right" }, { label: "Confirmed", className: "text-right" }, "Since", ""]}
         empty={rows.length === 0 ? "Nothing in progress yet. Accept a suggestion to track it here." : false}
+        footer={<span className="text-xs text-ink-400">angar confirms each saving on the next bills (within {VERIFY_AFTER_DAYS} days).</span>}
       >
         {rows.map((r) => {
           const st = statusOf(r, saved.notConfirmedIds);
@@ -302,7 +316,6 @@ function Progress({ saved, canSave, org }: { saved: SavedSoFar; canSave: number;
           );
         })}
       </Table>
-      <p className="text-xs text-ink-400">angar confirms each saving on the next bills (within {VERIFY_AFTER_DAYS} days).</p>
     </>
   );
 }

@@ -48,7 +48,7 @@ export default function EdgeOrder({
           <span className="text-ink-400 font-normal"> a month</span>
         </span>
       </div>
-      <button className="btn btn-primary w-full">{payments ? `Order ${n} device${n === 1 ? "" : "s"}` : `Request ${n} device${n === 1 ? "" : "s"}`}</button>
+      <button className="btn btn-secondary w-full">{payments ? `Order ${n} device${n === 1 ? "" : "s"}` : `Request ${n} device${n === 1 ? "" : "s"}`}</button>
       {!payments && <p className="text-xs text-ink-400 text-center">We confirm by email and send the invoice — no card needed.</p>}
     </form>
   );

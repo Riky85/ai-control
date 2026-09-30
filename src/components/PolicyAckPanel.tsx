@@ -73,7 +73,7 @@ export default async function PolicyAckPanel({
       }
       footer={"href" in next && next.href ? <NextStep href={next.href} label={next.label} /> : <NextStep done={next.done} label={next.label} />}
     >
-      <div className="px-5 pb-4 flex flex-col gap-4">
+      <div className="px-5 py-4 flex flex-col gap-4">
         {flash?.error && <Notice tone="error">{flash.error}</Notice>}
         {flash?.ack === "sent" && <Notice tone="success">Sent to {n} {n === 1 ? "person" : "people"}. Reminders go out automatically after 7 days (max {MAX_REMINDERS}).</Notice>}
         {flash?.ack === "links" && <Notice>Created {n} personal link{n === 1 ? "" : "s"}. Email isn&apos;t configured on this deployment — copy the links below and send them yourself.</Notice>}

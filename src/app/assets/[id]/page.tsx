@@ -168,8 +168,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             <>
               {market && market.verdict !== "unknown" && <MarketPriceStrip row={pickRow(market)} />}
               {vendorRisk && <VendorTermsCard risk={vendorRisk} tier={tier} detailsHref={`/assets/${asset.id}?tab=risk`} />}
-              <Panel title="How to save" subtitle="Calculated automatically from your bills, seats and list prices">
-                <div className="divide-y divide-line -mx-5 border-t border-line">
+              <Panel flush title="How to save" subtitle="Calculated automatically from your bills, seats and list prices">
+                <div className="divide-y divide-line">
                   {mine.map((i) => (
                     <div key={i.key} className="flex items-start gap-4 px-5 py-3.5">
                       <div className="flex-1 min-w-0">
@@ -262,14 +262,15 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 )}
               </Panel>
               <Panel
+                flush
                 title="Assurance checks"
                 subtitle={assurance ? `${assurance.passedCount} passed · ${assurance.warningCount} need attention · ${assurance.failedCount} failed` : "Not assessed yet"}
                 action={<Link href="/activity?tab=evidence" className="btn btn-secondary btn-sm">Full evidence</Link>}
               >
                 {!assurance ? (
-                  <p className="text-sm text-ink-400">No assurance report yet — it&apos;s generated after the next sync.</p>
+                  <p className="px-5 py-4 text-sm text-ink-400">No assurance report yet — it&apos;s generated after the next sync.</p>
                 ) : (
-                <div className="divide-y divide-line -mx-5 border-t border-line">
+                <div className="divide-y divide-line">
                   {((assurance?.checks as unknown as { key: string; label: string; status: "PASSED" | "WARNING" | "FAILED"; detail: string }[] | undefined) ?? []).map((ch) => (
                     <div key={ch.key} className="flex items-start gap-3 px-5 py-3">
                       <span className="mt-0.5"><StatusDot status={ch.status} /></span>
@@ -300,7 +301,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         </div>
 
         <aside className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-5">
-          <h2 className="text-base font-semibold text-ink-100">Manage</h2>
+          <h2 className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">Manage</h2>
 
           <NetworkBlock asset={asset} orgId={orgId} error={tab !== "people" ? searchParams.error : undefined} />
 

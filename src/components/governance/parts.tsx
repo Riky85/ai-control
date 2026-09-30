@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BlockHead } from "@/components/ui";
 
 /**
  * Pezzi condivisi da Governance e Usage, nello stesso linguaggio del blocco
@@ -43,17 +44,10 @@ export function Section({
 }) {
   return (
     <section id={id} className={`rounded-2xl border border-line bg-panel animate-rise scroll-mt-6 flex flex-col ${className}`} aria-labelledby={id ? `${id}-title` : undefined}>
-      <div className="flex flex-wrap items-start justify-between gap-3 px-5 pt-5 pb-3">
-        <div className="min-w-0">
-          <h2 id={id ? `${id}-title` : undefined} className="text-base font-semibold text-ink-100">
-            {title}
-          </h2>
-          {meta && <div className="text-sm text-ink-400 mt-0.5">{meta}</div>}
-        </div>
-        {action && <div className="flex flex-wrap items-center gap-2 shrink-0">{action}</div>}
-      </div>
+      {/* Barra grigia in alto: titolo a sinistra, contesto e azioni a destra (regola della casa). */}
+      <BlockHead id={id ? `${id}-title` : undefined} title={title} note={meta} action={action} rounded="rounded-t-2xl" />
       {children && <div className="flex-1">{children}</div>}
-      {footer && <div className="border-t border-line px-5 py-3 text-sm">{footer}</div>}
+      {footer && <div className="bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-sm">{footer}</div>}
     </section>
   );
 }

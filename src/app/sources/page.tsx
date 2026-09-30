@@ -59,9 +59,9 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
         </Link>
       </Card>
 
-      <section id="accounts" className="flex flex-col gap-2 scroll-mt-6">
-        <h2 className="text-base font-semibold text-ink-100">Accounts</h2>
-        <div className="rounded-xl border border-line bg-panel divide-y divide-line">
+      <section id="accounts" className="scroll-mt-6">
+        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
+          <h2 className="bg-ink px-4 py-3 text-sm font-semibold text-ink-100">Accounts</h2>
           {workplace.providers.map((p) => (
             <SourceRow key={p.id} label={p.label}>
               {p.connected ? (
@@ -88,14 +88,13 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
 
 function Card({ title, text, status, children }: { title: string; text: string; status: string | null; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
-      <div>
-        <div className="flex items-center gap-2">
-          <h2 className="text-base font-semibold text-ink-100">{title}</h2>
-          {status && <span className="text-xs text-steady">✓ {status}</span>}
-        </div>
-        <p className="text-sm text-ink-400 mt-0.5">{text}</p>
+    <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4 animate-rise">
+      {/* Barra grigia in alto: titolo e stato. */}
+      <div className="-mx-5 -mt-5 flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3">
+        <h2 className="text-sm font-semibold text-ink-100">{title}</h2>
+        {status && <span className="text-xs text-steady">✓ {status}</span>}
       </div>
+      <p className="text-sm text-ink-400">{text}</p>
       <div className="flex flex-col gap-3 mt-auto">{children}</div>
     </section>
   );

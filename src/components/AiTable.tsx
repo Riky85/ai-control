@@ -20,7 +20,22 @@ export function savingsByAsset(items: Saving[]) {
 }
 
 // La tabella unica delle AI: stessa in Home e in "Your AI".
-export default function AiTable({ assets, savings, empty }: { assets: AssetForSavings[]; savings: Saving[]; empty?: string }) {
+export default function AiTable({
+  assets,
+  savings,
+  empty,
+  ...head
+}: {
+  assets: AssetForSavings[];
+  savings: Saving[];
+  empty?: string;
+  /** Barra grigia del blocco (titolo, nota, azione) e riga filtri, passate alla tabella. */
+  title?: React.ReactNode;
+  note?: React.ReactNode;
+  action?: React.ReactNode;
+  toolbar?: React.ReactNode;
+  id?: string;
+}) {
   const save = savingsByAsset(savings);
   const now = Date.now();
   const rows = assets
@@ -29,6 +44,7 @@ export default function AiTable({ assets, savings, empty }: { assets: AssetForSa
 
   return (
     <Table
+      {...head}
       columns={["AI", "Plan", "People", { label: "Cost / month", className: "text-right" }, { label: "Could save", className: "text-right" }, ""]}
       empty={rows.length === 0 && (empty ?? "Nothing here yet.")}
     >

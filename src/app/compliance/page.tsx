@@ -88,8 +88,8 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <section className="rounded-xl border border-line bg-panel p-5">
-          <h2 className="text-base font-semibold text-ink-100">What counts towards the score</h2>
-          <ul className="mt-3 flex flex-col divide-y divide-line">
+          <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">What counts towards the score</h2>
+          <ul className="flex flex-col divide-y divide-line">
             {r.checks.map((c) => {
               const dot = c.fraction >= 1 ? "bg-steady" : c.fraction > 0 ? "bg-signal" : "bg-alarm";
               return (
@@ -113,8 +113,8 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
         </section>
 
         <section className="rounded-xl border border-line bg-panel p-5">
-          <h2 className="text-base font-semibold text-ink-100">Timeline</h2>
-          <ol className="mt-3 flex flex-col gap-3">
+          <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">Timeline</h2>
+          <ol className="flex flex-col gap-3">
             {steps.map((s) => (
               <li key={s.title} className="flex items-start gap-3">
                 <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${s.inForce ? "bg-accent" : "bg-ink-400/50"}`} />
@@ -137,21 +137,13 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
         </section>
       </div>
 
-      <section className="flex flex-col gap-3">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold text-ink-100">Your AI</h2>
-            <p className="text-sm text-ink-400">Suggested classes come from what each AI does. Tiers you set by hand are never overwritten in bulk.</p>
-          </div>
-          {pendingUnclassified > 0 && (
+      <Table title="Your AI" note="Suggested classes come from what each AI does. Tiers you set by hand are never overwritten in bulk." action={pendingUnclassified > 0 ? (
             <form action={applyAllSuggestionsAction}>
               <button className="btn btn-primary btn-sm" title="Classifies every AI that has no risk class yet">
                 Apply all suggestions ({pendingUnclassified})
               </button>
             </form>
-          )}
-        </div>
-        <Table columns={["AI", "Current class", "Suggested", "Owner", "Status"]} empty={rows.length ? false : "No AI found yet — connect a source to start your AI register."}>
+          ) : undefined} columns={["AI", "Current class", "Suggested", "Owner", "Status"]} empty={rows.length ? false : "No AI found yet — connect a source to start your AI register."}>
           {rows.map(({ a, sug }) => (
             <tr key={a.id}>
               <td className={td}>
@@ -184,7 +176,6 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
             </tr>
           ))}
         </Table>
-      </section>
 
       <p className="text-xs text-ink-400">Guidance, not legal advice — confirm high-risk cases with your DPO or counsel.</p>
     </div>

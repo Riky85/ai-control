@@ -38,30 +38,76 @@ export function StatCard({
   );
 }
 
-/** Contenitore per grafici e sezioni — titolo, sottotitolo, azione opzionale. */
+/**
+ * Barre grigie della piattaforma — regola della casa: ogni tabella o blocco ha
+ * una barra grigia in alto (titolo) o in basso (azioni, totali, link), come il
+ * piè della card angar Score e l'intestazione delle tabelle.
+ */
+export const BAR_HEAD = "bg-ink border-b border-line px-5 py-3 text-sm";
+export const BAR_FOOT = "bg-ink border-t border-line px-5 py-3 text-sm";
+
+/** Barra grigia in alto: titolo a sinistra, nota/legenda e azione a destra. */
+export function BlockHead({
+  title,
+  note,
+  action,
+  id,
+  className = "",
+  rounded = "rounded-t-xl",
+}: {
+  title: React.ReactNode;
+  note?: React.ReactNode;
+  action?: React.ReactNode;
+  id?: string;
+  className?: string;
+  rounded?: string;
+}) {
+  return (
+    <div className={`${BAR_HEAD} ${rounded} flex flex-wrap items-center justify-between gap-x-4 gap-y-1 ${className}`}>
+      <h2 id={id} className="text-sm font-semibold text-ink-100 min-w-0">
+        {title}
+      </h2>
+      {(note || action) && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+          {note && <span className="text-xs text-ink-400 min-w-0">{note}</span>}
+          {action}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Barra grigia in basso: link, totali, pulsanti. */
+export function BlockFoot({ children, className = "", rounded = "rounded-b-xl" }: { children: React.ReactNode; className?: string; rounded?: string }) {
+  return <div className={`${BAR_FOOT} ${rounded} flex flex-wrap items-center gap-x-4 gap-y-2 ${className}`}>{children}</div>;
+}
+
+/**
+ * Contenitore per grafici e sezioni — barra grigia col titolo, corpo, piè opzionale.
+ * Con `flush` il corpo non ha margini interni (elenchi a tutta larghezza).
+ */
 export function Panel({
   title,
   subtitle,
   action,
   children,
+  footer,
+  flush,
   className = "",
 }: {
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
   children: React.ReactNode;
+  footer?: React.ReactNode;
+  flush?: boolean;
   className?: string;
 }) {
   return (
-    <div className={`rounded-xl border border-line bg-panel p-5 animate-rise ${className}`}>
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h2 className="text-base font-semibold text-ink-100">{title}</h2>
-          {subtitle && <p className="text-sm text-ink-400 mt-0.5">{subtitle}</p>}
-        </div>
-        {action}
-      </div>
-      {children}
+    <div className={`rounded-xl border border-line bg-panel animate-rise flex flex-col ${className}`}>
+      <BlockHead title={title} note={subtitle} action={action} />
+      <div className={`flex-1 ${flush ? "" : "p-5"}`}>{children}</div>
+      {footer && <BlockFoot>{footer}</BlockFoot>}
     </div>
   );
 }
@@ -107,13 +153,40 @@ export function PageHeader({
 /**
  * Tabella standard della piattaforma — stessa grafica di AI Passports ovunque:
  * contenitore bordato, intestazione grigia, righe divise, prima colonna con logo.
+ * Opzionali: barra grigia col titolo (con nota e azione), una riga di filtri
+ * sotto il titolo e una barra grigia in basso (note, totali, link).
  */
-export function Table({ columns, children, empty }: { columns: (string | { label: string; className?: string })[]; children: React.ReactNode; empty?: string | false }) {
+export function Table({
+  columns,
+  children,
+  empty,
+  footer,
+  title,
+  note,
+  action,
+  toolbar,
+  id,
+}: {
+  columns: (string | { label: string; className?: string })[];
+  children: React.ReactNode;
+  empty?: string | false;
+  footer?: React.ReactNode;
+  title?: React.ReactNode;
+  note?: React.ReactNode;
+  action?: React.ReactNode;
+  toolbar?: React.ReactNode;
+  id?: string;
+}) {
+  const top = title || toolbar;
   return (
-    <div className="rounded-xl border border-line bg-panel overflow-x-auto animate-rise">
+    <div id={id} className="rounded-xl border border-line bg-panel animate-rise scroll-mt-6">
+      {title && <BlockHead title={title} note={note} action={action} />}
+      {toolbar && <div className={`px-5 py-3 border-b border-line ${title ? "" : "rounded-t-xl"}`}>{toolbar}</div>}
+      <div className={`overflow-x-auto ${top ? "" : "rounded-t-xl"} ${footer ? "" : "rounded-b-xl"}`}>
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line">
+          {/* Con la barra del titolo grigia subito sopra, le colonne restano senza sfondo (niente doppia fascia grigia). */}
+          <tr className={`text-left text-xs text-ink-400 border-b border-line ${title && !toolbar ? "" : "bg-ink"}`}>
             {columns.map((c, i) => {
               const col = typeof c === "string" ? { label: c } : c;
               return (
@@ -135,6 +208,8 @@ export function Table({ columns, children, empty }: { columns: (string | { label
           )}
         </tbody>
       </table>
+      </div>
+      {footer && <BlockFoot>{footer}</BlockFoot>}
     </div>
   );
 }

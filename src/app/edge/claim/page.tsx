@@ -39,7 +39,7 @@ export default async function ClaimDevicePage({ searchParams }: { searchParams: 
         <form action="/edge/claim" method="get" className="rounded-xl border border-line bg-panel p-5 flex flex-wrap items-center gap-2">
           <input name="serial" defaultValue={searchParams.serial ?? ""} placeholder="AE-XXXX-XXXX" className="field w-48 font-mono uppercase" maxLength={20} required aria-label="Device serial" />
           <button className="btn btn-primary btn-sm">Continue</button>
-          <span className="text-xs text-ink-400 w-full">The serial is on the label under the device, next to the QR code.</span>
+          <span className="-mx-5 -mb-5 mt-3 w-[calc(100%+2.5rem)] bg-ink border-t border-line rounded-b-xl px-5 py-3 text-xs text-ink-400">The serial is on the label under the device, next to the QR code.</span>
         </form>
       ) : mine ? (
         <Notice tone="success">
@@ -65,8 +65,8 @@ export default async function ClaimDevicePage({ searchParams }: { searchParams: 
               <Link href="/workspace?tab=workspaces" className="underline hover:text-ink-100">Switch workspace</Link>, then scan the QR code again.
             </p>
           )}
-          <div className="flex items-center gap-3">
-            <button className="btn btn-primary" disabled={!canEdit}>Link to {ws}</button>
+          <div className="-mx-5 -mb-5 flex items-center gap-3 bg-ink border-t border-line rounded-b-xl px-5 py-3">
+            <button className="btn btn-primary btn-sm" disabled={!canEdit}>Link to {ws}</button>
             {!canEdit && <span className="text-xs text-ink-400">Only admins of {ws} can link devices.</span>}
           </div>
         </form>

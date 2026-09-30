@@ -21,7 +21,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
     return (
       <div className="flex flex-col gap-4">
         <PageHeader title="Plan & billing" subtitle="angar on-premises" />
-        <Section>
+        <Section title="Plan">
           <Row title="Everything included" hint="All features on, data stays on your server.">
             <span className="text-sm text-ink-400">Licence and invoices directly with angar</span>
           </Row>
@@ -81,7 +81,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
       {searchParams.checkout === "cancelled" && <Notice>Checkout cancelled — nothing was charged.</Notice>}
       {!payments && <Notice>Online payments aren&apos;t set up on this deployment — plans can be compared, not bought.</Notice>}
 
-      <Section>
+      <Section title="Your plan">
         <Row title={<span className="flex items-center gap-2">{planTitle} <Badge>{statusLabel}</Badge></span>} hint={planSubtitle}>
           {org.stripeCustomerId && (
             <form action={openBillingPortalAction}>
@@ -110,7 +110,8 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
         })}
       </Section>
 
-      <div className="flex items-center justify-between gap-3 flex-wrap px-1">
+      {/* Barra grigia del titolo sopra le card dei piani */}
+      <div className="flex items-center justify-between gap-3 flex-wrap rounded-xl border border-line bg-ink px-5 py-2 min-h-11">
         <h2 className="text-sm font-semibold text-ink-100">{state.trialing || state.expired ? "Choose a plan" : "Plans"}</h2>
         <BillingToggle basePath="/billing" annual={annual} />
       </div>
@@ -139,14 +140,16 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
                 <span className="text-sm text-ink-400"> a month for each device</span>
               </div>
               <div className="text-xs text-ink-400">Any plan · {EDGE.minMonths}-month minimum · shipping included · {org.edgeDevices} active</div>
-              <Link href="/edge" className="text-xs text-accent hover:underline">How it works →</Link>
+              <Link href="/edge" className="text-xs text-ink-400 hover:text-ink-100 underline self-start">How it works</Link>
             </div>
           </div>
           <div className="flex flex-col gap-2 md:border-l border-line md:pl-8">
             <EdgeOrder price={EDGE.pricePerDevice} max={EDGE.maxSelfServe} payments={payments && !!process.env[EDGE.stripePriceEnv]} checkoutAction={startEdgeCheckoutAction} requestAction={requestEdgeDevicesAction} />
-            <a href={`mailto:${salesEmail ?? ""}?subject=${encodeURIComponent(`angar Edge — more than ${EDGE.maxSelfServe} devices`)}`} className="text-xs text-ink-400 hover:text-ink-100 underline text-center">
-              More than {EDGE.maxSelfServe} devices? Contact sales
-            </a>
+            {salesEmail && (
+              <a href={`mailto:${salesEmail}?subject=${encodeURIComponent(`angar Edge — more than ${EDGE.maxSelfServe} devices`)}`} className="text-xs text-ink-400 hover:text-ink-100 underline text-center">
+                More than {EDGE.maxSelfServe} devices? Contact sales
+              </a>
+            )}
           </div>
         </div>
       </Section>

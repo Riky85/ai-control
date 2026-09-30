@@ -170,7 +170,7 @@ export function GraphColumns({
       {xs.map((x, i) => (
         <div
           key={i}
-          className={`absolute top-0 bottom-0 rounded-xl border ${i === 1 ? "bg-accent-soft/60 border-accent/20" : "bg-ink border-line"}`}
+          className="absolute top-0 bottom-0 rounded-xl border bg-ink border-line"
           style={{ left: `${((x - inset + GRAPH_PAD) / total) * 100}%`, width: `${((COL + inset * 2) / total) * 100}%` }}
         >
           <div className="px-4 pt-3">

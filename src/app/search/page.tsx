@@ -105,8 +105,8 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="text-base font-semibold text-ink-100 mb-3">{title}</h2>
-      <div className="rounded-xl border border-line bg-panel divide-y divide-line">{children}</div>
+      <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
+        <h2 className="bg-ink px-5 py-3 text-sm font-semibold text-ink-100">{title}</h2>{children}</div>
     </div>
   );
 }

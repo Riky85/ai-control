@@ -27,18 +27,18 @@ const SEV = {
 export default function AnomalyList({ anomalies, limit = 5 }: AnomalyListProps & { limit?: number }) {
   const shown = anomalies.slice(0, limit);
   return (
-    <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="anomaly-title">
-      <div className="flex items-baseline justify-between gap-3 px-5 pt-5 pb-3">
-        <h2 id="anomaly-title" className="text-base font-semibold text-ink-100">Anomalies</h2>
+    <section className="overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="anomaly-title">
+      <div className="flex items-baseline justify-between gap-3 bg-ink border-b border-line px-5 py-3 text-sm">
+        <h2 id="anomaly-title" className="font-semibold text-ink-100">Anomalies</h2>
         {anomalies.length > 0 && <span className="text-xs text-ink-400 tabular">{anomalies.length} found</span>}
       </div>
       {shown.length === 0 ? (
-        <p className="border-t border-line px-5 py-4 text-sm text-ink-400 flex items-center gap-2">
+        <p className="px-5 py-4 text-sm text-ink-400 flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-steady" aria-hidden />
           Nothing unusual right now.
         </p>
       ) : (
-        <ul className="divide-y divide-line border-t border-line">
+        <ul className="divide-y divide-line">
           {shown.map((a) => (
             <li key={a.key}>
               <Link href={a.href} className="group flex items-start gap-3 px-5 py-3 hover:bg-ink-100/[0.03] transition-colors">
@@ -60,7 +60,7 @@ export default function AnomalyList({ anomalies, limit = 5 }: AnomalyListProps &
         </ul>
       )}
       {anomalies.length > limit && (
-        <div className="border-t border-line px-5 py-3 text-xs text-ink-400">
+        <div className="bg-ink border-t border-line px-5 py-3 text-xs text-ink-400">
           <Link href="/alerts" className="hover:text-ink-100">+{anomalies.length - limit} more in alerts →</Link>
         </div>
       )}

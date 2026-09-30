@@ -25,12 +25,17 @@ export default async function SignInSecurityPanel({ message }: { message?: strin
       <form action={setSignInSecurityAction}>
         {/* Un solo fieldset: senza permessi i controlli restano visibili ma spenti. */}
         <fieldset disabled={!isOwner} className="contents">
-          <Section id="sign-in-security" title="Sign-in" action={!isOwner ? <span className="text-xs text-ink-400">Owners only</span> : undefined}>
+          <Section
+            id="sign-in-security"
+            title="Sign-in"
+            action={!isOwner ? "Owners only" : undefined}
+            footer={<button className="btn btn-secondary btn-sm" disabled={!isOwner}>Save</button>}
+          >
             {/* Senza SSO configurato sulla piattaforma le opzioni SSO non si mostrano (restano solo se già attive). */}
             {(ssoOn || org.ssoRequired) && (
               <Row title={`Require ${providers || "Microsoft or Google"}`} hint={ssoOn ? "Password sign-ins are refused." : "Not set up on this deployment yet."}>
                 <input type="checkbox" name="ssoRequired" aria-label="Require single sign-on" defaultChecked={org.ssoRequired} disabled={!ssoOn && !org.ssoRequired} className={check} />
-                <input name="ssoDomain" defaultValue={org.ssoDomain ?? ""} placeholder="Only company.com (optional)" aria-label="Only for emails at this domain" className="field w-56 max-w-full" />
+                <input name="ssoDomain" defaultValue={org.ssoDomain ?? ""} placeholder="Only company.com (optional)" aria-label="Only for emails at this domain" className="field w-full sm:w-56 min-w-0" />
               </Row>
             )}
             <Row title="Require two-step" hint="For password sign-ins. Set up right after signing in.">
@@ -39,9 +44,6 @@ export default async function SignInSecurityPanel({ message }: { message?: strin
             <Row title="Your two-step" hint="Your own authenticator app.">
               <Link href="/account/security" className="btn btn-secondary btn-sm">Open →</Link>
             </Row>
-            <div className="px-5 py-3 flex justify-end">
-              <button className="btn btn-secondary btn-sm" disabled={!isOwner}>Save</button>
-            </div>
           </Section>
         </fieldset>
       </form>

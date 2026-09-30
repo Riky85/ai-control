@@ -25,12 +25,15 @@ export default function UsageChart({ values, labels, unit = "visits", weekChange
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="usage-chart-title">
-      <div className="flex flex-wrap items-end justify-between gap-4 px-5 pt-5">
+      {/* Barra grigia in alto con il titolo. */}
+      <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm">
+        <h2 id="usage-chart-title" className="font-semibold text-ink-100">
+          Last {n} days
+        </h2>
+      </div>
+      <div className="flex flex-wrap items-end justify-between gap-4 px-5 pt-4">
         <div>
-          <h2 id="usage-chart-title" className="text-sm text-ink-400">
-            Last {n} days
-          </h2>
-          <div className="flex items-baseline gap-2 mt-1.5">
+          <div className="flex items-baseline gap-2">
             <span className="font-display text-[30px] leading-none font-semibold tracking-tight tabular text-ink-100">{fmtN(total)}</span>
             <span className="text-sm text-ink-400">{unit}</span>
           </div>

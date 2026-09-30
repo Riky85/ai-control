@@ -55,7 +55,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
       />
 
       <div className="rounded-xl border border-line bg-panel p-5 text-sm">
-        <h2 className="text-base font-semibold text-ink-100 mb-3">Event details</h2>
+        <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">Event details</h2>
         <dl className="flex flex-col gap-2.5">
           <Row label="Asset">
             <Link href={`/assets/${activity.aiAssetId}`} className="text-ink-100 hover:underline font-medium">
@@ -83,14 +83,14 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
       )}
 
       {others.length > 0 && (
-        <div className="rounded-xl border border-line bg-panel divide-y divide-line">
+        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
           {others.map((e) => (
             <Link key={e.id} href={`/activity/${e.id}`} className="flex items-center justify-between gap-4 px-5 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="text-ink-100 truncate">{e.eventType}</span>
               <span className="tabular text-xs text-ink-400 shrink-0">{fmtDateTime(e.occurredAt)}</span>
             </Link>
           ))}
-          <Link href={`/activity?q=${encodeURIComponent(activity.aiAsset.name)}`} className="block px-5 py-2.5 text-xs text-ink-400 hover:text-ink-100">
+          <Link href={`/activity?q=${encodeURIComponent(activity.aiAsset.name)}`} className="block bg-ink px-5 py-3 text-xs text-ink-400 hover:text-ink-100">
             All events for {activity.aiAsset.name} →
           </Link>
         </div>
@@ -98,7 +98,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
 
       {activity.payload != null && people && (
         <div className="rounded-xl border border-line bg-panel p-5">
-          <h2 className="text-base font-semibold text-ink-100 mb-3">Raw event payload</h2>
+          <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">Raw event payload</h2>
           <p className="text-xs text-ink-400 mb-3">
             Exactly what the connector imported — useful for tracing back to the source system.
           </p>

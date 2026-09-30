@@ -49,9 +49,9 @@ export default function VendorRiskCard({ risk, tier, detailsHref }: { risk: Vend
   );
   return (
     <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="vendor-risk-title">
-      <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
+      <div className="flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-4 py-2.5">
         <div className="min-w-0 flex items-baseline gap-2">
-          <h2 id="vendor-risk-title" className="text-sm font-medium text-ink-100 truncate">
+          <h2 id="vendor-risk-title" className="text-sm font-semibold text-ink-100 truncate">
             Vendor terms · {risk.vendor}
           </h2>
           <span className="text-[11px] text-ink-400 shrink-0">{risk.verified ? `checked ${risk.lastReviewed}` : "unverified"}</span>
@@ -62,7 +62,7 @@ export default function VendorRiskCard({ risk, tier, detailsHref }: { risk: Vend
           </Link>
         )}
       </div>
-      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 px-4 pb-1 overflow-hidden">
+      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 px-4 pb-1 pt-px overflow-hidden">
         {row("EU data", <Pill tone={residency[risk.euResidency].tone} title={risk.residencyNote ?? RESIDENCY_LABEL[risk.euResidency]}>{residency[risk.euResidency].label}</Pill>)}
         {row(
           <span title={tier === "business" ? "Terms for business plans and the API" : "Terms for personal and free plans"}>

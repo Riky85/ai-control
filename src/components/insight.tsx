@@ -66,12 +66,14 @@ export function DayBars({ values, labels, height = 44, unit = "" }: { values: nu
 /** Pannello compatto con titolo a sinistra, nota a destra e le barre giornaliere. */
 export function TrendPanel({ title, note, values, labels, unit }: { title: string; note?: React.ReactNode; values: number[]; labels?: string[]; unit?: string }) {
   return (
-    <section className="rounded-xl border border-line bg-panel px-5 py-4 flex flex-col gap-3 animate-rise">
-      <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span className="font-medium text-ink-100">{title}</span>
+    <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
+      <div className="bg-ink border-b border-line rounded-t-xl px-5 py-3 flex items-baseline justify-between gap-3 text-sm">
+        <span className="font-semibold text-ink-100">{title}</span>
         {note && <span className="text-xs text-ink-400 truncate">{note}</span>}
       </div>
-      <DayBars values={values} labels={labels} unit={unit} />
+      <div className="px-5 py-4">
+        <DayBars values={values} labels={labels} unit={unit} />
+      </div>
     </section>
   );
 }

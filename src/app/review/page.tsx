@@ -107,7 +107,12 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
           <Link href="/" className="btn btn-primary mt-6">See your AI</Link>
         </div>
       ) : (
-        <ul className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
+        <ul className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
+          {/* Barra grigia in alto: la coda da decidere. */}
+          <li className="flex items-center justify-between gap-3 bg-ink px-4 py-3 text-sm">
+            <h2 className="font-semibold text-ink-100">To review</h2>
+            <span className="text-xs text-ink-400 tabular">{queue.length} AI</span>
+          </li>
           {queue.map((a) => {
             const lvl = a.riskAssessments[0]?.level;
             const candidate = a.externalId?.startsWith("net:cand");

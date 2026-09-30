@@ -79,7 +79,6 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
 
       {/* Download principale + anteprima dell'app */}
       <section className="relative overflow-hidden rounded-2xl border border-line bg-panel grid grid-cols-1 lg:grid-cols-[1fr_auto]">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
         <div className="relative p-7 lg:p-9 flex flex-col gap-5 min-w-0">
           <div className="flex items-center gap-2 text-xs text-ink-400">
             <span className="rounded-full border border-line px-2 py-0.5 text-ink-100 tabular">v{DESKTOP_VERSION}</span>
@@ -101,17 +100,18 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
               </a>
             ))}
           </div>
-          <p className="text-xs text-ink-400">{firstRun[detected]}. Windows 10+, macOS 12+, Linux x64.</p>
         </div>
         <div className="relative hidden lg:flex items-end justify-center px-9 pt-8">
           <AppPreview company={company} email={s.email} />
         </div>
+        {/* Barra grigia in basso: primo avvio e requisiti. */}
+        <p className="relative lg:col-span-2 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-xs text-ink-400">{firstRun[detected]}. Windows 10+, macOS 12+, Linux x64.</p>
       </section>
 
       {/* Tutta l'azienda: un link da mandare a tutti */}
-      <section className="rounded-xl border border-line bg-panel px-5 py-4 flex flex-col md:flex-row md:items-center gap-3">
-        <span className="text-sm font-semibold text-ink-100 shrink-0">Send the link to everyone</span>
-        <div className="flex flex-1 min-w-0 items-center gap-2">
+      <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
+        <h2 className="bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100">Send the link to everyone</h2>
+        <div className="flex min-w-0 items-center gap-2 px-5 py-4">
           <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{joinUrl}</code>
           <CopyButton text={joinUrl} label="Copy" />
           <CopyButton

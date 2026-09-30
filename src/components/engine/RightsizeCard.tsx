@@ -78,11 +78,11 @@ export default function RightsizeCard({ assets, saveMonthlyEur, upgradeMonthlyEu
       }
     >
       {total === 0 ? (
-        <p className="px-5 pb-5 text-sm text-ink-400">No paid seats with known users yet.</p>
+        <p className="p-5 text-sm text-ink-400">No paid seats with known users yet.</p>
       ) : shown.length === 0 ? (
-        <p className="px-5 pb-5 text-sm text-ink-400">Every seat is on the right plan.</p>
+        <p className="p-5 text-sm text-ink-400">Every seat is on the right plan.</p>
       ) : (
-        <ul className="divide-y divide-line border-t border-line">
+        <ul className="divide-y divide-line">
           {shown.map((a) => {
             const moves = a.actions.filter((x) => x.kind !== "keep");
             const named = individual && moves.some((x) => x.people?.length);

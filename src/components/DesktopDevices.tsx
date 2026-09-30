@@ -24,11 +24,11 @@ export default async function DesktopDevices({ organizationId, compact = false }
     const os = count(devices.map((d) => (d.os ? OS_LABEL[d.os] ?? d.os : null)));
     const versions = count(devices.map((d) => (d.appVersion ? `v${d.appVersion}` : null)));
     return (
-      <section className={`rounded-xl border bg-panel p-5 ${online > 0 ? "border-steady/40" : "border-line"}`}>
-        <div className="flex items-center justify-between gap-4">
+      <section className="rounded-xl border border-line bg-panel p-5 animate-rise">
+        <div className="-mx-5 -mt-5 flex items-center justify-between gap-4 bg-ink border-b border-line rounded-t-xl px-5 py-3">
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-ink-100">Connected computers</h2>
-            <p className="text-sm text-ink-400">Totals only — names of people and computers are hidden by the employee privacy mode.</p>
+            <h2 className="text-sm font-semibold text-ink-100">Connected computers</h2>
+            <p className="text-xs text-ink-400">Totals only — names of people and computers are hidden by the employee privacy mode.</p>
           </div>
           <span className={`shrink-0 text-sm font-medium rounded-full px-2.5 py-1 tabular ${online > 0 ? "text-steady bg-steady/10" : "text-ink-400 bg-ink-400/10"}`}>
             {online} of {devices.length} connected
@@ -49,11 +49,11 @@ export default async function DesktopDevices({ organizationId, compact = false }
   }
 
   return (
-    <section className={`rounded-xl border bg-panel overflow-hidden ${online > 0 ? "border-steady/40" : "border-line"}`}>
-      <div className="px-5 pt-4 pb-3 flex items-center justify-between gap-4">
+    <section className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
+      <div className="bg-ink border-b border-line px-5 py-3 flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="text-base font-semibold text-ink-100">Connected computers</h2>
-          <p className="text-sm text-ink-400">People sending AI usage to angar right now.</p>
+          <h2 className="text-sm font-semibold text-ink-100">Connected computers</h2>
+          <p className="text-xs text-ink-400">People sending AI usage to angar right now.</p>
         </div>
         {online > 0 ? (
           <span className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-steady bg-steady/10 rounded-full px-2.5 py-1">
@@ -64,7 +64,7 @@ export default async function DesktopDevices({ organizationId, compact = false }
           <span className="shrink-0 text-sm tabular text-ink-400">{devices.length} installed · waiting</span>
         )}
       </div>
-      <div className="divide-y divide-line border-t border-line">
+      <div className="divide-y divide-line">
         {devices.map((d) => (
           <div key={d.host + (d.email ?? "")} className="flex items-center gap-4 px-5 py-3">
             <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${d.online ? "bg-steady" : "bg-ink-400/40"}`} title={d.online ? "Connected" : "Silent"} />

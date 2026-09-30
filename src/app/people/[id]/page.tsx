@@ -100,8 +100,8 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
       ) : null}
 
       <div>
-        <h2 className="text-base font-semibold text-ink-100 mb-3">Assets owned</h2>
-        <div className="rounded-xl border border-line bg-panel divide-y divide-line">
+        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
+          <h2 className="bg-ink px-4 py-3 text-sm font-semibold text-ink-100">Assets owned</h2>
           {person.ownedAssets.map((a) => (
             <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="font-medium text-ink-100">{a.name}</span>
@@ -118,8 +118,8 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
       </div>
 
       <div>
-        <h2 className="text-base font-semibold text-ink-100 mb-3">Assets used</h2>
-        <div className="rounded-xl border border-line bg-panel divide-y divide-line">
+        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
+          <h2 className="bg-ink px-4 py-3 text-sm font-semibold text-ink-100">Assets used</h2>
           {person.usages.map((u) => (
             <Link key={u.id} href={`/assets/${u.aiAssetId}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="font-medium text-ink-100">{u.aiAsset.name}</span>
@@ -139,8 +139,8 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
 
       {recentActivity.length > 0 && (
         <div>
-          <h2 className="text-base font-semibold text-ink-100 mb-3">Recent activity</h2>
-          <div className="rounded-xl border border-line bg-panel divide-y divide-line">
+          <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
+            <h2 className="bg-ink px-4 py-3 text-sm font-semibold text-ink-100">Recent activity</h2>
             {recentActivity.map((a) => (
               <Link key={a.id} href={`/activity/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
                 <div className="flex items-center gap-3">
