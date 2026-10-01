@@ -16,7 +16,7 @@
  */
 import { createHash } from "crypto";
 import { db } from "@/lib/db";
-import { toEur, fxNote } from "@/lib/spend/fx";
+import { toEur, fxNote, billingCostNote } from "@/lib/spend/fx";
 import type { ConnectorProvider } from "@prisma/client";
 import type { ConnectorSyncResult, ObservedAsset, ObservedSpend } from "./types";
 
@@ -246,7 +246,7 @@ export function buildCloudResult(info: PlatformInfo, rows: CloudCostRow[], now: 
       model: top.slice(0, 3).map(([k, v]) => (v.vendor === svc.vendor || (serviceId === "azure-openai" && v.vendor === "OpenAI") ? k : `${k} (${v.vendor})`)).join(", ") || undefined,
       monthlyCost: Math.round(monthEur * 100) / 100,
       costBasis: "billing_connector",
-      costNote: `EUR, last 30 days, from ${info.billingName}${origText ? ` (${origText} converted)` : ""}`,
+      costNote: billingCostNote(info.billingName, origText),
       spend,
       activities: [
         {

@@ -81,7 +81,7 @@ export const PLANS: PlanDef[] = [
     employees: "Up to 1,000 employees",
     tagline: "Policies, AI Act evidence and control across teams and sites.",
     limits: { aiSystems: null, connections: null, members: 50, sharedDashboards: null, workspaces: 10 },
-    features: ["Everything in Save", "Unlimited AI", "Compliance included: AI Act evidence pack", "Policies & vendor risk reviews", "10 workspaces, 50 members", "Priority support"],
+    features: ["Everything in Save", "Unlimited AI", "Compliance included: AI Act evidence pack", "Policies & vendor risk reviews", "angar Gateway: AI calls checked, redacted and metered", "10 workspaces, 50 members", "Priority support"],
     stripePriceEnv: "STRIPE_PRICE_SCALE",
     stripeAnnualPriceEnv: "STRIPE_PRICE_SCALE_ANNUAL",
   },
@@ -210,7 +210,8 @@ export type Feature =
   | "vendorRisk"
   | "employeeNotice"
   | "edgeSensors"
-  | "partnerConsole";
+  | "partnerConsole"
+  | "gateway";
 
 export const FEATURES: Record<Feature, { label: string; minPlan: Plan; addon?: AddonId }> = {
   microsoft365: { label: "Microsoft 365", minPlan: "GROWTH" },
@@ -224,6 +225,7 @@ export const FEATURES: Record<Feature, { label: string; minPlan: Plan; addon?: A
   employeeNotice: { label: "Employee AI notice", minPlan: "FREE", addon: "COMPLIANCE" },
   edgeSensors: { label: "angar Edge software & cloud logs", minPlan: "GROWTH" },
   partnerConsole: { label: "Partner console", minPlan: "GROWTH" },
+  gateway: { label: "angar Gateway", minPlan: "SCALE" },
 };
 
 /** Funzione disponibile con questo piano (effettivo) e questi add-on? */

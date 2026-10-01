@@ -191,15 +191,16 @@ export async function monthlyReports() {
 /** Mesi di conservazione dei dati d'uso (come scritto nell'informativa ai dipendenti). */
 export const USAGE_RETENTION_MONTHS = 12;
 
-/** Conservazione: cancella i dati d'uso più vecchi di USAGE_RETENTION_MONTHS (attività e traffico Edge). */
+/** Conservazione: cancella i dati d'uso più vecchi di USAGE_RETENTION_MONTHS (attività, traffico Edge, log del Gateway). */
 export async function purgeOldUsage(now = new Date()) {
   const cutoff = new Date(now);
   cutoff.setMonth(cutoff.getMonth() - USAGE_RETENTION_MONTHS);
-  const [activities, edge] = await Promise.all([
+  const [activities, edge, gateway] = await Promise.all([
     db.aiAssetActivity.deleteMany({ where: { occurredAt: { lt: cutoff } } }),
     db.edgeEvent.deleteMany({ where: { day: { lt: cutoff.toISOString().slice(0, 10) } } }),
+    db.gatewayRequest.deleteMany({ where: { createdAt: { lt: cutoff } } }),
   ]);
-  return activities.count + edge.count;
+  return activities.count + edge.count + gateway.count;
 }
 
 /** Tutti i lavori dovuti adesso, per tutte le aziende. Idempotente. */
@@ -207,9 +208,23 @@ export async function runDueJobs(now = new Date()) {
   const { day, weekday, hour } = romeParts(now);
   const orgs = await db.organization.findMany({ where: { aiAssets: { some: { deletedAt: null } } }, select: { id: true } });
   const summary = { orgs: orgs.length, synced: 0, renewals: 0, seats: 0, budgets: 0, digests: 0, reports: 0 };
+  // Una tantum, prima di tutto il resto: costi OpenAI / Anthropic salvati in USD → EUR
+  // (spend/fx-fix.ts). Il marcatore sulla riga evita comunque la doppia conversione.
+  if (await claim("fx-usd-billing-fix", "v1")) {
+    try {
+      const fixed = await (await import("@/lib/spend/fx-fix")).fixLegacyUsdBillingCosts();
+      if (fixed) console.log(`[jobs] converted ${fixed} OpenAI/Anthropic cost rows from USD to EUR`);
+      await finish("fx-usd-billing-fix", "v1");
+    } catch (err) {
+      // Resta "running": riprovato dopo STALE_RUN_MS.
+      console.error("[jobs] USD cost fix failed", err);
+    }
+  }
   // Giornalieri: dalle 7 in poi (ora di Roma), una volta al giorno. Prima i costi, poi gli avvisi.
   if (hour >= 7 && (await claim("daily", day))) {
     summary.synced = await syncCosts().catch(() => 0);
+    // angar Gateway: spesa di ieri e di oggi come righe giornaliere (source "gateway").
+    await (await import("@/lib/gateway/spend")).gatewaySpendJob(now).catch((err) => console.error("[jobs] gateway spend failed", err));
     await purgeOldUsage(now).catch((err) => console.error("[jobs] retention failed", err));
     for (const o of orgs) {
       try {

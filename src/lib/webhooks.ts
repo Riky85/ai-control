@@ -42,7 +42,7 @@ export function verifyWebhookSignature(secret: string, timestamp: number, body: 
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-function privateIp(ip: string): boolean {
+export function privateIp(ip: string): boolean {
   if (isIP(ip) === 6) {
     const v = ip.toLowerCase();
     if (v === "::1" || v === "::" || v.startsWith("fc") || v.startsWith("fd") || v.startsWith("fe80")) return true;
@@ -74,7 +74,7 @@ export function checkWebhookUrl(raw: string): { ok: true; url: string } | { ok: 
 }
 
 /** Al momento dell'invio: il nome deve risolvere solo a IP pubblici (anti DNS rebinding di base). */
-async function resolvesPublic(url: string) {
+export async function resolvesPublic(url: string) {
   const host = new URL(url).hostname.replace(/^\[|\]$/g, "");
   if (isIP(host)) return !privateIp(host);
   try {

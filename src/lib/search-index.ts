@@ -17,6 +17,7 @@ export const NAV_PAGES: NavPage[] = [
   { href: "/connectors", label: "AI provider keys", keywords: "api key openai anthropic gemini mistral import csv" },
   { href: "/download", label: "Desktop app", keywords: "desktop app install download computers agent windows mac get" },
   { href: "/edge/sensors", label: "angar Edge", keywords: "edge network sensor dns firewall block on-prem server" },
+  { href: "/gateway", label: "Gateway", keywords: "gateway proxy llm openai anthropic api key redact iban pii cap limit models tokens" },
   { href: "/download?view=other", label: "Other ways to find AI (extension, scan, logs)", keywords: "desktop app scan install computers agent download shadow ai" },
   { href: "/people", label: "People", keywords: "employees users staff owners who department person" },
   { href: "/activity", label: "Activity", keywords: "events timeline recent evidence assurance controls audit trail" },

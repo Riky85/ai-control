@@ -202,6 +202,11 @@ model Organization {
   savingActions   SavingAction[]
   engineSnapshots EngineSnapshot[]
   autopilotTasks  AutopilotTask[]
+  // angar Gateway: proxy compatibile OpenAI / Anthropic con chiavi virtuali, policy e log di soli metadati.
+  gatewayKeys      GatewayKey[]
+  gatewayPolicy    GatewayPolicy?
+  gatewayUpstreams GatewayUpstream[]
+  gatewayRequests  GatewayRequest[]
 }
 
 // Avvisi della piattaforma (campanella in alto a destra): rinnovi in arrivo,
@@ -1031,4 +1036,93 @@ model AutopilotTask {
 
   @@unique([organizationId, savingKey])
   @@index([organizationId, status])
+}
+
+// ── angar Gateway ────────────────────────────────────────────────────────
+// Chiave virtuale "agk_…" che le app usano al posto della chiave del provider.
+// Nel database solo l'hash SHA-256 e le ultime 4 cifre: la chiave si vede una volta.
+model GatewayKey {
+  id                  String       @id @default(cuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name                String
+  team                String       @default("")
+  keyHash             String       @unique
+  last4               String
+  provider            String       @default("any") // "openai" | "anthropic" | "any"
+  // Override della policy dell'azienda per questa chiave (null / vuoto = vale la policy dell'azienda).
+  monthlyCapEur       Float?
+  allowedModels       String[]     @default([])
+  redactOverride      Boolean?
+  blockHealthOverride Boolean?
+  createdBy           String
+  createdAt           DateTime     @default(now())
+  lastUsedAt          DateTime?
+  revokedAt           DateTime?
+
+  @@index([organizationId])
+}
+
+// Regole del Gateway per azienda (una riga; senza riga valgono i default).
+model GatewayPolicy {
+  id               String       @id @default(cuid())
+  organizationId   String       @unique
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  euOnly           Boolean      @default(false)
+  redact           Boolean      @default(true)
+  redactKinds      String[]     @default(["IBAN", "TAX_CODE", "EMAIL", "CARD", "PHONE"])
+  blockHealth      Boolean      @default(true)
+  modelsRestricted Boolean      @default(false)
+  allowedModels    String[]     @default([])
+  // Tetti mensili in EUR per team: { "Marketing": 500 }.
+  teamCaps         Json?
+  // Richieste al minuto per chiave.
+  rpmLimit         Int          @default(600)
+  updatedBy        String?
+  updatedAt        DateTime     @updatedAt
+}
+
+// Provider a valle: chiave del provider (cifrata) e base URL opzionale (es. Azure OpenAI UE, Mistral).
+model GatewayUpstream {
+  id                   String       @id @default(cuid())
+  organizationId       String
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider             String       // "openai" | "anthropic"
+  credentialsEncrypted String?      @db.Text
+  keyLast4             String?
+  baseUrl              String?
+  // Dichiarato dall'admin: l'endpoint è ospitato nell'UE (serve con la modalità solo UE).
+  euHosted             Boolean      @default(false)
+  updatedBy            String?
+  updatedAt            DateTime     @updatedAt
+
+  @@unique([organizationId, provider])
+}
+
+// Log del Gateway: SOLO metadati. Mai testo del prompt né della risposta.
+model GatewayRequest {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  keyId          String?
+  keyName        String       @default("")
+  keyLast4       String       @default("")
+  team           String       @default("")
+  provider       String
+  endpoint       String
+  model          String?
+  stream         Boolean      @default(false)
+  inputTokens    Int          @default(0)
+  outputTokens   Int          @default(0)
+  costEur        Float        @default(0)
+  latencyMs      Int          @default(0)
+  overheadMs     Int?
+  status         Int
+  result         String       // "allowed" | "redacted" | "blocked" | "error"
+  reason         String?      // "model_not_allowed" | "cap_exceeded" | "health_data" | "eu_only" | "rate_limited" | "upstream_error" | ...
+  redactions     Json?        // { "IBAN": 1, "EMAIL": 2 }
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([keyId, createdAt])
 }

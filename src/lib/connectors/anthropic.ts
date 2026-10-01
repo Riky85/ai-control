@@ -27,6 +27,7 @@
 
 import type { Connector, ConnectorSyncResult, ObservedAsset } from "./types";
 import { decryptJson } from "@/lib/crypto";
+import { totalsToEur, billingCostNote } from "@/lib/spend/fx";
 
 const ADMIN_API_BASE = "https://api.anthropic.com/v1";
 const ASSET_EXTERNAL_ID = "claude:organization";
@@ -88,21 +89,30 @@ export const anthropicConnector: Connector = {
       );
     }
 
-    // Spesa reale ultimi 30 giorni (Cost API: importi in centesimi di USD).
+    // Spesa reale ultimi 30 giorni (Cost API: importi in centesimi, valuta in
+    // `currency`, oggi sempre "USD"). Convertita in EUR qui, al momento
+    // dell'ingest: AiSystemCost è sempre in EUR. L'importo originale resta
+    // nella nota del costo.
     try {
       const end = new Date();
       const start = new Date(end.getTime() - 30 * 86400000);
       let page: string | undefined;
-      let cents = 0;
+      const totals = new Map<string, number>();
       let guard = 0;
       do {
         const q = `?starting_at=${encodeURIComponent(start.toISOString())}&ending_at=${encodeURIComponent(end.toISOString())}&bucket_width=1d&limit=31${page ? `&page=${encodeURIComponent(page)}` : ""}`;
         const report = await adminGet(`/organizations/cost_report${q}`, apiKey);
-        for (const bucket of report.data ?? []) for (const r of bucket.results ?? []) cents += Number(r.amount ?? 0) || 0;
+        for (const bucket of report.data ?? [])
+          for (const r of bucket.results ?? []) {
+            const cur = String(r.currency ?? "USD").toUpperCase();
+            totals.set(cur, (totals.get(cur) ?? 0) + (Number(r.amount ?? 0) || 0) / 100);
+          }
         page = report.has_more ? report.next_page : undefined;
       } while (page && ++guard < 5);
-      asset.monthlyCost = cents / 100;
-      asset.costNote = "USD, last 30 days, from Anthropic billing";
+      const fx = totalsToEur(totals);
+      asset.monthlyCost = fx.eur;
+      asset.costNote = billingCostNote("Anthropic billing", fx.original);
+      if (fx.unconverted.length) warnings.push(`Amounts in ${fx.unconverted.join(", ")} couldn't be converted to EUR and are shown as they are.`);
     } catch (err) {
       warnings.push(`Cost report not available: ${(err as Error).message.slice(0, 160)}`);
     }

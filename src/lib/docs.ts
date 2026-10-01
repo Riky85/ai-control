@@ -415,6 +415,39 @@ After the upload you see how many lines were read, the AI services found and how
 - Outside "By person" people are kept as pseudonyms; with "Company totals only" not even devices are kept.
 - API tokens and secrets are encrypted at rest (AES-256-GCM) and deleted on Disconnect.`,
   },
+  {
+    slug: "gateway",
+    section: "Connect",
+    title: "angar Gateway",
+    summary: "Send your apps' OpenAI and Anthropic calls through angar: each one is measured, checked against your rules and cleaned of sensitive values. Prompts are never stored.",
+    keywords: ["gateway", "proxy", "llm", "openai", "anthropic", "base url", "virtual key", "agk", "redact", "redaction", "iban", "codice fiscale", "pii", "cap", "limit", "allowed models", "health data", "tokens"],
+    body: `angar Gateway sits between your company's apps and the AI providers. Your apps keep their SDK; they change two lines: the key and the base URL. It is part of the Govern plan.
+## Connect an app
+1. In Connect → Gateway → Policies, under Provider keys, paste the OpenAI and/or Anthropic API key the gateway should use (or reuse a normal key already saved in AI provider keys; admin keys can't call models).
+2. In Keys, create a key for the app (agk_…), with its team and, if you want, a monthly cap and allowed models. The key is shown once.
+3. In the app, use the agk_ key and set the base URL to /api/gateway/openai/v1 (OpenAI SDK) or /api/gateway/anthropic (Anthropic SDK) on your angar address. "How to connect" in Policies has ready snippets.
+## What is supported
+- OpenAI: POST /chat/completions (also streaming), POST /embeddings, GET /models.
+- Anthropic: POST /messages (also streaming).
+- Any other path answers 404 with a JSON error. Bodies are limited to 10 MB.
+## The rules, in order
+- EU-only providers: requests go only to an endpoint an admin marked as hosted in the EU (for example an Azure OpenAI resource in an EU region or a Mistral endpoint); others are blocked. It is always on when the workspace or the deployment is in EU-only mode.
+- Allowed models: any other model is blocked. "gpt-4o-mini" also allows its dated versions; a key can have its own list.
+- Health data: requests that mention diagnoses, medical records or medication (English, Italian, German, French, Spanish) are blocked. The word list is deliberately short to avoid stopping ordinary requests.
+- Monthly caps: for a team (Policies) or a key (Keys). Once reached, the gateway answers 429 until the 1st of next month.
+- Redaction: IBANs (checked with mod-97), Italian tax codes (check character), emails, card numbers (Luhn) and phone numbers are replaced with [IBAN], [TAX_CODE], [EMAIL], [CARD] and [PHONE] before the request leaves. Ordinary numbers, dates and amounts are left alone.
+- Rate limit: requests a minute for each key (600 by default).
+## What angar keeps
+- Metadata only: time, key, team, model, tokens, cost in EUR, latency, status, the policy result and how many values of each type were redacted.
+- Never the prompt, the answer or the redacted values. They pass through in memory only.
+- Logs are deleted after 12 months, like other usage data.
+- Spend at list price becomes a daily line in Savings, Budgets and the forecast (source "gateway"), unless the provider's admin key is connected — then the provider's own billing already counts these calls.
+## Errors your app may see
+- 401: missing, wrong or revoked agk_ key.
+- 403: model not allowed, health data, EU-only, or the plan doesn't include the gateway.
+- 429: monthly cap reached or rate limit.
+- 503: no provider key set for the gateway.`,
+  },
 ];
 
 /** Vecchi indirizzi degli articoli → articolo attuale. */

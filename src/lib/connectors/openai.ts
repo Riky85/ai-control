@@ -23,6 +23,7 @@
 
 import type { Connector, ConnectorSyncResult, ObservedAsset } from "./types";
 import { decryptJson } from "@/lib/crypto";
+import { totalsToEur, billingCostNote } from "@/lib/spend/fx";
 
 const API_BASE = "https://api.openai.com/v1";
 const ASSET_EXTERNAL_ID = "chatgpt:organization";
@@ -98,19 +99,27 @@ export const openaiConnector: Connector = {
       );
     }
 
-    // Spesa reale ultimi 30 giorni (Costs API: importi in USD).
+    // Spesa reale ultimi 30 giorni (Costs API: importi in USD, `amount.currency`
+    // = "usd"). Convertita in EUR qui, al momento dell'ingest: AiSystemCost è
+    // sempre in EUR. L'importo originale resta nella nota del costo.
     try {
       const start = Math.floor(Date.now() / 1000) - 30 * 86400;
       let page: string | undefined;
-      let usd = 0;
+      const totals = new Map<string, number>();
       let guard = 0;
       do {
         const costs = await adminGet(`/organization/costs?start_time=${start}&bucket_width=1d&limit=31${page ? `&page=${encodeURIComponent(page)}` : ""}`, apiKey);
-        for (const bucket of costs.data ?? []) for (const r of bucket.results ?? []) usd += Number(r.amount?.value ?? 0) || 0;
+        for (const bucket of costs.data ?? [])
+          for (const r of bucket.results ?? []) {
+            const cur = String(r.amount?.currency ?? "USD").toUpperCase();
+            totals.set(cur, (totals.get(cur) ?? 0) + (Number(r.amount?.value ?? 0) || 0));
+          }
         page = costs.has_more ? costs.next_page : undefined;
       } while (page && ++guard < 5);
-      asset.monthlyCost = usd;
-      asset.costNote = "USD, last 30 days, from OpenAI billing";
+      const fx = totalsToEur(totals);
+      asset.monthlyCost = fx.eur;
+      asset.costNote = billingCostNote("OpenAI billing", fx.original);
+      if (fx.unconverted.length) warnings.push(`Amounts in ${fx.unconverted.join(", ")} couldn't be converted to EUR and are shown as they are.`);
     } catch (err) {
       warnings.push(`Costs not available: ${(err as Error).message.slice(0, 160)}`);
     }

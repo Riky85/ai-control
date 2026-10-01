@@ -41,6 +41,36 @@ export function toEur(amount: number, currency: string | null | undefined): FxRe
   return { eur: amount, currency: cur, convertible: false, approximate: false };
 }
 
+/**
+ * Somma in EUR di importi raggruppati per valuta (es. fatturazione OpenAI /
+ * Anthropic, che restituisce USD). `original` elenca le valute non EUR con
+ * l'importo originale ("USD 12.50"), da mettere nella nota del costo;
+ * `unconverted` le valute che non è stato possibile convertire.
+ */
+export function totalsToEur(totals: Map<string, number> | Record<string, number>): { eur: number; original: string; unconverted: string[] } {
+  const entries = totals instanceof Map ? Array.from(totals.entries()) : Object.entries(totals);
+  let eur = 0;
+  const original: string[] = [];
+  const unconverted: string[] = [];
+  for (const [currency, amount] of entries) {
+    if (!Number.isFinite(amount)) continue;
+    const fx = toEur(amount, currency);
+    eur += fx.eur;
+    if (fx.currency !== "EUR") original.push(`${fx.currency} ${amount.toFixed(2)}`);
+    if (!fx.convertible) unconverted.push(fx.currency);
+  }
+  return { eur: Math.round(eur * 100) / 100, original: original.join(", "), unconverted };
+}
+
+/**
+ * Nota del costo mensile letto dalla fatturazione di un provider (stesso
+ * formato dei connettori cloud). Inizia sempre con "EUR,": è anche il
+ * marcatore che distingue le righe già in EUR da quelle vecchie in USD
+ * (vedi spend/fx-fix.ts).
+ */
+export const billingCostNote = (billingName: string, original: string) =>
+  `EUR, last 30 days, from ${billingName}${original ? ` (${original} converted)` : ""}`;
+
 /** Nota breve da aggiungere alla descrizione dell'addebito (vuota se EUR). */
 export function fxNote(original: number, fx: FxResult): string {
   if (fx.currency === "EUR") return "";

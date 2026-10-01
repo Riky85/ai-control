@@ -3,6 +3,12 @@
  * Serve a: 1) riconoscere piano e numero di posti da un addebito in banca,
  * 2) stimare il costo quando non c'è fatturazione collegata, 3) calcolare i
  * risparmi. I prezzi cambiano: aggiornare qui (una sola fonte).
+ *
+ * Valuta: i numeri restano in USD come da listino ufficiale. Ogni importo che
+ * finisce nel database o in pagina come € passa da USD_TO_EUR (estimateMonthlyEur,
+ * price-index listSeatEur, rightsize, savings, advisor, microsoft365); dove si usano
+ * solo rapporti tra prezzi (annuale/mensile, piano/piano, blended dei modelli API)
+ * la valuta non conta. I testi che citano il listino lo mostrano con "$".
  */
 export const PRICES_AS_OF = "September 2026";
 /** Cambio usato per confrontare listini in USD con addebiti in EUR. */

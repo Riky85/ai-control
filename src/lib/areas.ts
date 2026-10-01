@@ -33,12 +33,13 @@ export const AREAS: Area[] = [
     label: "Connect",
     href: "/connect",
     icon: "connectors",
-    tabs: [{ href: "/connect", label: "Connect", match: ["/connect", "/sources", "/connectors", "/download", "/computers", "/discover", "/edge"] }],
+    tabs: [{ href: "/connect", label: "Connect", match: ["/connect", "/sources", "/connectors", "/download", "/computers", "/discover", "/edge", "/gateway"] }],
     children: [
       { href: "/sources", label: "Sources", match: ["/sources", "/discover"] },
       { href: "/connectors", label: "AI provider keys", match: ["/connectors"] },
       { href: "/download", label: "Desktop app", match: ["/download", "/computers"] },
       { href: "/edge/sensors", label: "angar Edge", match: ["/edge"] },
+      { href: "/gateway", label: "Gateway", match: ["/gateway"] },
     ],
   },
 ];
