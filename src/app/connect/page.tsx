@@ -3,19 +3,20 @@ import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
 import { PageHeader } from "@/components/ui";
 import EdgeBox from "@/components/EdgeBox";
-import { BankPreview, AccountsPreview, DesktopPreview } from "@/components/ConnectPreviews";
+import { BankPreview, AccountsPreview, DesktopPreview, GatewayPreview } from "@/components/ConnectPreviews";
 import { workplaceStatus } from "@/lib/connectors/workplace";
 import { desktopDeviceCounts } from "@/lib/discovery/devices";
 
 export const dynamic = "force-dynamic";
 
-type Key = "bank" | "accounts" | "desktop" | "edge";
+type Key = "bank" | "accounts" | "desktop" | "edge" | "gateway";
 
-// Connect: il punto di partenza. Quattro riquadri grandi (costi, account aziendali,
-// app desktop, angar Edge) e sopra il "prossimo passo" più utile tra quelli mancanti.
+// Connect: il punto di partenza. Cinque riquadri grandi (costi, account aziendali,
+// app desktop, angar Edge, Gateway) e sopra il "prossimo passo" più utile tra quelli mancanti.
 export default async function ConnectPage() {
   const orgId = currentOrgId();
-  const [spendCount, workplace, keyCount, devices, sensors] = await Promise.all([
+  const since = new Date(Date.now() - 24 * 3600 * 1000);
+  const [spendCount, workplace, keyCount, devices, sensors, gatewayKeys, gatewayToday] = await Promise.all([
     db.spendRecord.count({ where: { organizationId: orgId } }),
     workplaceStatus(orgId),
     db.connector.count({
@@ -29,6 +30,8 @@ export default async function ConnectPage() {
     desktopDeviceCounts(orgId),
     // I sensori "import" sono i log di rete importati, non box o software angar Edge.
     db.edgeSensor.count({ where: { organizationId: orgId, kind: { not: "import" } } }),
+    db.gatewayKey.count({ where: { organizationId: orgId, revokedAt: null } }),
+    db.gatewayRequest.count({ where: { organizationId: orgId, createdAt: { gte: since } } }),
   ]);
   const accounts = workplace.connected.length;
 
@@ -71,6 +74,15 @@ export default async function ConnectPage() {
       href: "/edge/sensors",
       cta: sensors ? "Open" : "Set up",
       art: <EdgeBox width={210} className="-mb-6" />,
+    },
+    {
+      key: "gateway",
+      title: "Gateway",
+      text: "Your apps call AI through angar: cost measured, sensitive data removed.",
+      status: gatewayKeys ? `${gatewayKeys} key${gatewayKeys === 1 ? "" : "s"} · ${gatewayToday.toLocaleString("en-GB")} request${gatewayToday === 1 ? "" : "s"} in 24h` : null,
+      href: "/gateway",
+      cta: gatewayKeys ? "Open" : "Set up",
+      art: <GatewayPreview />,
     },
   ];
 

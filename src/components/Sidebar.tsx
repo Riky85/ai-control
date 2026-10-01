@@ -8,7 +8,7 @@ import Logo, { Wordmark } from "./Logo";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 import { TRIAL_PLAN, planLabel } from "@/lib/plans";
 import WorkspaceSwitcher, { type WorkspaceOption } from "./WorkspaceSwitcher";
-import { AREAS, activeChild, locate } from "@/lib/areas";
+import { AREAS, locate } from "@/lib/areas";
 
 // Icone minimali, un solo stroke-width, coerenti tra loro — niente set di
 // icone eterogeneo preso da librerie diverse.
@@ -205,14 +205,13 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
         </div>
       )}
 
-      <nav className={`flex flex-col gap-0.5 overflow-x-hidden flex-1 min-h-0 whitespace-nowrap ${animating ? "overflow-y-hidden" : "overflow-y-auto"} ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "[scrollbar-width:thin]"}`}>
+      <nav className={`flex flex-col gap-0.5 overflow-x-hidden flex-1 min-h-0 whitespace-nowrap ${collapsed ? "[&>*:first-child]:mt-auto [&>*:last-child]:mb-auto" : ""} ${animating ? "overflow-y-hidden" : "overflow-y-auto"} ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "[scrollbar-width:thin]"}`}>
         {AREAS.map((item) => {
           const badge = item.key === "review" && reviewCount > 0 ? reviewCount : 0;
           const online = item.key === "connect" && connectedComputers > 0;
-          const child = item.children ? activeChild(item, pathname) : null;
           return (
             <div key={item.href} className="flex flex-col gap-0.5">
-            <Link href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href) && !(child && !collapsed))}>
+            <Link href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href))}>
               <span className="relative shrink-0">
                 <Icon name={item.icon} />
                 {collapsed && badge > 0 && (
@@ -233,12 +232,6 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
                 </span>
               )}
             </Link>
-            {!collapsed &&
-              item.children?.map((c) => (
-                <Link key={c.href} href={c.href} className={`${itemClass(child?.href === c.href, true)} !text-[14px] sb-fade`}>
-                  {c.label}
-                </Link>
-              ))}
             </div>
           );
         })}

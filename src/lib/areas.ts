@@ -16,7 +16,7 @@ export interface Area {
   tabs: AreaTab[];
   /** Percorsi dell'area senza una scheda propria (dettagli). */
   extra?: string[];
-  /** Voci figlie mostrate sempre aperte sotto la voce nella sidebar. */
+  /** Sotto-pagine dell'area (mostrate dentro la pagina, non nella sidebar). */
   children?: AreaTab[];
 }
 

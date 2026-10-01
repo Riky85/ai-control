@@ -87,3 +87,32 @@ export function DesktopPreview() {
     </div>
   );
 }
+
+/** Gateway: le chiamate AI delle app passano da angar — esito di ogni richiesta. */
+export function GatewayPreview() {
+  const rows: [string, string, "ok" | "mask" | "stop"][] = [
+    ["Support bot", "gpt-4o-mini", "ok"],
+    ["Invoice reader", "claude-sonnet", "mask"],
+    ["HR assistant", "gpt-4o-mini", "stop"],
+  ];
+  const pill = { ok: ["Allowed", "text-steady bg-steady/10"], mask: ["Redacted", "text-signal bg-signal/10"], stop: ["Blocked", "text-alarm bg-alarm/10"] } as const;
+  return (
+    <div className={`w-[270px] ${frame}`} aria-hidden>
+      <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5">
+        <span className="text-[10px] text-ink-400">Live requests</span>
+        <span className="text-[10px] text-ink-100 font-medium">gateway.angar</span>
+      </div>
+      <div className="mx-3 mb-3 rounded-lg border border-line bg-panel divide-y divide-line">
+        {rows.map(([app, model, r]) => (
+          <div key={app} className="flex items-center gap-2 px-3 py-1.5">
+            <span className="flex-1 min-w-0">
+              <span className="block truncate text-[11px] text-ink-100">{app}</span>
+              <span className="block truncate text-[9px] text-ink-400">{model}</span>
+            </span>
+            <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${pill[r][1]}`}>{pill[r][0]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
