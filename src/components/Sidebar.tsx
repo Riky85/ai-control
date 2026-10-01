@@ -158,8 +158,8 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
 
   return (
     <aside
-      className={`shrink-0 bg-sidebar border-r border-sidebar-line h-full py-3 flex flex-col transition-[width,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
-        collapsed ? "w-[64px] px-2" : "w-64 px-3"
+      className={`shrink-0 bg-sidebar border-r h-full py-3 flex flex-col transition-[width,padding,border-color] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
+        collapsed ? "w-[64px] px-2 border-sidebar-line" : "w-64 px-3 border-line"
       }`}
     >
       {collapsed ? (
