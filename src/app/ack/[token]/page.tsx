@@ -81,23 +81,23 @@ export default async function AckPage({ params, searchParams }: { params: { toke
             </div>
 
             <section className="flex flex-col gap-4">
-              <h2 className="text-base font-semibold">{t.ui.rulesHeading}</h2>
+              <h2 className="text-base font-bold">{t.ui.rulesHeading}</h2>
               <ul className="list-disc pl-5 text-sm text-ink-100 flex flex-col gap-1.5">
                 {t.rules.map((r) => <li key={r}>{r}</li>)}
               </ul>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-steady">{t.ui.approvedHeading}</h3>
+                  <h3 className="text-sm font-bold text-steady">{t.ui.approvedHeading}</h3>
                   <p className="text-sm text-ink-400 mt-1">{snap.approved.length ? snap.approved.join(", ") : t.ui.none}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-alarm">{t.ui.notAllowedHeading}</h3>
+                  <h3 className="text-sm font-bold text-alarm">{t.ui.notAllowedHeading}</h3>
                   <p className="text-sm text-ink-400 mt-1">{snap.notAllowed.length ? snap.notAllowed.join(", ") : "—"}</p>
                 </div>
               </div>
               {snap.rules.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold">{t.ui.companyRulesHeading}</h3>
+                  <h3 className="text-sm font-bold">{t.ui.companyRulesHeading}</h3>
                   <ul className="mt-1 flex flex-col gap-1.5">
                     {snap.rules.map((r) => (
                       <li key={r.name} className="text-sm">
@@ -111,7 +111,7 @@ export default async function AckPage({ params, searchParams }: { params: { toke
 
             <section className="flex flex-col gap-4 border-t border-line pt-6">
               <div>
-                <h2 className="text-base font-semibold">{t.ui.quizHeading}</h2>
+                <h2 className="text-base font-bold">{t.ui.quizHeading}</h2>
                 <p className="text-xs text-ink-400 mt-1">{t.ui.quizIntro}</p>
               </div>
               {searchParams.err === "answers" && <p className="text-sm text-alarm">{t.ui.answerAll}</p>}

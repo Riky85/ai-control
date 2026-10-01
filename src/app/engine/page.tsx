@@ -292,7 +292,7 @@ function EngineCard({ id, n, name, title, text, children }: { id: string; n: str
           <span className="font-display font-semibold tabular text-accent">{n}</span>
           <span className="text-ink-400">{name}</span>
         </div>
-        <h3 className="text-lg font-semibold text-ink-100 mt-2 leading-snug">{title}</h3>
+        <h3 className="text-lg font-bold text-ink-100 mt-2 leading-snug">{title}</h3>
         <p className="text-sm text-ink-400 mt-1 leading-relaxed">{text}</p>
       </div>
       <div className="flex-1 flex flex-col justify-center rounded-xl border border-line bg-ink-100/[0.02] p-3.5 sm:p-4 min-w-0">{children}</div>
@@ -304,7 +304,7 @@ function Why({ icon, title, text }: { icon: ReactNode; title: string; text: stri
   return (
     <div className="bg-panel p-6">
       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">{icon}</span>
-      <h3 className="text-base font-semibold text-ink-100 mt-4">{title}</h3>
+      <h3 className="text-base font-bold text-ink-100 mt-4">{title}</h3>
       <p className="text-sm text-ink-400 mt-1 leading-relaxed">{text}</p>
     </div>
   );
@@ -313,7 +313,7 @@ function Why({ icon, title, text }: { icon: ReactNode; title: string; text: stri
 function Audience({ title, text, href, cta, primary }: { title: string; text: string; href: string; cta: string; primary?: boolean }) {
   return (
     <div className="rounded-2xl border border-line bg-panel p-6 flex flex-col gap-3">
-      <h3 className="text-base font-semibold text-ink-100">{title}</h3>
+      <h3 className="text-base font-bold text-ink-100">{title}</h3>
       <p className="text-sm text-ink-400 flex-1 leading-relaxed">{text}</p>
       <a href={href} className={`${primary ? "text-accent" : "text-ink-100"} text-sm font-medium self-start hover:underline underline-offset-4`}>
         {cta} →

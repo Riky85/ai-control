@@ -42,7 +42,7 @@ export function AxisGauge({ label, value, size = 64, href }: { label: string; va
   const body = (
     <>
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-        <span className="text-xs text-ink-400">{label}</span>
+        <span className="text-xs font-semibold text-ink-100">{label}</span>
         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${lv.pill}`}>{lv.label}</span>
       </div>
       <div className={`font-display font-semibold tabular text-ink-100 leading-tight mt-1 ${big ? "text-[26px]" : "text-[22px]"}`}>

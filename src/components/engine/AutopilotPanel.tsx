@@ -70,7 +70,7 @@ export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin
       <header className="relative flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-2.5 text-sm bar-head">
         <div className="flex items-center gap-2.5">
           <span aria-hidden className={`relative inline-flex h-2 w-2 rounded-full ${off ? "bg-ink-400/50" : "bg-steady"}`} />
-          <h2 id="autopilot-title" className="font-semibold text-ink-100">Autopilot</h2>
+          <h2 id="autopilot-title" className="font-bold text-ink-100">Autopilot</h2>
         </div>
         <ModeControl mode={summary.mode} canAdmin={canAdmin} />
       </header>

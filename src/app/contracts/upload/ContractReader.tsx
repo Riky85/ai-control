@@ -51,7 +51,7 @@ function Review({ state, assets, plans }: { state: Extract<NonNullable<ReadState
     <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="review-title">
       <div className="flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3 bar-head">
         <div className="min-w-0">
-          <h2 id="review-title" className="text-sm font-semibold text-ink-100">Check what angar found</h2>
+          <h2 id="review-title" className="text-sm font-bold text-ink-100">Check what angar found</h2>
           <p className="text-xs text-ink-400 mt-0.5 truncate">
             {state.fileName} · {state.pages} {state.pages === 1 ? "page" : "pages"}
             {found ? ` · ${found}` : ""}

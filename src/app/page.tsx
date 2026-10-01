@@ -106,7 +106,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       {assets.length === 0 ? (
         <div className="rounded-xl border border-line bg-panel p-6 sm:p-10 flex flex-col items-center text-center gap-5">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-ink-100">Which AI does your company pay for?</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-ink-100">Which AI does your company pay for?</h2>
             <p className="text-sm text-ink-400 mt-1.5 max-w-xl">
               Drop a bank statement or invoices — angar lists every AI subscription and its cost.
             </p>
@@ -136,7 +136,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
 
           <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">
             <div className="flex items-end justify-between">
-              <h2 className="text-base font-semibold text-ink-100">Your AI</h2>
+              <h2 className="text-base font-bold text-ink-100">Your AI</h2>
               <Link href="/connect" className="btn btn-ghost btn-sm">+ Add sources</Link>
             </div>
             <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />

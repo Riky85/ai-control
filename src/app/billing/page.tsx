@@ -112,7 +112,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
 
       {/* Titolo sopra le card dei piani, senza fascia grigia */}
       <div className="flex items-center justify-between gap-3 flex-wrap px-1">
-        <h2 className="text-sm font-semibold text-ink-100">{state.trialing || state.expired ? "Choose a plan" : "Plans"}</h2>
+        <h2 className="text-sm font-bold text-ink-100">{state.trialing || state.expired ? "Choose a plan" : "Plans"}</h2>
         <BillingToggle basePath="/billing" annual={annual} />
       </div>
       <PricingCards

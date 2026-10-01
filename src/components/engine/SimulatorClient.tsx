@@ -95,7 +95,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
         {/* Scenari */}
         <section className="rounded-2xl border border-line bg-panel animate-rise">
           <div className="flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
-            <h2 className="font-semibold text-ink-100">Scenarios</h2>
+            <h2 className="font-bold text-ink-100">Scenarios</h2>
             {active && (
               <button type="button" className="text-xs text-ink-400 hover:text-ink-100 underline" onClick={() => setSc(EMPTY_SCENARIO)}>
                 Reset
@@ -167,7 +167,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
           {/* Effetto sugli assi */}
           <section className="rounded-2xl border border-line bg-panel animate-rise">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
-              <h2 className="font-semibold text-ink-100">Effect on the score</h2>
+              <h2 className="font-bold text-ink-100">Effect on the score</h2>
               <p className="text-xs text-ink-400">Approximate — same rules as the angar Score</p>
             </div>
             <ul className="divide-y divide-line">
@@ -207,7 +207,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
           {/* Cosa cambia */}
           <section className="rounded-2xl border border-line bg-panel animate-rise">
             <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
-              <h2 className="font-semibold text-ink-100">What changes</h2>
+              <h2 className="font-bold text-ink-100">What changes</h2>
             </div>
             {r.changes.length === 0 ? (
               <p className="px-5 py-4 text-sm text-ink-400">Turn on a scenario to see the changes.</p>

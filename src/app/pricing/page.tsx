@@ -38,7 +38,7 @@ export default function PricingPage({ searchParams }: { searchParams: { billing?
         <section id="edge" className="rounded-xl border border-line bg-panel p-6 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 lg:gap-8 scroll-mt-6">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-ink-100">{EDGE.name}</h2>
+              <h2 className="text-base font-bold text-ink-100">{EDGE.name}</h2>
               <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Optional</span>
             </div>
             <p className="text-sm text-ink-400 mt-1 max-w-2xl">{EDGE.tagline}</p>
@@ -71,7 +71,7 @@ export default function PricingPage({ searchParams }: { searchParams: { billing?
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {FAQ.map(([q, a]) => (
             <div key={q} className="rounded-xl border border-line bg-panel p-5">
-              <h3 className="text-sm font-semibold text-ink-100">{q}</h3>
+              <h3 className="text-sm font-bold text-ink-100">{q}</h3>
               <p className="text-sm text-ink-400 mt-1">{a}</p>
             </div>
           ))}

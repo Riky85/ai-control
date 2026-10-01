@@ -77,7 +77,7 @@ export default function PricingCards({
             <div key={p.id} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-base font-semibold text-ink-100">{p.displayName}</h3>
+                  <h3 className="text-base font-bold text-ink-100">{p.displayName}</h3>
                   {onTrial ? (
                     <span className="text-[11px] font-medium text-accent bg-accent-soft rounded-full px-2 py-0.5 whitespace-nowrap">Your trial</span>
                   ) : isCurrent ? (
@@ -153,7 +153,7 @@ export default function PricingCards({
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold text-ink-100">{a.name}</h3>
+                    <h3 className="text-base font-bold text-ink-100">{a.name}</h3>
                     <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Add-on</span>
                   </div>
                   <p className="text-sm text-ink-400 mt-1">{a.tagline} Included in {planLabel(a.includedFrom)} and above.</p>
@@ -192,7 +192,7 @@ export default function PricingCards({
               <path d="M8 1.5l5 2v4c0 3.2-2.2 5.6-5 7-2.8-1.4-5-3.8-5-7v-4l5-2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
               <path d="M5.5 8l1.8 1.8L10.8 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <h3 className="text-base font-semibold text-ink-100">Savings guarantee</h3>
+            <h3 className="text-base font-bold text-ink-100">Savings guarantee</h3>
           </div>
           <p className="text-sm text-ink-400">{GUARANTEE}</p>
           <p className="text-sm text-ink-400">

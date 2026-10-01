@@ -24,7 +24,7 @@ export default function DocsIndex({ searchParams }: { searchParams: { q?: string
         if (!docs.length) return null;
         return (
           <section key={section}>
-            <h2 className="text-base font-semibold text-ink-100 mb-2">{section}</h2>
+            <h2 className="text-base font-bold text-ink-100 mb-2">{section}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {docs.map((d) => (
                 <Link key={d.slug} href={`/docs/${d.slug}`} className="rounded-xl border border-line bg-panel p-4 hover:border-ink-400 transition-colors">

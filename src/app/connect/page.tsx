@@ -88,7 +88,7 @@ export default async function ConnectPage() {
         {cards.map((c) => (
           <section key={c.key} className="overflow-hidden rounded-2xl border border-line bg-panel flex flex-col">
             <div className="p-5 flex flex-col gap-1">
-              <h2 className="text-base font-semibold text-ink-100 flex items-center gap-2">
+              <h2 className="text-base font-bold text-ink-100 flex items-center gap-2">
                 {c.title}
                 {c.key === next && <span className="rounded-full border border-accent/40 px-2 py-0.5 text-[11px] font-medium text-accent">Start here</span>}
               </h2>

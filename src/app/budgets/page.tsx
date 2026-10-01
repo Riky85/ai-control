@@ -79,7 +79,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
       {named.length === 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="rounded-xl border border-line bg-panel p-5">
-            <h2 className="text-base font-semibold text-ink-100">No teams yet</h2>
+            <h2 className="text-base font-bold text-ink-100">No teams yet</h2>
             <p className="text-sm text-ink-400 mt-1">
               Teams come from each person&apos;s department (Microsoft 365, Google Workspace, or set by hand on People). angar splits every AI&apos;s cost by who uses it.
               {rows.length > 0 && <> Right now {fmtEur(totalSpend)}/mo isn&apos;t assigned to a team.</>}
@@ -154,7 +154,7 @@ function AddBudget({ named, secondary = false }: { named: string[]; secondary?: 
   return (
     <section className="rounded-xl border border-line bg-panel animate-rise">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
-        <h2 className="text-sm font-semibold text-ink-100">Add a team budget</h2>
+        <h2 className="text-sm font-bold text-ink-100">Add a team budget</h2>
         <p className="text-xs text-ink-400">Same name as the department in your directory. Empty or 0 removes it.</p>
       </div>
       <form action={setBudgetAction} className="p-5 flex flex-wrap items-center gap-2">

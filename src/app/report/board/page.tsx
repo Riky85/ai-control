@@ -401,7 +401,7 @@ function Line({ label, value }: { label: string; value: string }) {
 
 function H2({ n, children }: { n: number; children: React.ReactNode }) {
   return (
-    <h2 className="flex items-baseline gap-3 text-lg font-semibold">
+    <h2 className="flex items-baseline gap-3 text-lg font-bold">
       <span className="text-xs font-semibold text-[#FF7323] tabular">{String(n).padStart(2, "0")}</span>
       {children}
     </h2>

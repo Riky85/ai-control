@@ -134,7 +134,7 @@ async function Suggestions({
         <p className="text-sm text-ink-400">No suggestions match these filters.</p>
       ) : items.length === 0 ? (
         <div className="rounded-xl border border-line bg-panel p-10 text-center">
-          <h2 className="text-lg font-semibold text-ink-100">{spend ? "Nothing to save right now" : "angar needs to see what you pay"}</h2>
+          <h2 className="text-lg font-bold text-ink-100">{spend ? "Nothing to save right now" : "angar needs to see what you pay"}</h2>
           <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">
             {spend
               ? "Your AI spend looks tidy."
@@ -265,7 +265,7 @@ function Progress({ saved, canSave, org }: { saved: SavedSoFar; canSave: number;
       {price ? (
         <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
           <div className="flex items-baseline justify-between gap-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
-            <h2 className="text-sm font-semibold text-ink-100">90-day guarantee</h2>
+            <h2 className="text-sm font-bold text-ink-100">90-day guarantee</h2>
             <span className="text-xs text-ink-400">{day <= 90 ? `Day ${day} of 90` : "First 90 days completed"}</span>
           </div>
           <div className="p-5 flex flex-col gap-3">

@@ -102,7 +102,7 @@ export default function EdgePage() {
 
       {/* Cosa fa */}
       <section className="rounded-xl border border-line bg-panel p-5">
-        <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">What it does</h2>
+        <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">What it does</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3">
           {[
             ["Discover", "Every AI reached from the network, 24/7 — incl. phones, servers and BYOD."],
@@ -128,7 +128,7 @@ export default function EdgePage() {
       {/* Cosa mai + Edge vs app desktop */}
       <section className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-4">
         <div className="rounded-xl border border-line bg-panel p-4">
-          <h3 className="-mx-4 -mt-4 mb-3 bg-ink border-b border-line rounded-t-xl px-4 py-3 text-sm font-semibold text-ink-100 bar-head">What it never does</h3>
+          <h3 className="-mx-4 -mt-4 mb-3 bg-ink border-b border-line rounded-t-xl px-4 py-3 text-sm font-bold text-ink-100 bar-head">What it never does</h3>
           <ul className="flex flex-col gap-1.5 text-sm text-ink-400">
             {[
               "Read content — no URLs, prompts, messages or files",
@@ -167,7 +167,7 @@ export default function EdgePage() {
       {!isOnPrem() && (
         <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
           <div className="-mx-5 -mt-5 mb-1 flex items-center gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
-            <h2 className="text-sm font-semibold text-ink-100">Keep every piece of data in your company</h2>
+            <h2 className="text-sm font-bold text-ink-100">Keep every piece of data in your company</h2>
             <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Enterprise</span>
           </div>
           <p className="text-sm text-ink-400 max-w-3xl">

@@ -55,7 +55,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
       />
 
       <div className="rounded-xl border border-line bg-panel p-5 text-sm">
-        <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">Event details</h2>
+        <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">Event details</h2>
         <dl className="flex flex-col gap-2.5">
           <Row label="Asset">
             <Link href={`/assets/${activity.aiAssetId}`} className="text-ink-100 hover:underline font-medium">
@@ -98,7 +98,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
 
       {activity.payload != null && people && (
         <div className="rounded-xl border border-line bg-panel p-5">
-          <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">Raw event payload</h2>
+          <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">Raw event payload</h2>
           <p className="text-xs text-ink-400 mb-3">
             Exactly what the connector imported — useful for tracing back to the source system.
           </p>

@@ -109,7 +109,7 @@ export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edge
       <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4 animate-rise">
         <div className="-mx-5 -mt-5 flex items-center justify-between gap-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-ink-100">{created.name} is ready</h2>
+            <h2 className="text-sm font-bold text-ink-100">{created.name} is ready</h2>
             <p className="text-xs text-ink-400 mt-0.5">Copy the token now — it&apos;s shown only once. It appears online here within a few minutes.</p>
           </div>
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setCreated(null); setName(""); }}>Done</button>
@@ -127,7 +127,7 @@ export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edge
   ];
   return (
     <section className="rounded-xl border border-line bg-panel p-5">
-      <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">Add a sensor</h2>
+      <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">Add a sensor</h2>
       <form
         className="flex flex-col gap-3"
         onSubmit={(e) => {

@@ -52,7 +52,7 @@ export default async function AdvisorPage() {
 
       <section className="flex flex-col gap-3">
         <div>
-          <h2 className="text-base font-semibold text-ink-100">Recommended stack</h2>
+          <h2 className="text-base font-bold text-ink-100">Recommended stack</h2>
           <p className="text-sm text-ink-400">One tool for each job — the one most of your people already use.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -90,7 +90,7 @@ export default async function AdvisorPage() {
       <section className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
         {/* Barra grigia in alto: titolo e ordine dei passi. */}
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line px-5 py-3 bar-head">
-          <h2 className="text-sm font-semibold text-ink-100">How to get there</h2>
+          <h2 className="text-sm font-bold text-ink-100">How to get there</h2>
           <p className="text-xs text-ink-400">In order: consolidate first, then fix plans, seats and billing.</p>
         </div>
         {recommendations.length === 0 ? (
@@ -123,7 +123,7 @@ function RecRow({ r, n }: { r: Recommendation; n: number }) {
       </div>
       <div className="flex-1 min-w-[12rem]">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h3 className="text-[15px] font-semibold text-ink-100">{r.title}</h3>
+          <h3 className="text-[15px] font-bold text-ink-100">{r.title}</h3>
           <span className={`text-[11px] font-medium rounded-full px-2 py-0.5 ${c.cls}`}>{c.label}</span>
         </div>
         <p className="text-sm text-ink-400 mt-0.5">{r.why}</p>

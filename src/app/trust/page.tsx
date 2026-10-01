@@ -86,15 +86,15 @@ export default function TrustPage() {
           </p>
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
             <div>
-              <h3 className="text-sm font-semibold text-ink-100">Stays in the EU</h3>
+              <h3 className="text-sm font-bold text-ink-100">Stays in the EU</h3>
               <BulletList items={EU_ONLY.stays} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-ink-100">Still outside this mode</h3>
+              <h3 className="text-sm font-bold text-ink-100">Still outside this mode</h3>
               <BulletList items={EU_ONLY.outside} />
             </div>
           </div>
-          <h3 className="text-sm font-semibold text-ink-100 mt-8 mb-3">Turn it on</h3>
+          <h3 className="text-sm font-bold text-ink-100 mt-8 mb-3">Turn it on</h3>
           <div className="rounded-xl border border-line bg-panel divide-y divide-line">
             {EU_ONLY.turnOn.map((t) => (
               <div key={t.who} className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-1 md:gap-6 px-4 sm:px-5 py-3.5">
@@ -114,7 +114,7 @@ export default function TrustPage() {
               </div>
             ))}
           </div>
-          <h3 className="text-sm font-semibold text-ink-100 mt-8 mb-3">Never collected</h3>
+          <h3 className="text-sm font-bold text-ink-100 mt-8 mb-3">Never collected</h3>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
             {NEVER_COLLECTED.map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm text-ink-100">
@@ -148,7 +148,7 @@ export default function TrustPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
             {MEASURES.map((g) => (
               <div key={g.title}>
-                <h3 className="text-sm font-semibold text-ink-100">{g.title}</h3>
+                <h3 className="text-sm font-bold text-ink-100">{g.title}</h3>
                 <BulletList items={g.items} />
               </div>
             ))}
@@ -243,7 +243,7 @@ function BulletList({ items }: { items: string[] }) {
 function SubTable({ title, rows, className = "" }: { title: string; rows: typeof SUB_PROCESSORS; className?: string }) {
   return (
     <div className={className}>
-      <h3 className="text-sm font-semibold text-ink-100 mb-3">{title}</h3>
+      <h3 className="text-sm font-bold text-ink-100 mb-3">{title}</h3>
       {/* Desktop: tabella; mobile: righe impilate. */}
       <div className="hidden md:block rounded-xl border border-line bg-panel overflow-hidden">
         <table className="w-full text-sm">

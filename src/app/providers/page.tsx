@@ -74,7 +74,7 @@ export default async function ProvidersPage() {
       {total > 0 && (
         <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4 animate-rise">
           <div className="-mx-5 -mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
-            <h2 className="text-sm font-semibold text-ink-100">Share of AI spend</h2>
+            <h2 className="text-sm font-bold text-ink-100">Share of AI spend</h2>
             {topShare >= 60 && top && (
               <span className="text-xs text-signal">
                 {topShare}% on {top.vendor} — if its prices change or it goes down, {top.list.length} AI {top.list.length === 1 ? "is" : "are"} affected.

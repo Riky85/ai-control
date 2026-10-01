@@ -103,7 +103,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
 
       <div>
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-          <h2 className="px-4 py-3 text-sm font-semibold text-ink-100">Assets owned</h2>
+          <h2 className="px-4 py-3 text-sm font-bold text-ink-100">Assets owned</h2>
           {person.ownedAssets.map((a) => (
             <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="font-medium text-ink-100 truncate min-w-0">{a.name}</span>
@@ -121,7 +121,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
 
       <div>
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-          <h2 className="px-4 py-3 text-sm font-semibold text-ink-100">Assets used</h2>
+          <h2 className="px-4 py-3 text-sm font-bold text-ink-100">Assets used</h2>
           {person.usages.map((u) => (
             <Link key={u.id} href={`/assets/${u.aiAssetId}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="font-medium text-ink-100 truncate min-w-0">{u.aiAsset.name}</span>
@@ -142,7 +142,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
       {recentActivity.length > 0 && (
         <div>
           <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-            <h2 className="px-4 py-3 text-sm font-semibold text-ink-100">Recent activity</h2>
+            <h2 className="px-4 py-3 text-sm font-bold text-ink-100">Recent activity</h2>
             {recentActivity.map((a) => (
               <Link key={a.id} href={`/activity/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 min-w-0">

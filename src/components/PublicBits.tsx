@@ -69,7 +69,7 @@ export function FeatureCard({ t, d, badge, icon }: { t: string; d: string; badge
     <div className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-2 min-w-0">
       {icon && <div className="h-8 w-8 rounded-lg bg-ink text-ink-100 flex items-center justify-center mb-1">{icon}</div>}
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-[15px] font-semibold text-ink-100">{t}</h3>
+        <h3 className="text-[15px] font-bold text-ink-100">{t}</h3>
         {badge && <span className="shrink-0 text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5 whitespace-nowrap">{badge}</span>}
       </div>
       <p className="text-sm text-ink-400 leading-relaxed">{d}</p>
@@ -86,7 +86,7 @@ export function Steps({ title, steps }: { title: string; steps: { t: string; d: 
         {steps.map((s, i) => (
           <li key={s.t} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-2">
             <span className="font-display text-sm font-semibold tabular text-ink-400">0{i + 1}</span>
-            <h3 className="text-[15px] font-semibold text-ink-100">{s.t}</h3>
+            <h3 className="text-[15px] font-bold text-ink-100">{s.t}</h3>
             <p className="text-sm text-ink-400 leading-relaxed">{s.d}</p>
           </li>
         ))}
@@ -105,7 +105,7 @@ export function TrustStrip({ copy }: { copy: CommonCopy["trust"] }) {
             <path d="M8 1.5l5 2v4c0 3.2-2.2 5.6-5 7-2.8-1.4-5-3.8-5-7v-4l5-2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
             <path d="M5.5 8l1.8 1.8L10.8 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <h2 className="text-base font-semibold text-ink-100">{copy.title}</h2>
+          <h2 className="text-base font-bold text-ink-100">{copy.title}</h2>
         </div>
         <a href="/trust" className="text-sm text-ink-100 underline underline-offset-2 hover:no-underline">
           {copy.link} →

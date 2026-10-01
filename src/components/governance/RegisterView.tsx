@@ -98,7 +98,7 @@ export function RegisterEdit({ row }: { row: RopaRow }) {
   return (
     <section id="edit" className="print:hidden rounded-xl border border-line bg-panel animate-rise scroll-mt-6">
       <div className="px-5 py-3 border-b border-line flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-ink-100">Complete {row.name}</h2>
+        <h2 className="text-sm font-bold text-ink-100">Complete {row.name}</h2>
         <Link href={`/governance/register#row-${row.id}`} className="text-sm text-ink-400 hover:text-ink-100">
           Cancel
         </Link>
@@ -148,7 +148,7 @@ export function RegisterPrint({ rows, orgName, generated }: { rows: RopaRow[]; o
       </p>
       {rows.map((r) => (
         <article key={r.id} className="border-t border-black/20 py-3 break-inside-avoid">
-          <h2 className="text-sm font-semibold">
+          <h2 className="text-sm font-bold">
             {r.name}
             {r.vendor ? ` · ${r.vendor}` : ""}
           </h2>

@@ -29,7 +29,7 @@ export default function McpServers({ rows, canDecide, newAppComputers }: { rows:
   return (
     <section id="mcp" className="rounded-xl border border-line bg-panel animate-rise scroll-mt-6">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3">
-        <h2 className="text-sm font-semibold text-ink-100">
+        <h2 className="text-sm font-bold text-ink-100">
           AI agents &amp; MCP servers <span className="text-ink-400 font-normal tabular">· {rows.length}</span>
         </h2>
         <span className="flex items-center gap-2 text-xs text-ink-400">

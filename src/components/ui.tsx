@@ -18,7 +18,7 @@ export function StatCard({
   const dot = tone === "signal" ? "bg-signal" : tone === "alarm" ? "bg-alarm" : null;
   const inner = (
     <>
-      <div className="text-sm text-ink-400 flex items-center gap-2">
+      <div className="text-sm font-semibold text-ink-100 flex items-center gap-2">
         {dot && <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />}
         {label}
       </div>
@@ -64,7 +64,7 @@ export function BlockHead({
 }) {
   return (
     <div className={`${BAR_HEAD} ${rounded} flex flex-wrap items-center justify-between gap-x-4 gap-y-1 ${className}`}>
-      <h2 id={id} className="text-sm font-semibold text-ink-100 min-w-0">
+      <h2 id={id} className="text-sm font-bold text-ink-100 min-w-0">
         {title}
       </h2>
       {(note || action) && (
@@ -185,7 +185,7 @@ export function Table({
     <div id={id} className="rounded-xl border border-line bg-panel animate-rise scroll-mt-6">
       {band ? (
         <div className="bg-ink bar-head rounded-t-xl px-5 pt-3 pb-2 flex flex-wrap items-center gap-x-4 gap-y-2">
-          {title && <h2 className="text-sm font-semibold text-ink-100 shrink-0">{title}</h2>}
+          {title && <h2 className="text-sm font-bold text-ink-100 shrink-0">{title}</h2>}
           {action && <div className="shrink-0 flex items-center gap-2 ml-auto sm:order-last">{action}</div>}
           {toolbar && <div className="w-full sm:w-auto sm:flex-1 min-w-0">{toolbar}</div>}
         </div>
@@ -203,7 +203,7 @@ export function Table({
             {columns.map((c, i) => {
               const col = typeof c === "string" ? { label: c } : c;
               return (
-                <th key={i} className={`px-5 py-2.5 font-medium ${col.className ?? ""}`}>
+                <th key={i} className={`px-5 py-2.5 font-semibold ${col.className ?? ""}`}>
                   {col.label}
                 </th>
               );
@@ -288,7 +288,7 @@ export function InfoStrip({
     <>
       <span className={`h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] flex items-center justify-center ${tone === "steady" ? "text-steady" : "text-accent"}`}>{icon}</span>
       <span className="flex-1 min-w-0 flex items-baseline gap-2 text-sm">
-        <span className="font-medium text-ink-100 shrink-0">{title}</span>
+        <span className="font-bold text-ink-100 shrink-0">{title}</span>
         {value && <span className="font-display font-semibold tabular text-ink-100 shrink-0">{value}</span>}
         {text && <span className="text-ink-400 truncate">{text}</span>}
       </span>

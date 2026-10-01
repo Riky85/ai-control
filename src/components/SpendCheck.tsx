@@ -102,7 +102,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
 
           {result.report.savings.length > 0 && (
             <div className="flex flex-col gap-3">
-              <h2 className="text-lg font-semibold text-ink-100">Where you could save</h2>
+              <h2 className="text-lg font-bold text-ink-100">Where you could save</h2>
               {result.report.savings.map((s) => (
                 <div key={s.title} className="rounded-xl border border-line bg-panel p-4 flex items-center gap-4">
                   <div className="flex-1 min-w-0">

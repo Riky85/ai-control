@@ -28,7 +28,7 @@ export function Insight({ tone = "accent", children, href, cta }: { tone?: Insig
 export function EmptyState({ title, text, href, cta }: { title: string; text?: React.ReactNode; href?: string; cta?: string }) {
   return (
     <div className="rounded-xl border border-dashed border-line bg-panel p-8 text-center animate-rise">
-      <h2 className="text-base font-semibold text-ink-100">{title}</h2>
+      <h2 className="text-base font-bold text-ink-100">{title}</h2>
       {text && <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">{text}</p>}
       {href && cta && (
         <Link href={href} className="btn btn-primary btn-sm mt-4">

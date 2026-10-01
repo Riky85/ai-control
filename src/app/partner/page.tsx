@@ -69,7 +69,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
 
       {onlyOwn && (
         <div className="rounded-xl border border-dashed border-line bg-panel p-8 flex flex-col gap-3 animate-rise">
-          <h2 className="text-base font-semibold text-ink-100">Manage AI spend for all your clients</h2>
+          <h2 className="text-base font-bold text-ink-100">Manage AI spend for all your clients</h2>
           <p className="text-sm text-ink-400 max-w-2xl">
             Accountants, consultants and MSPs use angar to look after AI spend for many client companies at once. Create one workspace for each client, drop their bank
             statement or invite them, and this console shows every client side by side — spend, possible savings, AI to review and alerts — sorted by where you can save
@@ -196,7 +196,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
           {/* Economia partner: stima, solo clienti gestiti. */}
           <section className="rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
             <div className="-mx-4 -mt-4 flex flex-wrap items-baseline justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3 bar-head">
-              <h2 className="text-sm font-semibold text-ink-100">
+              <h2 className="text-sm font-bold text-ink-100">
                 Partner economics <span className="font-normal text-ink-400">· estimate</span>
               </h2>
               <span className="text-xs text-ink-400">

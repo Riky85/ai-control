@@ -26,7 +26,7 @@ export default function DocBody({ body }: { body: string }) {
     const line = lines[i].trim();
     if (!line) { i++; continue; }
     if (line.startsWith("## ")) {
-      blocks.push(<h2 key={i} className="text-base font-semibold text-ink-100 mt-6 mb-2">{line.slice(3)}</h2>);
+      blocks.push(<h2 key={i} className="text-base font-bold text-ink-100 mt-6 mb-2">{line.slice(3)}</h2>);
       i++;
     } else if (/^(- |\d+\. )/.test(line)) {
       const ordered = /^\d+\. /.test(line);

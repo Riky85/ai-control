@@ -242,7 +242,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
             <AddSensor appUrl={base} edgeImage={EDGE_IMAGE} canEdit={canEdit} />
             <section className="rounded-xl border border-line bg-panel p-5">
-              <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">Upload alert</h2>
+              <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">Upload alert</h2>
               <p className="text-sm text-ink-400 mb-3">Alert when a device sends more than this to an AI that isn&apos;t approved, in one day. 0 turns it off.</p>
               <form action={setUploadAlertAction} className="flex items-center gap-2">
                 <input name="uploadAlertMb" type="number" min={0} max={100000} step={1} defaultValue={org?.uploadAlertMb ?? 100} className="field w-24 tabular" disabled={!canEdit} aria-label="Upload alert threshold in MB" />

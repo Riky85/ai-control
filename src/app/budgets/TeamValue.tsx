@@ -58,7 +58,7 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
     <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="team-value-title">
       <div className="flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3 bar-head">
         <div className="min-w-0">
-          <h2 id="team-value-title" className="text-sm font-semibold text-ink-100">Value by team</h2>
+          <h2 id="team-value-title" className="text-sm font-bold text-ink-100">Value by team</h2>
           <p className="text-xs text-ink-400 mt-0.5">
             AI spend a month and how much of it is used{idleTotal >= 1 ? <> · <b className="font-medium text-ink-100">{fmtEur(idleTotal)}</b> a month on idle seats</> : null}
           </p>

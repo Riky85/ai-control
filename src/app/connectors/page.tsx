@@ -140,7 +140,7 @@ export default async function ConnectorsPage({
       {/* Codice: una riga sola, il modulo si apre solo quando serve. */}
       <section id="GITHUB" className="scroll-mt-6">
         <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
-          <h2 className="bg-ink border-b border-line px-4 py-3 text-sm font-semibold text-ink-100 bar-head">Code</h2>
+          <h2 className="bg-ink border-b border-line px-4 py-3 text-sm font-bold text-ink-100 bar-head">Code</h2>
           <div className="flex flex-wrap items-center gap-3 px-4 py-3">
             <VendorBadge vendor="GitHub" size={32} />
             <div className="flex-1 min-w-0">
@@ -236,7 +236,7 @@ export default async function ConnectorsPage({
 function Section({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-base font-semibold text-ink-100">{title}</h2>
+      <h2 className="text-base font-bold text-ink-100">{title}</h2>
       <p className="text-sm text-ink-400 mb-3">{subtitle}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">{children}</div>
     </section>

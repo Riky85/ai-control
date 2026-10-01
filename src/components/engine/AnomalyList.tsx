@@ -29,7 +29,7 @@ export default function AnomalyList({ anomalies, limit = 5 }: AnomalyListProps &
   return (
     <section className="overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="anomaly-title">
       <div className="flex items-baseline justify-between gap-3 bg-ink border-b border-line px-5 py-3 text-sm bar-head">
-        <h2 id="anomaly-title" className="font-semibold text-ink-100">Anomalies</h2>
+        <h2 id="anomaly-title" className="font-bold text-ink-100">Anomalies</h2>
         {anomalies.length > 0 && <span className="text-xs text-ink-400 tabular">{anomalies.length} found</span>}
       </div>
       {shown.length === 0 ? (

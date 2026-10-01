@@ -95,8 +95,8 @@ const SIGN_HINT: Record<string, string> = {
 };
 
 function Block({ b, lang }: { b: DocBlock; lang: string }) {
-  if ("h" in b) return <h2 className="text-base font-semibold mt-5 break-after-avoid">{b.h}</h2>;
-  if ("h3" in b) return <h3 className="text-sm font-semibold mt-2 break-after-avoid">{b.h3}</h3>;
+  if ("h" in b) return <h2 className="text-base font-bold mt-5 break-after-avoid">{b.h}</h2>;
+  if ("h3" in b) return <h3 className="text-sm font-bold mt-2 break-after-avoid">{b.h3}</h3>;
   if ("p" in b) return <p><Filled text={b.p} /></p>;
   if ("ul" in b)
     return (

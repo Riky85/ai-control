@@ -241,7 +241,7 @@ async function EvidenceTab() {
 
       <div>
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-          <h2 className="px-5 py-3 text-sm font-semibold text-ink-100">Inventory history</h2>
+          <h2 className="px-5 py-3 text-sm font-bold text-ink-100">Inventory history</h2>
           {snapshots.length === 0 && (
             <div className="p-5 text-sm text-ink-400">No snapshots yet. One is recorded automatically the first time a connector syncs.</div>
           )}

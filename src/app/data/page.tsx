@@ -94,7 +94,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
             right={`${dataAssets.length} data categor${dataAssets.length === 1 ? "y" : "ies"}`}
           />
           <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
-            <h2 className="px-5 py-3 text-sm font-semibold text-ink-100">Data and the AI that reach it</h2>
+            <h2 className="px-5 py-3 text-sm font-bold text-ink-100">Data and the AI that reach it</h2>
             {dataAssets.map((d) => (
               <div key={d.id} className="px-5 py-4">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">

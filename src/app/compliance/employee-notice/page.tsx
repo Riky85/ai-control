@@ -99,7 +99,7 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
         <div className="mt-4 flex flex-col gap-3 text-sm leading-relaxed text-ink-100">
           {notice.blocks.map((b, i) =>
             "h" in b ? (
-              <h2 key={i} className="text-base font-semibold text-ink-100 mt-3">{b.h}</h2>
+              <h2 key={i} className="text-base font-bold text-ink-100 mt-3">{b.h}</h2>
             ) : "p" in b ? (
               <p key={i}><Filled text={b.p} /></p>
             ) : (

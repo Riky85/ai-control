@@ -18,7 +18,7 @@ export default function Onboarding({ searchParams }: { searchParams: { error?: s
       <form action={uploadSpendAction} className="rounded-xl border border-line bg-panel p-6 flex flex-col gap-4">
         <input type="hidden" name="back" value="/onboarding" />
         <div>
-          <h2 className="text-base font-semibold text-ink-100">Drop a bank or card statement</h2>
+          <h2 className="text-base font-bold text-ink-100">Drop a bank or card statement</h2>
           <p className="text-sm text-ink-400 mt-0.5">CSV or Excel from your bank, or your e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X, Facturae) as XML, PDF or zip from the accountant. Only AI charges are kept.</p>
         </div>
         <CsvDropzone accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.xsig,.p7m,.zip,.pdf" multiple label="Choose files or drag them here" />

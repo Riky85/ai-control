@@ -58,7 +58,7 @@ export default function ForecastCard({ history, projection, next12Eur, growthPct
     <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="forecast-title">
       {/* Barra grigia in alto: titolo e legenda del grafico. */}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
-        <h2 id="forecast-title" className="font-semibold text-ink-100">Next 12 months</h2>
+        <h2 id="forecast-title" className="font-bold text-ink-100">Next 12 months</h2>
         {!empty && (
           <div className="flex items-center gap-4 text-[11px] text-ink-400" aria-hidden>
             <span className="flex items-center gap-1.5"><svg width="16" height="4" className="text-accent"><path d="M0 2h16" stroke="currentColor" strokeWidth="2" /></svg>Actual</span>

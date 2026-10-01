@@ -110,7 +110,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
 
       {/* Tutta l'azienda: un link da mandare a tutti */}
       <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
-        <h2 className="bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">Send the link to everyone</h2>
+        <h2 className="bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">Send the link to everyone</h2>
         <div className="flex flex-wrap sm:flex-nowrap min-w-0 items-center gap-2 px-5 py-4">
           <code className="basis-full sm:basis-auto flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{joinUrl}</code>
           <CopyButton text={joinUrl} label="Copy" />
