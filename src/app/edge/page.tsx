@@ -16,17 +16,17 @@ export default function EdgePage() {
   const fromPlan = planById(EDGE.softwareFromPlan).name;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }]}
         title="angar Edge"
         subtitle="The network sensor: every AI on your network, the ones you don't approve blocked — nothing installed on anyone's computer."
         action={
           <div className="flex items-center gap-2">
-            <a href={requestHref} className="btn btn-secondary">
+            <a href={requestHref} className="btn btn-secondary btn-sm">
               Request a device
             </a>
-            <Link href="/edge/sensors" className="btn btn-primary">
+            <Link href="/edge/sensors" className="btn btn-primary btn-sm">
               Set up a sensor
             </Link>
           </div>
@@ -68,7 +68,7 @@ export default function EdgePage() {
       </section>
 
       {/* Tre modi di installarlo */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           {
             t: "Software",
@@ -126,7 +126,7 @@ export default function EdgePage() {
       </section>
 
       {/* Cosa mai + Edge vs app desktop */}
-      <section className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-3">
+      <section className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-4">
         <div className="rounded-xl border border-line bg-panel p-4">
           <h3 className="-mx-4 -mt-4 mb-3 bg-ink border-b border-line rounded-t-xl px-4 py-3 text-sm font-semibold text-ink-100 bar-head">What it never does</h3>
           <ul className="flex flex-col gap-1.5 text-sm text-ink-400">
@@ -159,7 +159,7 @@ export default function EdgePage() {
               <Row key={k} k={k} a={a} b={b} />
             ))}
           </div>
-          <p className="bg-ink px-3 py-2.5 text-xs text-ink-400">Most companies use both: Edge for the network, the app for people.</p>
+          <p className="px-3 py-2.5 text-xs text-ink-400">Most companies use both: Edge for the network, the app for people.</p>
         </div>
       </section>
 

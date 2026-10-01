@@ -40,7 +40,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
       <PageHeader crumbs={[{ label: "Connect", href: "/connect" }]} title="Sources" subtitle="Your costs and accounts, in one place." />
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
-      <Card title="Bank & invoices" text="Upload a statement or invoices to see every AI you pay for." status={spendCount ? `${spendCount} AI charges · last ${fmtDate(lastSpend!.createdAt)}` : null}>
+      <Card title="Bank & invoices" text="Upload a statement or invoices to see every AI you pay for." status={spendCount ? `${spendCount} AI charge${spendCount === 1 ? "" : "s"}${lastSpend ? ` · last ${fmtDate(lastSpend.createdAt)}` : ""}` : null}>
         <form action={uploadSpendAction} className="flex flex-col gap-3">
           <input type="hidden" name="back" value="/sources" />
           <CsvDropzone accept={SPEND_ACCEPT} multiple label="Drop bank/card exports or e-invoices here" />
@@ -61,7 +61,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
 
       <section id="accounts" className="scroll-mt-6">
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
-          <h2 className="bg-ink px-4 py-3 text-sm font-semibold text-ink-100">Accounts</h2>
+          <h2 className="px-4 py-3 text-sm font-semibold text-ink-100">Accounts</h2>
           {workplace.providers.map((p) => (
             <SourceRow key={p.id} label={p.label}>
               {p.connected ? (

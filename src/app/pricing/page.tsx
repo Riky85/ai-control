@@ -1,5 +1,6 @@
 import { Wordmark } from "@/components/Logo";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import PricingCards, { BillingToggle } from "@/components/PricingCards";
 import { currentSession } from "@/lib/auth";
 import { EDGE, partnerPrice } from "@/lib/plans";
@@ -18,24 +19,24 @@ const FAQ = [
 
 // Pagina prezzi pubblica.
 export default function PricingPage({ searchParams }: { searchParams: { billing?: string } }) {
-  const signedIn = Boolean(currentSession());
   const annual = searchParams.billing === "annual";
+  // Da dentro l'app i pulsanti pubblici ("Start free" → /signup) finirebbero in un vicolo cieco:
+  // stessa scelta dei piani, con i pulsanti giusti, su /billing.
+  if (currentSession()) redirect(annual ? "/billing?billing=annual" : "/billing");
   return (
-    <div className={signedIn ? "" : "min-h-screen bg-panel"}>
-      {!signedIn && (
-        <header className="max-w-6xl mx-auto px-6 pt-8 flex items-center justify-between">
-          <a href="/check" className="text-ink-100" aria-label="angar"><Wordmark size={20} /></a>
-          <nav className="flex items-center gap-4 text-sm">
-            <a href="/engine" className="text-ink-400 hover:text-ink-100">Engine</a>
-            <a href="/check" className="text-ink-400 hover:text-ink-100">Free AI Spend Check</a>
-            <a href="/login" className="text-ink-400 hover:text-ink-100">Sign in</a>
-            <a href="/signup" className="btn btn-primary btn-sm">Start free</a>
-          </nav>
-        </header>
-      )}
-      <main className={`${signedIn ? "" : "max-w-6xl mx-auto px-6 py-14"} flex flex-col gap-10`}>
+    <div className="min-h-screen bg-panel">
+      <header className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 flex items-center justify-between gap-3">
+        <a href="/check" className="text-ink-100 shrink-0" aria-label="angar"><Wordmark size={20} /></a>
+        <nav className="flex items-center gap-3 sm:gap-4 text-sm min-w-0">
+          <a href="/engine" className="hidden sm:inline text-ink-400 hover:text-ink-100">Engine</a>
+          <a href="/check" className="hidden sm:inline text-ink-400 hover:text-ink-100">Free AI Spend Check</a>
+          <a href="/login" className="text-ink-400 hover:text-ink-100 whitespace-nowrap">Sign in</a>
+          <a href="/signup" className="btn btn-primary btn-sm whitespace-nowrap">Start free</a>
+        </nav>
+      </header>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-14 flex flex-col gap-10">
         <div className="text-center max-w-2xl mx-auto">
-          <h1 className="font-display text-[38px] leading-tight font-semibold tracking-tight text-ink-100">Pay less for AI. angar pays for itself.</h1>
+          <h1 className="font-display text-[30px] sm:text-[38px] leading-tight font-semibold tracking-tight text-ink-100">Pay less for AI. angar pays for itself.</h1>
           <p className="text-base text-ink-400 mt-3">Every AI your company uses, what it really costs, who uses it and where to save — automatically. Start free, upgrade when you want the full picture.</p>
         </div>
         <div className="flex justify-center -mt-4">
@@ -68,10 +69,10 @@ export default function PricingPage({ searchParams }: { searchParams: { billing?
             <div className="font-display text-ink-100">
               <div className="text-xs text-ink-400 font-body">angar device</div>
               <span className="text-[26px] font-semibold tracking-tight tabular">€{EDGE.pricePerDevice}</span>
-              <span className="text-sm text-ink-400"> / device / month</span>
+              <span className="text-sm text-ink-400"> a month for each device</span>
               <div className="text-xs text-ink-400 mt-1 font-body">Any plan · {EDGE.minMonths}-month minimum · hardware, shipping and replacement included</div>
             </div>
-            <div className="text-xs text-ink-400">Partners: €{partnerPrice(EDGE.pricePerDevice).toFixed(2)} / device ({EDGE.partnerDiscountPct}% off).</div>
+            <div className="text-xs text-ink-400">Partners: €{partnerPrice(EDGE.pricePerDevice).toFixed(2)} for each device ({EDGE.partnerDiscountPct}% off).</div>
             <a href="/signup" className="btn btn-secondary mt-auto">Start free</a>
           </div>
         </section>

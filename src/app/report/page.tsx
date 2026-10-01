@@ -33,7 +33,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
         title={`AI report — ${r.month}`}
         subtitle={`${r.org?.name ?? ""} · sent every month to owners and admins${emailEnabled() ? "" : " once email is set up"}.`}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <form action={sendReportNowAction}>
               <button className="btn btn-secondary">Email it to me</button>
             </form>
@@ -43,7 +43,6 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
         }
       />
       {searchParams.sent && <Notice tone="success">Sent to {me?.email}.</Notice>}
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
       {r.assets.length === 0 && (
         <div className="print:hidden">
@@ -70,13 +69,13 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
 
       {forecast && <ForecastCard {...forecast} />}
 
-      <div className="grid grid-cols-2 gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <Panel flush title="Biggest costs">
           <div className="divide-y divide-line">
             {r.costed.slice(0, 8).map((x) => (
-              <div key={x.a.id} className="flex items-center justify-between px-5 py-2.5 text-sm">
-                <span className="text-ink-100">{x.a.name}</span>
-                <span className="tabular text-ink-100">{x.m!.estimated ? "≈ " : ""}{fmtEur(x.m!.eur)}</span>
+              <div key={x.a.id} className="flex items-center justify-between gap-4 px-5 py-2.5 text-sm">
+                <span className="text-ink-100 truncate min-w-0">{x.a.name}</span>
+                <span className="tabular text-ink-100 shrink-0">{x.m!.estimated ? "≈ " : ""}{fmtEur(x.m!.eur)}</span>
               </div>
             ))}
             {r.costed.length === 0 && <p className="px-5 py-3 text-sm text-ink-400">No costs yet.</p>}

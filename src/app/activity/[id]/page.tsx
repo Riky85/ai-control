@@ -90,7 +90,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
               <span className="tabular text-xs text-ink-400 shrink-0">{fmtDateTime(e.occurredAt)}</span>
             </Link>
           ))}
-          <Link href={`/activity?q=${encodeURIComponent(activity.aiAsset.name)}`} className="block bg-ink px-5 py-3 text-xs text-ink-400 hover:text-ink-100">
+          <Link href={`/activity?q=${encodeURIComponent(activity.aiAsset.name)}`} className="block px-5 py-3 text-xs text-ink-400 hover:text-ink-100">
             All events for {activity.aiAsset.name} →
           </Link>
         </div>

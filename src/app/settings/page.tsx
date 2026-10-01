@@ -209,8 +209,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
       {tab === "data" && (
         <>
           {searchParams.reset && <Notice tone="success">Workspace data reset — drop a bank statement on Overview to start again.</Notice>}
-          <Section title="Workspace data">
-            <Row title="Demo data" hint="Fills every page with an example company.">
+          <Section title="Workspace data" id="test-data">
+            <Row title="Demo data" hint="Fills every page with an example company. Owners only.">
               <form action={loadDemoDataAction}>
                 <button className="btn btn-secondary btn-sm">Load demo data</button>
               </form>

@@ -102,14 +102,19 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
           <div className="mx-auto h-12 w-12 rounded-full bg-steady/10 text-steady flex items-center justify-center">
             <svg width="22" height="22" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </div>
-          <h2 className="text-xl font-semibold text-ink-100 mt-4">All caught up</h2>
-          <p className="text-sm text-ink-400 mt-1">{reviewedCount} AI reviewed. New ones will appear here.</p>
-          <Link href="/" className="btn btn-primary mt-6">See your AI</Link>
+          {/* Workspace nuovo: niente da rivedere perché manca ancora una fonte — un solo passo successivo. */}
+          <h2 className="text-xl font-semibold text-ink-100 mt-4">{reviewedCount ? "All caught up" : "Nothing to review yet"}</h2>
+          <p className="text-sm text-ink-400 mt-1">{reviewedCount ? `${reviewedCount} AI reviewed. New ones will appear here.` : "Connect a source — every AI angar finds shows up here."}</p>
+          {reviewedCount ? (
+            <Link href="/#your-ai" className="btn btn-primary mt-6">See your AI</Link>
+          ) : (
+            <Link href="/connect" className="btn btn-primary mt-6">Connect a source</Link>
+          )}
         </div>
       ) : (
         <ul className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
-          {/* Barra grigia in alto: la coda da decidere. */}
-          <li className="flex items-center justify-between gap-3 bg-ink px-4 py-3 text-sm">
+          {/* Intestazione della coda da decidere (senza fascia grigia). */}
+          <li className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
             <h2 className="font-semibold text-ink-100">To review</h2>
             <span className="text-xs text-ink-400 tabular">{queue.length} AI</span>
           </li>
@@ -133,8 +138,8 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
                   <form action={reviewAssetAction} className="flex items-center gap-2 shrink-0">
                     <input type="hidden" name="assetId" value={a.id} />
                     <button name="decision" value="notai" className="text-xs text-ink-400 hover:text-ink-100 underline mr-1">Not AI</button>
-                    <button name="decision" value="reject" className="btn btn-secondary btn-sm">Not allowed</button>
-                    <button name="decision" value="approve" className="btn btn-primary btn-sm">Approve</button>
+                    <button name="decision" value="reject" className="btn btn-ghost btn-sm">Not allowed</button>
+                    <button name="decision" value="approve" className="btn btn-secondary btn-sm">Approve</button>
                   </form>
                 )}
               </li>

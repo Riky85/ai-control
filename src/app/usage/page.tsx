@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { PageHeader, Table, Tabs, td, Notice } from "@/components/ui";
+import { PageHeader, Table, td, Notice } from "@/components/ui";
 import FilterBar from "@/components/FilterBar";
 import { VendorBadge } from "@/components/VendorIcon";
 import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
@@ -214,13 +214,10 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         title="Usage"
         subtitle="Last 30 days."
         action={
-          <Tabs
-            active={view === "ai" ? "ai" : ""}
-            items={[
-              { key: "ai", label: "By AI", href: "/usage" },
-              { key: "people", label: "People", href: "/people" },
-            ]}
-          />
+          // Una sola riga di schede (sotto): la rubrica delle persone è una pagina a parte, non una scheda.
+          <Link href="/people" className="btn btn-ghost btn-sm">
+            People directory →
+          </Link>
         }
       />
       <PrivacyNotice mode={mode} what="Usage" />

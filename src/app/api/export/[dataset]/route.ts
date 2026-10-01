@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { db } from "@/lib/db";
-import { currentOrgId } from "@/lib/org";
+import { currentSession } from "@/lib/auth";
 import { planGate } from "@/lib/plan-gate";
 import { appOrigin } from "@/lib/mail";
 import { computeSavings, categoryOf } from "@/lib/savings";
@@ -20,6 +20,8 @@ async function build(dataset: string, orgId: string, mode: PrivacyMode = "indivi
   const people = showsPeople(mode);
   // Attori delle attività (email, username): nascosti con la privacy per reparto / solo totali.
   const actor = (ref: string | null) => (ref && !people ? "Hidden (employee privacy)" : ref);
+  // Responsabile di un'AI: come nell'evidence pack, con la privacy non individuale niente nomi.
+  const ownerOf = (o: { name: string | null; email: string } | null) => (!o ? null : people ? o.name ?? o.email : "Assigned (name hidden)");
   if (dataset === "assets") {
     const assets = await db.aiAsset.findMany({
       where: { organizationId: orgId, deletedAt: null },
@@ -31,7 +33,7 @@ async function build(dataset: string, orgId: string, mode: PrivacyMode = "indivi
       sheets: [{
         name: "AI systems",
         rows: assets.map((a) => ({
-          System: a.name, Vendor: a.vendor, Type: label(a.type), Model: a.model, Owner: a.owner?.name ?? a.owner?.email, Department: a.department,
+          System: a.name, Vendor: a.vendor, Type: label(a.type), Model: a.model, Owner: ownerOf(a.owner), Department: a.department,
           Status: label(a.status), Risk: label(a.riskAssessments[0]?.level), "Assurance %": a.assuranceReports[0]?.score,
           "Cost €/month": eur(a.cost?.monthlyCostEstimate), "First seen": day(a.firstSeenAt), "Last seen": day(a.lastSeenAt),
         })),
@@ -58,7 +60,7 @@ async function build(dataset: string, orgId: string, mode: PrivacyMode = "indivi
           rows: assets.map((a) => ({
             "AI system": a.name, Provider: a.vendor, Category: label(categoryOf(a) ?? a.type), "Model(s)": a.model,
             "Allowed in the company": a.status === "APPROVED" ? "Yes" : a.status === "UNAPPROVED" ? "No" : "Not decided",
-            Owner: a.owner?.name ?? a.owner?.email, "People using it": a.usages.length || null,
+            Owner: ownerOf(a.owner), "People using it": a.usages.length || null,
             "Data it touches": a.dataAccess.map((d) => `${d.dataAsset.name} (${label(d.dataAsset.sensitivity)})`).join(", ") || null,
             "EU AI Act risk class": TIER[a.euAiActTier] ?? a.euAiActTier, "angar risk": label(a.riskAssessments[0]?.level),
             "Cost €/month": eur(a.cost?.monthlyCostEstimate), "In use since": day(a.firstSeenAt), "Last seen": day(a.lastSeenAt),
@@ -150,7 +152,7 @@ async function build(dataset: string, orgId: string, mode: PrivacyMode = "indivi
       title: `Passport — ${a.name}`,
       sheets: [
         { name: "Passport", rows: [
-          ["Name", a.name], ["Vendor", a.vendor], ["Type", label(a.type)], ["Model", a.model], ["Owner", a.owner?.name ?? a.owner?.email], ["Department", a.department],
+          ["Name", a.name], ["Vendor", a.vendor], ["Type", label(a.type)], ["Model", a.model], ["Owner", ownerOf(a.owner)], ["Department", a.department],
           ["Status", label(a.status)], ["EU AI Act", label(a.euAiActTier)], ["Risk", `${label(risk?.level) ?? "—"} (${risk?.score ?? "—"}/100)`],
           ["Assurance", `${label(assurance?.level) ?? "—"} (${assurance?.score ?? "—"}%)`], ["Cost €/month", eur(a.cost?.monthlyCostEstimate)],
           ["Annualized €", eur(a.cost?.monthlyCostEstimate != null ? a.cost.monthlyCostEstimate * 12 : null)], ["First seen", day(a.firstSeenAt)], ["Last seen", day(a.lastSeenAt)],
@@ -170,7 +172,12 @@ async function build(dataset: string, orgId: string, mode: PrivacyMode = "indivi
 }
 
 export async function GET(_req: Request, { params }: { params: { dataset: string } }) {
-  const orgId = currentOrgId();
+  // Come il layout delle pagine: la sessione da sola non basta, serve essere ancora membri attivi del workspace.
+  const s = currentSession();
+  if (!s) return new Response("Not signed in", { status: 401 });
+  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } }, select: { status: true } });
+  if (!member || member.status !== "active") return new Response("Forbidden", { status: 403 });
+  const orgId = s.orgId;
   const gate = params.dataset === "register" ? await planGate(orgId, "registerExport") : null;
   if (gate && !gate.ok) return Response.redirect(`${appOrigin(_req.headers)}/billing?error=${encodeURIComponent(gate.message)}`, 303);
   const [org, data] = await Promise.all([db.organization.findUnique({ where: { id: orgId } }), orgPrivacyMode(orgId).then((mode) => build(params.dataset, orgId, mode))]);

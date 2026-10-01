@@ -157,7 +157,7 @@ async function PeopleAggregate({ mode }: { mode: PrivacyMode }) {
       <PageHeader title="People" subtitle={mode === "department" ? "AI use by department — no names." : "AI use across the company — no names."} action={<ExportMenu dataset="people" />} />
       <PrivacyNotice mode={mode} what="People" />
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="People known" value={String(users.length)} hint="From company accounts and provider keys" />
         <StatCard label="Using AI" value={maskCount(usingAi)} hint="Active in the last 30 days" tone="accent" />
         <StatCard label="AI tools used" value={String(all.length)} hint="By at least one person" />

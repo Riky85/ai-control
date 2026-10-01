@@ -92,6 +92,8 @@ function PanelToggleIcon() {
 // Le impostazioni (Settings, Workspace, Plan & billing, Account) nel menu utente.
 const MENU_ITEMS = [
   { href: "/settings", label: "Settings", icon: "settings" },
+  // Invitare il team (ultimo passo della guida di avvio) senza passare da Settings.
+  { href: "/workspace", label: "Workspace", icon: "people" },
   { href: "/billing", label: "Plan & billing", icon: "billing" },
   { href: "/docs", label: "Documentation", icon: "evidence" },
 ];

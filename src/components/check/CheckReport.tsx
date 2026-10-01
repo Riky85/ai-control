@@ -35,7 +35,7 @@ export default function CheckReport() {
   return (
     <div className="check-report-wrap min-h-screen py-10 px-4">
       <style>{PRINT_CSS}</style>
-      <div className="no-print max-w-[820px] mx-auto mb-4 flex items-center justify-between gap-3">
+      <div className="no-print max-w-[820px] mx-auto mb-4 flex flex-wrap items-center justify-between gap-3">
         <a href="/check" className="text-sm text-ink-400 hover:text-ink-100">← Back to the check</a>
         <div className="flex items-center gap-2">
           <a href="/signup" className="btn btn-secondary btn-sm">Create free account</a>
@@ -43,9 +43,9 @@ export default function CheckReport() {
         </div>
       </div>
 
-      <article className="report-paper max-w-[820px] mx-auto bg-white text-[#141418] rounded-xl shadow-card px-14 py-12">
+      <article className="report-paper max-w-[820px] mx-auto bg-white text-[#141418] rounded-xl shadow-card px-5 py-8 sm:px-14 sm:py-12">
         {/* Intestazione */}
-        <header className="flex items-start justify-between border-b-2 border-[#141418] pb-5">
+        <header className="flex items-start justify-between gap-4 border-b-2 border-[#141418] pb-5">
           <div className="text-[#141418]"><Wordmark size={22} /></div>
           <div className="text-right text-xs text-[#5F5F69] leading-relaxed">
             <div className="font-semibold uppercase tracking-wider text-[#141418]">AI Spend Report</div>
@@ -66,7 +66,7 @@ export default function CheckReport() {
           </p>
         </section>
 
-        <section className="grid grid-cols-3 gap-0 mt-8 border border-[#DCDCE1] rounded-lg overflow-hidden">
+        <section className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-0 mt-8 border border-[#DCDCE1] rounded-lg overflow-hidden">
           <Kpi label="AI services found" value={String(snap.lines.length)} />
           <Kpi label="AI spend a year" value={eur(snap.spend * 12)} hint={`${eur(snap.spend)} a month`} border />
           <Kpi label="Possible savings a year" value={eur(snap.save * 12)} hint={`${eur(snap.save)} a month`} border accent />
@@ -74,7 +74,8 @@ export default function CheckReport() {
 
         <section className="mt-10">
           <H2 n={1}>The AI you pay for</H2>
-          <table className="w-full text-sm mt-3">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[520px] print:min-w-0 text-sm mt-3">
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wider text-[#5F5F69] border-b border-[#141418]">
                 <th className="py-2 font-semibold">AI service</th>
@@ -103,6 +104,7 @@ export default function CheckReport() {
               </tr>
             </tbody>
           </table>
+          </div>
         </section>
 
         <section className="mt-10 avoid-break">
@@ -136,7 +138,7 @@ export default function CheckReport() {
             <li><b>Find the AI you don&apos;t pay for.</b> Free and personal accounts carry data-protection and EU AI Act obligations that a statement can&apos;t show.</li>
             <li><b>Keep an owner for every AI.</b> Renewals, price changes and new models happen every month.</li>
           </ol>
-          <div className="mt-6 rounded-lg bg-[#141418] text-white px-6 py-5 flex items-center gap-6">
+          <div className="mt-6 rounded-lg bg-[#141418] text-white px-6 py-5 flex flex-col sm:flex-row print:flex-row sm:items-center gap-4 sm:gap-6">
             <div className="flex-1">
               <div className="font-semibold">Keep this report up to date — automatically</div>
               <div className="text-sm text-white/70 mt-0.5">Create a free angar account: connect your bank or invoices, see real usage for each person and get alerts before renewals.</div>
@@ -145,7 +147,7 @@ export default function CheckReport() {
           </div>
         </section>
 
-        <footer className="mt-10 pt-4 border-t border-[#DCDCE1] flex justify-between gap-6 text-[11px] text-[#5F5F69] leading-relaxed">
+        <footer className="mt-10 pt-4 border-t border-[#DCDCE1] flex flex-col sm:flex-row print:flex-row justify-between gap-2 sm:gap-6 text-[11px] text-[#5F5F69] leading-relaxed">
           <span>Plans and seats are inferred from list prices and charge amounts; check before changing anything. The statement was read in memory and never stored.</span>
           <span className="shrink-0">angar · AI spend & usage for EU companies</span>
         </footer>
@@ -156,7 +158,7 @@ export default function CheckReport() {
 
 function Kpi({ label, value, hint, border, accent }: { label: string; value: string; hint?: string; border?: boolean; accent?: boolean }) {
   return (
-    <div className={`px-5 py-4 ${border ? "border-l border-[#DCDCE1]" : ""}`}>
+    <div className={`px-5 py-4 ${border ? "border-t sm:border-t-0 sm:border-l print:border-t-0 print:border-l border-[#DCDCE1]" : ""}`}>
       <div className="text-[11px] uppercase tracking-wider text-[#5F5F69]">{label}</div>
       <div className={`text-[28px] font-semibold tracking-tight tabular mt-1 ${accent ? "text-[#FF7323]" : ""}`}>{value}</div>
       {hint && <div className="text-xs text-[#5F5F69] tabular">{hint}</div>}
@@ -180,6 +182,9 @@ const PRINT_CSS = `
   html, body { background: #fff !important; color: #141418 !important; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .no-print, aside, header.app-header { display: none !important; }
+  /* Da loggati la pagina sta nel layout dell'app: si stampa solo il foglio. */
+  main > *:not(.check-report-wrap), #app-scroll > *:not(main) { display: none !important; }
+  .report-paper { break-inside: auto !important; }
   .check-report-wrap { padding: 0 !important; min-height: 0 !important; background: #fff !important; }
   .report-paper { box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; max-width: none !important; }
   .avoid-break, tr { break-inside: avoid; }

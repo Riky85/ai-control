@@ -31,7 +31,8 @@ export default function DeviceBatchForm() {
           a.href = URL.createObjectURL(blob);
           a.download = `angar-devices-${(batch || model).replace(/[^\w-]+/g, "_")}-${new Date().toISOString().slice(0, 10)}.csv`;
           a.click();
-          URL.revokeObjectURL(a.href);
+          // Revocare subito può annullare il download in alcuni browser.
+          setTimeout(() => URL.revokeObjectURL(a.href), 1000);
           setMsg({ ok: true, text: `${r.devices.length} devices created — CSV downloaded. Secrets aren't shown again: keep the file safe.` });
         });
       }}

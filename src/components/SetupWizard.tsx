@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { WIZARD_COOKIE } from "@/lib/wizard";
 
 export interface WizardStep {
   key: string;
@@ -12,12 +13,10 @@ export interface WizardStep {
   done: boolean;
 }
 
-
 // Wizard di avvio: guida l'utente nei 3 passi che rendono angar utile
 // (costi → uso → team). Ogni passo si spunta da solo dai dati reali.
 // Aperto: come il blocco Download (bagliore arancio, anteprima a destra).
 // Chiuso: una barra sottile con l'avanzamento e il prossimo passo.
-import { WIZARD_COOKIE } from "@/lib/wizard";
 
 export default function SetupWizard({ steps, initialHidden = false }: { steps: WizardStep[]; initialHidden?: boolean }) {
   // Aperto la prima volta; se lo chiudi resta chiuso (cookie), anche ricaricando la pagina.

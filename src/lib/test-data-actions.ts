@@ -17,7 +17,7 @@ import { seedDemoData } from "@/lib/demo-data";
  * Conferma obbligatoria scrivendo il nome esatto del workspace.
  */
 export async function resetWorkspaceDataAction(formData: FormData) {
-  const s = await requireRole("OWNER", "/settings");
+  const s = await requireRole("OWNER", "/settings?tab=data");
   const org = await db.organization.findUniqueOrThrow({ where: { id: s.orgId } });
   if (String(formData.get("confirm") ?? "").trim() !== org.name) {
     redirect(`/settings?tab=data&error=${encodeURIComponent(`Type the workspace name exactly ("${org.name}") to confirm the reset.`)}#test-data`);

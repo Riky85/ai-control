@@ -34,7 +34,9 @@ export default function VoiceControl({ initialMode }: { initialMode: VoiceMode }
   const armedUntil = useRef(0);
   modeRef.current = mode;
 
-  useEffect(() => setSupported("SpeechRecognition" in window || "webkitSpeechRecognition" in window), []);
+  useEffect(() => {
+    setSupported("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+  }, []);
   useEffect(() => {
     const onMode = (e: Event) => setMode((e as CustomEvent<VoiceMode>).detail);
     window.addEventListener("angar:voice-mode", onMode);

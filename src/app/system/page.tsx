@@ -78,10 +78,10 @@ export default async function SystemPage() {
       <Panel flush title="Status">
         <div className="divide-y divide-line">
           {checks.map(([label, ok, detail]) => (
-            <div key={label} className="flex items-center gap-4 px-5 py-3 text-sm">
-              <span className="w-56 text-ink-100">{label}</span>
+            <div key={label} className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm">
+              <span className="sm:w-56 shrink-0 text-ink-100">{label}</span>
               <Badge>{ok ? "OK_STATUS" : "NEEDS_SETUP"}</Badge>
-              <span className="text-ink-400">{detail}</span>
+              <span className="text-ink-400 min-w-0 w-full sm:w-auto">{detail}</span>
             </div>
           ))}
         </div>
@@ -142,7 +142,7 @@ export default async function SystemPage() {
               <td className={`${td} text-ink-400`}>{l.company ?? "—"}</td>
               <td className={`${td} text-right tabular`}>{l.aiCount ?? "—"}</td>
               <td className={`${td} text-right tabular`}>{l.annualSpend != null ? fmtEur(l.annualSpend) : "—"}</td>
-              <td className={`${td} text-right tabular text-accent`}>{l.savings != null ? fmtEur(l.savings) : "—"}</td>
+              <td className={`${td} text-right tabular text-steady`}>{l.savings != null ? fmtEur(l.savings) : "—"}</td>
             </tr>
           ))}
         </Table>

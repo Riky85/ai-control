@@ -132,7 +132,7 @@ export default async function AssetPeople({
       <div className="grid grid-cols-3 gap-4">
         <Total label="People using it" value={maskCount(usages.length)} />
         <Total label="Active in 30 days" value={maskCount(active)} />
-        <Total label="Not active in 30 days" value={maskCount(idle)} hint={idle ? "Seat reminders need the per-person privacy mode" : undefined} />
+        <Total label="Not active in 30 days" value={maskCount(idle)} hint={idle ? "Seat reminders need the “By person” privacy mode" : undefined} />
       </div>
       {mode === "department" && (
         <Table columns={["Department", { label: "People", className: "text-right" }, { label: "Active in 30 days", className: "text-right" }]} empty={usages.length === 0 ? "Nobody known yet." : false}>

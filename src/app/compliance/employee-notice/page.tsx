@@ -52,11 +52,10 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
   );
   const text = noticeText(notice);
   const hasPlaceholders = /\[\[/.test(JSON.stringify(notice.blocks));
-  const qs = (l: string) => `?${new URLSearchParams({ lang: l, ...(contact ? { contact } : {}) }).toString()}`;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="print:hidden flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
+      <div className="print:hidden flex flex-col gap-4">
         <PageHeader
           crumbs={[{ label: "AI Act", href: "/compliance" }, { label: "Employee notice" }]}
           title="Employee notice"
@@ -71,7 +70,7 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
           }
         />
 
-        <form method="get" className="rounded-xl border border-line bg-panel p-5 grid grid-cols-1 md:grid-cols-[auto_1fr_auto_auto] gap-3 items-end">
+        <form method="get" className="rounded-xl border border-line bg-panel p-5 grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-end">
           <label className="flex flex-col gap-1.5 text-sm text-ink-400">
             Language
             <select name="lang" defaultValue={lang} className="field">
@@ -91,19 +90,11 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
           <span>
             Privacy mode: <span className="text-ink-100">{privacyModeLabel(mode)}</span> — <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">change</Link>
           </span>
-          <span>
-            {NOTICE_LANGS.map((l, i) => (
-              <span key={l.id}>
-                {i > 0 && " · "}
-                {l.id === lang ? <span className="text-ink-100">{l.label}</span> : <Link href={qs(l.id)} className="underline hover:text-ink-100">{l.label}</Link>}
-              </span>
-            ))}
-          </span>
           {hasPlaceholders && <span className="text-signal">Fill in the highlighted parts before you hand it out.</span>}
         </div>
       </div>
 
-      <article className="rounded-xl border border-line bg-panel p-8 max-w-3xl print:border-0 print:p-0 print:max-w-none" lang={lang}>
+      <article className="rounded-xl border border-line bg-panel p-5 sm:p-8 max-w-3xl print:border-0 print:p-0 print:max-w-none" lang={lang}>
         <h1 className="text-xl font-semibold text-ink-100 leading-snug">{notice.title}</h1>
         <div className="mt-4 flex flex-col gap-3 text-sm leading-relaxed text-ink-100">
           {notice.blocks.map((b, i) =>

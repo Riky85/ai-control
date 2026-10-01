@@ -197,7 +197,7 @@ async function EvidenceTab() {
   const worst = [...failing.values()].sort((x, y) => y.n - x.n)[0];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <p className="text-xs text-ink-400 max-w-lg">
         Every control, its status, and where that status comes from — this is the record you'd hand to an auditor.
       </p>
@@ -209,9 +209,9 @@ async function EvidenceTab() {
         <Insight tone="steady" href="/compliance/evidence" cta="Evidence pack">No control is failing on any AI.</Insight>
       ) : null}
 
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         {withReport.map((asset) => {
-          const checks = asset.assuranceReports[0].checks as unknown as CheckRow[];
+          const checks = (asset.assuranceReports[0].checks as unknown as CheckRow[] | null) ?? [];
           return (
             <div key={asset.id} className="flex flex-col gap-2">
               <div className="px-1 flex items-center justify-between">
@@ -241,7 +241,7 @@ async function EvidenceTab() {
 
       <div>
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-          <h2 className="bg-ink px-5 py-3 text-sm font-semibold text-ink-100">Inventory history</h2>
+          <h2 className="px-5 py-3 text-sm font-semibold text-ink-100">Inventory history</h2>
           {snapshots.length === 0 && (
             <div className="p-5 text-sm text-ink-400">No snapshots yet. One is recorded automatically the first time a connector syncs.</div>
           )}
@@ -249,9 +249,9 @@ async function EvidenceTab() {
             const p = s.payload as unknown as SnapshotPayload;
             return (
               <div key={s.id} className="px-5 py-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-ink-100">{s.summary}</span>
-                  <span className="tabular text-xs text-ink-400">{fmtDateTime(s.createdAt)}</span>
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-sm text-ink-100 min-w-0">{s.summary}</span>
+                  <span className="tabular text-xs text-ink-400 shrink-0">{fmtDateTime(s.createdAt)}</span>
                 </div>
                 {p?.highRiskCount > 0 && (
                   <div className="text-xs text-alarm mt-1">{p.highRiskCount} asset{p.highRiskCount === 1 ? "" : "s"} at high or critical risk at this point in time.</div>

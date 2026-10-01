@@ -47,7 +47,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       <PageHeader title="Search" subtitle={q ? `Results for "${q}"` : "Press Ctrl-K anywhere for instant search."} />
 
       <form action="/search" method="get" className="flex items-center gap-2">
-        <input name="q" defaultValue={q} placeholder="Search AI, people, pages…" aria-label="Search" className="field flex-1 max-w-xl" />
+        <input name="q" defaultValue={q} placeholder="Search AI, people, pages…" aria-label="Search" className="field flex-1 min-w-0 max-w-xl" />
         <button className="btn btn-secondary">Search</button>
       </form>
 
@@ -61,7 +61,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
         <Group title="Jump to">
           {quick.map((p) => (
             <Link key={p.href} href={p.href} className="flex items-center justify-between px-4 py-3 text-sm text-ink-100 hover:bg-ink-100/[0.02] transition-colors">
-              {p.label.replace(/^Overview → /, "")}
+              {p.label}
               <span className="text-ink-400">→</span>
             </Link>
           ))}
@@ -73,8 +73,8 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           {ai.map(({ a }) => (
             <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.02] transition-colors">
               <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={26} />
-              <span className="font-medium text-ink-100">{a.name}</span>
-              {a.vendor && <span className="text-ink-400">· {a.vendor}</span>}
+              <span className="font-medium text-ink-100 truncate min-w-0">{a.name}</span>
+              {a.vendor && <span className="text-ink-400 truncate min-w-0">· {a.vendor}</span>}
             </Link>
           ))}
         </Group>
@@ -82,9 +82,9 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       {persons.length > 0 && (
         <Group title="People">
           {persons.map(({ u }) => (
-            <Link key={u.id} href={`/people/${u.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-ink-100/[0.02] transition-colors">
-              <span className="font-medium text-ink-100">{u.name ?? u.email}</span>
-              <span className="text-ink-400">{u.department ?? u.email}</span>
+            <Link key={u.id} href={`/people/${u.id}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.02] transition-colors">
+              <span className="font-medium text-ink-100 truncate min-w-0">{u.name ?? u.email}</span>
+              <span className="text-ink-400 truncate min-w-0 shrink">{u.department ?? u.email}</span>
             </Link>
           ))}
         </Group>
@@ -106,7 +106,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
   return (
     <div>
       <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-        <h2 className="bg-ink px-5 py-3 text-sm font-semibold text-ink-100">{title}</h2>{children}</div>
+        <h2 className="px-5 py-3 text-sm font-semibold text-ink-100">{title}</h2>{children}</div>
     </div>
   );
 }

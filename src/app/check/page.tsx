@@ -14,17 +14,17 @@ export default function CheckPage() {
   return (
     <div className={signedIn ? "" : "min-h-screen bg-panel"}>
       {!signedIn && (
-        <header className="max-w-5xl mx-auto px-6 pt-8 flex items-center justify-between">
-          <a href="/check" className="text-ink-100" aria-label="angar"><Wordmark size={20} /></a>
+        <header className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 flex items-center justify-between gap-3">
+          <a href="/check" className="text-ink-100 shrink-0" aria-label="angar"><Wordmark size={20} /></a>
           <div className="flex items-center gap-3">
-            <a href="/pricing" className="text-sm text-ink-400 hover:text-ink-100">Pricing</a>
-            <a href="/login" className="text-sm text-ink-400 hover:text-ink-100">Sign in</a>
-            <a href="/signup" className="btn btn-secondary btn-sm">Create free account</a>
+            <a href="/pricing" className="hidden sm:inline text-sm text-ink-400 hover:text-ink-100">Pricing</a>
+            <a href="/login" className="text-sm text-ink-400 hover:text-ink-100 whitespace-nowrap">Sign in</a>
+            <a href="/signup" className="btn btn-secondary btn-sm whitespace-nowrap">Create free account</a>
           </div>
         </header>
       )}
       {/* Da loggati il layout dell'app dà già il padding: niente doppio margine. */}
-      <main className={signedIn ? "max-w-5xl" : "max-w-5xl mx-auto px-6 py-12"}>
+      <main className={signedIn ? "max-w-5xl" : "max-w-5xl mx-auto px-4 sm:px-6 py-12"}>
         <SpendCheck signedIn={signedIn} />
       </main>
     </div>

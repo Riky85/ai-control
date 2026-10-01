@@ -33,9 +33,6 @@ export default async function AssuranceView({ orgId }: { orgId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/governance" className="text-sm text-ink-400 hover:text-ink-100 w-fit">
-        ← Back to governance
-      </Link>
       <Section id="assurance" title="Assurance checks" meta={`${passed + warning + failed} checks across ${withReport.length} AI`}>
         <div className="p-5">
           <StackBar

@@ -22,6 +22,8 @@ import { priceForAsset } from "@/lib/engine/price-index";
 import { MarketPriceStrip, pickRow } from "@/components/engine/PriceIndexCard";
 import VendorTermsCard from "@/components/engine/VendorRiskCard";
 import { vendorRiskFor, planTier } from "@/lib/vendor-risk";
+import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
+import { displayableRef } from "@/lib/discovery/pseudonym";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +43,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "overview";
   const orgId = currentOrgId();
 
-  const [asset, orgUsers, spend, { items, assets }, market] = await Promise.all([
+  const [asset, orgUsers, spend, { items, assets }, market, privacy] = await Promise.all([
     db.aiAsset.findFirst({
       where: { id: params.id, organizationId: orgId },
       include: {
@@ -61,7 +63,10 @@ export default async function AssetDetailPage({ params, searchParams }: { params
     computeSavingsCached(orgId),
     // angar Engine: prezzo di un posto vs mercato o listino (mai bloccante per la pagina).
     priceForAsset(orgId, params.id).catch(() => null),
+    orgPrivacyMode(orgId),
   ]);
+  // Privacy per reparto / solo totali: nella scheda Activity niente attori (email, username).
+  const people = showsPeople(privacy);
 
   if (!asset) notFound();
 
@@ -91,19 +96,19 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   ].filter(Boolean) as string[];
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-start justify-between gap-4">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap lg:flex-nowrap items-start justify-between gap-x-4 gap-y-3">
         <div className="min-w-0">
           <nav className="text-sm text-ink-400 mb-2 flex items-center gap-1.5">
             <Link href="/" className="hover:text-ink-100 hover:underline">Your AI</Link>
             <span aria-hidden>/</span>
             <span className="truncate">{asset.name}</span>
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={56} />
             <div className="min-w-0">
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 truncate">{asset.name}</h1>
+                <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 break-words lg:truncate min-w-0">{asset.name}</h1>
                 {/* Stato accanto al nome: si cambia con un clic. */}
                 <div className="inline-flex items-center gap-0.5 rounded-lg bg-ink p-0.5">
                   {(["APPROVED", "UNREVIEWED", "UNAPPROVED"] as const).map((st) => {
@@ -132,7 +137,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 pr-[var(--hdr-tools,8.25rem)] min-h-9">
+        <div className="flex flex-wrap items-center gap-2 shrink-0 lg:pr-[var(--hdr-tools,8.25rem)] min-h-9">
           {manage && (
             <a href={manage} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" title="Change seats, plan or cancel on the provider's site">
               Manage plan ↗
@@ -190,7 +195,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-5">
                   <Field label="Provider" value={asset.vendor} />
                   <Field label="Model" value={asset.model} />
-                  <Field label="Owner" value={asset.owner?.name ?? asset.owner?.email} empty="No owner" />
+                  <Field label="Owner" value={asset.owner ? (people ? asset.owner.name ?? asset.owner.email : "Assigned") : null} empty="No owner" />
                   <Field label="EU AI Act" value={EU_LABEL[asset.euAiActTier]} />
                   <Field label="In use since" value={fmtDate(asset.firstSeenAt)} />
                   <Field label="Last seen" value={asset.lastSeenAt ? fmtDate(asset.lastSeenAt) : null} />
@@ -232,7 +237,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             <>
               <Panel title="Risk" subtitle="Computed by rules from what angar knows about this AI">
                 {risk ? (
-                  <div className="flex gap-8 items-start">
+                  <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start">
                     <div className="shrink-0">
                       <RiskGauge score={risk.score} level={risk.level} />
                     </div>
@@ -240,10 +245,10 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                       <div>
                         <h3 className="text-sm font-medium text-ink-100 mb-2">Why</h3>
                         <ul className="flex flex-col gap-2 text-sm text-ink-400">
-                          {(risk.reasons as string[]).map((r, i) => (
+                          {((risk.reasons as string[] | null) ?? []).map((r, i) => (
                             <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-alarm shrink-0" />{r}</li>
                           ))}
-                          {(risk.reasons as string[]).length === 0 && <li>No risk factors found.</li>}
+                          {((risk.reasons as string[] | null) ?? []).length === 0 && <li>No risk factors found.</li>}
                         </ul>
                       </div>
                       <div>
@@ -292,7 +297,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 <tr key={a.id}>
                   <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(a.occurredAt)}</td>
                   <td className={`${td} text-ink-100`}>{a.eventType.replace(/[._]/g, " ")}</td>
-                  <td className={`${td} text-ink-400`}>{a.actorRef ?? "—"}</td>
+                  <td className={`${td} text-ink-400`}>{!a.actorRef ? "—" : people ? displayableRef(a.actorRef) ?? "Anonymous" : <span title="Hidden by the employee privacy mode">Hidden</span>}</td>
                   <td className={`${td} text-ink-400`}>{a.source.replace(/_/g, " ").toLowerCase()}</td>
                 </tr>
               ))}
@@ -303,7 +308,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         <aside className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-5">
           <h2 className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">Manage</h2>
 
-          <NetworkBlock asset={asset} orgId={orgId} error={tab !== "people" ? searchParams.error : undefined} />
+          <NetworkBlock asset={asset} orgId={orgId} />
 
           <form action={setAssetOwnerAction} className="flex flex-col gap-2">
             <input type="hidden" name="assetId" value={asset.id} />
@@ -390,7 +395,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
 const INPUT = "field";
 
 // angar Edge: bloccare l'AI sulla rete aziendale (DNS) e suggerire l'alternativa approvata.
-async function NetworkBlock({ asset, orgId, error }: { asset: { id: string; blockOnNetwork: boolean; insteadAssetId: string | null; status: string }; orgId: string; error?: string }) {
+async function NetworkBlock({ asset, orgId }: { asset: { id: string; blockOnNetwork: boolean; insteadAssetId: string | null; status: string }; orgId: string }) {
   const [approved, blockingSensors] = await Promise.all([
     db.aiAsset.findMany({ where: { organizationId: orgId, deletedAt: null, status: "APPROVED", id: { not: asset.id } }, select: { id: true, name: true }, orderBy: { name: "asc" }, take: 200 }),
     db.edgeSensor.count({ where: { organizationId: orgId, blockEnabled: true } }),
@@ -413,7 +418,6 @@ async function NetworkBlock({ asset, orgId, error }: { asset: { id: string; bloc
           </button>
         </form>
       </div>
-      {error && <p className="text-xs text-alarm">{error}</p>}
       {asset.blockOnNetwork && blockingSensors === 0 && (
         <p className="text-xs text-signal">
           No sensor has blocking turned on yet — <Link href="/edge/sensors" className="underline">turn on Block</Link>.

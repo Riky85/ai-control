@@ -118,7 +118,7 @@ To add a single AI, use "Add one manually" in the same place.`,
 2. Open it and type your work email once. It runs in the background and starts at login.
 3. To cover everyone, copy the company link on the same page and send it to colleagues.
 ## What it sends
-- Only AI tool names and the minutes spent on each, per day — e.g. "ChatGPT, 40 minutes".
+- Only AI tool names and the minutes spent on each, each day — e.g. "ChatGPT, 40 minutes".
 - Never URLs, pages, prompts, messages or files.
 ## For IT
 Silent install: run it as the signed-in user with --silent --email-domain yourcompany.com. Commands for Intune, Jamf and scripts are on the Desktop app page. Uninstall with angar --uninstall.
@@ -139,7 +139,7 @@ After you reset workspace data, the app sends its history again by itself.`,
 Connect → angar Edge → add a sensor and follow the steps; the page shows when the sensor reports.
 ## What it adds
 Blocks AI you mark "Not allowed" at DNS level, finds servers and scripts calling AI APIs directly, local models (Ollama, LM Studio) and large uploads to non-approved AI.
-Software and cloud logs are included from Growth; the device is billed per device each month.`,
+Software and cloud logs are included from Growth; each device is billed monthly.`,
   },
 
   {

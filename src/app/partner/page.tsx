@@ -34,20 +34,20 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
   const onlyOwn = clients.length <= 1;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Partner console"
         subtitle="All your client workspaces in one place"
         action={
-          <form action={createWorkspaceAction} className="flex items-center gap-2">
-            <input name="name" required placeholder="Client company name" aria-label="Client company name" className="field py-1.5 w-52" />
+          <form action={createWorkspaceAction} className="flex flex-wrap items-center gap-2">
+            <input name="name" required placeholder="Client company name" aria-label="Client company name" className="field py-1.5 w-full sm:w-52" />
             <button className="btn btn-primary">New client workspace</button>
           </form>
         }
       />
       {!(await featureEnabled(s.orgId, "partnerConsole")) && <Notice><span className="inline-flex flex-wrap items-center gap-x-2">The partner console is read-only on your plan. <LockedNote feature="partnerConsole" /></span></Notice>}
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Clients" value={String(clients.length)} hint={onlyOwn ? "Add your first client workspace" : "Workspaces you're a member of"} tone="accent" />
         <StatCard
           label="Total AI spend"
@@ -84,7 +84,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Tabs
           active={view}
           items={[
@@ -139,7 +139,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                 <td className={`${td} text-ink-400`}>{planById(c.plan as Parameters<typeof planById>[0]).name}</td>
                 <td className={`${td} text-right tabular text-ink-100`}>{c.aiCount}</td>
                 <td className={`${td} text-right tabular text-ink-100`}>{c.monthlySpend ? `${fmtEur(c.monthlySpend)}/mo` : "—"}</td>
-                <td className={`${td} text-right tabular ${c.canSave ? "text-accent font-medium" : "text-ink-400"}`}>{c.canSave ? `${fmtEur(c.canSave)}/mo` : "—"}</td>
+                <td className={`${td} text-right tabular ${c.canSave ? "text-steady font-medium" : "text-ink-400"}`}>{c.canSave ? `${fmtEur(c.canSave)}/mo` : "—"}</td>
                 <td className={`${td} text-right tabular ${c.toReview ? "text-signal" : "text-ink-400"}`}>{c.toReview}</td>
                 <td className={`${td} text-right tabular text-ink-100`}>
                   <span className="inline-flex items-center gap-1.5">
@@ -224,7 +224,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                         {r.edgeDevices > 0 && ` + ${r.edgeDevices} device${r.edgeDevices > 1 ? "s" : ""}`}
                       </span>
                       <span className="w-20 text-right tabular text-ink-400">{fmtEur(r.list)}</span>
-                      <span className="w-20 text-right tabular text-accent font-medium">+{fmtEur(r.margin)}</span>
+                      <span className="w-20 text-right tabular text-steady font-medium">+{fmtEur(r.margin)}</span>
                     </div>
                   ))}
                 </div>
@@ -299,7 +299,7 @@ function Figure({ label, value, hint, accent }: { label: string; value: string; 
   return (
     <div>
       <div className="text-xs text-ink-400">{label}</div>
-      <div className={`text-lg font-semibold tabular ${accent ? "text-accent" : "text-ink-100"}`}>{value}</div>
+      <div className={`text-lg font-semibold tabular ${accent ? "text-steady" : "text-ink-100"}`}>{value}</div>
       {hint && <div className="text-xs text-ink-400">{hint}</div>}
     </div>
   );

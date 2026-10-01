@@ -27,7 +27,7 @@ export default async function ClaimDevicePage({ searchParams }: { searchParams: 
   const mine = device?.status === "claimed" && device.organizationId === s.orgId;
 
   return (
-    <div className="flex flex-col gap-5 max-w-xl">
+    <div className="flex flex-col gap-4 max-w-xl">
       <PageHeader
         crumbs={[{ label: "angar Edge", href: "/edge" }, { label: "Sensors", href: "/edge/sensors" }, { label: "Link a device" }]}
         title="Link an angar device"

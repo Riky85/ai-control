@@ -50,14 +50,15 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
     },
     orderBy: { name: "asc" },
     include: {
-      accessedBy: { include: { aiAsset: true } },
+      // Come nel riepilogo: le AI eliminate non contano (e il loro link non porterebbe da nessuna parte).
+      accessedBy: { where: { aiAsset: { deletedAt: null } }, include: { aiAsset: true } },
     },
   });
 
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="Data Exposure"
+        title="Data exposure"
         subtitle="Which data your AI touches, and which AI reaches each one."
         action={<ExportMenu />}
       />
@@ -93,12 +94,12 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
             right={`${dataAssets.length} data categor${dataAssets.length === 1 ? "y" : "ies"}`}
           />
           <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
-            <h2 className="bg-ink px-5 py-3 text-sm font-semibold text-ink-100">Data and the AI that reach it</h2>
+            <h2 className="px-5 py-3 text-sm font-semibold text-ink-100">Data and the AI that reach it</h2>
             {dataAssets.map((d) => (
               <div key={d.id} className="px-5 py-4">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span
-                    className={`h-1.5 w-1.5 rounded-full ${
+                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${
                       SENSITIVE_TIERS.includes(d.sensitivity) ? "bg-alarm" : "bg-ink-400"
                     }`}
                   />

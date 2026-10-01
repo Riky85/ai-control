@@ -31,7 +31,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
     db.workspaceMember.findMany({ where: { organizationId: currentOrgId() }, orderBy: [{ role: "asc" }, { invitedAt: "asc" }] }),
     db.shareLink.findMany({ where: { organizationId: currentOrgId() }, orderBy: { createdAt: "desc" } }),
     // Solo i workspace di cui l'utente è membro: mai quelli di altri clienti.
-    db.organization.findMany({ where: { members: { some: { email: currentSession()!.email } } }, orderBy: { createdAt: "asc" }, include: { _count: { select: { aiAssets: true, members: true } } } }),
+    db.organization.findMany({ where: { members: { some: { email: currentSession()!.email, status: "active" } } }, orderBy: { createdAt: "asc" }, include: { _count: { select: { aiAssets: true, members: true } } } }),
   ]);
   const plan = planById(org.plan);
   const h = headers();

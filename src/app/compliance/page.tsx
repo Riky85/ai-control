@@ -8,6 +8,7 @@ import { PageHeader, StatCard, Table, td, Notice } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import { fmtDate } from "@/lib/format";
 import type { EuAiActTier, AiAssetStatus } from "@prisma/client";
+import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
 
@@ -29,14 +30,16 @@ function TierPill({ tier }: { tier: EuAiActTier }) {
 }
 
 export default async function CompliancePage({ searchParams }: { searchParams: { error?: string; applied?: string } }) {
-  const r = await readiness(currentOrgId());
+  const [r, privacy] = await Promise.all([readiness(currentOrgId()), orgPrivacyMode(currentOrgId())]);
+  // Privacy non individuale: il responsabile resta, il nome no (come nell'evidence pack).
+  const people = showsPeople(privacy);
   const rows = r.assets.map((a) => ({ a, sug: suggestionFor(a) }));
   const pendingUnclassified = rows.filter((x) => x.a.euAiActTier === "UNCLASSIFIED" && x.sug.tier !== "UNCLASSIFIED").length;
   const bar = r.score >= 80 ? "bg-steady" : r.score >= 50 ? "bg-signal" : "bg-alarm";
   const steps = timeline();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="AI Act"
         subtitle="EU AI Act readiness for every AI your company uses."
@@ -51,7 +54,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
 
       {searchParams.applied && <Notice tone="success">{Number(searchParams.applied) ? `Classified ${searchParams.applied} AI with the suggested risk class.` : "Every AI already had a risk class — nothing changed."}</Notice>}
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-4 animate-rise">
           <div className="text-sm text-ink-400">Readiness</div>
           <div>
@@ -66,7 +69,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
         </div>
         <StatCard label="AI classified" value={`${r.classified}/${r.total}`} hint={r.total - r.classified ? `${r.total - r.classified} still to classify` : "All classified"} tone={r.total - r.classified ? "signal" : undefined} />
         <StatCard label="High-risk AI" value={String(r.highRisk)} hint="Annex III uses: HR, credit, education…" tone={r.highRisk ? "alarm" : undefined} />
-        <StatCard label="Missing owners" value={String(r.missingOwners)} hint="Allowed or high-risk AI without an owner" tone={r.missingOwners ? "signal" : undefined} href="/assets" />
+        <StatCard label="Missing owners" value={String(r.missingOwners)} hint="Allowed or high-risk AI without an owner" tone={r.missingOwners ? "signal" : undefined} href={r.missingOwners ? "#your-ai" : undefined} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -107,7 +110,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
             })}
           </ul>
           <form action={recordLiteracyAction} className="mt-3 flex items-center gap-2 border-t border-line pt-4">
-            <input name="note" className="field flex-1" placeholder="Record AI literacy training, e.g. All staff: 1h AI basics" aria-label="AI literacy training" />
+            <input name="note" className="field flex-1 min-w-0" placeholder="Record AI literacy training, e.g. All staff: 1h AI basics" aria-label="AI literacy training" />
             <button className="btn btn-secondary btn-sm shrink-0">Record</button>
           </form>
         </section>
@@ -117,12 +120,12 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
           <ol className="flex flex-col gap-3">
             {steps.map((s) => (
               <li key={s.title} className="flex items-start gap-3">
-                <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${s.inForce ? "bg-accent" : "bg-ink-400/50"}`} />
+                <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${s.inForce ? "bg-steady" : "bg-ink-400/50"}`} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="text-sm font-medium text-ink-100">{s.title}</span>
                     {s.inForce ? (
-                      <span className="text-[11px] font-medium rounded-full px-2 py-0.5 text-accent bg-accent/10">In force</span>
+                      <span className="text-[11px] font-medium rounded-full px-2 py-0.5 text-steady bg-steady/10">In force</span>
                     ) : (
                       <span className="text-[11px] font-medium rounded-full px-2 py-0.5 text-ink-400 bg-ink-400/10">Upcoming</span>
                     )}
@@ -137,7 +140,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
         </section>
       </div>
 
-      <Table title="Your AI" note="Suggested classes come from what each AI does. Tiers you set by hand are never overwritten in bulk." action={pendingUnclassified > 0 ? (
+      <Table id="your-ai" title="Your AI" note="Suggested classes come from what each AI does. Tiers you set by hand are never overwritten in bulk." action={pendingUnclassified > 0 ? (
             <form action={applyAllSuggestionsAction}>
               <button className="btn btn-primary btn-sm" title="Classifies every AI that has no risk class yet">
                 Apply all suggestions ({pendingUnclassified})
@@ -171,7 +174,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
                 )}
                 <div className="text-xs text-ink-400 mt-1 max-w-sm">{sug.reason}</div>
               </td>
-              <td className={`${td} ${a.owner ? "text-ink-100" : a.euAiActTier === "HIGH_RISK" ? "text-alarm" : "text-ink-400"}`}>{a.owner ? a.owner.name ?? a.owner.email : "No owner"}</td>
+              <td className={`${td} ${a.owner ? "text-ink-100" : a.euAiActTier === "HIGH_RISK" ? "text-alarm" : "text-ink-400"}`}>{a.owner ? (people ? a.owner.name ?? a.owner.email : "Assigned") : <Link href={`/assets/${a.id}`} className="underline hover:text-ink-100">Assign owner</Link>}</td>
               <td className={`${td} text-ink-400`}>{STATUS_LABEL[a.status]}</td>
             </tr>
           ))}

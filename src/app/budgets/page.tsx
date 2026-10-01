@@ -20,7 +20,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
   const orgId = currentOrgId();
   if (searchParams.view === "chargeback")
     return (
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         <PageHeader title="Budgets" subtitle="AI cost for each team and cost centre each month — for chargeback or showback." />
         <Tabs items={VIEW_TABS} active="chargeback" />
         {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
@@ -62,13 +62,13 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
   const month = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", month: "long" }).format(new Date());
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <PageHeader title="Budgets" subtitle="Monthly AI budget for each team — angar warns you at 80% and 100%." />
       <Tabs items={VIEW_TABS} active="budgets" />
 
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Total budget" value={`${fmtEur(totalBudget)}/mo`} hint={budgets.length ? `${budgets.length} team${budgets.length === 1 ? "" : "s"} with a budget` : "No budgets set yet"} />
         <StatCard label={`Spend in ${month}`} value={`${fmtEur(totalSpend)}/mo`} hint={totalBudget ? `${Math.round((totalSpend / totalBudget) * 100)}% of the total budget` : "Split by who uses each AI"} tone="accent" />
         <StatCard label="Teams over budget" value={String(over)} hint={over ? "angar has sent an alert" : "All within budget"} tone={over ? "alarm" : undefined} />
@@ -78,7 +78,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
 
       {named.length === 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-xl border border-dashed border-line p-5">
+          <div className="rounded-xl border border-line bg-panel p-5">
             <h2 className="text-base font-semibold text-ink-100">No teams yet</h2>
             <p className="text-sm text-ink-400 mt-1">
               Teams come from each person&apos;s department (Microsoft 365, Google Workspace, or set by hand on People). angar splits every AI&apos;s cost by who uses it.
@@ -89,7 +89,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
               <Link href="/sources" className="btn btn-secondary btn-sm">Connect Microsoft 365 or Google</Link>
             </div>
           </div>
-          <AddBudget named={named.map((r) => r.department)} />
+          <AddBudget named={named.map((r) => r.department)} secondary />
         </div>
       ) : (
         <Table
@@ -149,7 +149,8 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
   );
 }
 
-function AddBudget({ named }: { named: string[] }) {
+// Senza team il passo principale è assegnare i reparti: qui il pulsante resta secondario.
+function AddBudget({ named, secondary = false }: { named: string[]; secondary?: boolean }) {
   return (
     <section className="rounded-xl border border-line bg-panel animate-rise">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
@@ -164,7 +165,7 @@ function AddBudget({ named }: { named: string[] }) {
           ))}
         </datalist>
         <input name="monthlyEur" inputMode="decimal" placeholder="€ / month" className="field w-28 tabular" required />
-        <button className="btn btn-primary btn-sm">Save budget</button>
+        <button className={`btn btn-sm ${secondary ? "btn-secondary" : "btn-primary"}`}>Save budget</button>
       </form>
     </section>
   );

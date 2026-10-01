@@ -72,8 +72,8 @@ export default async function AlertsPage() {
         </div>
       ) : (
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
-          {/* Barra grigia in alto: tutti gli avvisi e quanti da leggere. */}
-          <div className="flex items-center justify-between gap-3 bg-ink px-5 py-3 text-sm">
+          {/* Intestazione: tutti gli avvisi e quanti da leggere (senza fascia grigia). */}
+          <div className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
             <h2 className="font-semibold text-ink-100">All alerts</h2>
             <span className="text-xs text-ink-400 tabular">{unread ? `${unread} unread` : `${alerts.length} read`}</span>
           </div>
@@ -83,7 +83,7 @@ export default async function AlertsPage() {
               <button className={`w-full text-left flex items-start gap-4 px-5 py-4 transition-colors hover:bg-ink-100/[0.03] ${a.readAt ? "" : "bg-ink-100/[0.025]"}`}>
                 <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${SEV[a.severity] ?? SEV.info}`} />
                 <span className="flex-1 min-w-0">
-                  <span className="flex items-center gap-2">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className={`text-sm ${a.readAt ? "text-ink-100" : "text-ink-100 font-semibold"}`}>{a.title}</span>
                     <span className="text-[11px] text-ink-400 border border-line rounded-full px-2 py-0.5 shrink-0">{KIND[a.kind] ?? a.kind}</span>
                   </span>

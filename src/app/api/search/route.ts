@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { currentOrgId } from "@/lib/org";
+import { currentSession } from "@/lib/auth";
 import { NAV_PAGES, fuzzyScore } from "@/lib/search-index";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 
@@ -14,7 +14,12 @@ export type SearchHit = { type: "ai" | "person" | "page"; label: string; sub?: s
 export async function GET(req: Request) {
   const q = new URL(req.url).searchParams.get("q")?.trim() ?? "";
   if (q.length < 1) return NextResponse.json({ hits: [] });
-  const orgId = currentOrgId();
+  // Solo membri attivi del workspace (la sessione può sopravvivere alla rimozione).
+  const s = currentSession();
+  if (!s) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } }, select: { status: true } });
+  if (!member || member.status !== "active") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const orgId = s.orgId;
 
   // Le persone si cercano solo con la privacy "per persona".
   const people = showsPeople(await orgPrivacyMode(orgId));

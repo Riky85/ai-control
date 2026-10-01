@@ -3,6 +3,7 @@ import { rateLimit, retryAfter } from "@/lib/rate-limit";
 import { runCommand, workspaceBrief } from "@/lib/command";
 import { docsAnswer } from "@/lib/assistant";
 import { isOnPrem } from "@/lib/edition";
+import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 const RATE = { limit: 120, windowMs: 3_600_000 };
@@ -16,6 +17,9 @@ const RATE = { limit: 120, windowMs: 3_600_000 };
 export async function POST(req: Request) {
   const s = currentSession();
   if (!s) return Response.json({ error: "Sign in first." }, { status: 401 });
+  // I comandi leggono i dati del workspace: solo membri ancora attivi.
+  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } }, select: { status: true } });
+  if (!member || member.status !== "active") return Response.json({ error: "You no longer have access to this workspace." }, { status: 403 });
   if (!rateLimit(`command:${s.accountId}`, RATE.limit, RATE.windowMs)) {
     return Response.json({ handled: true, answer: "Too many questions in the last hour — try again a bit later." }, { status: 429, headers: { "Retry-After": String(retryAfter(RATE.limit, RATE.windowMs)) } });
   }

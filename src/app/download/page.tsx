@@ -60,14 +60,14 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
   );
   if (view === "computers")
     return (
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         {header}
         <ComputersView orgId={s.orgId} />
       </div>
     );
   if (view === "other")
     return (
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         {header}
         <OtherWaysView orgId={s.orgId} base={base} token={token} joinUrl={joinUrl} canEdit={s.role !== "VIEWER"} canAdmin={s.role === "ADMIN" || s.role === "OWNER"} />
       </div>
@@ -79,7 +79,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
 
       {/* Download principale + anteprima dell'app */}
       <section className="relative overflow-hidden rounded-2xl border border-line bg-panel grid grid-cols-1 lg:grid-cols-[1fr_auto]">
-        <div className="relative p-7 lg:p-9 flex flex-col gap-5 min-w-0">
+        <div className="relative p-5 sm:p-7 lg:p-9 flex flex-col gap-5 min-w-0">
           <div className="flex items-center gap-2 text-xs text-ink-400">
             <span className="rounded-full border border-line px-2 py-0.5 text-ink-100 tabular">v{DESKTOP_VERSION}</span>
             <span>Linked to {company} automatically</span>
@@ -111,8 +111,8 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
       {/* Tutta l'azienda: un link da mandare a tutti */}
       <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
         <h2 className="bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">Send the link to everyone</h2>
-        <div className="flex min-w-0 items-center gap-2 px-5 py-4">
-          <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{joinUrl}</code>
+        <div className="flex flex-wrap sm:flex-nowrap min-w-0 items-center gap-2 px-5 py-4">
+          <code className="basis-full sm:basis-auto flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{joinUrl}</code>
           <CopyButton text={joinUrl} label="Copy" />
           <CopyButton
             text={`Hi! We use angar to see which AI tools we use and stop paying for seats nobody needs. It takes a minute: open ${joinUrl}, download the app and type your work email. Only the names of AI tools and the time spent are shared — never pages, prompts or anything you write. Thanks!`}

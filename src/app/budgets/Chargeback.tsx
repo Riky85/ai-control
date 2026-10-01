@@ -28,7 +28,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
   const accountsSet = !!settings?.expenseAccount;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <form method="get" action="/budgets" className="flex items-center gap-2">
           <input type="hidden" name="view" value="chargeback" />
@@ -55,7 +55,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
         </details>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           label={`AI cost in ${monthLabel(month)}`}
           value={fmtEur(cb.totalEur)}

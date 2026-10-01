@@ -32,7 +32,7 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
   return (
     <div className="board-wrap">
       <style>{PRINT_CSS}</style>
-      <div className="no-print max-w-[820px] mx-auto mb-4 flex items-center justify-between gap-3">
+      <div className="no-print max-w-[820px] mx-auto mb-4 flex flex-wrap items-center justify-between gap-3">
         <Link href="/report" className="text-sm text-ink-400 hover:text-ink-100">← Monthly report</Link>
         <div className="flex items-center gap-2">
           <form method="get" className="flex items-center">
@@ -49,8 +49,8 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
         </div>
       </div>
 
-      <article className="board-paper max-w-[820px] mx-auto bg-white text-[#141418] rounded-xl shadow-card px-14 py-12">
-        <header className="flex items-start justify-between border-b-2 border-[#141418] pb-5">
+      <article className="board-paper max-w-[820px] mx-auto bg-white text-[#141418] rounded-xl shadow-card px-5 py-8 sm:px-14 sm:py-12">
+        <header className="flex items-start justify-between gap-4 border-b-2 border-[#141418] pb-5">
           <div className="text-[#141418]"><Wordmark size={22} /></div>
           <div className="text-right text-xs text-[#5F5F69] leading-relaxed">
             <div className="font-semibold uppercase tracking-wider text-[#141418]">AI board report · {qLabel}</div>
@@ -77,7 +77,7 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
           </p>
         </section>
 
-        <section className="grid grid-cols-4 mt-8 border border-[#DCDCE1] rounded-lg overflow-hidden">
+        <section className="grid grid-cols-1 sm:grid-cols-4 print:grid-cols-4 mt-8 border border-[#DCDCE1] rounded-lg overflow-hidden">
           <Kpi label={toDate ? `${qLabel} to date` : `${qLabel} spend`} value={quarterSpend != null ? eur(quarterSpend) : eur(s.monthlyRunRate * 3)} hint={quarterSpend != null ? "From charges" : "Current cost × 3"} />
           <Kpi label="Annual run rate" value={eur(s.annualRunRate)} hint={`${eur(s.monthlyRunRate)} a month`} border />
           <Kpi label="Each employee / month" value={b.yours != null ? eur2(b.yours) : "—"} hint={b.peers ? `Median ${eur2(b.peers.median)}` : b.employeesSet ? "Benchmark not ready" : "Set employee count"} border />
@@ -87,7 +87,7 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
         <section className="mt-10 avoid-break">
           <H2 n={1}>angar Score</H2>
           {p.engine.score ? (
-            <div className="mt-4 grid grid-cols-[180px_1fr] gap-8 items-start">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-[180px_1fr] print:grid-cols-[180px_1fr] gap-6 sm:gap-8 items-start">
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-[44px] leading-none font-semibold tracking-tight tabular">{p.engine.score.score}</span>
@@ -241,7 +241,7 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
           ) : (
             <p className="text-sm text-[#5F5F69] mt-3">No open high risks.</p>
           )}
-          <div className="grid grid-cols-3 mt-3 border border-[#DCDCE1] rounded-lg overflow-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 mt-3 border border-[#DCDCE1] rounded-lg overflow-hidden">
             <Kpi label="Shadow AI to review" value={String(p.shadow.toReview)} hint={`${p.shadow.newInQuarter} new in ${qLabel} · ${p.shadow.blockedInUse} not allowed but used`} />
             <Kpi label="AI Act readiness" value={`${p.aiAct.score}%`} hint={`${p.aiAct.classified} of ${p.aiAct.total} classified · ${p.aiAct.highRisk} high-risk`} border />
             <Kpi
@@ -266,7 +266,7 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
           </table>
         </section>
 
-        <footer className="mt-10 pt-4 border-t border-[#DCDCE1] flex justify-between gap-6 text-[11px] text-[#5F5F69] leading-relaxed">
+        <footer className="mt-10 pt-4 border-t border-[#DCDCE1] flex flex-col sm:flex-row print:flex-row justify-between gap-2 sm:gap-6 text-[11px] text-[#5F5F69] leading-relaxed">
           <span>Spend from imported bank and invoice charges and connected providers; &ldquo;≈&rdquo; marks costs estimated from list prices. Forecasts are statistical estimates.</span>
           <span className="shrink-0">angar · AI spend & governance</span>
         </footer>
@@ -382,7 +382,7 @@ const shortDay = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString("e
 
 function Kpi({ label, value, hint, border, accent }: { label: string; value: string; hint?: string; border?: boolean; accent?: boolean }) {
   return (
-    <div className={`px-4 py-4 ${border ? "border-l border-[#DCDCE1]" : ""}`}>
+    <div className={`px-4 py-4 ${border ? "border-t sm:border-t-0 sm:border-l print:border-t-0 print:border-l border-[#DCDCE1]" : ""}`}>
       <div className="text-[11px] uppercase tracking-wider text-[#5F5F69]">{label}</div>
       <div className={`text-[24px] font-semibold tracking-tight tabular mt-1 ${accent ? "text-[#FF7323]" : ""}`}>{value}</div>
       {hint && <div className="text-xs text-[#5F5F69]">{hint}</div>}
@@ -415,6 +415,9 @@ const PRINT_CSS = `
   html, body { background: #fff !important; color: #141418 !important; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .no-print, aside { display: none !important; }
+  /* Solo il foglio: niente pulsanti fissi, schede d'area, avvisi o assistente del layout. */
+  main > *:not(.board-wrap), #app-scroll > *:not(main) { display: none !important; }
+  .board-paper { break-inside: auto !important; }
   .board-wrap { padding: 0 !important; }
   .board-paper { box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; max-width: none !important; }
   .avoid-break, tr { break-inside: avoid; }

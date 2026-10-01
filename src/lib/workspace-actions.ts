@@ -28,11 +28,13 @@ function origin() {
 
 // ── Membri ──────────────────────────────────────────────────────────────
 export async function inviteMemberAction(formData: FormData) {
-  await requireRole("ADMIN", "/workspace");
+  const me = await requireRole("ADMIN", "/workspace");
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const name = String(formData.get("name") ?? "").trim() || null;
   const role = (ROLES.includes(formData.get("role") as MemberRole) ? formData.get("role") : "VIEWER") as MemberRole;
   if (!email.includes("@")) redirect(`/workspace?error=${encodeURIComponent("Enter a valid email.")}`);
+  // Solo un owner crea altri owner (un admin non può promuovere né sé stesso né altri).
+  if (role === "OWNER" && me.role !== "OWNER") redirect(`/workspace?error=${encodeURIComponent("Only an owner can add another owner.")}`);
 
   const o = await org();
   const count = await db.workspaceMember.count({ where: { organizationId: currentOrgId() } });
@@ -40,6 +42,12 @@ export async function inviteMemberAction(formData: FormData) {
     redirect(`/workspace?error=${encodeURIComponent(`Your ${planById(o.plan).name} plan includes ${planById(o.plan).limits.members} members. Upgrade to add more.`)}`);
   }
   const existing = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: currentOrgId(), email } } });
+  // Re-invitare un owner cambierebbe il suo ruolo: stesse regole di setMemberRoleAction.
+  if (existing?.role === "OWNER" && role !== "OWNER") {
+    if (me.role !== "OWNER") redirect(`/workspace?error=${encodeURIComponent("Only an owner can change the owner role.")}`);
+    const owners = await db.workspaceMember.count({ where: { organizationId: currentOrgId(), role: "OWNER" } });
+    if (owners <= 1) redirect(`/workspace?error=${encodeURIComponent("A workspace needs at least one owner.")}`);
+  }
   // Nuovo link d'invito a ogni invio (solo per chi non è ancora entrato).
   const inviteToken = existing?.status === "active" ? undefined : randomBytes(24).toString("base64url");
   await db.workspaceMember.upsert({
@@ -60,13 +68,15 @@ export async function inviteMemberAction(formData: FormData) {
 }
 
 export async function setMemberRoleAction(formData: FormData) {
-  await requireRole("ADMIN", "/workspace");
+  const me = await requireRole("ADMIN", "/workspace");
   const id = String(formData.get("memberId"));
   const role = formData.get("role") as MemberRole;
   if (!ROLES.includes(role)) return;
   // Solo membri di questo workspace; deve restare almeno un Owner.
   const member = await db.workspaceMember.findFirst({ where: { id, organizationId: currentOrgId() } });
   if (!member) return;
+  // Il ruolo Owner (darlo o toglierlo) lo gestiscono solo gli owner.
+  if ((role === "OWNER" || member.role === "OWNER") && me.role !== "OWNER") redirect(`/workspace?error=${encodeURIComponent("Only an owner can give or change the owner role.")}`);
   if (member.role === "OWNER" && role !== "OWNER") {
     const owners = await db.workspaceMember.count({ where: { organizationId: currentOrgId(), role: "OWNER" } });
     if (owners <= 1) redirect(`/workspace?error=${encodeURIComponent("A workspace needs at least one owner.")}`);
@@ -77,9 +87,10 @@ export async function setMemberRoleAction(formData: FormData) {
 }
 
 export async function removeMemberAction(formData: FormData) {
-  await requireRole("ADMIN", "/workspace");
+  const me = await requireRole("ADMIN", "/workspace");
   const id = String(formData.get("memberId"));
   const member = await db.workspaceMember.findFirst({ where: { id, organizationId: currentOrgId() } });
+  if (member?.role === "OWNER" && me.role !== "OWNER") redirect(`/workspace?error=${encodeURIComponent("Only an owner can remove an owner.")}`);
   if (member?.role === "OWNER") {
     const owners = await db.workspaceMember.count({ where: { organizationId: currentOrgId(), role: "OWNER" } });
     if (owners <= 1) redirect(`/workspace?error=${encodeURIComponent("You can't remove the last owner.")}`);
@@ -291,7 +302,7 @@ export async function renameWorkspaceAction(formData: FormData) {
   const s = await requireRole("ADMIN", "/workspace?tab=workspaces");
   // Si può rinominare solo un workspace di cui si è Admin/Owner.
   const m = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: id, email: s.email } } });
-  if (name && m && (m.role === "OWNER" || m.role === "ADMIN")) {
+  if (name && m && m.status === "active" && (m.role === "OWNER" || m.role === "ADMIN")) {
     await db.organization.update({ where: { id }, data: { name } });
     await audit("workspace.rename", id, { name }, { orgId: id });
   }

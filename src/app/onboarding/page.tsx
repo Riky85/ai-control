@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // Le altre fonti sono facoltative e si aggiungono quando si vuole.
 export default function Onboarding({ searchParams }: { searchParams: { error?: string } }) {
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-8 py-6">
+    <div className="max-w-3xl mx-auto flex flex-col gap-6 py-6">
       <div className="text-center">
         <h1 className="font-display text-[30px] leading-tight font-semibold tracking-tight text-ink-100">Let angar find your AI</h1>
         <p className="text-sm text-ink-400 mt-2">One file is enough. angar finds every AI subscription, what it really costs and where you can save — nothing to type, nothing to remember.</p>
@@ -22,7 +22,7 @@ export default function Onboarding({ searchParams }: { searchParams: { error?: s
           <p className="text-sm text-ink-400 mt-0.5">CSV or Excel from your bank, or your e-invoices (XML / zip from the accountant). Only AI charges are kept.</p>
         </div>
         <CsvDropzone accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.p7m,.zip" multiple label="Choose files or drag them here" />
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <button className="btn btn-primary">Find my AI</button>
           <a href="/api/spend/sample" className="text-xs text-ink-400 hover:text-ink-100 underline">No file at hand? Download a sample</a>
         </div>
@@ -30,14 +30,14 @@ export default function Onboarding({ searchParams }: { searchParams: { error?: s
 
       <div>
         <div className="text-xs text-ink-400 uppercase tracking-wide mb-3">Or start from</div>
-        <div className="grid grid-cols-3 gap-3">
-          <Option href="/sources" title="Company accounts" text="Microsoft 365 or Google Workspace — who uses which AI." />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Option href="/sources#accounts" title="Company accounts" text="Microsoft 365 or Google Workspace — who uses which AI." />
           <Option href="/connectors" title="An AI provider key" text="Claude, OpenAI, Gemini, Mistral… exact API costs." />
           <Option href="/download" title="The desktop app" text="Sees who uses which AI, and for how long." />
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-xl border border-dashed border-line px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-panel px-5 py-4">
         <div>
           <div className="text-sm font-medium text-ink-100">Just exploring?</div>
           <div className="text-sm text-ink-400">Load a demo company and see angar with data.</div>

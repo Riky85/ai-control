@@ -106,12 +106,12 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
   );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }, { label: "angar Edge", href: "/edge" }]}
         title="Sensors"
         subtitle="Network sensors that see every AI your company reaches — from DNS, firewall or cloud logs. Never content or URLs."
-        action={<Link href="/edge" className="btn btn-secondary">About angar Edge</Link>}
+        action={<Link href="/edge" className="btn btn-secondary btn-sm">About angar Edge</Link>}
       />
       {searchParams.notice && <Notice tone="success">{searchParams.notice}</Notice>}
       {!(await featureEnabled(orgId, "edgeSensors")) && <Notice><span className="inline-flex flex-wrap items-center gap-x-2">New software and cloud-log sensors need Growth; angar devices work on any plan. <LockedNote feature="edgeSensors" /></span></Notice>}

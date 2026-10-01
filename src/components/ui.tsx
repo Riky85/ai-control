@@ -177,14 +177,14 @@ export function Table({
   action?: React.ReactNode;
   toolbar?: React.ReactNode;
   id?: string;
-  /** Titolo, ricerca, filtri e azione in un'unica fascia grigia, fusa con la riga delle colonne. */
+  /** Titolo, ricerca, filtri e azione in un'unica fascia (trasparente, vedi globals.css), fusa con la riga delle colonne. */
   band?: boolean;
 }) {
   const top = title || toolbar;
   return (
     <div id={id} className="rounded-xl border border-line bg-panel animate-rise scroll-mt-6">
       {band ? (
-        <div className="bg-ink rounded-t-xl px-5 pt-3 pb-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="bg-ink bar-head rounded-t-xl px-5 pt-3 pb-2 flex flex-wrap items-center gap-x-4 gap-y-2">
           {title && <h2 className="text-sm font-semibold text-ink-100 shrink-0">{title}</h2>}
           {action && <div className="shrink-0 flex items-center gap-2 ml-auto sm:order-last">{action}</div>}
           {toolbar && <div className="w-full sm:w-auto sm:flex-1 min-w-0">{toolbar}</div>}

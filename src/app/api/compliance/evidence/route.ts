@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const s = currentSession();
   if (!s) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } }, select: { role: true } });
-  if (!member || (member.role !== "ADMIN" && member.role !== "OWNER")) return NextResponse.json({ error: "Admins and owners only." }, { status: 403 });
+  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } }, select: { role: true, status: true } });
+  if (!member || member.status !== "active" || (member.role !== "ADMIN" && member.role !== "OWNER")) return NextResponse.json({ error: "Admins and owners only." }, { status: 403 });
   const gate = await planGate(s.orgId, "evidencePack");
   if (!gate.ok) return NextResponse.json({ error: gate.message }, { status: 402 });
 

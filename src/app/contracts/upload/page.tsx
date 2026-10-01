@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
 import { Notice, PageHeader } from "@/components/ui";
@@ -18,12 +19,17 @@ export default async function ContractUploadPage({ searchParams }: { searchParam
   return (
     <div className="flex flex-col gap-4 max-w-3xl">
       <PageHeader
-        crumbs={[{ label: "Sources", href: "/sources" }, { label: "Contracts", href: "/savings?view=contracts" }]}
+        crumbs={[{ label: "Savings", href: "/savings" }, { label: "Contracts", href: "/savings?view=contracts" }]}
         title="Read a contract"
         subtitle="Upload a contract, order form or invoice as PDF. angar fills in the plan, seats, price, dates and notice — you check them before anything is saved."
       />
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
+      {assets.length === 0 ? (
+        <Notice>
+          No AI in your list yet — a contract is attached to an AI. <Link href="/sources" className="underline">Add costs or connect a source</Link> first.
+        </Notice>
+      ) : (
       <ContractReader assets={assets.map((a) => ({ id: a.id, label: a.vendor ? `${a.name} · ${a.vendor}` : a.name }))} plans={PLANS.map((p) => ({ id: p.id, name: p.name }))} />
+      )}
     </div>
   );
 }

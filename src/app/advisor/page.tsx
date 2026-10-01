@@ -5,6 +5,9 @@ import { PageHeader, StatCard } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import { fmtEur } from "@/lib/format";
 import { PRICES_AS_OF } from "@/lib/pricing/catalog";
+import { EmptyState } from "@/components/insight";
+
+const CRUMBS = [{ label: "Savings", href: "/savings" }, { label: "Advisor" }];
 
 export const dynamic = "force-dynamic";
 
@@ -20,24 +23,23 @@ export default async function AdvisorPage() {
 
   if (stack.length === 0) {
     return (
-      <div className="flex flex-col gap-6">
-        <PageHeader title="AI Advisor" subtitle="Your ideal AI stack, from how your people really use AI." />
-        <div className="rounded-xl border border-dashed border-line p-10 text-center">
-          <h2 className="text-lg font-semibold text-ink-100">No paid AI tools yet</h2>
-          <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">
-            angar recommends a standard stack once it knows which AI subscriptions you pay for and who uses them. Add a bank statement or connect your AI providers.
-          </p>
-          <Link href="/sources" className="btn btn-primary mt-5">Add a source</Link>
-        </div>
+      <div className="flex flex-col gap-4">
+        <PageHeader crumbs={CRUMBS} title="AI Advisor" subtitle="Your ideal AI stack, from how your people really use AI." />
+        <EmptyState
+          title="No paid AI tools yet"
+          text="angar recommends a standard stack once it knows which AI subscriptions you pay for and who uses them. Add a bank statement or connect your AI providers."
+          href="/sources"
+          cta="Add a source"
+        />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title="AI Advisor" subtitle="Your ideal AI stack, from how your people really use AI." />
+    <div className="flex flex-col gap-4">
+      <PageHeader crumbs={CRUMBS} title="AI Advisor" subtitle="Your ideal AI stack, from how your people really use AI." />
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Current AI spend" value={`${fmtEur(currentEur)}/mo`} hint={apiEur > 0 ? `Seat-based tools · APIs (${fmtEur(apiEur)}/mo) not included` : "Seat-based AI tools"} />
         <StatCard label="Recommended stack" value={`${fmtEur(recommendedEur)}/mo`} hint={`${stack.length} tool${stack.length === 1 ? "" : "s"}, seats for active users`} />
         <StatCard
@@ -110,7 +112,7 @@ export default async function AdvisorPage() {
 function RecRow({ r, n }: { r: Recommendation; n: number }) {
   const c = CONF[r.confidence];
   return (
-    <li className="p-5 flex items-center gap-5">
+    <li className="p-5 flex flex-wrap lg:flex-nowrap items-center gap-x-5 gap-y-3">
       <span className="h-7 w-7 shrink-0 rounded-full bg-ink text-sm text-ink-400 flex items-center justify-center tabular">{n}</span>
       <div className="flex -space-x-2 shrink-0">
         {r.assets.slice(0, 3).map((a) => (
@@ -119,8 +121,8 @@ function RecRow({ r, n }: { r: Recommendation; n: number }) {
           </span>
         ))}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+      <div className="flex-1 min-w-[12rem]">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <h3 className="text-[15px] font-semibold text-ink-100">{r.title}</h3>
           <span className={`text-[11px] font-medium rounded-full px-2 py-0.5 ${c.cls}`}>{c.label}</span>
         </div>

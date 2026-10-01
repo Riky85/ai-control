@@ -73,7 +73,7 @@ export default function PricingCards({
           const upgrade = current ? planRank(p.id) > planRank(current) : true;
           const highlight = p.id === "GROWTH";
           return (
-            <div key={p.id} className={`rounded-xl border bg-panel p-5 flex flex-col gap-4 ${highlight ? "border-accent/60" : "border-line"}`}>
+            <div key={p.id} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
               <div>
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-base font-semibold text-ink-100">{p.name}</h3>
@@ -82,7 +82,7 @@ export default function PricingCards({
                   ) : isCurrent ? (
                     <span className="text-[11px] font-medium text-steady bg-steady/10 rounded-full px-2 py-0.5 whitespace-nowrap">Current</span>
                   ) : (
-                    highlight && <span className="text-[11px] font-medium text-accent bg-accent-soft rounded-full px-2 py-0.5 whitespace-nowrap">Most popular</span>
+                    highlight && <span className="text-[11px] text-ink-400 whitespace-nowrap">Most popular</span>
                   )}
                 </div>
                 <p className="text-xs text-ink-400 mt-1">{p.employees}</p>

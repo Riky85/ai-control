@@ -292,7 +292,12 @@ export async function createMemberResetLinkAction(formData: FormData) {
   const s = await requireRole("ADMIN", "/workspace");
   const email = String(formData.get("email") ?? "").toLowerCase();
   const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email } } });
-  const account = member ? await db.account.findUnique({ where: { email } }) : null;
+  // L'account è unico tra i workspace: un admin non deve poter prendere il controllo di un owner,
+  // né di chi è membro anche di altri workspace (es. lo MSP che gestisce più clienti).
+  if (member && member.role === "OWNER" && s.role !== "OWNER") redirect(`/workspace?error=${encodeURIComponent("Only an owner can create a reset link for another owner.")}`);
+  const elsewhere = member ? await db.workspaceMember.count({ where: { email, status: "active", organizationId: { not: s.orgId } } }) : 0;
+  if (elsewhere > 0) redirect(`/workspace?error=${encodeURIComponent("This person also belongs to other workspaces — ask them to use “Forgot password” on the sign-in page.")}`);
+  const account = member && member.status === "active" ? await db.account.findUnique({ where: { email } }) : null;
   if (!account) redirect(`/workspace?error=${encodeURIComponent("This person hasn't created an account yet — send them the sign-up link instead.")}`);
   const link = await createResetLink(account!.id);
   await audit("auth.reset_link_created", email);

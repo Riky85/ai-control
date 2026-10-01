@@ -70,7 +70,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <StatCard label="You could save" value={`${fmtEur(totalMonthly)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% of ${fmtEur(spend)}/mo AI spend` : `${fmtEur(totalMonthly * 12)} a year`} tone="accent" href="/savings" />
+        <StatCard label="You could save" value={`${fmtEur(totalMonthly)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% of ${fmtEur(spend)}/mo AI spend` : `${fmtEur(totalMonthly * 12)} a year`} tone="accent" />
         <StatCard
           label="Saved so far"
           value={`${fmtEur(saved.savedMonthly)}/mo`}
@@ -133,7 +133,7 @@ async function Suggestions({
       {items.length === 0 && all.length > 0 ? (
         <p className="text-sm text-ink-400">No suggestions match these filters.</p>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line p-10 text-center">
+        <div className="rounded-xl border border-line bg-panel p-10 text-center">
           <h2 className="text-lg font-semibold text-ink-100">{spend ? "Nothing to save right now" : "angar needs to see what you pay"}</h2>
           <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">
             {spend
@@ -226,12 +226,12 @@ function SavingRow({ s }: { s: Saving }) {
         )}
         <form action={acceptSavingAction}>
           <input type="hidden" name="key" value={s.key} />
-          <button className="btn btn-primary btn-sm" title="We'll do it — track it under In progress">Accept</button>
+          <button className="btn btn-secondary btn-sm" title="We'll do it — track it under In progress">Accept</button>
         </form>
         <form action={acceptSavingAction}>
           <input type="hidden" name="key" value={s.key} />
           <input type="hidden" name="done" value="1" />
-          <button className="btn btn-secondary btn-sm" title="Already done — angar checks the next bills to confirm it">Mark done</button>
+          <button className="btn btn-ghost btn-sm" title="Already done — angar checks the next bills to confirm it">Mark done</button>
         </form>
         <form action={dismissSavingAction}>
           <input type="hidden" name="key" value={s.key} />
@@ -306,7 +306,7 @@ function Progress({ saved, canSave, org }: { saved: SavedSoFar; canSave: number;
               <td className={`${td} text-right whitespace-nowrap`}>
                 {r.status === "accepted" && (
                   <>
-                    <ActionButton id={r.id} to="done" label="Mark done" primary />
+                    <ActionButton id={r.id} to="done" label="Mark done" />
                     <ActionButton id={r.id} to="undo" label="Undo" />
                   </>
                 )}
@@ -320,12 +320,12 @@ function Progress({ saved, canSave, org }: { saved: SavedSoFar; canSave: number;
   );
 }
 
-function ActionButton({ id, to, label, primary }: { id: string; to: "done" | "failed" | "undo"; label: string; primary?: boolean }) {
+function ActionButton({ id, to, label }: { id: string; to: "done" | "failed" | "undo"; label: string }) {
   return (
     <form action={updateSavingActionAction} className="inline-block ml-2">
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="to" value={to} />
-      <button className={`btn btn-sm ${primary ? "btn-primary" : "btn-secondary"}`}>{label}</button>
+      <button className="btn btn-sm btn-secondary">{label}</button>
     </form>
   );
 }

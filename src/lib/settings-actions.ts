@@ -21,7 +21,7 @@ export async function setIndustryAction(formData: FormData) {
 
 /** Webhook Slack o Microsoft Teams: salvato cifrato, provato subito. */
 export async function setChatWebhookAction(formData: FormData) {
-  const s = await requireRole("ADMIN", "/settings");
+  const s = await requireRole("ADMIN", "/settings?tab=integrations");
   const url = String(formData.get("url") ?? "").trim();
   if (!url) {
     await db.organization.update({ where: { id: s.orgId }, data: { chatWebhookEncrypted: null } });
@@ -50,7 +50,7 @@ export async function setChatWebhookAction(formData: FormData) {
  * Solo admin e owner; il cambio resta nel registro di audit.
  */
 export async function setPrivacyModeAction(formData: FormData) {
-  const s = await requireRole("ADMIN", "/settings");
+  const s = await requireRole("ADMIN", "/settings?tab=privacy");
   const mode = String(formData.get("mode") ?? "");
   if (!isPrivacyMode(mode)) redirect(`/settings?tab=privacy&error=${encodeURIComponent("Choose one of the privacy modes.")}`);
   const org = await db.organization.findUnique({ where: { id: s.orgId }, select: { privacyMode: true } });

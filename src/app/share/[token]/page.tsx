@@ -59,25 +59,25 @@ export default async function SharedDashboardPage({ params }: { params: { token:
   const inApp = Boolean(currentSession());
 
   return (
-    <div className={`flex flex-col gap-6 ${inApp ? "" : "px-10 py-8 max-w-[1400px] mx-auto"}`}>
-      <div className={`flex items-end justify-between gap-4 ${inApp ? "pr-[8.25rem]" : ""}`}>
-        <div>
+    <div className={`flex flex-col gap-4 ${inApp ? "" : "px-4 sm:px-10 py-8 max-w-[1400px] mx-auto"}`}>
+      <div className={`flex items-end justify-between gap-4 ${inApp ? "lg:pr-[8.25rem]" : ""}`}>
+        <div className="min-w-0">
           <div className="text-xs text-ink-400 mb-1">
             Shared by {link.organization.name} · read-only · {fmtDate(new Date())}
           </div>
-          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100">{link.name}</h1>
+          <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 break-words">{link.name}</h1>
         </div>
-        <span className="text-ink-100"><Wordmark size={18} /></span>
+        <span className="text-ink-100 shrink-0"><Wordmark size={18} /></span>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="AI systems" value={String(assets.length)} />
         <StatCard label="Providers" value={String(providers)} />
         <StatCard label="Monthly spend" value={spend > 0 ? fmtEur(spend) : "—"} />
         <StatCard label="High risk" value={String(highRisk)} tone={highRisk > 0 ? "alarm" : undefined} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Panel title="Risk" subtitle="AI systems by risk level">
           {riskSlices.length ? <DonutChart slices={riskSlices} centerLabel="systems" /> : <p className="text-sm text-ink-400">No data.</p>}
         </Panel>

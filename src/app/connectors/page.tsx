@@ -67,22 +67,22 @@ export default async function ConnectorsPage({
   const connectedCount = AI_PROVIDERS.filter((p) => providerConnected(byProvider.get(p.provider))).length + (githubConnected ? 1 : 0);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }]}
-        title="Provider keys & imports"
+        title="AI provider keys"
         subtitle="Paste a provider key for exact API costs, or import a list of AI tools."
         action={<span className="text-sm text-ink-400">{connectedCount} connected</span>}
       />
 
       {searchParams.connected && (
         <Notice>
-          <b>Connected.</b> First sync done — your systems are now in <a href="/" className="underline">Your AI</a>.
+          <b>Connected.</b> First sync done — your systems are now in <a href="/#your-ai" className="underline">Your AI</a>.
         </Notice>
       )}
       {searchParams.imported && (
         <Notice>
-          <b>{searchParams.imported} AI system{searchParams.imported === "1" ? "" : "s"} imported.</b> See them in <a href="/" className="underline">Your AI</a>.
+          <b>{searchParams.imported} AI system{searchParams.imported === "1" ? "" : "s"} imported.</b> See them in <a href="/#your-ai" className="underline">Your AI</a>.
         </Notice>
       )}
       {/* Errore di una connessione: resta accanto a quella connessione, non nel toast globale. */}
@@ -95,7 +95,7 @@ export default async function ConnectorsPage({
           const mode = decryptJson<{ mode?: string }>(row?.credentialsEncrypted)?.mode;
           const error = searchParams.provider === p.provider ? searchParams.error : undefined;
           return (
-            <div key={p.provider} id={p.provider} className={card}>
+            <div key={p.provider} id={p.provider} className={`${card} scroll-mt-6`}>
               <div className="flex items-center gap-3">
                 <VendorBadge vendor={p.provider} name={p.label} size={36} />
                 <div className="flex-1 min-w-0">
@@ -192,7 +192,7 @@ export default async function ConnectorsPage({
       </section>
 
       <Section title="Import" subtitle="Works for any AI — including tools without an API. One row for each AI system.">
-        <div id="import" className={`${card} col-span-2`}>
+        <div id="import" className={`${card} scroll-mt-6 sm:col-span-2`}>
           <div className="text-sm font-medium text-ink-100">Upload a spreadsheet (CSV)</div>
           <p className="text-xs text-ink-400">
             Columns: <code>name</code> (required), <code>vendor</code>, <code>type</code>, <code>model</code>, <code>owner_email</code>, <code>department</code>, <code>monthly_cost</code>. Export it from Excel or Google Sheets as CSV.
@@ -212,9 +212,7 @@ export default async function ConnectorsPage({
           <div className="text-sm font-medium text-ink-100">Add one manually</div>
           <form action={addManualAssetAction} className="flex flex-col gap-2">
             <input name="name" required placeholder="Name, e.g. Support chatbot" className={input} />
-            <div className="grid grid-cols-2 gap-2">
-              <input name="vendor" placeholder="Vendor" className={input} />
-            </div>
+            <input name="vendor" placeholder="Vendor (optional)" className={input} />
             <button className={`${btnSecondary} w-full`}>+ Add AI system</button>
           </form>
         </div>
@@ -240,7 +238,7 @@ function Section({ title, subtitle, children }: { title: string; subtitle: strin
     <section>
       <h2 className="text-base font-semibold text-ink-100">{title}</h2>
       <p className="text-sm text-ink-400 mb-3">{subtitle}</p>
-      <div className="grid grid-cols-3 gap-4">{children}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">{children}</div>
     </section>
   );
 }

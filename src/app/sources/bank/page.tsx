@@ -32,7 +32,7 @@ export default async function BankPage({ searchParams }: { searchParams: { count
   const shown = banks.filter((b) => !q || b.name.toLowerCase().includes(q));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         crumbs={[{ label: "Sources", href: "/sources" }]}
         title="Connect your bank"
@@ -48,13 +48,13 @@ export default async function BankPage({ searchParams }: { searchParams: { count
         <>
           <div className="flex items-center gap-2 flex-wrap">
             {COUNTRIES.map(([code, name]) => (
-              <Link key={code} href={`/sources/bank?country=${code}`} className={`btn btn-sm ${code === country ? "btn-primary" : "btn-secondary"}`}>
+              <Link key={code} href={`/sources/bank?country=${code}`} className={`btn btn-sm ${code === country ? "btn-secondary" : "btn-ghost"}`}>
                 {name}
               </Link>
             ))}
           </div>
           <FilterBar search={{ placeholder: "Find your bank" }} right={shown.length > MAX_SHOWN ? `Showing ${MAX_SHOWN} of ${shown.length} banks — search to find yours` : `${shown.length} bank${shown.length === 1 ? "" : "s"}`} />
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {shown.slice(0, MAX_SHOWN).map((b) => (
               <form key={b.name} action={startBankAuthAction}>
                 <input type="hidden" name="name" value={b.name} />

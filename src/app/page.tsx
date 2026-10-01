@@ -98,12 +98,12 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       )}
       {broken > 0 && (
         <Link href="/sources" className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">
-          {broken} source{broken === 1 ? " stopped" : "s stopped"} syncing — open Connect to fix.
+          {broken} source{broken === 1 ? " stopped" : "s stopped"} syncing — open Sources to fix.
         </Link>
       )}
 
       {assets.length === 0 ? (
-        <div className="rounded-xl border border-line bg-panel p-10 flex flex-col items-center text-center gap-5">
+        <div className="rounded-xl border border-line bg-panel p-6 sm:p-10 flex flex-col items-center text-center gap-5">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight text-ink-100">Which AI does your company pay for?</h2>
             <p className="text-sm text-ink-400 mt-1.5 max-w-xl">
@@ -130,7 +130,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} found by the scan to decide` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} tone="accent" href={toReview ? "/review" : "/providers"} />
             <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (org?.employees ? `${fmtEur(spend / org.employees, { decimals: true })} for each employee` : estimated ? `${estimated} estimated from list prices` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
             <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"} →` : "Nothing found yet"} href="/savings" />
-            <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : "/download"} />
+            <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : undefined} />
           </div>
 
           <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">

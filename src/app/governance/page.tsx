@@ -1,7 +1,7 @@
 import { currentOrgId } from "@/lib/org";
 import { currentSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, Tabs } from "@/components/ui";
 import { vendorRiskFor, vendorFlags, planTier, trainsOnYourData } from "@/lib/vendor-risk";
 import { PLANS } from "@/lib/pricing/catalog";
 import { listExposedKeys } from "@/lib/secrets-scan";
@@ -101,6 +101,14 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader title="Governance" subtitle="Rules and records for every AI." action={<ExportMenu dataset="assets" />} />
+
+      <Tabs
+        active={assurance ? "assurance" : "overview"}
+        items={[
+          { key: "overview", label: "Overview", href: "/governance" },
+          { key: "assurance", label: "Assurance checks", href: "/governance?tab=assurance" },
+        ]}
+      />
 
       <GovernanceHeader governance={score ? score.axes.governance : null} readiness={r.score} holds={holds} />
 

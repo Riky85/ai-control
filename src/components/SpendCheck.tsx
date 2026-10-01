@@ -28,7 +28,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
     <div className="flex flex-col gap-10">
       <div className="text-center max-w-2xl mx-auto">
         <div className="text-xs font-medium text-accent uppercase tracking-wide">Free AI Spend Check</div>
-        <h1 className="font-display text-[40px] leading-[1.1] font-semibold tracking-tight text-ink-100 mt-3">How much does your company really spend on AI?</h1>
+        <h1 className="font-display text-[30px] sm:text-[40px] leading-[1.1] font-semibold tracking-tight text-ink-100 mt-3">How much does your company really spend on AI?</h1>
         <p className="text-base text-ink-400 mt-3">
           Drop a bank or card statement. In a few seconds you see every AI subscription, the plan and seats you pay for, and where you overpay. No account needed — the file is read in memory and never stored.
         </p>
@@ -57,7 +57,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
           />
         </label>
         <button disabled={pending} className="btn btn-primary disabled:opacity-60">{pending ? "Reading…" : "Check my AI spend"}</button>
-        <div className="flex items-center justify-between text-xs text-ink-400">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-ink-400">
           <span>Only AI lines are looked at. Nothing is saved.</span>
           <a href="/api/spend/sample" className="underline hover:text-ink-100">Try a sample statement</a>
         </div>
@@ -67,14 +67,14 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
 
       {result?.ok && (
         <div className="flex flex-col gap-6 animate-rise">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Big label="AI services you pay for" value={String(result.report.lines.length)} />
             <Big label="AI spend" value={`${eur(result.report.spend)}/mo`} hint={`${eur(result.report.spend * 12)} a year`} />
             <Big label="You could save" value={`${eur(result.report.save)}/mo`} hint={`${eur(result.report.save * 12)} a year`} accent />
           </div>
 
-          <div className="rounded-xl border border-line bg-panel overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-xl border border-line bg-panel overflow-x-auto">
+            <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line bar-head">
                   <th className="px-5 py-2.5 font-medium">AI</th>
@@ -106,18 +106,18 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
               <h2 className="text-lg font-semibold text-ink-100">Where you could save</h2>
               {result.report.savings.map((s) => (
                 <div key={s.title} className="rounded-xl border border-line bg-panel p-4 flex items-center gap-4">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-ink-100">{s.title}</div>
                     <div className="text-sm text-ink-400">{s.detail}</div>
                   </div>
-                  <div className="text-right font-semibold text-ink-100 tabular">{eur(s.monthlyEur)}<span className="text-xs text-ink-400 font-normal">/mo</span></div>
+                  <div className="text-right font-semibold text-ink-100 tabular shrink-0">{eur(s.monthlyEur)}<span className="text-xs text-ink-400 font-normal">/mo</span></div>
                 </div>
               ))}
             </div>
           )}
 
           {snapshot && (
-            <div className="rounded-xl border border-line bg-panel p-5 grid grid-cols-[1fr_auto] gap-x-6 gap-y-4 items-start">
+            <div className="rounded-xl border border-line bg-panel p-5 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-x-6 gap-y-4 items-start">
               <div>
                 <div className="text-base font-semibold text-ink-100">Take the report with you</div>
                 <div className="text-sm text-ink-400 mt-0.5">A clean PDF to share with your CFO or management — or get it by email.</div>
@@ -132,13 +132,13 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
               >
                 Download your report (PDF)
               </button>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <EmailReport snapshot={snapshot} />
               </div>
             </div>
           )}
 
-          <div className="rounded-xl border border-line bg-ink p-6 flex items-center gap-6">
+          <div className="rounded-xl border border-line bg-panel p-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
             <div className="flex-1">
               <div className="text-base font-semibold text-ink-100">{signedIn ? "Save this to your workspace" : "Keep it up to date automatically"}</div>
               <div className="text-sm text-ink-400 mt-0.5">

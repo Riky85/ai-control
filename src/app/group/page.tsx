@@ -4,7 +4,7 @@ import { myGroups, entityRows } from "@/lib/groups";
 import { createGroupAction, addToGroupAction, removeFromGroupAction, renameGroupAction } from "@/lib/group-actions";
 import { switchWorkspaceAction } from "@/lib/workspace-actions";
 import { currentMonth, monthLabel, recentMonths } from "@/lib/chargeback";
-import { Notice, PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
+import { PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
 import { Insight } from "@/components/insight";
 
@@ -20,9 +20,8 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
 
   if (!group)
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <PageHeader title="Group view" subtitle="All the companies in your group in one place — consolidated AI spend, savings and budgets." />
-        {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
         <div className="rounded-xl border border-dashed border-line bg-panel p-8 flex flex-col gap-3 animate-rise">
           <h2 className="text-base font-semibold text-ink-100">Create a group for your companies</h2>
           <p className="text-sm text-ink-400 max-w-2xl">
@@ -30,8 +29,8 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
             chargeback file. You only see the workspaces where you are an owner or admin.
           </p>
           {current ? (
-            <form action={createGroupAction} className="flex items-center gap-2">
-              <input name="name" required maxLength={100} placeholder="Group name, e.g. Rossi Holding" aria-label="Group name" className="field w-64" />
+            <form action={createGroupAction} className="flex flex-wrap items-center gap-2">
+              <input name="name" required maxLength={100} placeholder="Group name, e.g. Rossi Holding" aria-label="Group name" className="field w-full sm:w-64" />
               <button className="btn btn-primary">Create group with {current.name}</button>
             </form>
           ) : (
@@ -61,7 +60,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
         title={group.name}
         subtitle={`Group view · ${rows.length} compan${rows.length === 1 ? "y" : "ies"} you administer`}
         action={
-          <form method="get" action="/api/export/chargeback/group" className="flex items-center gap-2">
+          <form method="get" action="/api/export/chargeback/group" className="flex flex-wrap items-center gap-2">
             <input type="hidden" name="id" value={group.id} />
             <select name="month" defaultValue={currentMonth()} className="field py-1.5" aria-label="Month">
               {months.map((m) => (
@@ -73,7 +72,6 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
         }
       />
       {groups.length > 1 && <Tabs items={groups.map((g) => ({ key: g.id, label: g.name, href: `/group?id=${g.id}` }))} active={group.id} />}
-      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Group AI spend" value={t.spend ? `${fmtEur(t.spend)}/mo` : "—"} hint={t.spend ? `${fmtEur(t.spend * 12)} a year` : "No costs yet"} tone="accent" />
@@ -157,7 +155,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
 
       <div className="flex flex-wrap items-center gap-4">
         {addable.length > 0 && (
-          <form action={addToGroupAction} className="flex items-center gap-2">
+          <form action={addToGroupAction} className="flex flex-wrap items-center gap-2">
             <input type="hidden" name="groupId" value={group.id} />
             <select name="orgId" className="field py-1.5" aria-label="Workspace to add" required>
               {addable.map((o) => (
@@ -167,7 +165,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
             <button className="btn btn-secondary btn-sm">Add to group</button>
           </form>
         )}
-        <form action={renameGroupAction} className="flex items-center gap-2">
+        <form action={renameGroupAction} className="flex flex-wrap items-center gap-2">
           <input type="hidden" name="groupId" value={group.id} />
           <input name="name" defaultValue={group.name} required maxLength={100} className="field py-1.5 w-52" aria-label="Group name" />
           <button className="btn btn-ghost btn-sm">Rename</button>

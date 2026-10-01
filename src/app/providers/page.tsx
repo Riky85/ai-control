@@ -86,7 +86,7 @@ export default async function ProvidersPage() {
               <div
                 key={r.vendor}
                 title={`${r.vendor}: ${fmtEur(r.spend)} (${Math.round((r.spend / total) * 100)}%)`}
-                className="h-full animate-grow bg-accent"
+                className="h-full animate-grow bg-ink-100"
                 style={{ width: `${(r.spend / total) * 100}%`, opacity: Math.max(0.25, 1 - i * 0.18) }}
               />
             ))}
@@ -94,7 +94,7 @@ export default async function ProvidersPage() {
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             {rows.filter((r) => r.spend > 0).map((r, i) => (
               <span key={r.vendor} className="flex items-center gap-2 text-ink-400">
-                <span className="h-2.5 w-2.5 rounded-full bg-accent" style={{ opacity: Math.max(0.25, 1 - i * 0.18) }} />
+                <span className="h-2.5 w-2.5 rounded-full bg-ink-100" style={{ opacity: Math.max(0.25, 1 - i * 0.18) }} />
                 <span className="text-ink-100">{r.vendor}</span>
                 <span className="tabular">{Math.round((r.spend / total) * 100)}%</span>
               </span>
@@ -132,7 +132,7 @@ export default async function ProvidersPage() {
               <td className={td}>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-1.5 rounded-full bg-ink overflow-hidden">
-                    <div className="h-full rounded-full bg-accent animate-grow" style={{ width: `${Math.max(share, share ? 3 : 0)}%` }} />
+                    <div className="h-full rounded-full bg-ink-100 animate-grow" style={{ width: `${Math.max(share, share ? 3 : 0)}%` }} />
                   </div>
                   <span className="w-10 text-right text-xs text-ink-400 tabular">{Math.round(share)}%</span>
                 </div>
@@ -141,7 +141,7 @@ export default async function ProvidersPage() {
                 {r.spend ? <span className={r.estimated ? "text-ink-400" : "font-medium text-ink-100"}>{r.estimated ? "≈ " : ""}{fmtEur(r.spend)}</span> : <span className="text-ink-400">Not paid</span>}
               </td>
               <td className={`${td} text-right tabular`}>
-                {r.couldSave >= 1 ? <Link href="/savings" className="font-medium text-accent hover:underline">{fmtEur(Math.round(r.couldSave))}</Link> : <span className="text-ink-400">—</span>}
+                {r.couldSave >= 1 ? <Link href="/savings" className="font-medium text-steady hover:underline">{fmtEur(Math.round(r.couldSave))}</Link> : <span className="text-ink-400">—</span>}
               </td>
             </tr>
           );

@@ -21,7 +21,9 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
         where: { deletedAt: null },
         include: { riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 } },
       },
+      // Le AI eliminate non compaiono (il loro link porterebbe a una pagina inesistente).
       usages: {
+        where: { aiAsset: { deletedAt: null } },
         include: { aiAsset: { include: { riskAssessments: { orderBy: { createdAt: "desc" }, take: 1 } } } },
       },
     },
@@ -64,7 +66,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
         action={
           <details className="relative">
             <summary className="btn btn-secondary list-none cursor-pointer">Edit</summary>
-            <form action={updateUserAction} className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-line bg-panel p-4 shadow-card flex flex-col gap-3">
+            <form action={updateUserAction} className="absolute left-0 lg:left-auto lg:right-0 z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-line bg-panel p-4 shadow-card flex flex-col gap-3">
               <input type="hidden" name="userId" value={person.id} />
               <label className="flex flex-col gap-1.5 text-xs text-ink-400">
                 Name
@@ -101,10 +103,10 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
 
       <div>
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-          <h2 className="bg-ink px-4 py-3 text-sm font-semibold text-ink-100">Assets owned</h2>
+          <h2 className="px-4 py-3 text-sm font-semibold text-ink-100">Assets owned</h2>
           {person.ownedAssets.map((a) => (
-            <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
-              <span className="font-medium text-ink-100">{a.name}</span>
+            <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
+              <span className="font-medium text-ink-100 truncate min-w-0">{a.name}</span>
               <div className="flex items-center gap-3 text-xs">
                 {a.riskAssessments[0] && <Badge>{a.riskAssessments[0].level}</Badge>}
                 <Badge>{a.status}</Badge>
@@ -119,11 +121,11 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
 
       <div>
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-          <h2 className="bg-ink px-4 py-3 text-sm font-semibold text-ink-100">Assets used</h2>
+          <h2 className="px-4 py-3 text-sm font-semibold text-ink-100">Assets used</h2>
           {person.usages.map((u) => (
-            <Link key={u.id} href={`/assets/${u.aiAssetId}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
-              <span className="font-medium text-ink-100">{u.aiAsset.name}</span>
-              <div className="flex items-center gap-3 text-xs">
+            <Link key={u.id} href={`/assets/${u.aiAssetId}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
+              <span className="font-medium text-ink-100 truncate min-w-0">{u.aiAsset.name}</span>
+              <div className="flex items-center gap-3 text-xs shrink-0">
                 <span className="text-ink-400 tabular">{u.lastSeenAt ? `Last used ${fmtAgo(u.lastSeenAt)}` : "Not seen yet"}</span>
                 {u.aiAsset.riskAssessments[0] && <Badge>{u.aiAsset.riskAssessments[0].level}</Badge>}
               </div>
@@ -140,10 +142,10 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
       {recentActivity.length > 0 && (
         <div>
           <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-            <h2 className="bg-ink px-4 py-3 text-sm font-semibold text-ink-100">Recent activity</h2>
+            <h2 className="px-4 py-3 text-sm font-semibold text-ink-100">Recent activity</h2>
             {recentActivity.map((a) => (
               <Link key={a.id} href={`/activity/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 min-w-0">
                   <span className="tabular text-xs text-ink-400">{fmtDateTime(a.occurredAt)}</span>
                   <span className="text-ink-100">{a.aiAsset.name}</span>
                   <span className="text-ink-400 text-xs">{a.eventType}</span>
