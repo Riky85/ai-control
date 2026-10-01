@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { assessAssetRisk } from "@/lib/risk-engine";
 import { runAssuranceChecks } from "@/lib/assurance-engine";
 import { loadComplianceAssets, suggestionFor, LITERACY_EVIDENCE, TIER_LABEL } from "@/lib/compliance";
+import { readEdits, ROPA_FIELDS, type RopaEdits } from "@/lib/compliance/ropa";
 
 const BACK = "/compliance";
 
@@ -90,4 +91,33 @@ export async function recordLiteracyAction(formData: FormData) {
   });
   await audit("compliance.ai_literacy", note);
   revalidatePath(BACK);
+}
+
+/**
+ * Registro GDPR art. 30: salva i campi completati a mano per un'AI (JSON su
+ * AiAsset.ropa). Un campo vuoto torna al valore dedotto da angar.
+ */
+export async function saveRopaAction(formData: FormData) {
+  const REG = "/governance/register";
+  const s = await requireRole("EDITOR", REG);
+  const assetId = String(formData.get("assetId") ?? "");
+  const asset = await db.aiAsset.findFirst({ where: { id: assetId, organizationId: s.orgId, deletedAt: null }, select: { id: true, name: true, ropa: true } });
+  if (!asset) redirect(`${REG}?error=${encodeURIComponent("AI not found in this workspace.")}`);
+  const before = readEdits(asset!.ropa);
+  const next: RopaEdits = {};
+  for (const k of ROPA_FIELDS) {
+    const v = String(formData.get(k) ?? "").trim().slice(0, 500);
+    // Il valore dedotto rimandato tale e quale non diventa una modifica a mano.
+    if (v && v !== String(formData.get(`${k}__auto`) ?? "")) next[k] = v;
+  }
+  const changed = ROPA_FIELDS.filter((k) => (before[k] ?? "") !== (next[k] ?? ""));
+  if (changed.length) {
+    next.updatedAt = new Date().toISOString();
+    next.updatedBy = s.email;
+    await db.aiAsset.update({ where: { id: asset!.id }, data: { ropa: next } });
+    await audit("ropa.update", asset!.name, { assetId: asset!.id, fields: changed });
+  }
+  revalidatePath(REG);
+  revalidatePath("/governance");
+  redirect(`${REG}?saved=${changed.length}#row-${asset!.id}`);
 }

@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
  * Pulsante Export: Excel (file .xlsx generato dal server con i dati reali)
  * e PDF (stampa della pagina con il layout di stampa → "Salva come PDF").
  */
-export default function ExportMenu({ dataset, label = "Export" }: { dataset?: string; label?: string }) {
+export default function ExportMenu({ dataset, csv, label = "Export" }: { dataset?: string; /** Link a un export CSV (opzionale). */ csv?: string; label?: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -31,6 +31,15 @@ export default function ExportMenu({ dataset, label = "Export" }: { dataset?: st
               <span>
                 <span className="block">Excel</span>
                 <span className="block text-xs text-ink-400">All rows, ready to filter</span>
+              </span>
+            </a>
+          )}
+          {csv && (
+            <a href={csv} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-ink-100 hover:bg-ink-100/[0.04] transition-colors">
+              <span className="h-6 w-6 rounded-md bg-ink-400 text-white text-[10px] font-bold flex items-center justify-center">CSV</span>
+              <span>
+                <span className="block">CSV</span>
+                <span className="block text-xs text-ink-400">Plain table, any tool</span>
               </span>
             </a>
           )}

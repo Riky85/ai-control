@@ -250,3 +250,46 @@ export function RecordsCard({ links }: { links: RecordLink[] }) {
     </Section>
   );
 }
+
+export interface RegisterCardData {
+  /** AI per classe AI Act (tutte le AI). */
+  tiers: Record<"prohibited" | "high" | "limited" | "minimal" | "gpai", number>;
+  /** Righe del registro art. 30 (AI che trattano dati personali). */
+  rows: number;
+  toComplete: number;
+}
+
+const REG_TIERS: { key: keyof RegisterCardData["tiers"]; label: string; bar: string; dot: string }[] = [
+  { key: "prohibited", label: "Prohibited", bar: "bg-alarm/80", dot: "bg-alarm" },
+  { key: "high", label: "High", bar: "bg-alarm/45", dot: "bg-alarm" },
+  { key: "limited", label: "Limited", bar: "bg-signal/50", dot: "bg-signal" },
+  { key: "gpai", label: "GPAI", bar: "bg-ink-400/50", dot: "bg-ink-400" },
+  { key: "minimal", label: "Minimal", bar: "bg-steady/50", dot: "bg-steady" },
+];
+
+/** AI Act & registro GDPR art. 30: AI per classe, righe da completare, link al registro. */
+export function RegisterCard({ d }: { d: RegisterCardData }) {
+  return (
+    <Section
+      id="register"
+      title="AI Act & GDPR register"
+      meta={`${d.rows} ${d.rows === 1 ? "record" : "records"}`}
+      action={
+        <Link href="/governance/register" className="text-sm text-ink-400 hover:text-ink-100">
+          Open →
+        </Link>
+      }
+      footer={
+        d.toComplete > 0 ? (
+          <NextStep href="/governance/register" label={`Complete ${d.toComplete} ${d.toComplete === 1 ? "record" : "records"}`} />
+        ) : (
+          <NextStep done label={d.rows ? "Every record is complete" : "No AI processes personal data yet"} />
+        )
+      }
+    >
+      <div className="px-5 py-4">
+        <StackBar label="AI by AI Act tier" parts={REG_TIERS.filter((t) => t.key !== "prohibited" || d.tiers.prohibited > 0).map((t) => ({ ...t, value: d.tiers[t.key] }))} />
+      </div>
+    </Section>
+  );
+}

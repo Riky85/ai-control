@@ -3,7 +3,9 @@ import { currentOrgId } from "@/lib/org";
 import { AssetLimitNotice } from "@/components/PlanBanner";
 import { db } from "@/lib/db";
 import RiskGauge from "@/components/RiskGauge";
-import { setAssetOwnerAction, setAssetStatusAction, setAssetEuAiActTierAction, setAssetCostAction } from "@/lib/actions";
+import { setAssetOwnerAction, setAssetStatusAction, setAssetAiActOverrideAction, setAssetCostAction } from "@/lib/actions";
+import { classifyAiAct, AI_ACT_TIERS, AI_ACT_TIER_LABEL } from "@/lib/compliance/ai-act";
+import { TierPill } from "@/components/governance/RegisterView";
 import { setNetworkBlockAction, setInsteadAssetAction } from "@/lib/edge-actions";
 import { dismissSavingAction } from "@/lib/spend-actions";
 import AssetPeople from "@/components/AssetPeople";
@@ -75,6 +77,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const loaded = assets.find((a) => a.id === asset.id);
   const m = loaded ? monthlyOf(loaded) : asset.cost?.monthlyCostEstimate != null ? { eur: asset.cost.monthlyCostEstimate, estimated: false } : null;
   const cat = categoryOf(asset);
+  // Classe AI Act (automatica o scelta a mano), con motivi e obblighi.
+  const aiAct = classifyAiAct({ ...asset, category: cat, dataNames: asset.dataAccess.map((d) => d.dataAsset.name), override: asset.aiActTier, overrideNote: asset.aiActNote });
   const plan = asset.cost?.planId ? PLANS.find((p) => p.id === asset.cost!.planId) : null;
   const seats = asset.cost?.seats ?? null;
   // Condizioni del fornitore col piano in uso (business o personale).
@@ -196,7 +200,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                   <Field label="Provider" value={asset.vendor} />
                   <Field label="Model" value={asset.model} />
                   <Field label="Owner" value={asset.owner ? (people ? asset.owner.name ?? asset.owner.email : "Assigned") : null} empty="No owner" />
-                  <Field label="EU AI Act" value={EU_LABEL[asset.euAiActTier]} />
+                  <Field label="EU AI Act" value={AI_ACT_TIER_LABEL[aiAct.tier]} />
                   <Field label="In use since" value={fmtDate(asset.firstSeenAt)} />
                   <Field label="Last seen" value={asset.lastSeenAt ? fmtDate(asset.lastSeenAt) : null} />
                 </dl>
@@ -232,6 +236,28 @@ export default async function AssetDetailPage({ params, searchParams }: { params
 
           {tab === "people" && <AssetPeople asset={{ id: asset.id, name: asset.name }} usages={asset.usages} reminded={searchParams.reminded} error={searchParams.error} removed={searchParams.removed} />}
 
+          {tab === "risk" && (
+            <Panel title="EU AI Act" subtitle={`${aiAct.source === "manual" ? "Set by hand" : "Automatic"} · ${aiAct.role}`} action={<TierPill tier={aiAct.tier} />}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-sm font-medium text-ink-100 mb-2">Why</h3>
+                  <ul className="flex flex-col gap-2 text-sm text-ink-400">
+                    {aiAct.reasons.map((r, i) => (
+                      <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-ink-400 shrink-0" />{r}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-ink-100 mb-2">What your company must do</h3>
+                  <ul className="flex flex-col gap-2 text-sm text-ink-400">
+                    {aiAct.obligations.map((o, i) => (
+                      <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-steady shrink-0" />{o}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </Panel>
+          )}
           {tab === "risk" && <VendorRiskCard asset={asset} />}
           {tab === "risk" && (
             <>
@@ -324,17 +350,20 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             </div>
           </form>
 
-          <form action={setAssetEuAiActTierAction} className="flex flex-col gap-2">
+          {/* Classe AI Act: automatica, oppure scelta a mano con una nota (finisce nell'audit log). */}
+          <form action={setAssetAiActOverrideAction} className="flex flex-col gap-2">
             <input type="hidden" name="assetId" value={asset.id} />
-            <label className="text-sm text-ink-400" htmlFor="tier">EU AI Act</label>
+            <label className="text-sm text-ink-400" htmlFor="aiActTier">EU AI Act</label>
             <div className="flex gap-2">
-              <select id="tier" name="tier" defaultValue={asset.euAiActTier} className={`${INPUT} flex-1 min-w-0`}>
-                {Object.entries(EU_LABEL).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
+              <select id="aiActTier" name="aiActTier" defaultValue={asset.aiActTier ?? ""} className={`${INPUT} flex-1 min-w-0`}>
+                <option value="">Automatic{aiAct.source === "auto" ? `: ${AI_ACT_TIER_LABEL[aiAct.tier]}` : ""}</option>
+                {AI_ACT_TIERS.map((t) => (
+                  <option key={t} value={t}>{AI_ACT_TIER_LABEL[t]}</option>
                 ))}
               </select>
               <button type="submit" className="btn btn-secondary">Save</button>
             </div>
+            <input name="aiActNote" maxLength={300} defaultValue={asset.aiActNote ?? ""} placeholder="Why (for a tier set by hand)" className={`${INPUT} w-full`} aria-label="Why" />
           </form>
 
           <details className="pt-5 border-t border-line group">
@@ -439,12 +468,6 @@ async function NetworkBlock({ asset, orgId }: { asset: { id: string; blockOnNetw
   );
 }
 const SENSITIVE = ["PII", "FINANCIAL", "SOURCE_CODE"];
-const EU_LABEL: Record<string, string> = {
-  UNCLASSIFIED: "Not classified yet",
-  MINIMAL_RISK: "Minimal risk",
-  LIMITED_RISK: "Limited risk",
-  HIGH_RISK: "High risk (Annex III)",
-};
 
 function Field({ label, value, empty = "—" }: { label: string; value?: string | null; empty?: string }) {
   return (

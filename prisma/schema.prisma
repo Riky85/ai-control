@@ -335,12 +335,37 @@ model Connector {
   lastSyncedAt         DateTime?
   lastSyncError        String?
   lastSyncWarnings     Json?
+  // Storico email (solo Microsoft 365 / Google Workspace): null = acceso se c'è il permesso.
+  emailScanEnabled     Boolean?
+  // Stato dell'ultima scansione email (connectors/email-history.ts): data, esito, servizi trovati.
+  emailScanState       Json?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 
-  assets AiAsset[]
+  assets       AiAsset[]
+  emailHistory EmailHistory[]
 
   @@unique([organizationId, provider])
+}
+
+// Segnali email dei servizi AI, una riga per casella: solo servizio, date e
+// conteggi per tipo (iscrizione, accesso, ricevuta, altro). Mai oggetto né testo.
+// personRef: sempre pseudonimo (p_…, HMAC con la chiave dell'azienda), in ogni modalità di privacy.
+model EmailHistory {
+  id             String    @id @default(cuid())
+  organizationId String
+  connectorId    String
+  connector      Connector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
+  personRef      String
+  // Cursore incrementale: messaggi ricevuti fino a questo istante già contati.
+  scannedUntil   DateTime?
+  // { [serviceId]: { first, last, signup, login, billing, other } }
+  signals        Json      @default("{}")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([connectorId, personRef])
+  @@index([organizationId])
 }
 
 model DataAsset {
@@ -380,6 +405,11 @@ model AiAsset {
   blockOnNetwork Boolean @default(false)
   insteadAssetId String?
   euAiActTier EuAiActTier @default(UNCLASSIFIED)
+  // Classe AI Act scelta a mano (compliance/ai-act.ts): "prohibited" | "high" | "limited" | "minimal" | "gpai"; null = automatica.
+  aiActTier String?
+  aiActNote String?
+  // Registro GDPR art. 30: campi completati a mano (finalità, dati, interessati, conservazione…), sopra a quelli dedotti.
+  ropa Json?
 
   firstSeenAt DateTime  @default(now())
   lastSeenAt  DateTime?

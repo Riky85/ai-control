@@ -11,6 +11,8 @@ import { bankConfigured } from "@/lib/connectors/bank";
 import { chiftConfigured } from "@/lib/connectors/chift";
 import { featureEnabled } from "@/lib/plan-gate";
 import { LockedNote } from "@/components/LockedFeature";
+import { emailHistoryView, type EmailHistoryView } from "@/lib/connectors/email-history";
+import { setEmailHistoryAction } from "@/lib/connectors/email-history-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -63,8 +65,12 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
       <section id="accounts" className="scroll-mt-6">
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
           <h2 className="px-4 py-3 text-sm font-semibold text-ink-100">Accounts</h2>
-          {workplace.providers.map((p) => (
-            <SourceRow key={p.id} label={p.label}>
+          {workplace.providers.map((p) => {
+            // Storico email (mittenti dei servizi AI): riga sotto l'account collegato.
+            const row = p.connected ? connectors.find((c) => c.provider === p.id) : undefined;
+            const email = row ? emailHistoryView(row, fmtDate) : null;
+            return (
+            <SourceRow key={p.id} label={p.label} detail={email ? <EmailHistoryLine provider={p.id} view={email} /> : undefined}>
               {p.connected ? (
                 <span className="text-xs text-steady">Connected</span>
               ) : p.available ? (
@@ -73,7 +79,8 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
                 <span className="text-xs text-ink-400">Coming soon</span>
               )}
             </SourceRow>
-          ))}
+            );
+          })}
           <SourceRow label="AI provider keys" hint="OpenAI, Anthropic, Gemini, Mistral…">
             {keys.length > 0 && <span className="text-xs text-steady">{keys.length} connected</span>}
             <Link href="/connectors" className="btn btn-secondary btn-sm">{keys.length ? "Manage" : "Add a key"}</Link>
@@ -101,14 +108,53 @@ function Card({ title, text, status, children }: { title: string; text: string; 
   );
 }
 
-function SourceRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function SourceRow({ label, hint, detail, children }: { label: string; hint?: string; detail?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-      <span className="min-w-0">
-        <span className="block text-sm text-ink-100">{label}</span>
-        {hint && <span className="block text-xs text-ink-400 truncate">{hint}</span>}
+    <div className="px-4 py-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="min-w-0">
+          <span className="block text-sm text-ink-100">{label}</span>
+          {hint && <span className="block text-xs text-ink-400 truncate">{hint}</span>}
+        </span>
+        <span className="flex items-center gap-2 shrink-0">{children}</span>
+      </div>
+      {detail}
+    </div>
+  );
+}
+
+/** Storico email: stato della scansione, eventuale permesso mancante e interruttore. */
+function EmailHistoryLine({ provider, view }: { provider: string; view: EmailHistoryView }) {
+  return (
+    <div className="mt-1.5 flex items-start justify-between gap-3 text-xs">
+      <span className="min-w-0 text-ink-400">
+        <span className="block">{view.line}</span>
+        {view.hint && (
+          <span className="block text-signal">
+            {view.hint.text}
+            {view.hint.href && (
+              <>
+                {" "}
+                <a href={view.hint.href} className="underline hover:text-ink-100">{view.hint.cta ?? "Open"}</a>
+              </>
+            )}
+          </span>
+        )}
       </span>
-      <span className="flex items-center gap-2 shrink-0">{children}</span>
+      <form action={setEmailHistoryAction} className="shrink-0">
+        <input type="hidden" name="provider" value={provider} />
+        <input type="hidden" name="on" value={view.on ? "off" : "on"} />
+        <button
+          type="submit"
+          role="switch"
+          aria-checked={view.on}
+          aria-label="Email history"
+          title={view.on ? "Turn off email history" : "Turn on email history"}
+          className={`relative block h-5 w-9 rounded-full transition-colors ${view.on ? "bg-steady" : "bg-ink-400/40"}`}
+        >
+          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${view.on ? "left-[18px]" : "left-0.5"}`} />
+        </button>
+      </form>
     </div>
   );
 }

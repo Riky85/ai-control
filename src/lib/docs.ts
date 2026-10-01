@@ -79,13 +79,21 @@ The monthly cost is the average of the charges. From the amount angar also recog
     section: "Connect",
     title: "Microsoft 365 and Google Workspace",
     summary: "An administrator approves read-only access once; angar sees which AI apps people sign in to with their work account.",
-    keywords: ["microsoft", "365", "entra", "azure", "google", "workspace", "copilot", "sso", "oauth", "who uses"],
+    keywords: ["microsoft", "365", "entra", "azure", "google", "workspace", "copilot", "sso", "oauth", "who uses", "email history", "sign-ups", "receipts", "mail.readbasic.all", "gmail"],
     body: `1. Open Connect → Sources and press Connect next to Microsoft 365 or Google Workspace.
 2. Sign in as an administrator and approve. angar only reads: never emails, files or chats.
 ## What angar sees
 - Microsoft 365: AI apps in Entra ID, who authorised them, sign-ins of the last 30 days, Copilot licences and usage.
 - Google Workspace: AI apps people authorised with "Sign in with Google".
-New AI found this way appears in To review.`,
+New AI found this way appears in To review.
+## Email history
+angar finds which AI services each person signed up for, signs in to or gets receipts from, going back up to 24 months: right after you connect, then every day.
+- Only messages from known AI services' sender addresses are looked at.
+- angar reads the sender, the date and the subject. The subject is used in memory to tell sign-ups, sign-ins and receipts apart, and is never stored. The body is never read.
+- Stored: the AI service, first and last date, a count of each kind and the person (a pseudonym outside "By person").
+- A receipt only shows that someone pays for it themselves or expenses it. angar doesn't guess amounts.
+- Microsoft 365 needs the Mail.ReadBasic.All application permission (no access to the body). Google Workspace needs domain-wide delegation for angar's client ID with the gmail.readonly scope; angar only asks Gmail for the sender, subject and date.
+- Turn it off in Sources → Accounts. Turning it off deletes the stored email signals.`,
   },
   {
     slug: "connect-a-provider",
@@ -247,7 +255,13 @@ Settings → Integrations: paste an incoming webhook URL. angar sends a test, th
 - Policies: mark an AI "Not allowed"; the desktop app shows the person a gentle message and you get an alert. With angar Edge it can also be blocked on the network.
 - EU AI Act: angar suggests a risk tier for each AI and shows your readiness and the key dates. Record AI literacy training.
 - Records: download the AI register (Excel) and the audit log for your DPO or auditor.
-Guidance, not legal advice.`,
+Guidance, not legal advice.
+## AI Act tier and GDPR register
+- Each AI gets an AI Act tier: prohibited, high, limited, minimal or general-purpose AI (GPAI), with the reasons and what your company must do as deployer. HR and recruiting tools are high risk (Annex III, point 4); general chatbots are GPAI with transparency duties.
+- angar never marks an AI prohibited on its own. To change a tier, open the AI → Manage → EU AI Act, pick a tier and say why. The change goes to the audit log.
+- Governance → Register drafts your GDPR Art. 30 record for each AI that processes personal data: purpose, data, people, processor, transfers outside the EEA, retention, security, owner and AI Act tier.
+- Fields angar can't infer show "To complete": click Edit to fill them in. Transfers marked with a yellow dot come from vendor terms and need a check.
+- Export the register as CSV, or print it as PDF.`,
   },
   {
     slug: "export",

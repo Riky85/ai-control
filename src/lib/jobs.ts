@@ -224,6 +224,9 @@ export async function runDueJobs(now = new Date()) {
     }
     await finish("daily", day);
   }
+  // Storico email (Microsoft 365 / Google Workspace): ogni connettore una volta al giorno,
+  // e a ogni giro il seguito delle scansioni lunghe interrotte dal tempo massimo.
+  await (await import("@/lib/connectors/email-history")).emailHistoryJob(now).catch((err) => console.error("[jobs] email history failed", err));
   // Mensile: il 1° del mese dalle 9.
   if (day.endsWith("-01") && hour >= 9 && (await claim("monthly-report", day.slice(0, 7)))) {
     summary.reports = await monthlyReports().catch(() => 0);

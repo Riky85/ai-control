@@ -104,6 +104,7 @@ export const COLLECTED: { source: string; text: string }[] = [
   { source: "Browser extension", text: "The names of AI websites visited, per day. Never URLs, page titles or content." },
   { source: "angar Edge (network sensor)", text: "Which AI services are contacted, connection counts per device and, if you turn on firewall logs, bytes sent. Never URLs or content." },
   { source: "Your team in angar", text: "Members' names, work emails, roles, sign-in records and an audit log of administrator actions." },
+  { source: "Email history (Microsoft 365, Google Workspace)", text: "Only messages from known AI services' sender addresses, back up to 24 months. angar reads the sender, the date and the subject; the subject is used in memory to tell sign-ups, sign-ins and receipts apart and is never stored. The body is never read. Stored: the AI service, first and last date, a count of each kind and the person (a pseudonym outside \"By person\"). Admins can turn it off in Sources." },
 ];
 
 export const NEVER_COLLECTED: string[] = [
@@ -131,6 +132,7 @@ export const MEASURES: MeasureGroup[] = [
       'In "By department" and "Company totals only" modes, usage records are stored under a keyed pseudonym (HMAC-SHA256 with a per-workspace secret) instead of an email, and computer names are obfuscated.',
       "Owners can replace names already collected with pseudonyms (Settings → Privacy → Erase names).",
       `Usage data from the desktop app, browser extension and angar Edge is deleted automatically after ${USAGE_RETENTION_MONTHS} months.`,
+      "Email history reads only messages from AI services' senders, and only their sender, date and subject (Microsoft: Mail.ReadBasic.All, which gives no access to the body; Google: metadata format only). Subjects are used in memory and never stored; email signals are kept under a keyed pseudonym in every privacy mode.",
     ],
   },
   {

@@ -14,7 +14,10 @@ import { identitiesFor, isPseudonym } from "@/lib/discovery/pseudonym";
 export async function persistSyncResult(
   organizationId: string,
   connectorId: string,
-  result: ConnectorSyncResult
+  result: ConnectorSyncResult,
+  // touchConnector: false per i lavori secondari (storico email) che non devono
+  // cambiare stato, data e avvisi dell'ultimo sync del connettore.
+  opts: { touchConnector?: boolean } = {}
 ) {
   const touchedAssetIds: string[] = [];
   // Privacy nel database, non solo nelle pagine: fuori da "per persona" niente
@@ -148,15 +151,17 @@ export async function persistSyncResult(
     }
   }
 
-  await db.connector.update({
-    where: { id: connectorId },
-    data: {
-      lastSyncedAt: new Date(),
-      status: "CONNECTED",
-      lastSyncError: null,
-      lastSyncWarnings: result.warnings.length > 0 ? result.warnings : Prisma.JsonNull,
-    },
-  });
+  if (opts.touchConnector !== false) {
+    await db.connector.update({
+      where: { id: connectorId },
+      data: {
+        lastSyncedAt: new Date(),
+        status: "CONNECTED",
+        lastSyncError: null,
+        lastSyncWarnings: result.warnings.length > 0 ? result.warnings : Prisma.JsonNull,
+      },
+    });
+  }
 
   // Ricalcola il risk assessment e l'assurance report per ogni asset toccato
   // in questo sync (entrambi deterministici, mai un LLM).
@@ -194,5 +199,6 @@ export async function persistSyncResult(
     });
   }
 
-  return { assetsTouched: touchedAssetIds.length, warnings: result.warnings };
+  // assetIds: nello stesso ordine di result.assets.
+  return { assetsTouched: touchedAssetIds.length, warnings: result.warnings, assetIds: touchedAssetIds };
 }

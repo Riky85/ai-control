@@ -18,10 +18,9 @@ const WAKE = /(?:^|\s)(?:h?angar|anger|angaar|ungar)\b[\s,.:!]*(.*)$/i;
  * Il riconoscimento lo fa il browser; ad angar arriva solo il testo, che passa
  * da /api/command (dati del workspace, navigazione, azioni con conferma).
  */
-// Comandi vocali in pausa (decisione di prodotto): niente microfono globale
-// finché NEXT_PUBLIC_ANGAR_VOICE non vale "1". Il codice resta, solo spento.
+// Comandi vocali attivi; si spengono solo con NEXT_PUBLIC_ANGAR_VOICE=0.
 export default function VoiceControl({ initialMode }: { initialMode: VoiceMode }) {
-  if (process.env.NEXT_PUBLIC_ANGAR_VOICE !== "1") return null;
+  if (process.env.NEXT_PUBLIC_ANGAR_VOICE === "0") return null;
   return <VoiceControlActive initialMode={initialMode} />;
 }
 

@@ -12,7 +12,8 @@ import { VendorRiskFlags } from "@/components/VendorRiskCard";
 import { readiness, timeline } from "@/lib/compliance";
 import { computeScoreCached } from "@/lib/engine/score";
 import { featureEnabled } from "@/lib/plan-gate";
-import { GovernanceHeader, DecisionsCard, AiActCard, RecordsCard, type Holdback, type TierKey } from "@/components/governance/cards";
+import { GovernanceHeader, DecisionsCard, AiActCard, RecordsCard, RegisterCard, type Holdback, type TierKey } from "@/components/governance/cards";
+import { loadRegister } from "@/lib/compliance/register";
 import PoliciesSection from "@/components/governance/PoliciesSection";
 import AssuranceView from "@/components/governance/AssuranceView";
 import { Chevron } from "@/components/governance/parts";
@@ -36,6 +37,8 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
   const canEdit = ["ADMIN", "OWNER"].includes(currentSession()?.role ?? "");
   const canDecide = !!currentSession() && currentSession()?.role !== "VIEWER";
 
+  // Registro AI Act & GDPR art. 30 (card compatta), in parallelo al resto.
+  const registerP = loadRegister(orgId).catch(() => null);
   const [score, r, policies, vendorAssets, registerOk, exposed, github, mcpAssets, appVersions] = await Promise.all([
     computeScoreCached(orgId).catch(() => null),
     readiness(orgId),
@@ -141,6 +144,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
   const upcoming = steps.find((s) => !s.inForce);
 
   const templates = POLICY_LIBRARY.filter((t) => !policies.some((p) => p.name === t.name));
+  const register = await registerP;
 
   return (
     <div className="flex flex-col gap-4">
@@ -151,6 +155,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
         items={[
           { key: "overview", label: "Overview", href: "/governance" },
           { key: "assurance", label: "Assurance checks", href: "/governance?tab=assurance" },
+          { key: "register", label: "Register", href: "/governance/register" },
         ]}
       />
 
@@ -174,6 +179,8 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
               }}
             />
           </div>
+
+          {register && <RegisterCard d={{ tiers: register.tiers, rows: register.rows.length, toComplete: register.toComplete }} />}
 
           {(vendorFlagged > 0 || vendorRows.length > 0) && (
             <details id="vendor-risk" className="group scroll-mt-6">

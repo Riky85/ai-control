@@ -56,6 +56,7 @@ import { adminGet as anthropicGet } from "@/lib/connectors/anthropic";
 import { adminGet as openaiGet } from "@/lib/connectors/openai";
 import { isAdminKey, testApiKey } from "@/lib/connectors/api-key-providers";
 import type { ConnectorProvider, AiAssetStatus, EuAiActTier } from "@prisma/client";
+import { classifyAiAct, isAiActTier, toEuAiActTier, AI_ACT_TIER_LABEL, type AiActTier } from "@/lib/compliance/ai-act";
 
 
 // Ricalcola risk + assurance per un singolo asset dopo una modifica manuale
@@ -385,6 +386,45 @@ export async function setAssetEuAiActTierAction(formData: FormData) {
   revalidatePath("/assets");
   revalidatePath("/governance");
   revalidatePath("/changes");
+}
+
+/**
+ * Classe AI Act scelta a mano (prohibited / high / limited / minimal / gpai) con
+ * una nota; "auto" la toglie. Il vecchio campo euAiActTier resta allineato, così
+ * prontezza, punteggio ed export vedono la stessa classe.
+ */
+export async function setAssetAiActOverrideAction(formData: FormData) {
+  const assetId = String(formData.get("assetId") ?? "");
+  const back = `/assets/${assetId}?tab=risk`;
+  const s = await requireRole("EDITOR", back);
+  const asset = await db.aiAsset.findFirst({
+    where: { id: assetId, organizationId: s.orgId },
+    select: { id: true, name: true, type: true, vendor: true, serviceId: true, model: true, department: true, euAiActTier: true, aiActTier: true, dataAccess: { select: { dataAsset: { select: { name: true } } } } },
+  });
+  if (!asset) redirect(`/assets?error=${encodeURIComponent("That AI system isn't in this workspace.")}`);
+  const gate = await assetManageable(s.orgId, assetId);
+  if (!gate.ok) redirect(`${back}&error=${encodeURIComponent(gate.message)}`);
+  const raw = String(formData.get("aiActTier") ?? "");
+  const tier = isAiActTier(raw) ? raw : null;
+  const note = String(formData.get("aiActNote") ?? "").trim().slice(0, 300) || null;
+  // Classe effettiva dopo la modifica: l'override, oppure quella automatica (senza il vecchio valore).
+  const effective = tier ?? classifyAiAct({ ...asset, dataNames: asset.dataAccess.map((d) => d.dataAsset.name) }).tier;
+  const euAiActTier = toEuAiActTier(effective);
+  await db.aiAsset.update({ where: { id: assetId }, data: { aiActTier: tier, aiActNote: tier ? note : null, euAiActTier } });
+  if ((asset.aiActTier ?? null) !== tier) {
+    await db.assetChange.create({
+      data: { aiAssetId: assetId, field: "AI Act tier", oldValue: asset.aiActTier ? AI_ACT_TIER_LABEL[asset.aiActTier as AiActTier] ?? asset.aiActTier : "Automatic", newValue: tier ? AI_ACT_TIER_LABEL[tier] : "Automatic" },
+    });
+  }
+  await audit("asset.set_ai_act", asset.name, { assetId, tier: tier ?? "auto", note });
+  await recomputeAssuranceFor(assetId);
+  revalidatePath(`/assets/${assetId}`);
+  revalidatePath("/assets");
+  revalidatePath("/governance");
+  revalidatePath("/governance/register");
+  revalidatePath("/compliance");
+  revalidatePath("/changes");
+  redirect(back);
 }
 
 // Costo manuale — nessuna automazione, l'utente inserisce quello che sa e

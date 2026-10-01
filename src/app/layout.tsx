@@ -1,7 +1,7 @@
 import { currentSession, isPlatformAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { Metadata, Viewport } from "next";
-const Hanken_Grotesk = (_: unknown) => ({ variable: "" }); const Space_Grotesk = Hanken_Grotesk;
+import { Hanken_Grotesk, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Sidebar, { type SidebarWorkspaceProps } from "@/components/Sidebar";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";

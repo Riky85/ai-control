@@ -99,8 +99,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
             <Row title="Appearance">
               <ThemeSelect initial={parseTheme(cookies().get(THEME_COOKIE)?.value)} />
             </Row>
-            {/* Comandi vocali in pausa: la riga torna solo con NEXT_PUBLIC_ANGAR_VOICE=1. */}
-            {process.env.NEXT_PUBLIC_ANGAR_VOICE === "1" && (
+            {/* Comandi vocali: la riga sparisce solo con NEXT_PUBLIC_ANGAR_VOICE=0. */}
+            {process.env.NEXT_PUBLIC_ANGAR_VOICE !== "0" && (
               <Row title="Voice" hint="Speak to angar anywhere in the platform.">
                 <VoiceSetting initial={parseVoiceMode(cookies().get(VOICE_COOKIE)?.value)} />
               </Row>

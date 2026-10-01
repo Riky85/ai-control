@@ -45,6 +45,10 @@ export async function runConnectorSync(organizationId: string, provider: Connect
     const result = await connectorImpl.sync(connectorRow);
     const summary = await persistSyncResult(organizationId, connectorRow.id, result);
     await recordInventorySnapshot(organizationId);
+    // Microsoft 365 / Google Workspace: storico email dei servizi AI in background (24 mesi la prima volta).
+    if (provider === "MICROSOFT_365" || provider === "GOOGLE_WORKSPACE") {
+      void import("./email-history").then((m) => m.startEmailHistory(organizationId, provider)).catch(() => undefined);
+    }
     return { ok: true as const, ...summary };
   } catch (err) {
     await db.connector.update({
