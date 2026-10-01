@@ -8,7 +8,7 @@
   color-scheme: light;
   --c-subtle: 240 241 244;
   /* Sfondo dell'area contenuti: grigio chiarissimo nel chiaro, le card restano bianche. */
-  --c-canvas: 245 246 248;
+  --c-canvas: 250 250 250; /* #FAFAFA */
   --c-text: 20 20 24;
   --c-muted: 95 95 105;
   --c-panel: 255 255 255;
