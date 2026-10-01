@@ -103,6 +103,20 @@ export async function persistSyncResult(
       }
     }
 
+    // Dati raggiungibili (es. server MCP): righe di "Data exposure", solo aggiunte.
+    for (const d of observed.dataAccess ?? []) {
+      const data = await db.dataAsset.upsert({
+        where: { organizationId_name: { organizationId, name: d.name } },
+        update: {},
+        create: { organizationId, name: d.name, sensitivity: d.sensitivity },
+      });
+      await db.aiAssetDataAccess.upsert({
+        where: { aiAssetId_dataAssetId: { aiAssetId: asset.id, dataAssetId: data.id } },
+        update: {},
+        create: { aiAssetId: asset.id, dataAssetId: data.id },
+      });
+    }
+
     for (const activity of observed.activities ?? []) {
       await db.aiAssetActivity.create({
         data: {

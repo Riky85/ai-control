@@ -28,6 +28,7 @@ export default function SignupPage({ searchParams }: { searchParams: { error?: s
         </label>
         {searchParams.error && <p className="rounded-xl bg-alarm/10 px-3.5 py-2.5 text-sm text-alarm">{searchParams.error}</p>}
         <button className={`${authButton} mt-1`}>Create account</button>
+        <Link href="/trust" className="self-start text-xs text-ink-400 hover:text-ink-100 underline underline-offset-2">How we protect your data</Link>
       </form>
       <p className="text-sm text-ink-400 mt-8">
         Already have an account? <Link href="/login" className="text-ink-100 font-medium hover:underline">Sign in</Link>

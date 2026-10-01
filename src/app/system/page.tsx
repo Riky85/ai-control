@@ -1,7 +1,7 @@
 import { fmtAgo, fmtDateTime, fmtEur } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requirePlatformAdmin } from "@/lib/auth";
-import { PageHeader, Panel, StatCard, Table, td } from "@/components/ui";
+import { PageHeader, Panel, StatCard, Table, Tabs, td } from "@/components/ui";
 import { Insight } from "@/components/insight";
 import Badge from "@/components/Badge";
 import { emailEnabled } from "@/lib/mail";
@@ -12,7 +12,15 @@ import DeviceBatchForm from "./DeviceBatchForm";
 
 export const dynamic = "force-dynamic";
 
-export default async function SystemPage() {
+const LEAD_KINDS = [
+  { key: "check", label: "Spend Check" },
+  { key: "partner", label: "Partners" },
+  { key: "pilot", label: "Pilot" },
+] as const;
+type LeadKind = (typeof LEAD_KINDS)[number]["key"];
+
+export default async function SystemPage({ searchParams }: { searchParams: { leads?: string } }) {
+  const leadKind: LeadKind = LEAD_KINDS.some((k) => k.key === searchParams.leads) ? (searchParams.leads as LeadKind) : "check";
   await requirePlatformAdmin();
   let dbOk = true;
   try {
@@ -20,11 +28,13 @@ export default async function SystemPage() {
   } catch {
     dbOk = false;
   }
-  const [errors, backups, errors24h, leads, jobs, deviceCounts, devices] = await Promise.all([
+  const [errors, backups, errors24h, leads, leadCounts, leads7, jobs, deviceCounts, devices] = await Promise.all([
     db.errorEvent.findMany({ orderBy: { createdAt: "desc" }, take: 50 }),
     db.backupRun.findMany({ orderBy: { startedAt: "desc" }, take: 14 }),
     db.errorEvent.count({ where: { createdAt: { gt: new Date(Date.now() - 86400_000) } } }),
-    db.lead.findMany({ orderBy: { createdAt: "desc" }, take: 50 }),
+    db.lead.findMany({ where: { kind: leadKind }, orderBy: { createdAt: "desc" }, take: 50 }),
+    db.lead.groupBy({ by: ["kind"], _count: { _all: true } }),
+    db.lead.count({ where: { createdAt: { gte: new Date(Date.now() - 7 * 86400_000) } } }),
     db.jobRun.findMany({ orderBy: { ranAt: "desc" }, take: 5 }),
     db.edgeDevice.groupBy({ by: ["status"], _count: { _all: true } }),
     db.edgeDevice.findMany({
@@ -53,7 +63,7 @@ export default async function SystemPage() {
   const okCount = checks.filter(([, ok]) => ok).length;
   // I controlli davvero critici (database, sessioni, cifratura, backup) prima di quelli opzionali.
   const critical = checks.slice(0, 4).find(([, ok]) => !ok);
-  const leads7 = leads.filter((l) => l.createdAt.getTime() >= Date.now() - 7 * 86400_000).length;
+  const leadCount = (k: string) => leadCounts.find((c) => c.kind === k)?._count._all ?? 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -63,7 +73,7 @@ export default async function SystemPage() {
         <StatCard label="Checks passing" value={`${okCount}/${checks.length}`} hint={okCount === checks.length ? "Everything set up" : `${checks.length - okCount} need setup`} tone={critical ? "alarm" : okCount < checks.length ? "signal" : "accent"} />
         <StatCard label="Errors, 24 h" value={String(errors24h)} hint={errors[0] ? `Last ${fmtAgo(errors[0].createdAt)}` : "None recorded"} tone={errors24h >= 10 ? "alarm" : errors24h ? "signal" : undefined} />
         <StatCard label="Last good backup" value={lastOkBackup ? fmtAgo(lastOkBackup.startedAt) : "—"} hint={lastOkBackup ? `${lastOkBackup.rows.toLocaleString()} rows` : "No successful backup yet"} tone={backupFresh ? undefined : "alarm"} />
-        <StatCard label="Leads, 7 days" value={String(leads7)} hint={`${leads.length} in the latest list`} />
+        <StatCard label="Leads, 7 days" value={String(leads7)} hint={LEAD_KINDS.map((k) => `${leadCount(k.key)} ${k.label.toLowerCase()}`).join(" · ")} />
       </div>
       {critical ? (
         <Insight tone="alarm">
@@ -134,17 +144,43 @@ export default async function SystemPage() {
           ))}
         </Table>
 
-      <Table title="Leads from the free AI spend check" columns={["When", "Email", "Company", { label: "AI", className: "text-right" }, { label: "Yearly spend", className: "text-right" }, { label: "Yearly savings", className: "text-right" }]} empty={leads.length === 0 ? "No leads yet — share /check." : false}>
-          {leads.map((l) => (
-            <tr key={l.id}>
-              <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(l.createdAt)}</td>
-              <td className={`${td} text-ink-100`}><a href={`mailto:${l.email}`} className="hover:underline">{l.email}</a></td>
-              <td className={`${td} text-ink-400`}>{l.company ?? "—"}</td>
-              <td className={`${td} text-right tabular`}>{l.aiCount ?? "—"}</td>
-              <td className={`${td} text-right tabular`}>{l.annualSpend != null ? fmtEur(l.annualSpend) : "—"}</td>
-              <td className={`${td} text-right tabular text-steady`}>{l.savings != null ? fmtEur(l.savings) : "—"}</td>
-            </tr>
-          ))}
+      <Table
+        id="leads"
+        title="Leads"
+        note={leadKind === "check" ? "From the free AI Spend Check (/check)." : leadKind === "partner" ? "Applications from /partners — accountants, tax advisers, MSPs." : "Applications from /pilot — companies for the 60-day pilot."}
+        action={<Tabs active={leadKind} items={LEAD_KINDS.map((k) => ({ key: k.key, label: k.label, count: leadCount(k.key), href: `/system?leads=${k.key}#leads` }))} />}
+        columns={
+          leadKind === "check"
+            ? ["When", "Email", "Company", { label: "AI", className: "text-right" }, { label: "Yearly spend", className: "text-right" }, { label: "Yearly savings", className: "text-right" }]
+            : ["When", "Name", leadKind === "partner" ? "Firm" : "Company", "Email", "Country", ...(leadKind === "partner" ? [{ label: "Clients", className: "text-right" }] : []), "Phone", "Message"]
+        }
+        empty={leads.length === 0 ? (leadKind === "check" ? "No leads yet — share /check." : `No applications yet — share /${leadKind === "partner" ? "partners" : "pilot"}.`) : false}
+      >
+          {leads.map((l) =>
+            leadKind === "check" ? (
+              <tr key={l.id}>
+                <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(l.createdAt)}</td>
+                <td className={`${td} text-ink-100`}><a href={`mailto:${l.email}`} className="hover:underline">{l.email}</a></td>
+                <td className={`${td} text-ink-400`}>{l.company ?? "—"}</td>
+                <td className={`${td} text-right tabular`}>{l.aiCount ?? "—"}</td>
+                <td className={`${td} text-right tabular`}>{l.annualSpend != null ? fmtEur(l.annualSpend) : "—"}</td>
+                <td className={`${td} text-right tabular text-steady`}>{l.savings != null ? fmtEur(l.savings) : "—"}</td>
+              </tr>
+            ) : (
+              <tr key={l.id}>
+                <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDateTime(l.createdAt)}</td>
+                <td className={`${td} text-ink-100 whitespace-nowrap`}>{l.name ?? "—"}</td>
+                <td className={`${td} text-ink-100`}>{l.company ?? "—"}</td>
+                <td className={td}><a href={`mailto:${l.email}`} className="text-ink-100 hover:underline">{l.email}</a></td>
+                <td className={`${td} text-ink-400 font-mono text-xs`}>{l.country ?? "—"}</td>
+                {leadKind === "partner" && <td className={`${td} text-right tabular`}>{l.clients ?? "—"}</td>}
+                <td className={`${td} text-ink-400 whitespace-nowrap`}>{l.phone ? <a href={`tel:${l.phone}`} className="hover:underline">{l.phone}</a> : "—"}</td>
+                <td className={`${td} text-ink-400 max-w-[320px]`}>
+                  <span className="block truncate" title={l.message ?? undefined}>{l.message?.replace(/\n/g, " · ") ?? "—"}</span>
+                </td>
+              </tr>
+            )
+          )}
         </Table>
 
       <Table title="Recent errors" columns={["When", "Where", "Message", "Page", "Reference"]} empty={errors.length === 0 ? "No errors recorded." : false}>

@@ -18,6 +18,8 @@ import AssuranceView from "@/components/governance/AssuranceView";
 import { Chevron } from "@/components/governance/parts";
 import VendorFacts, { type VendorFactRow } from "@/components/governance/VendorFacts";
 import ExposedKeys from "@/components/governance/ExposedKeys";
+import McpServers, { type McpRow } from "@/components/governance/McpServers";
+import { CLIENT_LABEL, REACH_LABEL, SENSITIVE_REACH, reachOfExternalId, type McpClient } from "@/lib/discovery/mcp-catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -32,13 +34,15 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
   const orgId = currentOrgId();
   const assurance = searchParams.tab === "assurance";
   const canEdit = ["ADMIN", "OWNER"].includes(currentSession()?.role ?? "");
+  const canDecide = !!currentSession() && currentSession()?.role !== "VIEWER";
 
-  const [score, r, policies, vendorAssets, registerOk, exposed, github] = await Promise.all([
+  const [score, r, policies, vendorAssets, registerOk, exposed, github, mcpAssets, appVersions] = await Promise.all([
     computeScoreCached(orgId).catch(() => null),
     readiness(orgId),
     db.policy.findMany({ where: { organizationId: orgId }, orderBy: { createdAt: "desc" } }),
     db.aiAsset.findMany({
-      where: { organizationId: orgId, deletedAt: null, status: { not: "UNAPPROVED" } },
+      // I server MCP non sono fornitori di AI: restano fuori dai termini dei fornitori.
+      where: { organizationId: orgId, deletedAt: null, status: { not: "UNAPPROVED" }, type: { not: "MCP_SERVER" } },
       select: {
         vendor: true,
         serviceId: true,
@@ -51,7 +55,47 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
     featureEnabled(orgId, "registerExport").catch(() => false),
     listExposedKeys(orgId).catch(() => []),
     db.connector.findUnique({ where: { organizationId_provider: { organizationId: orgId, provider: "GITHUB" } }, select: { status: true } }).catch(() => null),
+    db.aiAsset.findMany({
+      where: { organizationId: orgId, deletedAt: null, type: "MCP_SERVER" },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        externalId: true,
+        usages: { select: { id: true } },
+        connectedSystems: { where: { system: "Client app" }, select: { detail: true } },
+        activities: { where: { eventType: "mcp.configured", occurredAt: { gte: new Date(Date.now() - 60 * DAY) } }, orderBy: { occurredAt: "desc" }, take: 500, select: { payload: true } },
+        dataAccess: { select: { dataAsset: { select: { name: true, sensitivity: true } } } },
+      },
+      take: 200,
+    }),
+    db.desktopDevice.findMany({ where: { organizationId: orgId }, select: { appVersion: true } }),
   ]);
+  // AI agents & MCP servers: dati raggiungibili, computer (ultimi 60 giorni), persone, app.
+  const mcpRows: McpRow[] = mcpAssets
+    .map((a) => {
+      const reach = reachOfExternalId(a.externalId);
+      const computers = new Set(a.activities.map((x) => (x.payload as { computer?: string } | null)?.computer).filter(Boolean));
+      return {
+        id: a.id,
+        name: a.name,
+        status: a.status,
+        reach: reach
+          ? reach.map((k) => ({ label: REACH_LABEL[k], sensitive: SENSITIVE_REACH.includes(k) }))
+          : a.dataAccess.map((d) => ({ label: d.dataAsset.name, sensitive: ["PII", "FINANCIAL", "SOURCE_CODE"].includes(d.dataAsset.sensitivity) })),
+        computers: computers.size,
+        people: a.usages.length,
+        clients: [...new Set(a.connectedSystems.map((c) => CLIENT_LABEL[c.detail as McpClient] ?? c.detail).filter((x): x is string => !!x))],
+      };
+    })
+    .sort(
+      (x, y) =>
+        Number(y.status === "UNKNOWN" || y.status === "UNREVIEWED") - Number(x.status === "UNKNOWN" || x.status === "UNREVIEWED") ||
+        y.reach.filter((q) => q.sensitive).length - x.reach.filter((q) => q.sensitive).length ||
+        y.computers - x.computers ||
+        x.name.localeCompare(y.name)
+    );
+  const newAppComputers = appVersions.filter((d) => versionAtLeast(d.appVersion, [0, 5, 6])).length;
   // Fornitori delle AI in uso: una riga ciascuno, con quante AI addestrano sui dati col piano in uso.
   const byVendor = new Map<string, VendorFactRow>();
   for (const a of vendorAssets) {
@@ -155,6 +199,8 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
             </details>
           )}
 
+          <McpServers rows={mcpRows} canDecide={canDecide} newAppComputers={newAppComputers} />
+
           <ExposedKeys
             githubConnected={github?.status === "CONNECTED" || github?.status === "SYNCING"}
             rows={exposed.map((k) => ({ repo: k.repo, path: k.path, url: k.url, provider: k.provider, masked: k.masked, firstSeen: k.firstSeen.toISOString() }))}
@@ -185,4 +231,12 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
       )}
     </div>
   );
+}
+
+/** "0.5.6" ≥ [0,5,6]? Versioni mancanti o strane: no. */
+function versionAtLeast(v: string | null, min: number[]) {
+  const p = (v ?? "").split(".").map((x) => parseInt(x, 10));
+  if (p.length < 3 || p.some((x) => Number.isNaN(x))) return false;
+  for (let i = 0; i < min.length; i++) if (p[i] !== min[i]) return p[i] > min[i];
+  return true;
 }

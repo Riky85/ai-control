@@ -71,7 +71,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
 
       {tab === "members" && (
         <>
-          <Section title="Members" action={`${members.length} of ${plan.limits.members ?? "unlimited"} on ${plan.name}`}>
+          <Section title="Members" action={`${members.length} of ${plan.limits.members ?? "unlimited"} on ${plan.displayName}`}>
             <Row title="Invite" hint={emailEnabled() ? "They get an email." : "You share the sign-up link."}>
               <form action={inviteMemberAction} className="grid grid-cols-1 sm:grid-cols-2 items-center gap-2 w-full max-w-md">
                 <input name="email" type="email" required placeholder="Email" aria-label="Email" className={input} />
@@ -122,7 +122,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
 
       {tab === "sharing" && (
         <>
-          <Section title="Shared links" action={`${activeLinks.length} of ${plan.limits.sharedDashboards ?? "unlimited"} active on ${plan.name}`}>
+          <Section title="Shared links" action={`${activeLinks.length} of ${plan.limits.sharedDashboards ?? "unlimited"} active on ${plan.displayName}`}>
             <Row title="New link" hint="A read-only view of the Overview.">
               <form action={createShareLinkAction} className="flex flex-wrap gap-2 w-full max-w-md">
                 <input name="name" placeholder="Name, e.g. Board Q3" aria-label="Link name" className={`${input} flex-1 min-w-[10rem]`} />
@@ -172,7 +172,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
 
       {tab === "workspaces" && (
         <>
-          <Section title="Your workspaces" action={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on ${plan.name}`}>
+          <Section title="Your workspaces" action={`${allWorkspaces.length} of ${plan.limits.workspaces ?? "unlimited"} on ${plan.displayName}`}>
             <Row title="New workspace" hint="One for each company, plant or client.">
               {plan.limits.workspaces === null || allWorkspaces.length < plan.limits.workspaces ? (
                 <form action={createWorkspaceAction} className="flex gap-2 w-full max-w-md">
@@ -195,7 +195,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                     {w.id === org.id && <Badge>CURRENT</Badge>}
                   </span>
                 }
-                hint={`${w._count.aiAssets} AI · ${w._count.members} member${w._count.members === 1 ? "" : "s"} · ${planById(w.plan).name}`}
+                hint={`${w._count.aiAssets} AI · ${w._count.members} member${w._count.members === 1 ? "" : "s"} · ${planById(w.plan).displayName}`}
               >
                 <form action={renameWorkspaceAction} className="flex gap-2 w-full max-w-xs">
                   <input type="hidden" name="orgId" value={w.id} />

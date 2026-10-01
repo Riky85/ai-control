@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { signOutAction } from "@/lib/auth-actions";
 import Logo, { Wordmark } from "./Logo";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
+import { TRIAL_PLAN, planLabel } from "@/lib/plans";
 import WorkspaceSwitcher, { type WorkspaceOption } from "./WorkspaceSwitcher";
 import { AREAS, activeChild, locate } from "@/lib/areas";
 
@@ -305,7 +306,7 @@ function TrialCard({ trial, collapsed }: { trial: SidebarTrial; collapsed: boole
     const r = 13;
     const c = 2 * Math.PI * r;
     return (
-      <Link href="/billing" title={trial.trialing ? `Growth trial · ${trial.daysLeft} days left` : "Trial ended — choose a plan"} className="mx-auto mt-2 h-10 w-10 rounded-lg flex items-center justify-center hover:bg-white/[0.06] transition-colors relative">
+      <Link href="/billing" title={trial.trialing ? `${planLabel(TRIAL_PLAN)} trial · ${trial.daysLeft} days left` : "Trial ended — choose a plan"} className="mx-auto mt-2 h-10 w-10 rounded-lg flex items-center justify-center hover:bg-white/[0.06] transition-colors relative">
         <svg width="32" height="32" viewBox="0 0 32 32" className="-rotate-90">
           <circle cx="16" cy="16" r={r} fill="none" strokeWidth="2.5" stroke="rgba(255,255,255,0.1)" />
           <circle cx="16" cy="16" r={r} fill="none" strokeWidth="2.5" strokeLinecap="round" stroke={color} strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} />
@@ -317,7 +318,7 @@ function TrialCard({ trial, collapsed }: { trial: SidebarTrial; collapsed: boole
   return (
     <Link href="/billing" className="group mt-2 block rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] px-3 py-2.5 transition-colors">
       <div className="flex items-baseline justify-between gap-2 text-xs">
-        <span className="font-medium text-white">{trial.trialing ? "Growth trial" : "Trial ended"}</span>
+        <span className="font-medium text-white">{trial.trialing ? `${planLabel(TRIAL_PLAN)} trial` : "Trial ended"}</span>
         <span className="tabular" style={{ color: urgent ? color : "#A3A19C" }}>
           {trial.trialing ? `${trial.daysLeft} day${trial.daysLeft === 1 ? "" : "s"} left` : "Free limits"}
         </span>

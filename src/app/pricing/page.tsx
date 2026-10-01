@@ -1,4 +1,4 @@
-import { Wordmark } from "@/components/Logo";
+import PublicHeader from "@/components/PublicHeader";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import PricingCards, { BillingToggle } from "@/components/PricingCards";
@@ -7,7 +7,7 @@ import { EDGE, partnerPrice } from "@/lib/plans";
 
 export const metadata: Metadata = {
   title: "Pricing — angar",
-  description: "Find every AI your company pays for and where to save. Free for freelancers, from €79/month for companies, with a savings guarantee.",
+  description: "Discover, Save and Govern: see what you spend on AI and where to save. Free to start, savings verified on your next bills, with a savings guarantee.",
 };
 
 const FAQ = [
@@ -25,15 +25,7 @@ export default function PricingPage({ searchParams }: { searchParams: { billing?
   if (currentSession()) redirect(annual ? "/billing?billing=annual" : "/billing");
   return (
     <div className="min-h-screen bg-panel">
-      <header className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 flex items-center justify-between gap-3">
-        <a href="/check" className="text-ink-100 shrink-0" aria-label="angar"><Wordmark size={20} /></a>
-        <nav className="flex items-center gap-3 sm:gap-4 text-sm min-w-0">
-          <a href="/engine" className="hidden sm:inline text-ink-400 hover:text-ink-100">Engine</a>
-          <a href="/check" className="hidden sm:inline text-ink-400 hover:text-ink-100">Free AI Spend Check</a>
-          <a href="/login" className="text-ink-400 hover:text-ink-100 whitespace-nowrap">Sign in</a>
-          <a href="/signup" className="btn btn-primary btn-sm whitespace-nowrap">Start free</a>
-        </nav>
-      </header>
+      <PublicHeader active="pricing" />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-14 flex flex-col gap-10">
         <div className="text-center max-w-2xl mx-auto">
           <h1 className="font-display text-[30px] sm:text-[38px] leading-tight font-semibold tracking-tight text-ink-100">Pay less for AI. angar pays for itself.</h1>
@@ -64,7 +56,7 @@ export default function PricingPage({ searchParams }: { searchParams: { billing?
           <div className="flex flex-col gap-3 lg:border-l border-line lg:pl-8">
             <div>
               <div className="text-xs text-ink-400">Software & cloud logs</div>
-              <div className="text-sm font-semibold text-ink-100">Included in Growth and above</div>
+              <div className="text-sm font-semibold text-ink-100">Included in Save and above</div>
             </div>
             <div className="font-display text-ink-100">
               <div className="text-xs text-ink-400 font-body">angar device</div>

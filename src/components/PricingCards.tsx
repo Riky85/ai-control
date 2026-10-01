@@ -1,4 +1,4 @@
-import { PLANS, GUARANTEE, ADDONS, EDGE, ANNUAL_DISCOUNT_PCT, TRIAL_DAYS, TRIAL_PLAN, annualMonthly, planRank, type PlanDef } from "@/lib/plans";
+import { PLANS, GUARANTEE, ADDONS, PARTNER, SUCCESS_FEE, ANNUAL_DISCOUNT_PCT, TRIAL_DAYS, TRIAL_PLAN, annualMonthly, planLabel, planRank, type PlanDef } from "@/lib/plans";
 import { startCheckoutAction, startAddonCheckoutAction, switchToFreeAction } from "@/lib/workspace-actions";
 import type { Plan } from "@prisma/client";
 import { Tabs } from "@/components/ui";
@@ -58,7 +58,8 @@ export default function PricingCards({
   annual?: boolean;
 }) {
   const interval = annual ? "year" : "month";
-  const cards = PLANS.filter((p) => p.price !== null);
+  // Piani pubblici (Discover / Save / Govern); Starter solo per chi lo ha già.
+  const cards = PLANS.filter((p) => p.price !== null && (p.listed || (mode === "billing" && view?.planId === p.id)));
   const enterprise = PLANS.find((p) => p.price === null);
   const salesHref = (subject: string) => `mailto:${salesEmail ?? ""}?subject=${encodeURIComponent(subject)}`;
   // Piano "attuale" per i pulsanti: solo se pagato/attivo, non durante la prova o a prova scaduta.
@@ -66,7 +67,7 @@ export default function PricingCards({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className={`grid grid-cols-1 gap-3 ${cards.length >= 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"}`}>
         {cards.map((p) => {
           const isCurrent = mode === "billing" && p.id === current;
           const onTrial = mode === "billing" && view?.trialing && p.id === view.effectivePlan;
@@ -76,7 +77,7 @@ export default function PricingCards({
             <div key={p.id} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-base font-semibold text-ink-100">{p.name}</h3>
+                  <h3 className="text-base font-semibold text-ink-100">{p.displayName}</h3>
                   {onTrial ? (
                     <span className="text-[11px] font-medium text-accent bg-accent-soft rounded-full px-2 py-0.5 whitespace-nowrap">Your trial</span>
                   ) : isCurrent ? (
@@ -91,6 +92,12 @@ export default function PricingCards({
                 <Price p={p} annual={annual} />
               </div>
               <p className="text-sm text-ink-400 -mt-2">{p.tagline}</p>
+              {p.id === SUCCESS_FEE.plan && (
+                <div className="-mt-1 rounded-lg border border-line px-3 py-2 text-xs text-ink-400">
+                  <span className="text-ink-100 font-medium">Or {SUCCESS_FEE.pct}% of verified savings, no fixed fee.</span> You pay a share of what angar saves on your bills — nothing if we don&apos;t save you anything.{" "}
+                  <a href={salesHref("angar Save — success fee")} className="text-ink-100 underline hover:no-underline whitespace-nowrap">Talk to us</a>
+                </div>
+              )}
               <ul className="flex flex-col gap-2 text-sm text-ink-100 flex-1">
                 {p.features.map((f) => (
                   <li key={f} className="flex gap-2">
@@ -105,14 +112,14 @@ export default function PricingCards({
                 <div className="btn btn-secondary w-full opacity-60 cursor-default">Current plan</div>
               ) : p.price === 0 ? (
                 <form action={switchToFreeAction}>
-                  <button className="btn btn-secondary w-full">Switch to Free</button>
+                  <button className="btn btn-secondary w-full">Switch to {p.displayName}</button>
                 </form>
               ) : (
                 <form action={startCheckoutAction}>
                   <input type="hidden" name="plan" value={p.id} />
                   <input type="hidden" name="interval" value={interval} />
                   <button disabled={!payments} className={`btn w-full ${upgrade && (highlight || current) ? "btn-primary" : "btn-secondary"} disabled:opacity-50 disabled:cursor-not-allowed`}>
-                    {current ? (upgrade ? `Upgrade to ${p.name}` : `Switch to ${p.name}`) : `Choose ${p.name}`}
+                    {current ? (upgrade ? `Upgrade to ${p.displayName}` : `Switch to ${p.displayName}`) : `Choose ${p.displayName}`}
                   </button>
                 </form>
               )}
@@ -124,7 +131,7 @@ export default function PricingCards({
       {enterprise && (
         <div className="rounded-xl border border-line bg-panel px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
           <div className="flex-1 min-w-[220px]">
-            <span className="text-sm font-semibold text-ink-100">{enterprise.name}</span>
+            <span className="text-sm font-semibold text-ink-100">{enterprise.displayName}</span>
             <span className="text-sm text-ink-400"> · {enterprise.employees} · {enterprise.tagline}</span>
             <div className="text-xs text-ink-400 mt-0.5">{enterprise.features.join(" · ")}</div>
           </div>
@@ -149,7 +156,7 @@ export default function PricingCards({
                     <h3 className="text-base font-semibold text-ink-100">{a.name}</h3>
                     <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Add-on</span>
                   </div>
-                  <p className="text-sm text-ink-400 mt-1">{a.tagline} Included in Scale and above.</p>
+                  <p className="text-sm text-ink-400 mt-1">{a.tagline} Included in {planLabel(a.includedFrom)} and above.</p>
                 </div>
                 <div className="font-display text-ink-100 text-right whitespace-nowrap">
                   <span className="text-[22px] font-semibold tracking-tight tabular">€{monthly}</span>
@@ -189,13 +196,13 @@ export default function PricingCards({
           </div>
           <p className="text-sm text-ink-400">{GUARANTEE}</p>
           <p className="text-sm text-ink-400">
-            <b className="text-ink-100">Partners: {EDGE.partnerDiscountPct}% off.</b> MSPs and integrators get {EDGE.partnerDiscountPct}% off every plan and angar Edge device.{" "}
-            <a href={salesHref("angar partner programme")} className="text-accent hover:underline">Become a partner</a>
+            <b className="text-ink-100">Partners: {PARTNER.discountPct}% off.</b> Accountants, MSPs and IT providers get {PARTNER.discountPct}% off every plan and angar Edge device.{" "}
+            <a href="/partners" className="text-ink-100 underline hover:no-underline">Become a partner</a>
           </p>
         </div>
       </div>
       <p className="text-xs text-ink-400">
-        Prices exclude VAT. {mode === "public" ? `Paid plans start with a ${TRIAL_DAYS}-day trial of ${PLANS.find((p) => p.id === TRIAL_PLAN)!.name} — no card needed.` : ""} Annual billing saves {ANNUAL_DISCOUNT_PCT}%.
+        Prices exclude VAT. {mode === "public" ? `Paid plans start with a ${TRIAL_DAYS}-day trial of ${planLabel(TRIAL_PLAN)} — no card needed.` : ""} Annual billing saves {ANNUAL_DISCOUNT_PCT}%.
       </p>
     </div>
   );

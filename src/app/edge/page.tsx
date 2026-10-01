@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default function EdgePage() {
   const salesEmail = process.env.SALES_EMAIL;
   const requestHref = salesEmail ? `mailto:${salesEmail}?subject=${encodeURIComponent("angar Edge — request a device")}` : "/billing#edge";
-  const fromPlan = planById(EDGE.softwareFromPlan).name;
+  const fromPlan = planById(EDGE.softwareFromPlan).displayName;
 
   return (
     <div className="flex flex-col gap-4">

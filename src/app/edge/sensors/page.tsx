@@ -114,7 +114,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
         action={<Link href="/edge" className="btn btn-secondary btn-sm">About angar Edge</Link>}
       />
       {searchParams.notice && <Notice tone="success">{searchParams.notice}</Notice>}
-      {!(await featureEnabled(orgId, "edgeSensors")) && <Notice><span className="inline-flex flex-wrap items-center gap-x-2">New software and cloud-log sensors need Growth; angar devices work on any plan. <LockedNote feature="edgeSensors" /></span></Notice>}
+      {!(await featureEnabled(orgId, "edgeSensors")) && <Notice><span className="inline-flex flex-wrap items-center gap-x-2">New software and cloud-log sensors need the Save plan; angar devices work on any plan. <LockedNote feature="edgeSensors" /></span></Notice>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Sensors online" value={`${online}/${sensors.length}`} hint={sensors.length ? "Reporting in the last 15 min" : "Add your first sensor below"} tone={sensors.length && online < sensors.length ? "signal" : undefined} />

@@ -80,8 +80,11 @@ export function useVoice(onFinal: (text: string) => void) {
   return { supported, listening, interim, error, start, stop };
 }
 
+/** Comandi vocali in pausa: si riattivano con NEXT_PUBLIC_ANGAR_VOICE=1 (il codice resta). */
+export const VOICE_ENABLED = process.env.NEXT_PUBLIC_ANGAR_VOICE === "1";
+
 export function MicButton({ voice, className = "" }: { voice: ReturnType<typeof useVoice>; className?: string }) {
-  if (!voice.supported) return null;
+  if (!VOICE_ENABLED || !voice.supported) return null;
   return (
     <button
       type="button"

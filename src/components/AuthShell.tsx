@@ -25,6 +25,8 @@ export default function AuthShell({ title, subtitle, children }: { title: string
           <span>© angar</span>
           <Link href="/pricing" className="hover:text-ink-100">Pricing</Link>
           <Link href="/check" className="hover:text-ink-100">Free AI spend check</Link>
+          <Link href="/partners" className="hover:text-ink-100">Partners</Link>
+          <Link href="/trust" className="hover:text-ink-100">Trust Center</Link>
           <span>Hosted in the EU · GDPR</span>
         </div>
       </div>
@@ -52,9 +54,9 @@ function Showcase() {
 
       <div className="relative max-w-md">
         <p className="font-display text-[30px] leading-[1.15] font-semibold tracking-tight text-ink-100">
-          Every AI your company uses — and what it <span className="text-accent">really</span> costs.
+          Drop your e-invoices and bank statement — in 10 minutes see what you spend on AI and <span className="text-accent">where to save</span>.
         </p>
-        <p className="text-sm text-ink-400 mt-3">Found automatically from your bank, invoices and computers. Nothing to type.</p>
+        <p className="text-sm text-ink-400 mt-3">Nothing to type. Savings verified on your next bills.</p>
       </div>
 
       <div className="relative flex flex-col gap-3 max-w-[460px] w-full self-center">

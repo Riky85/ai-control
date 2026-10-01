@@ -188,13 +188,15 @@ export async function signUpAction(formData: FormData) {
         create: { organizationId: o.id, email, name: name || null, role: "OWNER", status: "active" },
       });
     }
-    orgId = orgs[0]?.id ?? (await db.organization.create({ data: { name: company || "My company" } })).id;
+    orgId = orgs[0]?.id ?? (await db.organization.create({ data: { name: company || "My company", privacyMode: "department" } })).id;
     if (!orgs.length) await db.workspaceMember.create({ data: { organizationId: orgId, email, name: name || null, role: "OWNER", status: "active" } });
   } else if (invited.length > 0) {
     await db.workspaceMember.update({ where: { id: invited[0].id }, data: { status: "active", inviteToken: null, name: name || undefined } });
     orgId = invited[0].organizationId;
   } else {
-    const org = await db.organization.create({ data: { name: company || `${name || email.split("@")[0]}'s company` } });
+    // Privacy di default: i nuovi workspace partono "per reparto" (gruppi di almeno 5).
+    // Il dato di default nello schema resta "individual" per i workspace esistenti.
+    const org = await db.organization.create({ data: { name: company || `${name || email.split("@")[0]}'s company`, privacyMode: "department" } });
     await db.workspaceMember.create({ data: { organizationId: org.id, email, name: name || null, role: "OWNER", status: "active" } });
     orgId = org.id;
   }

@@ -20,7 +20,7 @@ const ASSET: Record<DesktopOs, string> = {
 const MAC_APP_ZIP = "angar-macos.app.zip";
 
 // Versione dell'app desktop pubblicata (desktop/Cargo.toml).
-export const DESKTOP_VERSION = "0.5.5";
+export const DESKTOP_VERSION = "0.5.6";
 
 export const DESKTOP_OS_LABEL: Record<DesktopOs, string> = { windows: "Windows", mac: "macOS", linux: "Linux" };
 

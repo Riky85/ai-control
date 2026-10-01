@@ -39,7 +39,7 @@ export async function inviteMemberAction(formData: FormData) {
   const o = await org();
   const count = await db.workspaceMember.count({ where: { organizationId: currentOrgId() } });
   if (!withinLimit(planById(o.plan).limits.members, count)) {
-    redirect(`/workspace?error=${encodeURIComponent(`Your ${planById(o.plan).name} plan includes ${planById(o.plan).limits.members} members. Upgrade to add more.`)}`);
+    redirect(`/workspace?error=${encodeURIComponent(`Your ${planById(o.plan).displayName} plan includes ${planById(o.plan).limits.members} members. Upgrade to add more.`)}`);
   }
   const existing = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: currentOrgId(), email } } });
   // Re-invitare un owner cambierebbe il suo ruolo: stesse regole di setMemberRoleAction.
@@ -108,7 +108,7 @@ export async function createShareLinkAction(formData: FormData) {
   const o = { plan: (await getPlanState(currentOrgId())).effectivePlan };
   const active = await db.shareLink.count({ where: { organizationId: currentOrgId(), revokedAt: null } });
   if (!withinLimit(planById(o.plan).limits.sharedDashboards, active)) {
-    redirect(`/workspace?tab=sharing&error=${encodeURIComponent(`Your ${planById(o.plan).name} plan includes ${planById(o.plan).limits.sharedDashboards} shared dashboard${planById(o.plan).limits.sharedDashboards === 1 ? "" : "s"}. Upgrade for more.`)}`);
+    redirect(`/workspace?tab=sharing&error=${encodeURIComponent(`Your ${planById(o.plan).displayName} plan includes ${planById(o.plan).limits.sharedDashboards} shared dashboard${planById(o.plan).limits.sharedDashboards === 1 ? "" : "s"}. Upgrade for more.`)}`);
   }
   const link = await db.shareLink.create({
     data: {
@@ -284,10 +284,10 @@ export async function createWorkspaceAction(formData: FormData) {
   const limit = planById(effectivePlan).limits.workspaces;
   const count = await db.workspaceMember.count({ where: { email: s.email, role: "OWNER" } });
   if (!withinLimit(limit, count)) {
-    redirect(`/workspace?tab=workspaces&error=${encodeURIComponent(`The ${planById(effectivePlan).name} plan includes ${limit} workspace${limit === 1 ? "" : "s"}. Upgrade to create more.`)}`);
+    redirect(`/workspace?tab=workspaces&error=${encodeURIComponent(`The ${planById(effectivePlan).displayName} plan includes ${limit} workspace${limit === 1 ? "" : "s"}. Upgrade to create more.`)}`);
   }
   // Il nuovo workspace eredita il piano di quello corrente, e la stessa fine prova (niente prove nuove a catena).
-  const created = await db.organization.create({ data: { name, plan: current.plan, planStatus: current.planStatus, trialEndsAt } });
+  const created = await db.organization.create({ data: { name, plan: current.plan, planStatus: current.planStatus, trialEndsAt, privacyMode: "department" } });
   await db.workspaceMember.create({ data: { organizationId: created.id, email: s.email, name: s.name ?? null, role: "OWNER", status: "active" } });
   const account = await db.account.findUniqueOrThrow({ where: { id: s.accountId } });
   await issueSession(account, created.id);

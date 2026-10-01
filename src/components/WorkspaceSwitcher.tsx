@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { switchWorkspaceAction, createWorkspaceAction } from "@/lib/workspace-actions";
+import { PLANS } from "@/lib/plans";
 
 export interface WorkspaceOption {
   id: string;
@@ -15,7 +16,7 @@ export default function WorkspaceSwitcher({
   current,
   workspaces,
   canCreate,
-  planName,
+  planName: legacyName,
   limit,
 }: {
   current: WorkspaceOption | null;
@@ -24,6 +25,8 @@ export default function WorkspaceSwitcher({
   planName: string;
   limit: number | null;
 }) {
+  // Il layout passa il nome storico del piano ("Growth"): qui si mostra quello pubblico ("Save").
+  const planName = PLANS.find((p) => p.name === legacyName || p.displayName === legacyName)?.displayName ?? legacyName;
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

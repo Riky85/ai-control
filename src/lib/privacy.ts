@@ -1,13 +1,14 @@
 /**
  * Privacy dei dipendenti (Statuto dei lavoratori art. 4, Betriebsrat, GDPR):
- * - "individual": uso per persona (default);
- * - "department": solo per reparto, e solo gruppi di almeno MIN_GROUP persone;
+ * - "individual": uso per persona (default dello schema, per i workspace esistenti);
+ * - "department": solo per reparto, e solo gruppi di almeno MIN_GROUP persone
+ *   (privacy di default: i nuovi workspace nascono così, vedi auth-actions / workspace-actions / SSO);
  * - "anonymous": solo totali dell'azienda, nessun nome né dispositivo.
  */
 export type PrivacyMode = "individual" | "department" | "anonymous";
 
 export const PRIVACY_MODES: { id: PrivacyMode; label: string; description: string }[] = [
-  { id: "individual", label: "By person", description: "See who uses which AI — best for seat clean-up and licences." },
+  { id: "individual", label: "By person", description: "See who uses which AI — best for seat clean-up and licences. Give staff the employee notice first." },
   { id: "department", label: "By department", description: "Only totals by department (groups of at least 5 people). No names." },
   { id: "anonymous", label: "Company totals only", description: "Only company-wide totals. No names, no devices, no departments." },
 ];

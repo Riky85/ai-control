@@ -136,7 +136,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                     {c.role.charAt(0) + c.role.slice(1).toLowerCase()} · {PRIVACY_MODES.find((m) => m.id === c.privacyMode)?.label}
                   </span>
                 </td>
-                <td className={`${td} text-ink-400`}>{planById(c.plan as Parameters<typeof planById>[0]).name}</td>
+                <td className={`${td} text-ink-400`}>{planById(c.plan as Parameters<typeof planById>[0]).displayName}</td>
                 <td className={`${td} text-right tabular text-ink-100`}>{c.aiCount}</td>
                 <td className={`${td} text-right tabular text-ink-100`}>{c.monthlySpend ? `${fmtEur(c.monthlySpend)}/mo` : "—"}</td>
                 <td className={`${td} text-right tabular ${c.canSave ? "text-steady font-medium" : "text-ink-400"}`}>{c.canSave ? `${fmtEur(c.canSave)}/mo` : "—"}</td>
@@ -200,7 +200,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                 Partner economics <span className="font-normal text-ink-400">· estimate</span>
               </h2>
               <span className="text-xs text-ink-400">
-                List prices minus your {EDGE.partnerDiscountPct}% partner discount · Edge software free on {planById(EDGE.softwareFromPlan).name}+
+                List prices minus your {EDGE.partnerDiscountPct}% partner discount · Edge software free on {planById(EDGE.softwareFromPlan).displayName}+
               </span>
             </div>
             {econ.rows.length === 0 ? (
@@ -219,7 +219,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                     <div key={r.clientId} className="flex items-center gap-3 px-3 py-1.5">
                       <span className="flex-1 truncate text-ink-100">{r.clientName}</span>
                       <span className="text-ink-400 whitespace-nowrap">
-                        {planById(r.plan as Parameters<typeof planById>[0]).name}
+                        {planById(r.plan as Parameters<typeof planById>[0]).displayName}
                         {r.planList === null && " (custom)"}
                         {r.edgeDevices > 0 && ` + ${r.edgeDevices} device${r.edgeDevices > 1 ? "s" : ""}`}
                       </span>

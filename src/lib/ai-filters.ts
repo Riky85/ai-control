@@ -25,7 +25,7 @@ export function aiFilters(all: AssetForSavings[]): FilterDef[] {
       label: "Paid",
       options: opts([
         { value: "yes", label: "Paid by the company", fn: (a) => Boolean(monthlyOf(a)) },
-        { value: "no", label: "Not paid", fn: (a) => !monthlyOf(a) },
+        { value: "no", label: "Not paid", fn: (a) => a.type !== "MCP_SERVER" && !monthlyOf(a) },
       ]),
     },
   ].filter((f) => f.options.length > 1);
@@ -35,7 +35,8 @@ export function filterAssets(all: AssetForSavings[], p: AiFilterParams) {
   const q = p.q?.toLowerCase().trim();
   return all
     .filter((a) => !p.status || (p.status === "TODECIDE" ? a.status === "UNKNOWN" || a.status === "UNREVIEWED" : a.status === p.status))
-    .filter((a) => !p.paid || (p.paid === "yes") === Boolean(monthlyOf(a)))
+    // I server MCP non sono AI a pagamento: mai tra le "non pagate".
+    .filter((a) => !p.paid || (p.paid === "yes" ? Boolean(monthlyOf(a)) : a.type !== "MCP_SERVER" && !monthlyOf(a)))
     .filter((a) => !q || a.name.toLowerCase().includes(q) || (a.vendor ?? "").toLowerCase().includes(q))
     .filter((a) => !p.category || categoryOf(a) === p.category);
 }

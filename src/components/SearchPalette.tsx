@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { VendorBadge } from "./VendorIcon";
 import type { SearchHit } from "@/app/api/search/route";
-import { MicButton, useVoice } from "./Voice";
+import { MicButton, useVoice, VOICE_ENABLED } from "./Voice";
 import CommandReply, { type CommandReplyData } from "./CommandReply";
 
 // Frasi che sono domande o istruzioni: "Chiedi ad angar" diventa la prima riga.
@@ -174,7 +174,7 @@ export default function SearchPalette() {
         <div className="max-h-[52vh] overflow-y-auto py-2">
           {!query && (
             <div className="px-4 py-5 text-sm text-[#A3A19C] flex flex-col gap-2">
-              <p>Search your AI, people and pages — or ask{voice.supported ? " (or press the mic and speak)" : ""}:</p>
+              <p>Search your AI, people and pages — or ask{VOICE_ENABLED && voice.supported ? " (or press the mic and speak)" : ""}:</p>
               <div className="flex flex-wrap gap-1.5">
                 {["How much do we spend on AI?", "Where can we save?", "Unused seats", "What's new this month?", "What needs review?"].map((x) => (
                   <button key={x} onClick={() => { setQ(x); ask(x); }} className="text-xs rounded-full border border-white/15 px-2.5 py-1 text-[#C8C6C1] hover:text-white hover:bg-white/[0.06]">

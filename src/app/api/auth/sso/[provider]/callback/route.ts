@@ -93,7 +93,7 @@ export async function GET(req: Request, { params }: { params: { provider: string
     const domain = email.split("@")[1];
     const fromDomain = domain && !PUBLIC_MAIL.has(domain) ? domain.split(".").slice(-2, -1)[0] : "";
     const orgName = fromDomain ? fromDomain.charAt(0).toUpperCase() + fromDomain.slice(1) : `${account.name || email.split("@")[0]}'s company`;
-    const org = await db.organization.create({ data: { name: orgName.slice(0, 120) } });
+    const org = await db.organization.create({ data: { name: orgName.slice(0, 120), privacyMode: "department" } });
     await db.workspaceMember.create({ data: { organizationId: org.id, email, name: account.name, role: "OWNER", status: "active" } });
     memberships.push({ organizationId: org.id } as (typeof memberships)[number]);
     onboarding = true;

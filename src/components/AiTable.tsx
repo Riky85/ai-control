@@ -79,7 +79,7 @@ export default function AiTable({
                 </span>
               </Link>
             </td>
-            <td className="px-5 py-3 text-ink-400">{plan ? `${seats && seats > 1 ? `${seats} × ` : ""}${plan.name}` : m && !m.estimated ? "Usage-based" : "—"}</td>
+            <td className="px-5 py-3 text-ink-400">{plan ? `${seats && seats > 1 ? `${seats} × ` : ""}${plan.name}` : m && !m.estimated ? "Usage-based" : a.type === "MCP_SERVER" ? "MCP server" : "—"}</td>
             <td className="px-5 py-3 text-ink-400 tabular">{people}</td>
             <td className="px-5 py-3 text-right tabular">
               {m ? (
@@ -87,6 +87,8 @@ export default function AiTable({
                   {m.estimated ? "≈ " : ""}
                   {fmtEur(m.eur)}
                 </span>
+              ) : a.type === "MCP_SERVER" ? (
+                <span className="text-ink-400" title="Connects AI to other tools — not a paid AI">—</span>
               ) : (
                 <span className="text-ink-400" title="Not paid by the company, or free">Not paid</span>
               )}

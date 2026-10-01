@@ -1,3 +1,22 @@
+import Link from "next/link";
+
+// Link interni in stile markdown: [testo](/percorso). Solo percorsi dell'app.
+function Inline({ text }: { text: string }) {
+  const parts = text.split(/(\[[^\]]+\]\(\/[^)\s]*\))/g);
+  return (
+    <>
+      {parts.map((p, i) => {
+        const m = /^\[([^\]]+)\]\((\/[^)\s]*)\)$/.exec(p);
+        return m ? (
+          <Link key={i} href={m[2]} className="underline hover:text-ink-100">{m[1]}</Link>
+        ) : (
+          <span key={i}>{p}</span>
+        );
+      })}
+    </>
+  );
+}
+
 // Rende il corpo di un articolo: "## " sottotitoli, "- " elenchi, "1. " passi.
 export default function DocBody({ body }: { body: string }) {
   const blocks: React.ReactNode[] = [];
@@ -19,20 +38,20 @@ export default function DocBody({ body }: { body: string }) {
             {items.map((t, n) => (
               <li key={n} className="flex gap-3 text-[15px] text-ink-100 leading-relaxed">
                 <span className="h-6 w-6 rounded-full bg-ink text-xs font-semibold text-ink-100 flex items-center justify-center shrink-0 mt-0.5">{n + 1}</span>
-                <span>{t}</span>
+                <span><Inline text={t} /></span>
               </li>
             ))}
           </ol>
         ) : (
           <ul key={i} className="flex flex-col gap-1.5 my-3 list-disc pl-5 marker:text-ink-400">
             {items.map((t, n) => (
-              <li key={n} className="text-[15px] text-ink-100 leading-relaxed">{t}</li>
+              <li key={n} className="text-[15px] text-ink-100 leading-relaxed"><Inline text={t} /></li>
             ))}
           </ul>
         )
       );
     } else {
-      blocks.push(<p key={i} className="text-[15px] text-ink-100 leading-relaxed my-3">{line}</p>);
+      blocks.push(<p key={i} className="text-[15px] text-ink-100 leading-relaxed my-3"><Inline text={line} /></p>);
       i++;
     }
   }

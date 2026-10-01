@@ -113,7 +113,8 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
         </div>
       </article>
       <p className="text-xs text-ink-400 print:hidden max-w-3xl">
-        A template, not legal advice — have it checked by your DPO or counsel, and in Italy and Germany agree it with the workers&apos; representatives before rolling angar out.
+        A template, not legal advice — have it checked by your DPO or counsel. In Italy, Germany, France and Spain, involve the workers&apos; representatives before rolling angar out — templates for each country are in the{" "}
+        <Link href="/trust#documents" className="underline hover:text-ink-100">Trust Center</Link>.
       </p>
     </div>
   );

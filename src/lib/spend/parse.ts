@@ -1,13 +1,17 @@
 /**
- * Lettura di estratti conto (CSV, Excel) e fatture elettroniche (FatturaPA
- * XML, anche .p7m e .zip). Funzioni pure: nessun accesso al database, così
+ * Lettura di estratti conto (CSV, Excel) e fatture elettroniche: FatturaPA
+ * (XML, .p7m), UBL/Peppol, CII (XRechnung, ZUGFeRD, Factur-X) anche come PDF
+ * con XML allegato, e .zip con qualsiasi mix. Il formato si riconosce dal
+ * contenuto, non solo dall'estensione. Funzioni pure: nessun accesso al database, così
  * la stessa logica serve alla pagina pubblica "AI Spend Check" senza
  * salvare nulla. Si tengono SOLO le righe riconosciute come servizi AI.
  */
 import { unzipSync } from "fflate";
 import * as XLSX from "xlsx";
 import { matchMerchant } from "@/lib/pricing/merchants";
-import { USD_TO_EUR, guessPlan } from "@/lib/pricing/catalog";
+import { guessPlan } from "@/lib/pricing/catalog";
+import { toEur, fxNote } from "./fx";
+import { decodeXml, detectXmlInvoice, parseUblXml, parseCiiXml, parseInvoicePdf } from "./einvoice";
 
 export interface Charge {
   date: Date;
@@ -17,6 +21,9 @@ export interface Charge {
   source: "bank" | "invoice";
   /** Posti dichiarati in fattura (quantità della riga o "10 seats" nel testo). */
   seats?: number;
+  /** Valuta originale se diversa da EUR (amountEur è convertito, o invariato se non convertibile). */
+  currency?: string;
+  amountOriginal?: number;
 }
 
 export interface ParseResult {
@@ -25,6 +32,8 @@ export interface ParseResult {
   periodStart: Date | null;
   periodEnd: Date | null;
   warnings: string[];
+  /** true se il file era un PDF senza fattura elettronica allegata (es. un contratto). */
+  notEInvoice?: boolean;
 }
 
 const empty = (): ParseResult => ({ charges: [], rowsRead: 0, periodStart: null, periodEnd: null, warnings: [] });
@@ -37,6 +46,7 @@ function merge(a: ParseResult, b: ParseResult): ParseResult {
     periodStart: dates.length ? new Date(Math.min(...dates.map((d) => d.getTime()))) : null,
     periodEnd: dates.length ? new Date(Math.max(...dates.map((d) => d.getTime()))) : null,
     warnings: [...a.warnings, ...b.warnings],
+    notEInvoice: a.notEInvoice || b.notEInvoice || undefined,
   };
 }
 
@@ -44,9 +54,16 @@ function merge(a: ParseResult, b: ParseResult): ParseResult {
 const ZIP_MAX_FILES = 300;
 const ZIP_MAX_BYTES = 60 * 1024 * 1024;
 
+const SHEET_EXT = /\.(xlsx|xls|ods)$/;
+// Altri formati Office che sono zip ma non contengono fatture.
+const OFFICE_EXT = /\.(docx|pptx|xlsm|odt|odp|pages|numbers|key)$/;
+const startsWith = (data: Uint8Array, magic: string) => data.length >= magic.length && Array.from(magic).every((ch, i) => data[i] === ch.charCodeAt(0));
+
 export async function parseSpendFile(name: string, data: Uint8Array, depth = 0): Promise<ParseResult> {
   const lower = name.toLowerCase();
-  if (lower.endsWith(".zip")) {
+  const isSheet = SHEET_EXT.test(lower);
+  // Zip dal contenuto (PK) salvo i fogli Excel/ODS, che sono zip anche loro.
+  if (lower.endsWith(".zip") || (!isSheet && !OFFICE_EXT.test(lower) && startsWith(data, "PK\x03\x04"))) {
     let out = empty();
     if (depth > 0) return { ...out, warnings: [`${name}: zip files inside zip files are skipped.`] };
     try {
@@ -75,9 +92,11 @@ export async function parseSpendFile(name: string, data: Uint8Array, depth = 0):
     }
     return out;
   }
-  if (lower.endsWith(".xml") || lower.endsWith(".p7m")) return parseInvoice(name, data);
-  if (lower.endsWith(".pdf")) return { ...empty(), warnings: [`${name}: PDF statements aren't supported yet — export CSV or Excel from your bank.`] };
-  if (lower.endsWith(".xlsx") || lower.endsWith(".xls") || lower.endsWith(".ods")) {
+  // PDF: ZUGFeRD / Factur-X con XML allegato; altrimenti avviso "non è una fattura elettronica".
+  if (lower.endsWith(".pdf") || startsWith(data, "%PDF-")) return parseInvoicePdf(name, data, parseInvoice);
+  if (lower.endsWith(".p7m")) return parseInvoice(name, data);
+  if (lower.endsWith(".xml")) return parseXmlInvoice(name, data);
+  if (isSheet) {
     try {
       const wb = XLSX.read(data, { type: "array", cellDates: true });
       let out = empty();
@@ -91,8 +110,17 @@ export async function parseSpendFile(name: string, data: Uint8Array, depth = 0):
     }
   }
   const text = decodeText(data);
-  if (/<\?xml|FatturaElettronica/i.test(text.slice(0, 2000))) return parseInvoice(name, data);
+  if (/^\s*</.test(text.replace(/^\uFEFF/, "")) || /<\?xml|FatturaElettronica/i.test(text.slice(0, 2000))) return parseXmlInvoice(name, data);
   return parseRows(splitCsv(text));
+}
+
+/** XML: FatturaPA, UBL (Peppol, XRechnung UBL, EHF…) o CII (XRechnung CII, ZUGFeRD, Factur-X). */
+function parseXmlInvoice(name: string, data: Uint8Array): ParseResult {
+  const det = detectXmlInvoice(decodeXml(data));
+  if (det.kind === "ubl") return parseUblXml(name, det.xml);
+  if (det.kind === "cii") return parseCiiXml(name, det.xml);
+  if (det.kind === "fatturapa") return parseInvoice(name, data);
+  return { ...empty(), rowsRead: 1, warnings: [`${name}: not an e-invoice we can read (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X).`] };
 }
 
 function decodeText(data: Uint8Array) {
@@ -229,9 +257,9 @@ function parseRows(rows: string[][]): ParseResult {
       if (last !== undefined) amount = Math.abs(last);
     }
     if (!amount || amount <= 0) continue; // accrediti, rimborsi
-    const cur = currencyCol >= 0 ? r[currencyCol].toUpperCase() : "EUR";
-    const eur = cur.includes("USD") ? amount * USD_TO_EUR : amount;
-    out.charges.push({ date, amountEur: Math.round(eur * 100) / 100, description: text.slice(0, 200), service, source: "bank" });
+    const cur = currencyCol >= 0 ? (r[currencyCol].toUpperCase().match(/[A-Z]{3}/)?.[0] ?? "EUR") : "EUR";
+    const fx = toEur(amount, cur);
+    out.charges.push({ date, amountEur: Math.round(fx.eur * 100) / 100, description: text.slice(0, 200), service, source: "bank", ...(fx.currency !== "EUR" ? { currency: fx.currency, amountOriginal: amount } : {}) });
   }
   if (dates.length) {
     out.periodStart = new Date(Math.min(...dates));
@@ -281,18 +309,30 @@ function parseInvoice(name: string, data: Uint8Array): ParseResult {
   const currency = (tag(generali, "Divisa") ?? "EUR").toUpperCase();
   const descriptions = tags(xml, "Descrizione").join(" ");
   const imponibile = tags(xml, "ImponibileImporto").map((v) => Number(v)).filter(Number.isFinite).reduce((a, b) => a + b, 0);
-  const total = imponibile || Number(tag(generali, "ImportoTotaleDocumento") ?? 0);
+  const total = Math.abs(imponibile || Number(tag(generali, "ImportoTotaleDocumento") ?? 0));
+  // TD04 = nota di credito: importo negativo.
+  const sign = tag(generali, "TipoDocumento") === "TD04" ? -1 : 1;
   if (date) out.periodStart = out.periodEnd = date;
   const service = matchMerchant(`${supplier} ${descriptions}`);
   if (!service || !date || !(total > 0)) return out;
-  const eur = currency === "USD" ? total * USD_TO_EUR : total;
+  const fx = toEur(total * sign, currency);
+  const note = fxNote(total * sign, fx);
   // Posti: la quantità delle righe (FatturaPA <Quantita>) o "10 seats/users/licenze" nella descrizione.
   const qty = tags(xml, "DettaglioLinee")
     .map((l) => Number(tag(l, "Quantita") ?? NaN))
     .filter((n) => Number.isInteger(n) && n >= 1 && n <= 5000);
   const text = descriptions.match(/(\d{1,4})\s*(seats?|users?|utent[ie]|licen[sz]e?s?|posti|members?)/i);
   const seats = qty.length ? Math.max(...qty) : text ? Number(text[1]) : undefined;
-  out.charges.push({ date, amountEur: Math.round(eur * 100) / 100, description: `${supplier} — ${descriptions}`.slice(0, 200), service, source: "invoice", seats: seats && seats > 1 ? seats : undefined });
+  out.charges.push({
+    date,
+    amountEur: Math.round(fx.eur * 100) / 100,
+    description: (`${supplier} — ${descriptions}`.slice(0, 200 - note.length) + note).trim(),
+    service,
+    source: "invoice",
+    seats: sign > 0 && seats && seats > 1 ? seats : undefined,
+    ...(fx.currency !== "EUR" ? { currency: fx.currency, amountOriginal: total * sign } : {}),
+  });
+  if (!fx.convertible) out.warnings.push(`${name}: amounts in ${fx.currency} were kept as they are (no exchange rate available).`);
   return out;
 }
 
@@ -352,5 +392,8 @@ export function summarize(charges: Charge[], _periodEnd?: Date | null): ServiceS
       annual: annual || !!guess?.annual,
       source: list.some((c) => c.source === "invoice") ? "invoice" : "bank",
     } satisfies ServiceSpend;
-  }).sort((a, b) => b.monthlyEur - a.monthlyEur);
+  })
+    // Servizi con sole note di credito (totale ≤ 0): nessuna spesa da mostrare.
+    .filter((s) => s.total > 0)
+    .sort((a, b) => b.monthlyEur - a.monthlyEur);
 }

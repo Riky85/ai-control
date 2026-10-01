@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { MicButton, useVoice } from "./Voice";
+import { MicButton, useVoice, VOICE_ENABLED } from "./Voice";
 import CommandReply, { type CommandReplyData } from "./CommandReply";
 
 interface Msg {
@@ -104,7 +104,7 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
               <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
                 {messages.length === 0 && (
                   <div className="flex flex-col gap-2">
-                    <p className="text-sm text-ink-400">Ask about your AI, costs and savings, give an instruction (“block DeepSeek”), or ask how to do something.{voice.supported ? " You can also speak." : ""}</p>
+                    <p className="text-sm text-ink-400">Ask about your AI, costs and savings, give an instruction (“block DeepSeek”), or ask how to do something.{VOICE_ENABLED && voice.supported ? " You can also speak." : ""}</p>
                     {voice.error && <p className="text-xs text-alarm">{voice.error}</p>}
                     {SUGGESTIONS.map((s) => (
                       <button key={s} onClick={() => ask(s)} className="text-left text-sm text-ink-100 border border-line rounded-lg px-3 py-2 hover:bg-ink-100/[0.03] transition-colors">

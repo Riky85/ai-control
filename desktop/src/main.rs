@@ -3,7 +3,8 @@
 // Tells the company which AI tools are used at work, without a browser
 // extension: it reads (locally) the browser history of Chrome, Edge, Brave,
 // Arc, Vivaldi, Opera, Firefox and Safari, the running AI desktop apps and the
-// AI extensions installed in code editors. Everything is matched on this
+// AI extensions installed in code editors, plus the MCP servers configured in
+// AI apps and editors (names only, never keys). Everything is matched on this
 // computer against the public angar catalog: only AI service names, visits
 // and minutes leave the machine — never URLs, pages, prompts or other browsing.
 #![cfg_attr(windows, windows_subsystem = "windows")]
@@ -12,6 +13,7 @@ mod config;
 mod detect;
 mod gui;
 mod install;
+mod mcp;
 mod ui;
 
 use config::{Config, DEFAULT_SERVER};
@@ -23,6 +25,8 @@ const SYNC_EVERY: Duration = Duration::from_secs(30 * 60);
 const SAMPLE_EVERY: Duration = Duration::from_secs(60);
 /// On the first sync, look back this far so the dashboard fills up at once.
 const FIRST_LOOKBACK_MS: i64 = 30 * 24 * 3600 * 1000;
+/// Server MCP configurati: al primo invio e poi una volta al giorno.
+const MCP_EVERY: Duration = Duration::from_secs(24 * 3600);
 
 pub fn now_ms() -> i64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as i64).unwrap_or(0)
@@ -216,8 +220,10 @@ fn main() {
         let usage = Usage::default();
         let since = cfg.last_sync_ms.unwrap_or(now_ms() - FIRST_LOOKBACK_MS);
         let findings = detect::scan(&catalog, since, &usage);
+        let mcp = mcp::scan();
         println!("{}", serde_json::to_string_pretty(&findings).unwrap_or_default());
-        match send(&cfg, &findings) {
+        println!("mcp: {}", serde_json::to_string_pretty(&mcp).unwrap_or_default());
+        match send(&cfg, &findings, Some(&mcp)) {
             Ok(r) => {
                 println!("sent: {r}");
                 cfg.last_sync_ms = Some(now_ms());
@@ -313,9 +319,9 @@ fn device_name() -> String {
     format!("Desktop app · {host}")
 }
 
-fn send(cfg: &Config, findings: &[detect::Finding]) -> Result<String, String> {
+fn send(cfg: &Config, findings: &[detect::Finding], mcp: Option<&[mcp::McpServer]>) -> Result<String, String> {
     let token = cfg.token.as_deref().ok_or("not linked to a company")?;
-    let body = serde_json::json!({
+    let mut body = serde_json::json!({
         "user": cfg.email,
         "device": device_name(),
         "source": "desktop",
@@ -326,6 +332,10 @@ fn send(cfg: &Config, findings: &[detect::Finding]) -> Result<String, String> {
         // Da quando manda i dati: se l'azienda ha azzerato angar dopo, il server chiede di rimandarli.
         "since": cfg.last_sync_ms,
     });
+    // Solo quando sono stati letti (una volta al giorno): i server più vecchi ignorano il campo.
+    if let Some(list) = mcp {
+        body["mcp"] = serde_json::to_value(list).unwrap_or_default();
+    }
     let r = agent()
         .post(&format!("{}/api/discovery/usage", cfg.server))
         .set("Authorization", &format!("Bearer {token}"))
@@ -357,6 +367,7 @@ fn run_loop(mut cfg: Config) {
     let mut catalog = Catalog::fetch_or_cached(&cfg);
     let mut catalog_at = Instant::now();
     let mut usage = Usage::default();
+    let mut mcp_at: Option<Instant> = None;
     // First sync two minutes after start (not during login rush), then every 30 minutes.
     let mut next_sync = Instant::now() + Duration::from_secs(120);
     loop {
@@ -369,8 +380,12 @@ fn run_loop(mut cfg: Config) {
             let started = now_ms();
             let since = cfg.last_sync_ms.unwrap_or(started - FIRST_LOOKBACK_MS);
             let findings = detect::scan(&catalog, since, &usage);
+            let mcp = if mcp_at.map_or(true, |t| t.elapsed() >= MCP_EVERY) { Some(mcp::scan()) } else { None };
             // Always send (also empty): it tells the company the computer is still connected.
-            let reply = send(&cfg, &findings);
+            let reply = send(&cfg, &findings, mcp.as_deref());
+            if reply.is_ok() && mcp.is_some() {
+                mcp_at = Some(Instant::now());
+            }
             let ok = reply.is_ok();
             let mut resync = false;
             if let Ok(body) = &reply {

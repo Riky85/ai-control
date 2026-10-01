@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { planLabel, TRIAL_PLAN } from "@/lib/plans";
 import { getPlanState, assetsOverLimit, assetManageable } from "@/lib/plan-gate";
 
 /**
@@ -44,7 +45,7 @@ export default async function PlanBanner({ orgId }: { orgId: string }) {
     <div className={`print:hidden border-b border-line px-4 py-2 text-sm flex flex-wrap items-center justify-center gap-x-3 gap-y-1 ${urgent ? "bg-signal/10" : "bg-sidebar"}`}>
       {state.trialing ? (
         <span className="text-ink-100">
-          Growth trial · <b className="tabular">{state.trialDaysLeft}</b> day{state.trialDaysLeft === 1 ? "" : "s"} left
+          {planLabel(TRIAL_PLAN)} trial · <b className="tabular">{state.trialDaysLeft}</b> day{state.trialDaysLeft === 1 ? "" : "s"} left
           {state.trialEndsAt && <span className="text-ink-400"> (until {fmtDate(state.trialEndsAt)})</span>}
         </span>
       ) : (

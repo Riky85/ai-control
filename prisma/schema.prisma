@@ -268,12 +268,20 @@ model Lead {
   savings     Float?
   aiCount     Int?
   summary     Json?
+  // Da dove arriva: "check" (Spend Check), "partner" (commercialisti / MSP), "pilot" (aziende pilota).
+  kind        String   @default("check")
+  name        String?
+  country     String?
+  phone       String?
+  message     String?
+  clients     Int?     // partner: numero di clienti seguiti
   createdAt   DateTime @default(now())
   // Doppio opt-in: il report parte solo dopo il clic sul link di conferma (hash del token).
   confirmTokenHash String?   @unique
   confirmedAt      DateTime?
 
   @@index([createdAt])
+  @@index([kind, createdAt])
 }
 
 // Un computer su cui è installata l'app desktop angar. Serve a mostrare, sulla

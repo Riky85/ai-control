@@ -8,7 +8,7 @@
  * in un unico posto, indipendente da come ciascun provider espone i dati.
  */
 
-import type { AiAssetType, ConnectorProvider, Connector as ConnectorRow } from "@prisma/client";
+import type { AiAssetType, ConnectorProvider, DataSensitivity, Connector as ConnectorRow } from "@prisma/client";
 
 export interface ObservedUser {
   email: string;
@@ -47,6 +47,8 @@ export interface ObservedAsset {
   costBasis?: string;
   seats?: number;
   planId?: string;
+  /** Dati che l'asset può raggiungere (es. server MCP: email, codice): letti dal risk engine. */
+  dataAccess?: { name: string; sensitivity: DataSensitivity }[];
   /** Asset trovati per caso (rete, log): partono "da rivedere". Default: sì. */
   needsReview?: boolean;
 }

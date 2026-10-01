@@ -42,8 +42,10 @@ export async function loadAssets(organizationId: string, opts: { includeRejected
 }
 
 /** Servizio del catalogo: dal campo salvato, altrimenti dal nome. */
-export function serviceOf(a: { serviceId: string | null; name: string; vendor: string | null }) {
+export function serviceOf(a: { serviceId: string | null; name: string; vendor: string | null; type?: string }) {
   if (a.serviceId) return a.serviceId;
+  // Un server MCP ("GitHub MCP", "Notion MCP") non è un abbonamento AI: niente listino né stime.
+  if (a.type === "MCP_SERVER") return null;
   const byName = AI_SERVICES.find((s) => s.name.toLowerCase() === a.name.toLowerCase());
   return byName?.id ?? matchMerchant(`${a.name} ${a.vendor ?? ""}`);
 }
@@ -55,7 +57,7 @@ export const categoryOf = (a: { serviceId: string | null; name: string; vendor: 
 
 /** Costo mensile: reale se c'è, altrimenti stima da utenti × listino. */
 export function monthlyOf(
-  a: Pick<AssetForSavings, "cost" | "serviceId" | "name" | "vendor"> & { usages: readonly unknown[] }
+  a: Pick<AssetForSavings, "cost" | "serviceId" | "name" | "vendor"> & { usages: readonly unknown[]; type?: string }
 ): { eur: number; estimated: boolean } | null {
   if (a.cost?.monthlyCostEstimate != null) return { eur: a.cost.monthlyCostEstimate, estimated: a.cost.basis === "estimate" };
   const s = serviceOf(a);

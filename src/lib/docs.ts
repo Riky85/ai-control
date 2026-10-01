@@ -3,6 +3,8 @@
  * l'assistente "Ask docs". Formato del corpo: righe normali = paragrafi,
  * "## " = sottotitolo, "- " = elenco puntato, "1. " = passi numerati.
  */
+import { PARTNER, SUCCESS_FEE } from "@/lib/plans";
+
 export interface DocArticle {
   slug: string;
   section: string;
@@ -56,12 +58,17 @@ Nothing else is required: no costs to type, no owners to assign. Invite colleagu
     section: "Connect",
     title: "Bank statements and e-invoices",
     summary: "Drop a bank or card export or your e-invoices: angar finds every AI you pay for, with plan, seats and real cost.",
-    keywords: ["bank", "statement", "estratto conto", "card", "invoice", "fattura", "td17", "xml", "p7m", "zip", "accounting", "datev", "cost", "costs"],
+    keywords: ["bank", "statement", "estratto conto", "card", "invoice", "fattura", "td17", "xml", "p7m", "zip", "pdf", "peppol", "ubl", "xrechnung", "zugferd", "factur-x", "ehf", "e-rechnung", "credit note", "accounting", "datev", "cost", "costs"],
     body: `## Upload files
 1. Export the statement from your bank or card as CSV or Excel. Three months is ideal.
 2. Drop it on Overview or in Connect → Sources. Several files at once are fine.
 3. angar keeps only the AI charges (OpenAI, Claude, Cursor, Copilot, Perplexity…) and discards everything else.
-Italian e-invoices: drop the FatturaPA XML or .p7m files, or the zip from your accountant. Foreign AI subscriptions appear as TD17 self-invoices.
+## E-invoices
+Drop e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X) as XML, PDF or the zip from your accountant — any mix works. The format is recognised from the content.
+- Italy: FatturaPA XML or .p7m. Foreign AI subscriptions appear as TD17 self-invoices.
+- Peppol, EHF, Svefaktura, XRechnung: UBL or CII XML.
+- ZUGFeRD and Factur-X: the PDF itself — angar reads the XML inside it. A PDF without e-invoice data is not read here: use Read a contract (PDF) or upload the bank statement.
+Invoices from resellers keep only the AI lines. Credit notes reduce the cost. Amounts in USD, GBP, CHF, SEK, NOK, DKK, PLN or CZK are converted to EUR (approximate rates outside USD).
 ## Or connect once
 In Connect → Sources: Bank account (read-only, renewed every 90 days), Accounting software (DATEV, Pennylane, Exact, Sage, Xero…) or Fatture in Cloud. New charges then arrive by themselves.
 ## How cost is calculated
@@ -111,7 +118,7 @@ To add a single AI, use "Add one manually" in the same place.`,
     section: "Connect",
     title: "The desktop app",
     summary: "One install on each computer: angar sees which AI each person uses — in every browser and app — and for how long.",
-    keywords: ["desktop", "app", "install", "download", "agent", "computer", "shadow", "usage", "silent", "intune", "jamf", "uninstall", "windows", "mac", "linux", "resync"],
+    keywords: ["desktop", "app", "install", "download", "agent", "computer", "shadow", "usage", "silent", "intune", "jamf", "uninstall", "windows", "mac", "linux", "resync", "mcp", "mcp server", "agents"],
     body: `The desktop app finds the AI people really use, including AI nobody pays for through the company.
 ## Install it
 1. Open Connect → Desktop app and download it for Windows, macOS or Linux. The file is already linked to your company.
@@ -120,6 +127,9 @@ To add a single AI, use "Add one manually" in the same place.`,
 ## What it sends
 - Only AI tool names and the minutes spent on each, each day — e.g. "ChatGPT, 40 minutes".
 - Never URLs, pages, prompts, messages or files.
+## AI agents and MCP servers
+It also lists MCP servers configured on the computer — names only, never keys. From version 0.5.6, once a day, it reads the MCP settings of Claude Desktop, Claude Code, Cursor, VS Code, Windsurf and Zed and sends the server name, the app, and the package or the web address host (e.g. "GitHub MCP in Cursor"). Never tokens, passwords, environment values, headers or file paths.
+Each server appears in To review and in Governance → AI agents & MCP servers, with the data it can reach (code, email, files, databases, payments…), how many computers and people have it, and an Approve / Not allowed decision.
 ## For IT
 Silent install: run it as the signed-in user with --silent --email-domain yourcompany.com. Commands for Intune, Jamf and scripts are on the Desktop app page. Uninstall with angar --uninstall.
 After you reset workspace data, the app sends its history again by itself.`,
@@ -139,7 +149,7 @@ After you reset workspace data, the app sends its history again by itself.`,
 Connect → angar Edge → add a sensor and follow the steps; the page shows when the sensor reports.
 ## What it adds
 Blocks AI you mark "Not allowed" at DNS level, finds servers and scripts calling AI APIs directly, local models (Ollama, LM Studio) and large uploads to non-approved AI.
-Software and cloud logs are included from Growth; each device is billed monthly.`,
+Software and cloud logs are included from the Save plan; each device is billed monthly.`,
   },
 
   {
@@ -269,26 +279,45 @@ Click the workspace name at the top of the sidebar to switch or create one. Each
     slug: "plans",
     section: "Account & plans",
     title: "Plans",
-    summary: "Free, Starter, Growth, Scale and Enterprise — and how to upgrade.",
-    keywords: ["plan", "plans", "pricing", "price", "billing", "upgrade", "subscription", "starter", "growth", "scale", "enterprise", "invoice", "trial"],
-    body: `- Free: 5 AI, 1 connection, 1 member.
-- Starter — €79/month: 30 AI, 3 connections, 3 members.
-- Growth — €249/month: 250 AI, unlimited connections, 15 members, 3 workspaces, angar Edge software.
-- Scale — €599/month: unlimited AI, 50 members, 10 workspaces.
+    summary: "Discover, Save, Govern and Enterprise — and how to upgrade.",
+    keywords: ["plan", "plans", "pricing", "price", "billing", "upgrade", "subscription", "discover", "save", "govern", "free", "starter", "growth", "scale", "enterprise", "invoice", "trial", "success fee"],
+    body: `- Discover — free: 5 AI, 1 connection, 1 member.
+- Save — €249/month: 250 AI, unlimited connections, 15 members, 3 workspaces, savings verified on the next bank charges, angar Edge software. Or, instead of the fixed fee, ${SUCCESS_FEE.pct}% of the savings angar verifies on your bills — nothing if there are none (talk to us).
+- Govern — €599/month: unlimited AI, Compliance included (AI Act evidence pack), 50 members, 10 workspaces.
 - Enterprise: custom.
-Upgrade from Plan & billing (account menu). Yearly billing is cheaper. Payments by Stripe; prices exclude VAT.`,
+New workspaces start with a 14-day Save trial. Workspaces already on Starter keep it. Upgrade from Plan & billing (account menu). Yearly billing is cheaper. Payments by Stripe; prices exclude VAT.`,
+  },
+  {
+    slug: "partners",
+    section: "Account & plans",
+    title: "For accountants and IT partners",
+    summary: "Accountants, tax advisers and MSPs / IT providers manage many clients from one console, with a partner discount.",
+    keywords: ["partner", "partners", "accountant", "accountants", "commercialista", "steuerberater", "bookkeeper", "tax adviser", "msp", "it provider", "reseller", "discount", "revenue share", "clients", "programme", "pilot"],
+    body: `angar works well for firms that already handle their clients' e-invoices and bank statements: it finds the AI spend in them and shows each client where to save.
+## How to join
+Apply at /partners (English, Italiano, Deutsch, Français, Español). We reply within two working days.
+## What partners get
+- Partner console (account menu): every client workspace in one place, with AI spend, possible savings and what to review.
+- ${PARTNER.discountPct}% off every licence and angar Edge device — or, if you prefer not to resell, a recurring share of what referred clients pay.
+- Your brand on client reports: coming soon.
+## Working with clients
+1. Create a workspace for each client from the Partner console.
+2. Drop the client's e-invoices (FatturaPA, Peppol / UBL, XRechnung, ZUGFeRD, Factur-X) and bank or card statements.
+3. Share the results; savings are verified on the next bank charges.
+Companies that want to try angar directly can apply to the pilot programme at /pilot.`,
   },
   {
     slug: "security",
     section: "Account & plans",
     title: "Security and privacy",
     summary: "Read-only access, keys encrypted at rest, never the content of what people write.",
-    keywords: ["security", "encryption", "privacy", "gdpr", "safe", "keys", "data", "employees", "works council", "betriebsrat", "statuto"],
+    keywords: ["security", "encryption", "privacy", "gdpr", "safe", "keys", "data", "employees", "works council", "betriebsrat", "statuto", "trust", "dpa", "dpia", "sub-processors", "subprocessors", "iso 27001", "cse", "accordo sindacale"],
     body: `- Every source is read-only: angar never changes anything in your providers.
 - Keys are encrypted at rest (AES-256-GCM) and deleted on Disconnect.
 - angar stores names, models, owners, costs and minutes of use — never prompts, messages, pages or files.
-- Employee privacy (Settings → Privacy): show usage by person, by department (groups of 5+) or as company totals only.
-- Card details stay with Stripe.`,
+- Employee privacy (Settings → Privacy): show usage by person, by department (groups of 5+) or as company totals only. New workspaces start by department.
+- Card details stay with Stripe.
+- Where data lives, sub-processors, the DPA, a DPIA template and works council templates: [Trust Center](/trust).`,
   },
 ];
 

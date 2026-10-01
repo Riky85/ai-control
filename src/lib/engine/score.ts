@@ -275,6 +275,8 @@ export async function loadScoreFacts(orgId: string, now = new Date()): Promise<S
   let shadow = 0;
   let trainsOnData = 0;
   for (const a of active) {
+    // I server MCP non sono AI a pagamento: fuori da spesa, account personali e addestramento sui dati.
+    if (a.type === "MCP_SERVER") continue;
     const m = monthlyOf(a);
     const plan = a.cost?.planId ? PLANS.find((p) => p.id === a.cost!.planId) : undefined;
     const tier = planTier({ type: a.type, planBusiness: plan ? plan.business : null, paidByCompany: !!m && m.eur > 0 && !m.estimated });

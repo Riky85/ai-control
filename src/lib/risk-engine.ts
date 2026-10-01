@@ -58,7 +58,8 @@ export function assessAssetRisk(asset: AssetWithGraph): RiskResult {
   }
 
   // Capacita' agentica: tipo AI_AGENT / AI_DEV_TOOL con evidenza di azioni di scrittura
-  const isAgentic = asset.type === "AI_AGENT" || asset.type === "AI_DEV_TOOL";
+  // Un server MCP dà a un agente AI strumenti per agire su altri sistemi.
+  const isAgentic = asset.type === "AI_AGENT" || asset.type === "AI_DEV_TOOL" || asset.type === "MCP_SERVER";
   const hasWriteActivity = asset.activities.some((a) => WRITE_EVENT_PATTERN.test(a.eventType));
   if (isAgentic && hasWriteActivity) {
     score += 20;

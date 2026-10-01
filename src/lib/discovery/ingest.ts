@@ -6,6 +6,7 @@ import { notifyNewAi } from "@/lib/chat-actions";
 import type { ObservedAsset } from "@/lib/connectors/types";
 import { AI_SERVICES, matchApp, matchDomain, registrable, resolveCandidateDomain, type AiService } from "./catalog";
 import { identitiesFor } from "./pseudonym";
+import { mcpIdentity, REACH_DATA, type McpServerIn } from "./mcp-catalog";
 
 export interface Finding {
   // "candidate" / "candidate_app": sembra un'AI ma non è nel catalogo (solo app desktop).
@@ -66,7 +67,14 @@ function candidateService(kind: "candidate" | "candidate_app", raw: string): AiS
  * Trasforma ciò che lo scanner (o un log) ha visto in sistemi AI.
  * Tutto ciò che arriva da qui parte "da rivedere": nessuno lo ha dichiarato.
  */
-export async function ingestFindings(organizationId: string, device: string, findings: Finding[], userEmail?: string | null, source: "extension" | "desktop" | "scanner" | "edge" = "extension") {
+export async function ingestFindings(
+  organizationId: string,
+  device: string,
+  findings: Finding[],
+  userEmail?: string | null,
+  source: "extension" | "desktop" | "scanner" | "edge" = "extension",
+  mcp: McpServerIn[] = []
+) {
   // Una riga di attività per AI e per giorno: così "giorni attivi" è vero
   // anche quando l'app desktop manda in una volta gli ultimi 30 giorni.
   type Day = { hits: number; minutes: number; evidence: Set<string>; last?: Date };
@@ -113,6 +121,8 @@ export async function ingestFindings(organizationId: string, device: string, fin
   // niente nome del computer (il nome host spesso è il nome della persona).
   const ids = await identitiesFor(organizationId);
   const who = userEmail ? ids.person(userEmail) : null;
+  // Il computer per contare "su quanti computer": in "per persona" il nome, altrimenti un nome host offuscato.
+  const computer = computerRef(device, ids);
   if (!ids.people) device = privateDevice(device, ids.host);
   const assets: ObservedAsset[] = [...byService.values()].map(({ svc, days, candidate }) => ({
     externalId: `net:${svc.id}`,
@@ -132,19 +142,64 @@ export async function ingestFindings(organizationId: string, device: string, fin
     })),
   }));
 
+  const mcpAssets = mcpObserved(mcp, { device, computer, who });
+
   const connector = await db.connector.upsert({
     where: { organizationId_provider: { organizationId, provider: "NETWORK" } },
     update: {},
     create: { organizationId, provider: "NETWORK", status: "CONNECTED", scopes: ["discovery"] },
   });
   const since = new Date();
-  await persistSyncResult(organizationId, connector.id, { provider: "NETWORK", assets, syncedAt: new Date(), warnings: [] });
+  await persistSyncResult(organizationId, connector.id, { provider: "NETWORK", assets: [...assets, ...mcpAssets], syncedAt: new Date(), warnings: [] });
   await cleanupCandidateAssets(organizationId).catch(() => 0);
   await recordInventorySnapshot(organizationId);
   // AI appena comparse: webhook "ai.discovered" + messaggio Slack/Teams con i pulsanti (mai bloccante).
   const fresh = await db.aiAsset.findMany({ where: { organizationId, connectorId: connector.id, deletedAt: null, status: "UNKNOWN", createdAt: { gte: since } }, select: { id: true, name: true, vendor: true }, take: 50 });
   if (fresh.length) notifyNewAi(organizationId, fresh);
+  // Solo le AI (non i server MCP): servono agli avvisi "non approvata" e al conteggio sul computer.
   return assets.map((a) => a.name);
+}
+
+function computerRef(device: string, ids: { people: boolean; host: (h: string) => string }) {
+  const i = device.indexOf("·");
+  if (i < 0) return ids.people ? device : ids.host(device);
+  const host = device.slice(i + 1).trim();
+  return `${device.slice(0, i).trim()} · ${ids.people ? host : ids.host(host)}`.slice(0, 120);
+}
+
+/**
+ * Server MCP configurati sul computer → un asset MCP_SERVER per servizio (stesso
+ * GitHub MCP in Cursor e in Claude Desktop = un solo asset), con le app che lo
+ * usano, chi ce l'ha (stessa privacy dell'uso delle AI) e i dati che può raggiungere.
+ */
+export function mcpObserved(mcp: McpServerIn[], ctx: { device: string; computer: string; who: string | null }): ObservedAsset[] {
+  const byId = new Map<string, { id: ReturnType<typeof mcpIdentity>; clients: Set<string>; transports: Set<string>; names: Set<string> }>();
+  for (const s of mcp.slice(0, 200)) {
+    const id = mcpIdentity(s);
+    const cur = byId.get(id.externalId) ?? { id, clients: new Set<string>(), transports: new Set<string>(), names: new Set<string>() };
+    cur.clients.add(s.client);
+    cur.transports.add(s.transport);
+    cur.names.add(s.name);
+    byId.set(id.externalId, cur);
+  }
+  const now = new Date();
+  return [...byId.values()].map(({ id, clients, transports, names }) => ({
+    externalId: id.externalId,
+    type: "MCP_SERVER" as const,
+    name: id.name,
+    vendor: id.vendor,
+    connectedSystems: [{ system: "Seen on", detail: ctx.device.slice(0, 120) }, ...[...clients].map((c) => ({ system: "Client app", detail: c }))],
+    users: ctx.who ? [{ email: ctx.who }] : [],
+    activities: [
+      {
+        eventType: "mcp.configured",
+        actorRef: (ctx.who ?? ctx.device).slice(0, 120),
+        occurredAt: now,
+        payload: { device: ctx.device, computer: ctx.computer, clients: [...clients], transports: [...transports], servers: [...names].slice(0, 10) },
+      },
+    ],
+    dataAccess: (id.service?.reach ?? []).map((r) => REACH_DATA[r]),
+  }));
 }
 
 /**

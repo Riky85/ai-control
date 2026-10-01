@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ingestFindings, type Finding } from "@/lib/discovery/ingest";
+import { cleanMcpServer, type McpServerIn } from "@/lib/discovery/mcp-catalog";
 import { recordDesktopDevice, cleanIps } from "@/lib/discovery/devices";
 import { authUsageToken, bindDesktopToken, touchDesktopToken } from "@/lib/discovery/desktop-tokens";
 import { identitiesFor, pseudonymFor } from "@/lib/discovery/pseudonym";
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
   const { org, desktopToken } = auth;
   const raw = await req.text();
   if (raw.length > 500_000) return NextResponse.json({ error: "Too much data." }, { status: 413 });
-  let body: { user?: string | null; findings?: Finding[]; source?: string; device?: string; os?: string; version?: string; ips?: unknown; since?: unknown };
+  let body: { user?: string | null; findings?: Finding[]; source?: string; device?: string; os?: string; version?: string; ips?: unknown; since?: unknown; mcp?: unknown };
   try {
     body = JSON.parse(raw);
   } catch {
@@ -45,7 +46,9 @@ export async function POST(req: Request) {
   const kinds = desktop ? ["domain", "app", "candidate", "candidate_app"] : ["domain"];
   const findings = (Array.isArray(body.findings) ? body.findings : []).filter((f) => f && kinds.includes(f.kind)).slice(0, 2000);
   const device = desktop ? (typeof body.device === "string" && body.device.trim() ? body.device.trim().slice(0, 120) : "Desktop app") : "Browser extension";
-  const systems = await ingestFindings(org.id, device, findings, email, desktop ? "desktop" : "extension");
+  // Server MCP configurati sul computer (app desktop 0.5.6+, una volta al giorno): solo nomi, mai chiavi.
+  const mcp = desktop && Array.isArray(body.mcp) ? body.mcp.slice(0, 200).map(cleanMcpServer).filter((s): s is McpServerIn => !!s) : [];
+  const systems = await ingestFindings(org.id, device, findings, email, desktop ? "desktop" : "extension", mcp);
 
   // Privacy nel database: fuori da "per persona" il computer si salva con lo
   // pseudonimo della persona e un nome host offuscato.

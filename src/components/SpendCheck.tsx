@@ -28,10 +28,8 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
     <div className="flex flex-col gap-10">
       <div className="text-center max-w-2xl mx-auto">
         <div className="text-xs font-medium text-accent uppercase tracking-wide">Free AI Spend Check</div>
-        <h1 className="font-display text-[30px] sm:text-[40px] leading-[1.1] font-semibold tracking-tight text-ink-100 mt-3">How much does your company really spend on AI?</h1>
-        <p className="text-base text-ink-400 mt-3">
-          Drop a bank or card statement. In a few seconds you see every AI subscription, the plan and seats you pay for, and where you overpay. No account needed — the file is read in memory and never stored.
-        </p>
+        <h1 className="font-display text-[28px] sm:text-[38px] leading-[1.12] font-semibold tracking-tight text-ink-100 mt-3 text-balance">Drop your e-invoices and bank statement — in 10 minutes see what you spend on AI and where to save.</h1>
+        <p className="text-base text-ink-400 mt-3">No account needed. Files are read in memory and never stored.</p>
       </div>
 
       <form
@@ -42,13 +40,13 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
           <svg width="20" height="20" viewBox="0 0 18 18" fill="none" className="text-ink-400 shrink-0">
             <path d="M9 12V3M5.5 6.5L9 3l3.5 3.5M3 12.5v1A1.5 1.5 0 004.5 15h9a1.5 1.5 0 001.5-1.5v-1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="text-sm truncate">{names ? <span className="text-ink-100 font-medium">{names}</span> : <span className="text-ink-400">Drop CSV / Excel statements or e-invoices (XML, zip)</span>}</span>
+          <span className="text-sm truncate">{names ? <span className="text-ink-100 font-medium">{names}</span> : <span className="text-ink-400">Drop CSV / Excel statements or e-invoices (XML, PDF, zip)</span>}</span>
           <input
             name="file"
             type="file"
             multiple
             required
-            accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.p7m,.zip"
+            accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.p7m,.zip,.pdf"
             onChange={(e) => {
               const f = e.target.files;
               setNames(!f?.length ? "" : f.length === 1 ? f[0].name : `${f.length} files`);
@@ -57,6 +55,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
           />
         </label>
         <button disabled={pending} className="btn btn-primary disabled:opacity-60">{pending ? "Reading…" : "Check my AI spend"}</button>
+        <p className="text-xs text-ink-400">Bank or card exports, or e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X).</p>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-ink-400">
           <span>Only AI lines are looked at. Nothing is saved.</span>
           <a href="/api/spend/sample" className="underline hover:text-ink-100">Try a sample statement</a>

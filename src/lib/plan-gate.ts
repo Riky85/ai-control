@@ -98,7 +98,7 @@ export function countConnections(orgId: string, exceptProvider?: ConnectorProvid
 export async function planGate(orgId: string, key: GateKey, opts: { adding?: number; provider?: ConnectorProvider } = {}): Promise<GateResult> {
   const state = await getPlanState(orgId);
   const plan = planById(state.effectivePlan);
-  const who = state.expired ? "Your trial has ended and the Free plan" : `The ${plan.name} plan`;
+  const who = state.expired ? "Your trial has ended and the Discover plan" : `The ${plan.displayName} plan`;
   if (key === "aiSystems") {
     const limit = plan.limits.aiSystems;
     if (limit === null) return { ok: true, state };

@@ -224,7 +224,7 @@ export function RecordsCard({ links }: { links: RecordLink[] }) {
             <>
               <span className="min-w-0">
                 <span className="block text-sm text-ink-100 group-hover:underline truncate">{l.label}</span>
-                <span className="block text-xs text-ink-400 truncate">{l.locked ? "Available on Growth" : l.tag}</span>
+                <span className="block text-xs text-ink-400 truncate">{l.locked ? "Available on Save" : l.tag}</span>
               </span>
               <span className="text-ink-400 group-hover:text-ink-100 shrink-0" aria-hidden>
                 {l.locked ? <LockIcon /> : l.download ? "↓" : "→"}

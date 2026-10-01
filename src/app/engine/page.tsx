@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Wordmark } from "@/components/Logo";
+import PublicHeader from "@/components/PublicHeader";
 import { currentSession } from "@/lib/auth";
 import { networkStats } from "@/lib/engine/price-index";
 import ScoreRing from "@/components/engine/ScoreRing";
@@ -77,17 +77,7 @@ export default async function EnginePage() {
   return (
     <div className={signedIn ? "" : "min-h-screen bg-panel overflow-x-clip"}>
       {!signedIn && (
-        <header className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 flex items-center justify-between gap-3">
-          <a href="/check" className="text-ink-100 shrink-0" aria-label="angar">
-            <Wordmark size={20} />
-          </a>
-          <nav className="flex items-center gap-3 sm:gap-5 text-sm">
-            <a href="#how" className="text-ink-400 hover:text-ink-100 hidden md:inline">How it works</a>
-            <a href="/pricing" className="text-ink-400 hover:text-ink-100 hidden sm:inline">Pricing</a>
-            <a href="/login" className="text-ink-400 hover:text-ink-100">Sign in</a>
-            <a href="/signup" className="btn btn-primary btn-sm">Start free</a>
-          </nav>
-        </header>
+        <PublicHeader active="engine" />
       )}
 
       <main className={`${signedIn ? "" : "max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-20"} flex flex-col gap-20 sm:gap-24`}>

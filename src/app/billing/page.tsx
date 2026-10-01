@@ -41,10 +41,10 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
   const org = state.org;
   const current = planById(state.effectivePlan);
   const planTitle = state.trialing
-    ? `${current.name} trial`
+    ? `${current.displayName} trial`
     : state.expired
       ? "Free limits"
-      : `${planById(org.plan).name} plan`;
+      : `${planById(org.plan).displayName} plan`;
   const planSubtitle = state.trialing
     ? `${state.trialDaysLeft} day${state.trialDaysLeft === 1 ? "" : "s"} left · ends ${fmtDate(state.trialEndsAt)} · then Free limits`
     : state.expired

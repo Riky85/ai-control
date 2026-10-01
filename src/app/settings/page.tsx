@@ -99,9 +99,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
             <Row title="Appearance">
               <ThemeSelect initial={parseTheme(cookies().get(THEME_COOKIE)?.value)} />
             </Row>
-            <Row title="Voice" hint="Speak to angar anywhere in the platform.">
-              <VoiceSetting initial={parseVoiceMode(cookies().get(VOICE_COOKIE)?.value)} />
-            </Row>
+            {/* Comandi vocali in pausa: la riga torna solo con NEXT_PUBLIC_ANGAR_VOICE=1. */}
+            {process.env.NEXT_PUBLIC_ANGAR_VOICE === "1" && (
+              <Row title="Voice" hint="Speak to angar anywhere in the platform.">
+                <VoiceSetting initial={parseVoiceMode(cookies().get(VOICE_COOKIE)?.value)} />
+              </Row>
+            )}
           </Section>
         </>
       )}
@@ -124,13 +127,20 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
                     </label>
                   ))}
                 </fieldset>
+                <p className="text-xs text-ink-400 leading-relaxed">
+                  New workspaces start <span className="text-ink-100">By department</span>. Before switching to <span className="text-ink-100">By person</span>, give staff the employee notice — and in Italy, Germany, France and Spain, agree it with the works council or unions first (templates in the{" "}
+                  <Link href="/trust#documents" className="underline hover:text-ink-100">Trust Center</Link>).
+                </p>
                 <div className="flex items-center justify-end gap-3">
                   <button className="btn btn-secondary btn-sm" disabled={!isAdmin}>Save</button>
                 </div>
               </form>
             </Row>
-            <Row title="Employee notice" hint="Hand it out before you start (EN · IT · DE).">
+            <Row title="Employee notice" hint="Hand it out before you start (EN · IT · DE · FR · ES).">
               <Link href="/compliance/employee-notice" className="btn btn-secondary btn-sm">Open →</Link>
+            </Row>
+            <Row title="Trust Center" hint="Where data lives, sub-processors, DPA and agreement templates.">
+              <Link href="/trust" className="btn btn-secondary btn-sm">How we protect your data →</Link>
             </Row>
             {!showsPeople(privacy) && role === "OWNER" && (
               <Row title="Past data" hint="Swap names already collected for pseudonyms. Can't be undone.">
