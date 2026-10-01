@@ -75,7 +75,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
           <div className="rounded-xl border border-line bg-panel overflow-x-auto">
             <table className="w-full min-w-[520px] text-sm">
               <thead>
-                <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line bar-head">
+                <tr className="text-left text-xs text-ink-400 bg-ink border-b border-line bar-thead">
                   <th className="px-5 py-2.5 font-medium">AI</th>
                   <th className="px-5 py-2.5 font-medium">Category</th>
                   <th className="px-5 py-2.5 font-medium">Looks like</th>

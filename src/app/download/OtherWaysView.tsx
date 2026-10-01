@@ -36,7 +36,7 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
           <p className="text-xs text-ink-400 mt-0.5">For computers where you can&apos;t install apps (e.g. Chromebooks): a Chrome/Edge extension that reports the AI websites each person opens.</p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-xl border border-line p-5 flex flex-col gap-3">
+          <div className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
             <div className="text-sm font-semibold text-ink-100">Try it on this computer</div>
             <ol className="text-sm text-ink-400 flex flex-col gap-2">
               <li><span className="text-ink-100">1.</span> Download it — it&apos;s already connected to {org?.name}.</li>
@@ -45,7 +45,7 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
             </ol>
             {canEdit && <a href="/api/extension/download" className="btn btn-primary self-start mt-auto">Download extension</a>}
           </div>
-          <div className="rounded-xl border border-line p-5 flex flex-col gap-3">
+          <div className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
             <div className="text-sm font-semibold text-ink-100">Everyone in the company</div>
             <p className="text-sm text-ink-400">Send this link to your team. Each person installs the extension and opens the link: it connects by itself, they only type their work email.</p>
             <div className="flex items-center gap-2">

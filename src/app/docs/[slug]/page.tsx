@@ -45,13 +45,13 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
         </div>
         <div className="grid grid-cols-2 gap-4 mt-8 print:hidden">
           {prev ? (
-            <Link href={`/docs/${prev.slug}`} className="rounded-xl border border-line p-4 hover:border-ink-400 transition-colors">
+            <Link href={`/docs/${prev.slug}`} className="rounded-xl border border-line bg-panel p-4 hover:border-ink-400 transition-colors">
               <div className="text-xs text-ink-400">Previous</div>
               <div className="text-sm font-medium text-ink-100">{prev.title}</div>
             </Link>
           ) : <span />}
           {next && (
-            <Link href={`/docs/${next.slug}`} className="rounded-xl border border-line p-4 text-right hover:border-ink-400 transition-colors">
+            <Link href={`/docs/${next.slug}`} className="rounded-xl border border-line bg-panel p-4 text-right hover:border-ink-400 transition-colors">
               <div className="text-xs text-ink-400">Next</div>
               <div className="text-sm font-medium text-ink-100">{next.title}</div>
             </Link>

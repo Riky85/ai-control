@@ -101,10 +101,10 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
 
       <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ink rounded-b-2xl px-5 py-3 text-sm bar-foot">
         {top ? (
-          <Link href={top.href} className="flex-1 min-w-0 flex items-baseline gap-2 group">
-            <span className="text-ink-400 shrink-0">Top way to improve</span>
-            <span className="text-ink-100 truncate group-hover:underline">{top.label}</span>
-            <span className="tabular text-accent font-medium shrink-0">+{formatPts(-top.scoreImpact)} pts</span>
+          <Link href={top.href} className="flex-1 min-w-0 flex flex-wrap sm:flex-nowrap items-baseline gap-x-2 gap-y-0.5 group">
+            <span className="text-ink-400 shrink-0 hidden sm:inline">Top way to improve</span>
+            <span className="text-ink-100 min-w-0 sm:truncate group-hover:underline">{top.label}</span>
+            <span className="tabular text-accent font-medium shrink-0">+{formatPts(Math.abs(top.scoreImpact))} pts</span>
           </Link>
         ) : (
           <span className="flex-1 text-ink-400">Nothing to fix right now.</span>

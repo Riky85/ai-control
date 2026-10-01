@@ -40,7 +40,7 @@ export default function TrustPage() {
           </p>
         </div>
 
-        <dl className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line rounded-xl border border-line overflow-hidden">
+        <dl className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line rounded-xl border border-line bg-panel overflow-hidden">
           <Fact term="Hosted in the EU" detail={`${HOSTING.provider}, ${HOSTING.region} — the Netherlands`} />
           <Fact term="No content, ever" detail="Never prompts, chats, files, URLs or keystrokes" />
           <Fact term="Private by default" detail={`New workspaces show department totals for groups of ${MIN_GROUP}+`} />
@@ -74,7 +74,7 @@ export default function TrustPage() {
         </Section>
 
         <Section id="eu-only" title="EU-only mode" lead="What stays in the EU, what doesn't, and how to turn it on.">
-          <div className="rounded-xl border border-line px-4 sm:px-5 py-3.5">
+          <div className="rounded-xl border border-line bg-panel px-4 sm:px-5 py-3.5">
             <div className="text-sm font-medium text-ink-100">This deployment: EU-only mode {euOn ? "on" : "off"}</div>
             <p className="text-sm text-ink-400 mt-1 leading-relaxed">
               {aiText} {mailText}
@@ -95,7 +95,7 @@ export default function TrustPage() {
             </div>
           </div>
           <h3 className="text-sm font-semibold text-ink-100 mt-8 mb-3">Turn it on</h3>
-          <div className="rounded-xl border border-line divide-y divide-line">
+          <div className="rounded-xl border border-line bg-panel divide-y divide-line">
             {EU_ONLY.turnOn.map((t) => (
               <div key={t.who} className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-1 md:gap-6 px-4 sm:px-5 py-3.5">
                 <div className="text-sm font-medium text-ink-100">{t.who}</div>
@@ -106,7 +106,7 @@ export default function TrustPage() {
         </Section>
 
         <Section id="collect" title="What angar collects" lead="Only what is needed to count AI tools, use and cost.">
-          <div className="rounded-xl border border-line divide-y divide-line">
+          <div className="rounded-xl border border-line bg-panel divide-y divide-line">
             {COLLECTED.map((c) => (
               <div key={c.source} className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-1 md:gap-6 px-4 sm:px-5 py-3.5">
                 <div className="text-sm font-medium text-ink-100">{c.source}</div>
@@ -164,7 +164,7 @@ export default function TrustPage() {
         </Section>
 
         <Section id="certifications" title="Certifications" lead="Where we stand, honestly.">
-          <div className="rounded-xl border border-line divide-y divide-line">
+          <div className="rounded-xl border border-line bg-panel divide-y divide-line">
             {ROADMAP.map((r) => (
               <div key={r.title} className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-6 px-4 sm:px-5 py-3.5">
                 <div className="sm:w-[220px] shrink-0 text-sm font-medium text-ink-100">{r.title}</div>
@@ -176,7 +176,7 @@ export default function TrustPage() {
         </Section>
 
         <Section id="documents" title="Documents" lead="Open, fill in the highlighted parts, then print or save as PDF.">
-          <div className="rounded-xl border border-line divide-y divide-line">
+          <div className="rounded-xl border border-line bg-panel divide-y divide-line">
             {TRUST_DOCS.map((d) => (
               <Link key={d.slug} href={`/trust/docs/${d.slug}`} className="group flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 px-4 sm:px-5 py-4 hover:bg-ink-100/[0.03] transition-colors">
                 <div className="flex-1 min-w-0">
@@ -245,7 +245,7 @@ function SubTable({ title, rows, className = "" }: { title: string; rows: typeof
     <div className={className}>
       <h3 className="text-sm font-semibold text-ink-100 mb-3">{title}</h3>
       {/* Desktop: tabella; mobile: righe impilate. */}
-      <div className="hidden md:block rounded-xl border border-line overflow-hidden">
+      <div className="hidden md:block rounded-xl border border-line bg-panel overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-ink-400 border-b border-line">
@@ -270,7 +270,7 @@ function SubTable({ title, rows, className = "" }: { title: string; rows: typeof
           </tbody>
         </table>
       </div>
-      <div className="md:hidden rounded-xl border border-line divide-y divide-line">
+      <div className="md:hidden rounded-xl border border-line bg-panel divide-y divide-line">
         {rows.map((s) => (
           <div key={s.name} className="px-4 py-3">
             <div className="text-sm font-medium text-ink-100">{s.name}</div>

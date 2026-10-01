@@ -103,7 +103,7 @@ function dpiaEn(): TrustDoc {
             ["Use of the data to monitor or evaluate individual performance (function creep)", `Purpose limitation in the notice and the works council agreement; aggregated mode by default (groups of ${MIN_GROUP}+); no productivity metrics in the product; administrator actions recorded in a tamper-evident audit log.`, "Low", "High"],
             ["Identification of a person in a small team", `k-anonymity: groups under ${MIN_GROUP} people merged or suppressed; counts under ${MIN_GROUP} masked; pseudonyms instead of emails.`, "Low", "Medium"],
             ["Collection of content or sensitive information", "No content is collected by design; history is matched on the device; only AI service names are sent.", "Low", "High"],
-            ["Unauthorised access to the data", "Encryption in transit; SSO and two-step verification (can be mandatory); roles; read-only connectors; credentials encrypted with AES-256-GCM; audit log.", "Low", "Medium"],
+            ["Unauthorised access to the data", "Encryption in transit; SSO and two-step verification (can be mandatory); roles; connectors read by default, changes only after admin approval; credentials encrypted with AES-256-GCM; audit log.", "Low", "Medium"],
             ["Data kept longer than needed", `Automatic deletion after ${m} months.`, "Low", "Low"],
             ["Employees unaware of the processing", "Employee notice before installation; the app shows a welcome screen when it is set up; the works council is involved.", "Low", "Medium"],
             ["Switching to per-person mode without safeguards", "Mode change limited to administrators and recorded in the audit log; this DPIA and the employee notice to be updated first.", "[[ ]]", "Medium"],

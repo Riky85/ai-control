@@ -12,7 +12,7 @@ export default async function DesktopDevices({ organizationId, compact = false }
   if (devices.length === 0) {
     if (compact) return null;
     return (
-      <div className="rounded-xl border border-dashed border-line p-6 text-center">
+      <div className="rounded-xl border border-dashed border-line bg-panel p-6 text-center">
         <p className="text-sm text-ink-400">No computer has the app yet. Download it above and open it — this computer will show up here within a couple of minutes.</p>
       </div>
     );

@@ -110,7 +110,7 @@ export default function PoliciesSection({ policies, templates, canEdit, libraryT
               <summary className="cursor-pointer list-none text-sm font-medium text-ink-100 inline-flex items-center gap-1.5 select-none">
                 <Chevron /> Add from the library <span className="text-ink-400 font-normal tabular">· {templates.length}</span>
               </summary>
-              <ul className="mt-3 rounded-xl border border-line divide-y divide-line">
+              <ul className="mt-3 rounded-xl border border-line bg-panel divide-y divide-line">
                 {templates.map((t) => (
                   <li key={t.name} className="px-4 py-3 flex items-center justify-between gap-4">
                     <div className="min-w-0">
@@ -141,7 +141,7 @@ export default function PoliciesSection({ policies, templates, canEdit, libraryT
             <summary className="cursor-pointer list-none text-sm font-medium text-ink-100 inline-flex items-center gap-1.5 select-none">
               <Chevron /> Write a custom policy
             </summary>
-            <form action={createPolicyAction} className="mt-3 rounded-xl border border-line p-4 flex flex-col gap-3">
+            <form action={createPolicyAction} className="mt-3 rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-ink-400">Name</label>
                 <input name="name" required placeholder="e.g. Agents cannot create discounts above 20%" className="field" />

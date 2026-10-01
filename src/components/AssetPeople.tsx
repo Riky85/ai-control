@@ -73,7 +73,7 @@ export default async function AssetPeople({
             </form>
           </div>
         )}
-        {reminded && <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">Sent to {reminded} {reminded === "1" ? "person" : "people"}.</div>}
+        {reminded && <div className="rounded-xl border border-line bg-panel dark:bg-ink px-4 py-3 text-sm text-ink-100">Sent to {reminded} {reminded === "1" ? "person" : "people"}.</div>}
         {removed && <Notice tone="success">{removed}</Notice>}
         {errorBox}
         {isAdmin && support?.mode === "api" && (

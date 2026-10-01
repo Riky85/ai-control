@@ -8,7 +8,7 @@ import { MIN_GROUP, type PrivacyMode } from "@/lib/privacy";
 export default function PrivacyNotice({ mode, what }: { mode: PrivacyMode; what?: string }) {
   if (mode === "individual") return null;
   return (
-    <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100 flex items-start gap-3">
+    <div className="rounded-xl border border-line bg-panel dark:bg-ink px-4 py-3 text-sm text-ink-100 flex items-start gap-3">
       <span aria-hidden className="mt-0.5 text-ink-400">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="4" y="11" width="16" height="10" rx="2" />

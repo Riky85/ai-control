@@ -66,7 +66,7 @@ export default async function AlertsPage() {
         </>
       )}
       {alerts.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line p-10 text-center">
+        <div className="rounded-xl border border-dashed border-line bg-panel p-10 text-center">
           <h2 className="text-base font-semibold text-ink-100">Nothing needs your attention</h2>
           <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">angar checks every morning for renewals in the next 14 days, budgets over 80%, AI that isn&apos;t allowed being used, and seats nobody needs. Alerts appear here and, if you connect Slack or Teams in Settings, there too.</p>
         </div>

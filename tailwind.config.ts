@@ -14,6 +14,7 @@ const config: Config = {
           400: "rgb(var(--c-muted) / <alpha-value>)",
         },
         panel: "rgb(var(--c-panel) / <alpha-value>)",
+        canvas: "rgb(var(--c-canvas) / <alpha-value>)",
         line: "rgb(var(--c-line) / <alpha-value>)",
         accent: {
           DEFAULT: "#FF7323",

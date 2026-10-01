@@ -87,7 +87,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       <AssetLimitNotice orgId={orgId} />
 
       {(searchParams.connected || searchParams.imported || searchParams.spend) && (
-        <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100">
+        <div className="rounded-xl border border-line bg-panel dark:bg-ink px-4 py-3 text-sm text-ink-100">
           {searchParams.spend ? (
             <><b>{searchParams.spend} AI service{searchParams.spend === "1" ? "" : "s"} found in your files.</b> Costs, plans and seats are filled in below.</>
           ) : searchParams.connected ? (

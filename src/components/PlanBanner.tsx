@@ -11,7 +11,7 @@ export async function AssetLimitNotice({ orgId, assetId }: { orgId: string; asse
     const g = await assetManageable(orgId, assetId);
     if (g.ok) return null;
     return (
-      <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="rounded-xl border border-line bg-panel dark:bg-ink px-4 py-3 text-sm text-ink-100 flex flex-wrap items-center gap-x-3 gap-y-2">
         <span>This AI system is beyond your plan&apos;s {g.limit} — you can see it, but not change it. Upgrade to manage more than {g.limit}.</span>
         <Link href="/billing" className="btn btn-secondary btn-sm">Choose a plan</Link>
       </div>
@@ -20,7 +20,7 @@ export async function AssetLimitNotice({ orgId, assetId }: { orgId: string; asse
   const { over, limit, total } = await assetsOverLimit(orgId);
   if (!over) return null;
   return (
-    <div className="rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <div className="rounded-xl border border-line bg-panel dark:bg-ink px-4 py-3 text-sm text-ink-100 flex flex-wrap items-center gap-x-3 gap-y-2">
       <span>
         angar found <b className="tabular">{total}</b> AI systems; your plan manages the first {limit}. The other {over} stay visible but read-only — upgrade to manage more than {limit}.
       </span>

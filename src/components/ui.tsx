@@ -235,7 +235,7 @@ export const td = "px-5 py-3";
  */
 export function Tabs({ items, active }: { items: { key: string; label: string; href: string; count?: number }[]; active: string }) {
   return (
-    <div className="inline-flex gap-1 bg-ink rounded-lg p-1 w-fit max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="inline-flex gap-1 bg-ink-100/[0.06] dark:bg-ink rounded-lg p-1 w-fit max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {items.map((t) => (
         <Link
           key={t.key}
@@ -256,7 +256,7 @@ export function Tabs({ items, active }: { items: { key: string; label: string; h
 const NOTICE_TONE = {
   error: "rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm",
   success: "rounded-xl bg-steady/10 px-4 py-3 text-sm text-steady",
-  info: "rounded-xl border border-line bg-ink px-4 py-3 text-sm text-ink-100",
+  info: "rounded-xl border border-line bg-panel dark:bg-ink px-4 py-3 text-sm text-ink-100",
 } as const;
 
 export function Notice({ tone = "info", children }: { tone?: "info" | "error" | "success"; children: React.ReactNode }) {

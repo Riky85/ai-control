@@ -221,7 +221,7 @@ export default async function ConnectorsPage({
       {COMING_SOON.map((g) => (
         <Section key={g.group} title={g.group} subtitle="Coming soon — needs an admin sign-in flow we haven't built yet. Use Import meanwhile.">
           {g.items.map((i) => (
-            <div key={i.label} className="rounded-xl border border-dashed border-line p-4 flex items-center gap-3">
+            <div key={i.label} className="rounded-xl border border-dashed border-line bg-panel p-4 flex items-center gap-3">
               <VendorBadge vendor={i.vendor} name={i.label} size={32} />
               <span className="text-sm text-ink-400 flex-1">{i.label}</span>
               <span className="text-[11px] text-ink-400 border border-line rounded-full px-2 py-0.5">Soon</span>

@@ -6,7 +6,9 @@
    (bg-ink-100/[0.04] ecc.). Scuro come Exa: contenuto #151515. */
 :root {
   color-scheme: light;
-  --c-subtle: 246 246 248;
+  --c-subtle: 240 241 244;
+  /* Sfondo dell'area contenuti: grigio chiarissimo nel chiaro, le card restano bianche. */
+  --c-canvas: 245 246 248;
   --c-text: 20 20 24;
   --c-muted: 95 95 105;
   --c-panel: 255 255 255;
@@ -39,6 +41,7 @@ html.dark,
   --c-text: 237 237 239;
   --c-muted: 156 160 168;
   --c-panel: 32 35 39;
+  --c-canvas: 32 35 39;
   --c-line: 52 56 61;
   --c-accent-soft: 46 30 20;
   --c-signal: 250 204 21;
@@ -150,5 +153,13 @@ body {
 
 /* Niente fasce grigie su blocchi e tabelle (scelta del proprietario): le barre restano, senza sfondo. */
 .bar-head,
-.bar-foot,
-.bar-thead { background-color: transparent !important; }
+.bar-foot { background-color: transparent !important; }
+/* Tema scuro: nessuna fascia nemmeno sulla riga delle colonne.
+   Tema chiaro: la riga delle colonne resta grigia (una sola fascia, sopra). */
+html.dark .bar-thead,
+.force-dark .bar-thead { background-color: transparent !important; }
+
+/* Tema chiaro: le card bianche sul fondo grigio hanno un'ombra appena percettibile (niente nel tema scuro). */
+html:not(.dark) :where(.rounded-xl, .rounded-2xl).bg-panel.border-line:not(.force-dark *):not([class*="shadow"]) {
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}

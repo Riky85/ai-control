@@ -137,8 +137,8 @@ export const EU_ONLY = {
 /** Cosa raccoglie angar, per fonte. */
 export const COLLECTED: { source: string; text: string }[] = [
   { source: "Bank statements and e-invoices", text: "Only the lines recognised as AI services: date, amount, description and service. Every other transaction is dropped while the file is read; the file itself is not stored." },
-  { source: "Company accounts (Microsoft 365, Google Workspace)", text: "Read-only: people (name, work email, department) and which AI apps they signed in to or connected, with dates." },
-  { source: "AI provider admin keys", text: "Read-only: seats, usage and cost reported by the provider." },
+  { source: "Company accounts (Microsoft 365, Google Workspace)", text: "People (name, work email, department) and which AI apps they signed in to or connected, with dates. Licences change only after an admin approves it." },
+  { source: "AI provider admin keys", text: "Seats, usage and cost reported by the provider. Unused seats are removed only after an admin approves it." },
   { source: "Desktop app", text: "The name of each AI tool used, minutes of use per day, the computer's name, operating system and work email. Browser history is matched on the computer; only AI service names leave it." },
   { source: "Browser extension", text: "The names of AI websites visited, per day. Never URLs, page titles or content." },
   { source: "angar Edge (network sensor)", text: "Which AI services are contacted, connection counts per device and, if you turn on firewall logs, bytes sent. Never URLs or content." },
@@ -192,7 +192,7 @@ export const MEASURES: MeasureGroup[] = [
       "Signed, HTTP-only session cookies (HMAC-SHA256), Secure in production.",
       "Roles per workspace: Owner, Admin, Editor, Viewer. Workspace membership is checked on every request.",
       "Rate limiting on sign-in, sign-up and two-step verification.",
-      "Every source is read-only: angar never changes anything in your providers.",
+      "Sources are read by default. angar changes something in a provider only when an admin approves it: removing unused seats or opening a ticket in Jira or ServiceNow, each one recorded in the audit log.",
     ],
   },
   {
