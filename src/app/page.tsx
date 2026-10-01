@@ -113,7 +113,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
           </div>
           <form action={uploadSpendAction} className="w-full max-w-xl flex flex-col gap-3">
             <input type="hidden" name="back" value="/" />
-            <CsvDropzone accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.p7m,.zip,.pdf" multiple label="Drop your bank statement or invoices here" />
+            <CsvDropzone accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.xsig,.p7m,.zip,.pdf" multiple label="Drop your bank statement or invoices here" />
             <button className="btn btn-primary">Show my AI spend</button>
           </form>
           <div className="flex items-center gap-4 text-sm text-ink-400">

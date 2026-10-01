@@ -26,6 +26,9 @@ export interface SubProcessor {
   /** Sempre attivo sul cloud, oppure solo se il cliente lo collega / lo usa. */
   when: "always" | "optional";
   whenText: string;
+  /** Uso in modalità solo UE (ANGAR_EU_ONLY=1): sempre, mai, o solo se il cliente lo collega. */
+  euOnly: "used" | "not-used" | "optional";
+  euOnlyText: string;
 }
 
 export const SUB_PROCESSORS: SubProcessor[] = [
@@ -36,14 +39,18 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     location: `EU — ${HOSTING.region} region, ${HOSTING.country}`,
     when: "always",
     whenText: "Always (cloud edition)",
+    euOnly: "used",
+    euOnlyText: "Used — EU region only",
   },
   {
     name: "Stripe",
     purpose: "Subscription billing and payments",
-    data: "Billing contact, company name, VAT number, payment status. Card details are entered on Stripe and never reach angar.",
-    location: "EU entity (Ireland); may process outside the EEA under SCCs / EU–US Data Privacy Framework",
+    data: "Billing details only: billing contact, company name, VAT number, billing address and payment status, plus an opaque account reference and the plan chosen. Card details are entered on Stripe and never reach angar. No workspace data is sent to Stripe.",
+    location: "Ireland entity; transfers outside the EEA under SCCs",
     when: "always",
     whenText: "When you subscribe to a paid plan",
+    euOnly: "used",
+    euOnlyText: "Used for billing details only — no workspace data",
   },
   {
     name: "Resend",
@@ -51,7 +58,9 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     data: "Recipient work email and the content of the email",
     location: "May process outside the EEA under SCCs / EU–US Data Privacy Framework",
     when: "always",
-    whenText: "Always (cloud edition)",
+    whenText: "Cloud edition, unless the deployment sends email through its own SMTP server (SMTP_URL)",
+    euOnly: "not-used",
+    euOnlyText: "Not used — email goes only through the deployment's SMTP server",
   },
   {
     name: "Anthropic",
@@ -59,7 +68,9 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     data: "Your question, a summary of workspace figures, or the text of the uploaded contract. Under Anthropic's commercial terms, API data is not used to train models.",
     location: "May process outside the EEA under SCCs / EU–US Data Privacy Framework",
     when: "optional",
-    whenText: "Only when the assistant is enabled on the platform and you use it. Never in the on-premises edition.",
+    whenText: "Only when the assistant is enabled on the platform and you use it. Never in the on-premises edition, in EU-only mode, or in a workspace that keeps AI answers inside the EU.",
+    euOnly: "not-used",
+    euOnlyText: "Not used — AI answers are off",
   },
   {
     name: "Enable Banking",
@@ -68,6 +79,8 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     location: "EU (Finland)",
     when: "optional",
     whenText: "Only if you connect it",
+    euOnly: "optional",
+    euOnlyText: "Only if you connect it — EU",
   },
   {
     name: "Chift",
@@ -76,6 +89,8 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     location: "EU (Belgium)",
     when: "optional",
     whenText: "Only if you connect it",
+    euOnly: "optional",
+    euOnlyText: "Only if you connect it — EU",
   },
   {
     name: "Fatture in Cloud (TeamSystem)",
@@ -84,6 +99,8 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     location: "EU (Italy)",
     when: "optional",
     whenText: "Only if you connect it",
+    euOnly: "optional",
+    euOnlyText: "Only if you connect it — EU",
   },
   {
     name: "GitHub",
@@ -92,8 +109,30 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     location: "May process outside the EEA under SCCs / EU–US Data Privacy Framework",
     when: "optional",
     whenText: "Only if you connect it",
+    euOnly: "optional",
+    euOnlyText: "Not blocked — only if you connect it; outside the EEA",
   },
 ];
+
+/**
+ * Modalità solo UE: cosa resta nell'UE, cosa no, come si attiva. Solo ciò che
+ * il codice impone (eu-only.ts, mail.ts, assistant.ts, contract-actions.ts).
+ */
+export const EU_ONLY = {
+  stays: [
+    `Workspace data is stored and processed in the EU: ${HOSTING.provider}, ${HOSTING.region} region, ${HOSTING.country}.`,
+    "AI answers are off: nothing is sent to Anthropic — not your questions, not workspace figures, not uploaded contracts. The assistant answers from the documentation, and contracts are read by built-in rules.",
+    "Email (sign-in links, invitations, alerts, reports) goes only through the SMTP server set for the deployment, for example Brevo or Mailjet, both in France. Resend is never used; without an SMTP server, email stays off.",
+  ],
+  outside: [
+    "Billing details are handled by Stripe (Ireland entity, transfers under SCCs); no workspace data is sent to Stripe.",
+    "Services you connect yourself — Microsoft 365, Google Workspace, GitHub, your AI providers, Slack, Microsoft Teams — exchange data with angar wherever they run. EU-only mode does not block them: connect only the ones you accept.",
+  ],
+  turnOn: [
+    { who: "Self-hosted and on-premises", text: "Set ANGAR_EU_ONLY=1, SMTP_URL (for example smtps://user:password@smtp-relay.brevo.com:465) and EMAIL_FROM, then restart. It applies to every workspace on the server." },
+    { who: "Any workspace", text: "Settings → Privacy → Keep AI answers inside the EU. It turns off AI answers for your workspace only; how email is sent is set for the whole deployment." },
+  ],
+};
 
 /** Cosa raccoglie angar, per fonte. */
 export const COLLECTED: { source: string; text: string }[] = [
@@ -175,7 +214,15 @@ export const MEASURES: MeasureGroup[] = [
     title: "On-premises edition",
     items: [
       "The whole service can run on a server in your own network (Docker Compose): data never leaves it.",
-      "No billing, no assistant calls with workspace data and no external sub-processors other than the connectors you choose.",
+      "No billing, no calls to the AI assistant and no external sub-processors other than the connectors you choose.",
+    ],
+  },
+  {
+    title: "EU-only mode",
+    items: [
+      "With ANGAR_EU_ONLY=1 the deployment never calls Anthropic: the assistant answers from the documentation and contracts are read by built-in rules.",
+      "With ANGAR_EU_ONLY=1 email is never sent through Resend: only through the SMTP server set in SMTP_URL, or not at all.",
+      "Each workspace can keep AI answers inside the EU (Settings → Privacy); angar then makes no calls to Anthropic with that workspace's data. The change is recorded in the audit log.",
     ],
   },
 ];

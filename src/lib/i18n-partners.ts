@@ -692,4 +692,4 @@ export const PILOT: Record<Lang, PilotCopy> = {
 };
 
 /** Formati letti da angar, mostrati come etichette (nomi propri: uguali in ogni lingua). */
-export const E_INVOICE_FORMATS = ["FatturaPA", "Peppol / UBL", "XRechnung", "ZUGFeRD", "Factur-X"];
+export const E_INVOICE_FORMATS = ["FatturaPA", "Peppol / UBL", "XRechnung", "ZUGFeRD", "Factur-X", "Facturae"];

@@ -2,7 +2,7 @@ import { currentSession } from "@/lib/auth";
 import { rateLimit, retryAfter } from "@/lib/rate-limit";
 import { runCommand, workspaceBrief } from "@/lib/command";
 import { docsAnswer } from "@/lib/assistant";
-import { isOnPrem } from "@/lib/edition";
+import { aiAnswersAllowed } from "@/lib/eu-only";
 import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ const RATE = { limit: 120, windowMs: 3_600_000 };
  * Comandi e domande (scritti o a voce) dalla ricerca e dal pannello di aiuto.
  * Prima le regole sui dati del workspace; se non capiscono, la documentazione
  * (con Claude, se configurato, che vede anche un riassunto numerico del workspace —
- * mai sull'edizione on-premises, dove nulla esce dal server).
+ * mai sull'edizione on-premises né in modalità solo UE, del deployment o del workspace).
  */
 export async function POST(req: Request) {
   const s = currentSession();
@@ -30,7 +30,9 @@ export async function POST(req: Request) {
   const r = await runCommand(s.orgId, q);
   if (r.handled) return Response.json({ ...r, mode: "data" });
 
-  const brief = process.env.ANTHROPIC_API_KEY && !isOnPrem() ? await workspaceBrief(s.orgId) : undefined;
-  const d = await docsAnswer(q, history, brief);
+  // Claude solo se permesso (non on-prem, modalità solo UE spenta): altrimenti ricerca negli articoli.
+  const ai = await aiAnswersAllowed(s.orgId);
+  const brief = ai ? await workspaceBrief(s.orgId) : undefined;
+  const d = await docsAnswer(q, history, brief, ai);
   return Response.json({ handled: true, answer: d.answer, sources: d.sources, mode: d.mode });
 }

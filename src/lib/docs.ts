@@ -58,15 +58,16 @@ Nothing else is required: no costs to type, no owners to assign. Invite colleagu
     section: "Connect",
     title: "Bank statements and e-invoices",
     summary: "Drop a bank or card export or your e-invoices: angar finds every AI you pay for, with plan, seats and real cost.",
-    keywords: ["bank", "statement", "estratto conto", "card", "invoice", "fattura", "td17", "xml", "p7m", "zip", "pdf", "peppol", "ubl", "xrechnung", "zugferd", "factur-x", "ehf", "e-rechnung", "credit note", "accounting", "datev", "cost", "costs"],
+    keywords: ["bank", "statement", "estratto conto", "card", "invoice", "fattura", "td17", "xml", "p7m", "zip", "pdf", "peppol", "ubl", "xrechnung", "zugferd", "factur-x", "facturae", "xsig", "ehf", "e-rechnung", "credit note", "accounting", "datev", "cost", "costs"],
     body: `## Upload files
 1. Export the statement from your bank or card as CSV or Excel. Three months is ideal.
 2. Drop it on Overview or in Connect → Sources. Several files at once are fine.
 3. angar keeps only the AI charges (OpenAI, Claude, Cursor, Copilot, Perplexity…) and discards everything else.
 ## E-invoices
-Drop e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X) as XML, PDF or the zip from your accountant — any mix works. The format is recognised from the content.
+Drop e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X, Facturae) as XML, PDF or the zip from your accountant — any mix works. The format is recognised from the content.
 - Italy: FatturaPA XML or .p7m. Foreign AI subscriptions appear as TD17 self-invoices.
 - Peppol, EHF, Svefaktura, XRechnung: UBL or CII XML.
+- Spain: Facturae 3.2, 3.2.1 or 3.2.2 as XML, signed or not (.xsig too). Files with several invoices are fine; corrective invoices with negative totals count as credit notes.
 - ZUGFeRD and Factur-X: the PDF itself — angar reads the XML inside it. A PDF without e-invoice data is not read here: use Read a contract (PDF) or upload the bank statement.
 Invoices from resellers keep only the AI lines. Credit notes reduce the cost. Amounts in USD, GBP, CHF, SEK, NOK, DKK, PLN or CZK are converted to EUR (approximate rates outside USD).
 ## Or connect once
@@ -178,6 +179,8 @@ Software and cloud logs are included from the Save plan; each device is billed m
 - Update: run the same install command again. Settings and data are kept.
 - Backup: docker compose exec -T db pg_dump -U angar angar > backup.sql (in /opt/angar).
 - Settings (address, port, keys) are in /opt/angar/.env.
+- Email: add SMTP_URL (e.g. smtps://user:password@smtp-relay.brevo.com:465) and EMAIL_FROM to .env, then run the install command again. Any SMTP server works, including EU providers such as Brevo or Mailjet.
+- EU-only mode: add ANGAR_EU_ONLY=1 to .env and run the install command again.
 ## Good to know
 Internet is used only to download updates and the desktop app. Bank, Microsoft 365 and Google connections work only if the server can reach them. Available on Enterprise.`,
   },
@@ -316,7 +319,7 @@ Apply at /partners (English, Italiano, Deutsch, Français, Español). We reply w
 - Your brand on client reports: coming soon.
 ## Working with clients
 1. Create a workspace for each client from the Partner console.
-2. Drop the client's e-invoices (FatturaPA, Peppol / UBL, XRechnung, ZUGFeRD, Factur-X) and bank or card statements.
+2. Drop the client's e-invoices (FatturaPA, Peppol / UBL, XRechnung, ZUGFeRD, Factur-X, Facturae) and bank or card statements.
 3. Share the results; savings are verified on the next bank charges.
 Companies that want to try angar directly can apply to the pilot programme at /pilot.`,
   },
@@ -325,12 +328,14 @@ Companies that want to try angar directly can apply to the pilot programme at /p
     section: "Account & plans",
     title: "Security and privacy",
     summary: "Read-only access, keys encrypted at rest, never the content of what people write.",
-    keywords: ["security", "encryption", "privacy", "gdpr", "safe", "keys", "data", "employees", "works council", "betriebsrat", "statuto", "trust", "dpa", "dpia", "sub-processors", "subprocessors", "iso 27001", "cse", "accordo sindacale"],
+    keywords: ["security", "encryption", "privacy", "gdpr", "safe", "keys", "data", "employees", "works council", "betriebsrat", "statuto", "trust", "dpa", "dpia", "sub-processors", "subprocessors", "iso 27001", "cse", "accordo sindacale", "eu-only", "eu only", "smtp", "brevo", "mailjet", "data transfers"],
     body: `- Every source is read-only: angar never changes anything in your providers.
 - Keys are encrypted at rest (AES-256-GCM) and deleted on Disconnect.
 - angar stores names, models, owners, costs and minutes of use — never prompts, messages, pages or files.
 - Employee privacy (Settings → Privacy): show usage by person, by department (groups of 5+) or as company totals only. New workspaces start by department.
 - Card details stay with Stripe.
+- Keep AI answers inside the EU (Settings → Privacy): nothing from your workspace goes to Anthropic. The assistant answers from the documentation and contracts are read by rules.
+- EU-only mode for a whole deployment: set ANGAR_EU_ONLY=1 and send email through your own SMTP server (SMTP_URL), for example Brevo or Mailjet, both in France. Resend and AI answers are then never used.
 - Where data lives, sub-processors, the DPA, a DPIA template and works council templates: [Trust Center](/trust).`,
   },
 ];

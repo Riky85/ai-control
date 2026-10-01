@@ -108,7 +108,22 @@ Create a client secret and set `MS365_CLIENT_ID`, `MS365_CLIENT_SECRET` on Railw
 ## Monthly report
 
 `POST /api/report/cron` with `Authorization: Bearer $REPORT_TOKEN` (falls back to `BACKUP_TOKEN`) emails the monthly AI
-report to owners and admins of every workspace. Schedule it once a month (e.g. `0 7 1 * *`). Needs `RESEND_API_KEY` and `EMAIL_FROM`.
+report to owners and admins of every workspace. Schedule it once a month (e.g. `0 7 1 * *`). Needs email: `EMAIL_FROM` plus `SMTP_URL` or `RESEND_API_KEY`.
+
+## Email and EU-only mode
+
+Email (sign-in links, invitations, alerts, reports) needs `EMAIL_FROM` and one transport:
+
+- `SMTP_URL`, e.g. `smtps://user:password@smtp.example.eu:465` — sent with nodemailer through any SMTP server.
+  To keep email in the EU, use an EU provider with an EU SMTP endpoint, e.g. **Brevo** (France,
+  `smtp-relay.brevo.com`) or **Mailjet** (France, `in-v3.mailjet.com`).
+- otherwise `RESEND_API_KEY` (Resend, sub-processor outside the EEA under SCCs / DPF).
+
+`ANGAR_EU_ONLY=1` turns on EU-only mode for the whole deployment: no calls to Anthropic (the assistant answers
+from the docs, contracts are read by rules) and Resend is never used (email only through `SMTP_URL`, otherwise off).
+Each workspace can also turn off AI answers on its own in *Settings → Privacy → Keep AI answers inside the EU*.
+The Trust Center shows "This deployment: EU-only mode on/off" from the environment at render time.
+Billing stays on Stripe (Ireland entity, SCCs): only billing details, an opaque workspace id and the plan go there.
 
 ## Fatture in Cloud (automatic invoices, Italy)
 

@@ -10,6 +10,7 @@
 # Optional env: ANGAR_DIR (default /opt/angar), ANGAR_PORT (default 8080),
 # ANGAR_URL (address people use, default http://<this machine's IP>:<port>),
 # ANGAR_IMAGE, ANGAR_EDGE_IMAGE, ANGAR_INSTALL_DOCKER=0 (never install Docker).
+# Email and EU-only mode: add SMTP_URL, EMAIL_FROM and ANGAR_EU_ONLY=1 to .env, then run again.
 set -eu
 
 DIR="${ANGAR_DIR:-/opt/angar}"
@@ -53,6 +54,11 @@ POSTGRES_PASSWORD=$(secret)
 SESSION_SECRET=$(secret)
 CREDENTIALS_SECRET=$(secret)
 ANGAR_EDGE_TOKEN=
+# Email (optional): your own SMTP server, e.g. an EU provider such as Brevo or Mailjet (France).
+# SMTP_URL=smtps://user:password@smtp-relay.brevo.com:465
+# EMAIL_FROM=angar <noreply@yourcompany.com>
+# EU-only mode (optional): never use Resend or AI answers.
+# ANGAR_EU_ONLY=1
 EOF
   say "Settings saved in $DIR/.env"
 fi
@@ -96,6 +102,9 @@ services:
       SESSION_SECRET: ${SESSION_SECRET}
       CREDENTIALS_SECRET: ${CREDENTIALS_SECRET}
       ANGAR_ONPREM: "1"
+      SMTP_URL: ${SMTP_URL:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      ANGAR_EU_ONLY: ${ANGAR_EU_ONLY:-}
   edge:
     image: ${ANGAR_EDGE_IMAGE}
     profiles: ["edge"]

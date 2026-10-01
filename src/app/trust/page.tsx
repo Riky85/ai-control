@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { currentSession } from "@/lib/auth";
-import { COLLECTED, HOSTING, MEASURES, MIN_GROUP, NEVER_COLLECTED, ROADMAP, SUB_PROCESSORS, USAGE_RETENTION_MONTHS } from "@/lib/trust";
+import { COLLECTED, EU_ONLY, HOSTING, MEASURES, MIN_GROUP, NEVER_COLLECTED, ROADMAP, SUB_PROCESSORS, USAGE_RETENTION_MONTHS } from "@/lib/trust";
+import { aiAnswersAvailable, euOnlyDeployment } from "@/lib/eu-only";
+import { emailTransport } from "@/lib/mail";
 import { PRIVACY_MODES } from "@/lib/privacy";
 import { TRUST_DOCS } from "@/lib/trust-docs";
 import { TrustFooter, TrustHeader, TRUST_REVIEWED } from "@/components/trust/TrustChrome";
@@ -19,6 +21,11 @@ export default function TrustPage() {
   const signedIn = !!currentSession();
   const always = SUB_PROCESSORS.filter((s) => s.when === "always");
   const optional = SUB_PROCESSORS.filter((s) => s.when === "optional");
+  // Stato reale di questo deployment, letto dall'ambiente a ogni richiesta: mai dichiarare più di così.
+  const euOn = euOnlyDeployment();
+  const mail = emailTransport();
+  const mailText = mail === "smtp" ? "Email goes through this deployment's own SMTP server." : mail === "resend" ? "Email is sent through Resend." : "Email is not set up.";
+  const aiText = euOn ? "AI answers are off: nothing is sent to Anthropic." : aiAnswersAvailable() ? "AI answers are available; any workspace can keep them inside the EU from Settings → Privacy." : "AI answers are not offered on this deployment.";
 
   return (
     <div className={signedIn ? "" : "min-h-screen bg-panel"}>
@@ -43,6 +50,7 @@ export default function TrustPage() {
         <nav aria-label="On this page" className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm">
           {[
             ["#data", "Where data lives"],
+            ["#eu-only", "EU-only mode"],
             ["#collect", "What we collect"],
             ["#privacy", "Employee privacy"],
             ["#security", "Security"],
@@ -63,6 +71,38 @@ export default function TrustPage() {
               Prefer to keep everything in-house? The <b className="font-medium">on-premises edition</b> runs the same software on a server in your network, and data never leaves it.
             </li>
           </ul>
+        </Section>
+
+        <Section id="eu-only" title="EU-only mode" lead="What stays in the EU, what doesn't, and how to turn it on.">
+          <div className="rounded-xl border border-line px-4 sm:px-5 py-3.5">
+            <div className="text-sm font-medium text-ink-100">This deployment: EU-only mode {euOn ? "on" : "off"}</div>
+            <p className="text-sm text-ink-400 mt-1 leading-relaxed">
+              {aiText} {mailText}
+              {!euOn && " Until EU-only mode is on, this deployment does not claim that data stays in the EU."}
+            </p>
+          </div>
+          <p className="text-[15px] text-ink-100 mt-6 leading-relaxed max-w-3xl">
+            With EU-only mode on and an SMTP server in the EU, customer workspace data never leaves the EU. Every point below is enforced by the software; the only exceptions are billing details and services you connect yourself.
+          </p>
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+            <div>
+              <h3 className="text-sm font-semibold text-ink-100">Stays in the EU</h3>
+              <BulletList items={EU_ONLY.stays} />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-ink-100">Still outside this mode</h3>
+              <BulletList items={EU_ONLY.outside} />
+            </div>
+          </div>
+          <h3 className="text-sm font-semibold text-ink-100 mt-8 mb-3">Turn it on</h3>
+          <div className="rounded-xl border border-line divide-y divide-line">
+            {EU_ONLY.turnOn.map((t) => (
+              <div key={t.who} className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-1 md:gap-6 px-4 sm:px-5 py-3.5">
+                <div className="text-sm font-medium text-ink-100">{t.who}</div>
+                <div className="text-sm text-ink-400 leading-relaxed">{t.text}</div>
+              </div>
+            ))}
+          </div>
         </Section>
 
         <Section id="collect" title="What angar collects" lead="Only what is needed to count AI tools, use and cost.">
@@ -109,11 +149,7 @@ export default function TrustPage() {
             {MEASURES.map((g) => (
               <div key={g.title}>
                 <h3 className="text-sm font-semibold text-ink-100">{g.title}</h3>
-                <ul className="mt-2.5 flex flex-col gap-2">
-                  {g.items.map((t) => (
-                    <li key={t} className="text-sm text-ink-400 leading-relaxed pl-3.5 relative before:absolute before:left-0 before:top-[9px] before:h-1 before:w-1 before:rounded-full before:bg-ink-400">{t}</li>
-                  ))}
-                </ul>
+                <BulletList items={g.items} />
               </div>
             ))}
           </div>
@@ -194,6 +230,16 @@ function Section({ id, title, lead, children }: { id: string; title: string; lea
   );
 }
 
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="mt-2.5 flex flex-col gap-2">
+      {items.map((t) => (
+        <li key={t} className="text-sm text-ink-400 leading-relaxed pl-3.5 relative before:absolute before:left-0 before:top-[9px] before:h-1 before:w-1 before:rounded-full before:bg-ink-400">{t}</li>
+      ))}
+    </ul>
+  );
+}
+
 function SubTable({ title, rows, className = "" }: { title: string; rows: typeof SUB_PROCESSORS; className?: string }) {
   return (
     <div className={className}>
@@ -205,7 +251,8 @@ function SubTable({ title, rows, className = "" }: { title: string; rows: typeof
             <tr className="text-left text-xs text-ink-400 border-b border-line">
               <th className="font-medium px-4 py-2.5 w-[22%]">Company</th>
               <th className="font-medium px-4 py-2.5">What for</th>
-              <th className="font-medium px-4 py-2.5 w-[30%]">Location</th>
+              <th className="font-medium px-4 py-2.5 w-[26%]">Location</th>
+              <th className="font-medium px-4 py-2.5 w-[20%]">EU-only mode</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -217,6 +264,7 @@ function SubTable({ title, rows, className = "" }: { title: string; rows: typeof
                   {s.when === "optional" && <span className="block text-xs mt-1">{s.whenText}</span>}
                 </td>
                 <td className="px-4 py-3 text-ink-400 leading-relaxed">{s.location}</td>
+                <td className={`px-4 py-3 leading-relaxed ${s.euOnly === "not-used" ? "text-ink-100" : "text-ink-400"}`}>{s.euOnlyText}</td>
               </tr>
             ))}
           </tbody>
@@ -229,6 +277,7 @@ function SubTable({ title, rows, className = "" }: { title: string; rows: typeof
             <div className="text-sm text-ink-400 mt-1 leading-relaxed">{s.purpose}.</div>
             <div className="text-xs text-ink-400 mt-1.5">{s.location}</div>
             {s.when === "optional" && <div className="text-xs text-ink-400 mt-0.5">{s.whenText}</div>}
+            <div className="text-xs text-ink-400 mt-0.5">EU-only mode: {s.euOnlyText}</div>
           </div>
         ))}
       </div>

@@ -1,7 +1,7 @@
 /**
  * Lettura di estratti conto (CSV, Excel) e fatture elettroniche: FatturaPA
  * (XML, .p7m), UBL/Peppol, CII (XRechnung, ZUGFeRD, Factur-X) anche come PDF
- * con XML allegato, e .zip con qualsiasi mix. Il formato si riconosce dal
+ * con XML allegato, Facturae (XML o firmata XAdES, .xsig), e .zip con qualsiasi mix. Il formato si riconosce dal
  * contenuto, non solo dall'estensione. Funzioni pure: nessun accesso al database, così
  * la stessa logica serve alla pagina pubblica "AI Spend Check" senza
  * salvare nulla. Si tengono SOLO le righe riconosciute come servizi AI.
@@ -11,7 +11,7 @@ import * as XLSX from "xlsx";
 import { matchMerchant } from "@/lib/pricing/merchants";
 import { guessPlan } from "@/lib/pricing/catalog";
 import { toEur, fxNote } from "./fx";
-import { decodeXml, detectXmlInvoice, parseUblXml, parseCiiXml, parseInvoicePdf } from "./einvoice";
+import { decodeXml, detectXmlInvoice, parseUblXml, parseCiiXml, parseFacturaeXml, parseInvoicePdf } from "./einvoice";
 
 export interface Charge {
   date: Date;
@@ -95,7 +95,8 @@ export async function parseSpendFile(name: string, data: Uint8Array, depth = 0):
   // PDF: ZUGFeRD / Factur-X con XML allegato; altrimenti avviso "non è una fattura elettronica".
   if (lower.endsWith(".pdf") || startsWith(data, "%PDF-")) return parseInvoicePdf(name, data, parseInvoice);
   if (lower.endsWith(".p7m")) return parseInvoice(name, data);
-  if (lower.endsWith(".xml")) return parseXmlInvoice(name, data);
+  // .xsig: Facturae firmata XAdES (XML con ds:Signature).
+  if (lower.endsWith(".xml") || lower.endsWith(".xsig")) return parseXmlInvoice(name, data);
   if (isSheet) {
     try {
       const wb = XLSX.read(data, { type: "array", cellDates: true });
@@ -114,13 +115,14 @@ export async function parseSpendFile(name: string, data: Uint8Array, depth = 0):
   return parseRows(splitCsv(text));
 }
 
-/** XML: FatturaPA, UBL (Peppol, XRechnung UBL, EHF…) o CII (XRechnung CII, ZUGFeRD, Factur-X). */
+/** XML: FatturaPA, UBL (Peppol, XRechnung UBL, EHF…), CII (XRechnung CII, ZUGFeRD, Factur-X) o Facturae. */
 function parseXmlInvoice(name: string, data: Uint8Array): ParseResult {
   const det = detectXmlInvoice(decodeXml(data));
   if (det.kind === "ubl") return parseUblXml(name, det.xml);
   if (det.kind === "cii") return parseCiiXml(name, det.xml);
+  if (det.kind === "facturae") return parseFacturaeXml(name, det.xml);
   if (det.kind === "fatturapa") return parseInvoice(name, data);
-  return { ...empty(), rowsRead: 1, warnings: [`${name}: not an e-invoice we can read (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X).`] };
+  return { ...empty(), rowsRead: 1, warnings: [`${name}: not an e-invoice we can read (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X, Facturae).`] };
 }
 
 function decodeText(data: Uint8Array) {

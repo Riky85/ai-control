@@ -1,4 +1,5 @@
 import { DOCS, searchDocs } from "@/lib/docs";
+import { aiAnswersAvailable } from "@/lib/eu-only";
 
 type Turn = { role: "user" | "assistant"; content: string };
 
@@ -19,14 +20,17 @@ export function cleanHistory(h: unknown): Turn[] {
 }
 
 /**
- * Risposta dalla documentazione. Con ANTHROPIC_API_KEY usa Claude; senza,
- * restituisce gli articoli più pertinenti. `brief` (facoltativo) aggiunge un
- * riassunto numerico del workspace, così l'assistente risponde anche sui dati.
+ * Risposta dalla documentazione. Usa Claude solo se `ai` è true (deciso dal
+ * chiamante con aiAnswersAllowed: chiave presente, non on-prem, modalità solo
+ * UE spenta per deployment e workspace); altrimenti restituisce gli articoli
+ * più pertinenti. `brief` (facoltativo) aggiunge un riassunto numerico del
+ * workspace, così l'assistente risponde anche sui dati.
  */
-export async function docsAnswer(q: string, history: unknown, brief?: string): Promise<{ answer: string; sources: { slug: string; title: string }[]; mode: string }> {
+export async function docsAnswer(q: string, history: unknown, brief?: string, ai = false): Promise<{ answer: string; sources: { slug: string; title: string }[]; mode: string }> {
   const sources = searchDocs(q, 3).map((d) => ({ slug: d.slug, title: d.title }));
   const key = process.env.ANTHROPIC_API_KEY;
-  if (key) {
+  // Doppio controllo: anche se il chiamante sbaglia, on-prem e solo UE globale non chiamano mai Anthropic.
+  if (key && ai && aiAnswersAvailable()) {
     try {
       const docs = DOCS.map((d) => `### ${d.title} (/docs/${d.slug})\n${d.summary}\n${d.body}`).join("\n\n");
       const res = await fetch("https://api.anthropic.com/v1/messages", {

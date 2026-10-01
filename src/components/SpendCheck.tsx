@@ -46,7 +46,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
             type="file"
             multiple
             required
-            accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.p7m,.zip,.pdf"
+            accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.xsig,.p7m,.zip,.pdf"
             onChange={(e) => {
               const f = e.target.files;
               setNames(!f?.length ? "" : f.length === 1 ? f[0].name : `${f.length} files`);
@@ -55,7 +55,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
           />
         </label>
         <button disabled={pending} className="btn btn-primary disabled:opacity-60">{pending ? "Reading…" : "Check my AI spend"}</button>
-        <p className="text-xs text-ink-400">Bank or card exports, or e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X).</p>
+        <p className="text-xs text-ink-400">Bank or card exports, or e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X, Facturae).</p>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-ink-400">
           <span>Only AI lines are looked at. Nothing is saved.</span>
           <a href="/api/spend/sample" className="underline hover:text-ink-100">Try a sample statement</a>

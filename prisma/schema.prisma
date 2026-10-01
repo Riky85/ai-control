@@ -191,6 +191,8 @@ model Organization {
   mfaRequired Boolean @default(false)
   // Posti liberati ("non mi serve" o nessuna risposta in 7 giorni): toglierli da soli via API del fornitore.
   autoRemoveSeats Boolean @default(false)
+  // Modalità solo UE del workspace (Settings → Privacy): niente risposte AI via Anthropic. null = spenta.
+  euOnly          Boolean?
   savingActions   SavingAction[]
   engineSnapshots EngineSnapshot[]
   autopilotTasks  AutopilotTask[]

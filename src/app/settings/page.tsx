@@ -5,7 +5,8 @@ import Link from "next/link";
 import { resetWorkspaceDataAction, loadDemoDataAction } from "@/lib/test-data-actions";
 import { addUserAction } from "@/lib/actions";
 import { setEmployeesAction } from "@/lib/spend-actions";
-import { setIndustryAction, setChatWebhookAction, setPrivacyModeAction } from "@/lib/settings-actions";
+import { setIndustryAction, setChatWebhookAction, setPrivacyModeAction, setEuOnlyAction } from "@/lib/settings-actions";
+import { euOnlyDeployment } from "@/lib/eu-only";
 import { saveJiraAction, saveServiceNowAction, disconnectTicketingAction, testTicketAction } from "@/lib/ticketing-actions";
 import { decryptJson } from "@/lib/crypto";
 import type { JiraConfig, ServiceNowConfig } from "@/lib/ticketing";
@@ -37,7 +38,7 @@ const TABS: { key: Tab; label: string }[] = [
 
 // Impostazioni a schede: ogni scheda è una colonna di righe "etichetta · controllo",
 // poche parole, un blocco per argomento.
-export default async function SettingsPage({ searchParams }: { searchParams: { tab?: string; reset?: string; chat?: string; privacy?: string; signin?: string; webhook?: string; error?: string; ticket?: string; key?: string } }) {
+export default async function SettingsPage({ searchParams }: { searchParams: { tab?: string; reset?: string; chat?: string; privacy?: string; euonly?: string; signin?: string; webhook?: string; error?: string; ticket?: string; key?: string } }) {
   const orgId = currentOrgId();
   // Vecchi link senza scheda: si apre quella giusta dal parametro.
   const tab: Tab = (TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab : searchParams.privacy ? "privacy" : searchParams.signin ? "security" : searchParams.chat || searchParams.webhook || searchParams.ticket ? "integrations" : searchParams.reset ? "data" : "general") as Tab;
@@ -53,6 +54,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
   const privacy = privacyModeOf(org);
   const role = currentSession()?.role;
   const isAdmin = role === "ADMIN" || role === "OWNER";
+  // Solo UE: forzata per tutto il deployment (ANGAR_EU_ONLY) oppure scelta dal workspace.
+  const euForced = euOnlyDeployment();
+  const euOn = euForced || org?.euOnly === true;
 
   return (
     <div className="flex flex-col gap-4">
@@ -113,6 +117,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
         <>
           {searchParams.privacy === "ok" && <Notice tone="success">Privacy mode changed — pages, exports and reports follow it from now on.</Notice>}
           {searchParams.privacy === "erased" && <Notice tone="success">Names and emails were removed from past data.</Notice>}
+          {searchParams.euonly === "on" && <Notice tone="success">AI answers now stay inside the EU: the assistant answers from the documentation and contracts are read by rules only.</Notice>}
+          {searchParams.euonly === "off" && <Notice tone="success">AI answers are back on where the platform offers them.</Notice>}
           <Section title="Privacy" action={!isAdmin ? "Admins only" : undefined}>
             <Row title="Employee privacy" hint="What angar shows about people. Never what they type." id="privacy">
               <form action={setPrivacyModeAction} className="flex flex-col gap-2 w-full max-w-md">
@@ -134,6 +140,26 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
                 <div className="flex items-center justify-end gap-3">
                   <button className="btn btn-secondary btn-sm" disabled={!isAdmin}>Save</button>
                 </div>
+              </form>
+            </Row>
+            <Row
+              title="Keep AI answers inside the EU"
+              hint={euForced ? "On for this whole deployment (EU-only mode)." : "No workspace data goes to Anthropic. The assistant answers from the documentation; contracts are read by rules."}
+              id="eu-only"
+            >
+              <form action={setEuOnlyAction}>
+                <input type="hidden" name="on" value={euOn ? "0" : "1"} />
+                <button
+                  type="submit"
+                  role="switch"
+                  aria-checked={euOn}
+                  aria-label="Keep AI answers inside the EU"
+                  title={euForced ? "Set for the whole deployment" : euOn ? "Turn off" : "Turn on"}
+                  disabled={!isAdmin || euForced}
+                  className={`relative h-5 w-9 rounded-full transition-colors disabled:opacity-60 ${euOn ? "bg-steady" : "bg-ink-400/40"}`}
+                >
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${euOn ? "left-[18px]" : "left-0.5"}`} />
+                </button>
               </form>
             </Row>
             <Row title="Employee notice" hint="Hand it out before you start (EN · IT · DE · FR · ES).">

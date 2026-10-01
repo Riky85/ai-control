@@ -4,7 +4,8 @@ import { requirePlatformAdmin } from "@/lib/auth";
 import { PageHeader, Panel, StatCard, Table, Tabs, td } from "@/components/ui";
 import { Insight } from "@/components/insight";
 import Badge from "@/components/Badge";
-import { emailEnabled } from "@/lib/mail";
+import { emailEnabled, emailTransport } from "@/lib/mail";
+import { euOnlyDeployment } from "@/lib/eu-only";
 import { stripeEnabled } from "@/lib/stripe";
 import { MODEL_LABEL, DEVICE_STATUSES } from "@/lib/edge/device-id";
 import { setDeviceStatusAction } from "@/lib/edge-actions";
@@ -52,7 +53,8 @@ export default async function SystemPage({ searchParams }: { searchParams: { lea
     ["Sign-in sessions", Boolean(process.env.SESSION_SECRET), process.env.SESSION_SECRET ? "Signed sessions active" : "SESSION_SECRET missing"],
     ["Connector key encryption", Boolean(process.env.CREDENTIALS_SECRET), process.env.CREDENTIALS_SECRET ? "AES-256 at rest" : "CREDENTIALS_SECRET missing"],
     ["Backups", Boolean(backupFresh), lastOkBackup ? `Last good backup ${fmtDateTime(lastOkBackup.startedAt)}` : "No successful backup yet"],
-    ["Email (invites, password reset)", emailEnabled(), emailEnabled() ? "Sending via Resend" : "Not set up — needs RESEND_API_KEY and EMAIL_FROM"],
+    ["Email (invites, password reset)", emailEnabled(), emailTransport() === "smtp" ? "Sending via SMTP (SMTP_URL)" : emailTransport() === "resend" ? "Sending via Resend" : euOnlyDeployment() ? "Not set up — EU-only mode needs SMTP_URL and EMAIL_FROM" : "Not set up — needs SMTP_URL or RESEND_API_KEY, and EMAIL_FROM"],
+    ["EU-only mode", euOnlyDeployment(), euOnlyDeployment() ? "On — no AI answers, no Resend" : "Off — set ANGAR_EU_ONLY=1 and SMTP_URL to turn it on"],
     ["Payments", stripeEnabled(), stripeEnabled() ? "Stripe connected" : "Not set up — needs Stripe keys"],
     ["Microsoft / Google sign-in", Boolean(process.env.AUTH_MICROSOFT_CLIENT_ID || process.env.MS365_CLIENT_ID || process.env.AUTH_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID), process.env.AUTH_MICROSOFT_CLIENT_ID || process.env.MS365_CLIENT_ID || process.env.AUTH_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID ? "Buttons shown on sign-in" : "Hidden — needs AUTH_MICROSOFT_* or AUTH_GOOGLE_* keys"],
     ["Slack one-click buttons", Boolean(process.env.SLACK_SIGNING_SECRET && process.env.SLACK_BOT_TOKEN), process.env.SLACK_SIGNING_SECRET && process.env.SLACK_BOT_TOKEN ? "Active" : "Optional — links used instead (SLACK_SIGNING_SECRET, SLACK_BOT_TOKEN)"],

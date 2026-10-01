@@ -2,8 +2,8 @@
 
 /**
  * Contratti e fatture da PDF: 1) si legge il testo del PDF, 2) le regole di
- * contract-extract.ts trovano i campi, 3) se c'è una chiave Anthropic e non
- * siamo on-prem Claude li rifinisce (le regole restano sempre il ripiego),
+ * contract-extract.ts trovano i campi, 3) se c'è una chiave Anthropic, non
+ * siamo on-prem e la modalità solo UE è spenta (deployment e workspace) Claude li rifinisce (le regole restano sempre il ripiego),
  * 4) la persona controlla e corregge, 5) "Apply" scrive costo e contratto
  * dell'AI, con una riga di audit. Il PDF non viene mai salvato.
  */
@@ -12,7 +12,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { isOnPrem } from "@/lib/edition";
+import { aiAnswersAllowed } from "@/lib/eu-only";
 import { serviceOf } from "@/lib/savings";
 import { AI_SERVICES } from "@/lib/discovery/catalog";
 import { PLANS, USD_TO_EUR } from "@/lib/pricing/catalog";
@@ -72,7 +72,7 @@ export async function readContractAction(_prev: ReadState, formData: FormData): 
 
   let fields = extractContract(text);
   let refined = false;
-  if (process.env.ANTHROPIC_API_KEY && !isOnPrem()) {
+  if (await aiAnswersAllowed(s.orgId)) {
     const better = await refineWithClaude(text, fields).catch(() => null);
     if (better) {
       fields = better;

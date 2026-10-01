@@ -53,6 +53,7 @@ export function buildDpa(): TrustDoc {
 
       { h: "9. International transfers" },
       { p: `By default, Customer personal data is stored and processed in the European Union (${HOSTING.provider}, ${HOSTING.region} region, ${HOSTING.country}). Where a sub-processor in Annex 3 processes personal data outside the European Economic Area, the transfer relies on an adequacy decision (including the EU–US Data Privacy Framework for certified recipients) or on the Standard Contractual Clauses adopted by the European Commission, with supplementary measures where necessary.` },
+      { p: "EU-only mode. If angar runs with EU-only mode on (ANGAR_EU_ONLY=1), the sub-processors marked \"Not used\" in Annex 3 receive no Customer personal data: AI answers are off and email is sent only through the SMTP server configured for the deployment. If the Customer turns on \"Keep AI answers inside the EU\" in its workspace, Anthropic receives no Customer personal data from that workspace. Billing details are handled by Stripe (Ireland entity, transfers under SCCs); no workspace data is sent to Stripe. Services the Customer connects itself are outside this mode." },
 
       { h: "10. Assistance to the Customer" },
       {
@@ -100,8 +101,8 @@ export function buildDpa(): TrustDoc {
       { h: "Annex 3 — Sub-processors" },
       {
         table: {
-          head: ["Sub-processor", "Purpose", "Data", "Location", "When"],
-          rows: SUB_PROCESSORS.map((s) => [s.name, s.purpose, s.data, s.location, s.whenText]),
+          head: ["Sub-processor", "Purpose", "Data", "Location", "When", "EU-only mode"],
+          rows: SUB_PROCESSORS.map((s) => [s.name, s.purpose, s.data, s.location, s.whenText, s.euOnlyText]),
         },
       },
 

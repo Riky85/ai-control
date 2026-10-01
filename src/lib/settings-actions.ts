@@ -62,3 +62,17 @@ export async function setPrivacyModeAction(formData: FormData) {
   revalidatePath("/", "layout");
   redirect(`/settings?tab=privacy&privacy=${from === mode ? "same" : "ok"}`);
 }
+
+/** Settings → Privacy: tiene le risposte AI del workspace nell'UE (niente chiamate ad Anthropic). */
+export async function setEuOnlyAction(formData: FormData) {
+  const s = await requireRole("ADMIN", "/settings?tab=privacy");
+  const on = formData.get("on") === "1";
+  const org = await db.organization.findUnique({ where: { id: s.orgId }, select: { euOnly: true } });
+  const from = org?.euOnly === true;
+  if (from !== on) {
+    await db.organization.update({ where: { id: s.orgId }, data: { euOnly: on } });
+    await audit("privacy.eu_only_change", on ? "on" : "off", { from, to: on });
+  }
+  revalidatePath("/", "layout");
+  redirect(`/settings?tab=privacy&euonly=${on ? "on" : "off"}#eu-only`);
+}

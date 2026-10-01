@@ -16,7 +16,7 @@ import { setEmailHistoryAction } from "@/lib/connectors/email-history-actions";
 
 export const dynamic = "force-dynamic";
 
-const SPEND_ACCEPT = ".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.p7m,.zip,.pdf";
+const SPEND_ACCEPT = ".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.xsig,.p7m,.zip,.pdf";
 
 // Sources: caricamento di estratti conto/fatture e l'elenco compatto delle fonti
 // (account aziendali, chiavi, banca, contabilità). La panoramica sta in /connect.
@@ -46,7 +46,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
         <form action={uploadSpendAction} className="flex flex-col gap-3">
           <input type="hidden" name="back" value="/sources" />
           <CsvDropzone accept={SPEND_ACCEPT} multiple label="Drop bank/card exports or e-invoices here" />
-          <p className="text-xs text-ink-400">Bank or card exports (CSV, Excel) and e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X) — XML, PDF or zip.</p>
+          <p className="text-xs text-ink-400">Bank or card exports (CSV, Excel) and e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X, Facturae) — XML, PDF or zip.</p>
           <div className="flex items-center justify-between gap-3">
             <button className="btn btn-primary">Find my AI spend</button>
             <a href="/api/spend/sample" className="text-xs text-ink-400 hover:text-ink-100 underline">Try a sample</a>

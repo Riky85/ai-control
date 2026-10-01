@@ -30,8 +30,8 @@ export function buildSecurityOverview(): TrustDoc {
       { h: `${MEASURES.length + 4}. Sub-processors` },
       {
         table: {
-          head: ["Sub-processor", "Purpose", "Location", "When"],
-          rows: SUB_PROCESSORS.map((s) => [s.name, s.purpose, s.location, s.whenText]),
+          head: ["Sub-processor", "Purpose", "Location", "When", "EU-only mode"],
+          rows: SUB_PROCESSORS.map((s) => [s.name, s.purpose, s.location, s.whenText, s.euOnlyText]),
         },
       },
       { h: `${MEASURES.length + 5}. Certifications and roadmap` },

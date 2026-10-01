@@ -4,6 +4,7 @@
  *  - UN/CEFACT CII CrossIndustryInvoice (XRechnung CII, ZUGFeRD 2.x, Factur-X)
  *    e il vecchio ZUGFeRD 1.0 (CrossIndustryDocument)
  *  - PDF ZUGFeRD / Factur-X: PDF/A-3 con l'XML CII allegato.
+ *  - Facturae 3.2 / 3.2.1 / 3.2.2 (Spagna), anche firmata XAdES (.xsig).
  * Funzioni pure (nessun database), stesso risultato del parser FatturaPA:
  * si tengono solo gli addebiti riconosciuti come servizi AI (matchMerchant).
  */
@@ -14,7 +15,7 @@ import type { Charge, ParseResult } from "./parse";
 
 const emptyResult = (): ParseResult => ({ charges: [], rowsRead: 0, periodStart: null, periodEnd: null, warnings: [] });
 
-export type XmlInvoiceKind = "fatturapa" | "ubl" | "cii" | null;
+export type XmlInvoiceKind = "fatturapa" | "ubl" | "cii" | "facturae" | null;
 
 // ---------- Lettura XML minimale (indipendente dai prefissi di namespace) ----------
 
@@ -111,6 +112,7 @@ export function detectXmlInvoice(xml: string): { kind: XmlInvoiceKind; xml: stri
   const root = rootElement(xml);
   if (!root) return { kind: null, xml };
   if (root.local === "FatturaElettronica") return { kind: "fatturapa", xml };
+  if (root.local === "Facturae") return { kind: "facturae", xml };
   if (root.local === "CrossIndustryInvoice" || root.local === "CrossIndustryDocument") return { kind: "cii", xml };
   if ((root.local === "Invoice" || root.local === "CreditNote") && (UBL_NS.test(root.open) || UBL_NS.test(xml.slice(0, 4000)))) return { kind: "ubl", xml };
   // Busta Peppol (StandardBusinessDocument) o altri contenitori: si cerca la fattura dentro.
@@ -119,7 +121,23 @@ export function detectXmlInvoice(xml: string): { kind: XmlInvoiceKind; xml: stri
   const cii = xml.match(/<([\w.-]+:)?(CrossIndustryInvoice|CrossIndustryDocument)[\s>][\s\S]*?<\/\1?\2>/);
   if (cii) return { kind: "cii", xml: cii[0] };
   if (/<([\w.-]+:)?FatturaElettronica[\s>]/.test(xml)) return { kind: "fatturapa", xml };
+  // Facturae dentro una firma XAdES "enveloping" (.xsig con radice ds:Signature) o altro contenitore.
+  const fe = facturaeInside(xml);
+  if (fe) return { kind: "facturae", xml: fe };
   return { kind: null, xml };
+}
+
+/** Cerca una Facturae annidata, anche codificata in base64 dentro ds:Object. */
+function facturaeInside(xml: string): string | null {
+  const m = xml.match(/<([\w.-]+:)?Facturae[\s>][\s\S]*?<\/\1?Facturae>/);
+  if (m) return m[0];
+  for (const obj of blocks(xml, "Object").slice(0, 5)) {
+    const b64 = obj.replace(/<[^>]+>/g, "").replace(/\s+/g, "");
+    if (b64.length < 100 || !/^[A-Za-z0-9+/]+=*$/.test(b64)) continue;
+    const inner = decodeXml(new Uint8Array(Buffer.from(b64, "base64"))).match(/<([\w.-]+:)?Facturae[\s>][\s\S]*?<\/\1?Facturae>/);
+    if (inner) return inner[0];
+  }
+  return null;
 }
 
 // ---------- Modello comune e trasformazione in addebiti ----------
@@ -277,6 +295,87 @@ export function parseCiiXml(name: string, xml: string): ParseResult {
   });
 }
 
+// ---------- Facturae (Spagna) 3.2, 3.2.1, 3.2.2 ----------
+
+function mergeResults(list: ParseResult[]): ParseResult {
+  const out = emptyResult();
+  const dates: number[] = [];
+  for (const r of list) {
+    out.charges.push(...r.charges);
+    out.rowsRead += r.rowsRead;
+    out.warnings.push(...r.warnings);
+    for (const d of [r.periodStart, r.periodEnd]) if (d) dates.push(d.getTime());
+  }
+  if (dates.length) {
+    out.periodStart = new Date(Math.min(...dates));
+    out.periodEnd = new Date(Math.max(...dates));
+  }
+  return out;
+}
+
+/** Nome di una parte Facturae: persona giuridica (CorporateName) o fisica (Name + cognomi). */
+function facturaePartyName(party: string | null): string {
+  if (!party) return "";
+  const legal = block(party, "LegalEntity");
+  if (legal) return text(legal, "CorporateName") ?? text(legal, "TradeName") ?? "";
+  const person = block(party, "Individual");
+  if (person) return [text(person, "Name"), text(person, "FirstSurname"), text(person, "SecondSurname")].filter(Boolean).join(" ");
+  return "";
+}
+
+/**
+ * Facturae: un file può contenere più fatture (Invoices/Invoice) dello stesso
+ * venditore. Importi IVA esclusa (TotalGrossAmountBeforeTaxes, GrossAmount di
+ * riga), come TaxExclusiveAmount in UBL e TaxBasisTotalAmount in CII.
+ * Rettificative (InvoiceClass OR/CR/OC, o con blocco Corrective) con totali
+ * negativi diventano note di credito; con totali positivi restano addebiti
+ * (rettifica in aumento). Qualsiasi fattura con totale negativo è un credito.
+ */
+export function parseFacturaeXml(name: string, xml: string): ParseResult {
+  // La firma XAdES (ds:Signature) si toglie prima di leggere i dati.
+  const body = xml.replace(elRe("Signature", "g"), "");
+  const supplier = facturaePartyName(block(block(body, "Parties"), "SellerParty"));
+  const batchCurrency = path(body, "FileHeader", "Batch", "InvoiceCurrencyCode");
+  const invoices = blocks(block(body, "Invoices"), "Invoice");
+  if (!invoices.length) return { ...emptyResult(), rowsRead: 1, warnings: [`${name}: Facturae file without invoices.`] };
+  const results = invoices.map((inv) => {
+    const head = block(inv, "InvoiceHeader");
+    const issue = block(inv, "InvoiceIssueData");
+    const totals = block(inv, "InvoiceTotals");
+    const lines: InvoiceLine[] = blocks(block(inv, "Items"), "InvoiceLine").map((l) => {
+      const qty = num(text(l, "Quantity"));
+      const unit = num(text(l, "UnitPriceWithoutTax"));
+      return {
+        name: text(l, "ItemDescription") ?? text(l, "AdditionalLineItemInformation") ?? "",
+        quantity: qty,
+        // GrossAmount = costo dopo sconti e maggiorazioni di riga, prima delle imposte.
+        amount: num(text(l, "GrossAmount")) ?? num(text(l, "TotalCost")) ?? (qty !== null && unit !== null ? qty * unit : null),
+      };
+    });
+    const lineSum = lines.reduce((t, l) => t + (l.amount ?? 0), 0);
+    let total = num(text(totals, "TotalGrossAmountBeforeTaxes")) ?? num(text(totals, "TotalGrossAmount")) ?? num(text(totals, "InvoiceTotal"));
+    const invoiceClass = (text(head, "InvoiceClass") ?? "").toUpperCase();
+    const corrective = /^(OR|CR|OC)$/.test(invoiceClass) || block(head, "Corrective") !== null;
+    // Credito: totale negativo (o, senza totale, righe negative in una rettificativa).
+    const credit = (total ?? (corrective ? lineSum : 0)) < 0;
+    if (credit) {
+      // toCharges applica il segno: qui servono importi positivi.
+      total = total !== null ? -total : null;
+      for (const l of lines) if (l.amount !== null) l.amount = -l.amount;
+    }
+    return toCharges(name, {
+      supplier,
+      date: isoDate(text(issue, "IssueDate")),
+      currency: (text(issue, "InvoiceCurrencyCode") ?? batchCurrency ?? "EUR").toUpperCase(),
+      credit,
+      lines,
+      total,
+      note: [text(inv, "InvoiceAdditionalInformation"), text(head, "ReasonDescription")].filter(Boolean).join(" "),
+    });
+  });
+  return mergeResults(results);
+}
+
 // ---------- PDF ZUGFeRD / Factur-X ----------
 
 const ATTACHMENT_NAME = /(factur-x|zugferd|xrechnung|order-x).*\.xml$|\.xml$/i;
@@ -339,7 +438,7 @@ function rawEmbeddedFiles(data: Uint8Array): { name: string; content: Uint8Array
       }
     }
     const head = content.subarray(0, 3000).toString("latin1");
-    if (/<([\w.-]+:)?(CrossIndustryInvoice|CrossIndustryDocument|Invoice|CreditNote|FatturaElettronica)[\s>]/.test(head)) {
+    if (/<([\w.-]+:)?(CrossIndustryInvoice|CrossIndustryDocument|Invoice|CreditNote|FatturaElettronica|Facturae)[\s>]/.test(head)) {
       out.push({ name: /\/Type\s*\/EmbeddedFile/.test(dict) ? "embedded.xml" : "stream.xml", content: new Uint8Array(content) });
     }
   }
@@ -376,5 +475,6 @@ export async function parseInvoicePdf(name: string, data: Uint8Array, parseFattu
   if (!found) return { ...emptyResult(), notEInvoice: true, warnings: [`${name}: ${NOT_AN_EINVOICE_PDF}`] };
   if (found.kind === "cii") return parseCiiXml(name, found.xml);
   if (found.kind === "ubl") return parseUblXml(name, found.xml);
+  if (found.kind === "facturae") return parseFacturaeXml(name, found.xml);
   return parseFatturaPA(name, new TextEncoder().encode(found.xml));
 }
