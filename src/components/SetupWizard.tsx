@@ -34,7 +34,7 @@ export default function SetupWizard({ steps, initialHidden = false }: { steps: W
   if (hidden)
     return (
       <section className="relative overflow-hidden rounded-xl border border-line bg-panel flex items-center gap-4 pl-4 pr-3 py-3">
-        <div aria-hidden className="pointer-events-none absolute -left-16 -top-20 h-40 w-40 rounded-full bg-accent/15 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -left-16 -top-20 h-40 w-40 rounded-full bg-accent/15 blur-3xl hidden dark:block" />
         <Ring done={doneCount} total={steps.length} />
         <div className="relative flex-1 min-w-0">
           <div className="text-sm font-medium text-ink-100">Setup guide · {doneCount} of {steps.length} done</div>
@@ -51,7 +51,7 @@ export default function SetupWizard({ steps, initialHidden = false }: { steps: W
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-line bg-panel grid grid-cols-1 lg:grid-cols-[1fr_auto]">
-      <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent/20 blur-3xl hidden dark:block" />
       <button
         onClick={() => store(true)}
         aria-label="Hide the setup guide"
@@ -135,7 +135,7 @@ function Preview() {
     ["Copilot", "Business · 8 seats", "€168", false],
   ];
   return (
-    <div className="w-[290px] rounded-t-xl border border-b-0 border-line bg-sidebar shadow-[0_-10px_60px_rgba(0,0,0,0.35)] select-none" aria-hidden>
+    <div className="w-[290px] rounded-t-xl border border-b-0 border-line bg-ink shadow-[0_-8px_32px_rgba(20,20,24,0.06)] dark:bg-sidebar dark:shadow-[0_-10px_60px_rgba(0,0,0,0.35)] select-none" aria-hidden>
       <div className="grid grid-cols-2 gap-2 p-3">
         <div className="rounded-lg border border-line bg-panel px-3 py-2">
           <div className="text-[10px] text-ink-400">AI in use</div>

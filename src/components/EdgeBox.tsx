@@ -47,7 +47,7 @@ export default function EdgeBox({ width = 350, className = "" }: { width?: numbe
       </defs>
 
       {/* Ombra a terra */}
-      <polygon points={poly([P(-6, -6, 0), P(W + 10, -6, 0), P(W + 10, D + 10, 0), P(-6, D + 10, 0)])} fill="#000" opacity="0.45" filter={`url(#${id}-shadow)`} transform="translate(0 10)" />
+      <polygon points={poly([P(-6, -6, 0), P(W + 10, -6, 0), P(W + 10, D + 10, 0), P(-6, D + 10, 0)])} fill="#000" className="opacity-[0.16] dark:opacity-[0.45]" filter={`url(#${id}-shadow)`} transform="translate(0 10)" />
 
       {/* Fianco destro (x = W) con le porte */}
       <polygon points={poly([P(W, 0, 0), P(W, D, 0), P(W, D, H), P(W, 0, H)])} fill={`url(#${id}-side)`} />

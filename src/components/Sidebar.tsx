@@ -153,33 +153,33 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
   function itemClass(active: boolean, sub = false) {
     return `flex items-center gap-3 text-[15px] transition-colors rounded-lg ${
       collapsed ? "justify-center h-10 w-10 mx-auto shrink-0" : sub ? "pl-11 pr-3 py-1.5" : "px-3 py-2"
-    } ${active ? "text-white bg-white/[0.09] font-medium" : "text-[#C8C6C1] hover:text-white hover:bg-white/[0.05]"}`;
+    } ${active ? "text-sb-ink bg-sb-ink/[0.09] font-medium" : "text-sb-text hover:text-sb-ink hover:bg-sb-ink/[0.05]"}`;
   }
 
   return (
     <aside
-      className={`shrink-0 bg-sidebar border-r border-sidebar h-full py-3 flex flex-col transition-[width,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
+      className={`shrink-0 bg-sidebar border-r border-sidebar-line h-full py-3 flex flex-col transition-[width,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
         collapsed ? "w-[60px] px-2.5" : "w-64 px-3"
       }`}
     >
       {collapsed ? (
-        <button onClick={toggle} aria-label="Expand sidebar" className="group relative h-10 w-10 mx-auto mb-4 flex items-center justify-center rounded-lg hover:bg-white/[0.08] transition-colors">
-          <span className="text-white transition-opacity group-hover:opacity-0">
+        <button onClick={toggle} aria-label="Expand sidebar" className="group relative h-10 w-10 mx-auto mb-4 flex items-center justify-center rounded-lg hover:bg-sb-ink/[0.08] transition-colors">
+          <span className="text-sb-ink transition-opacity group-hover:opacity-0">
             <Logo size={20} />
           </span>
-          <span className="absolute inset-0 flex items-center justify-center text-[#A3A19C] opacity-0 group-hover:opacity-100 group-hover:text-white transition-opacity">
+          <span className="absolute inset-0 flex items-center justify-center text-sb-muted opacity-0 group-hover:opacity-100 group-hover:text-sb-ink transition-opacity">
             <PanelToggleIcon />
           </span>
         </button>
       ) : (
         <div className="flex items-center h-10 mb-4 px-2 sb-fade">
-          <Link href="/" className="text-white" aria-label="angar home">
+          <Link href="/" className="text-sb-ink" aria-label="angar home">
             <Wordmark size={20} />
           </Link>
           <button
             onClick={toggle}
             aria-label="Collapse sidebar"
-            className="ml-auto h-8 w-8 flex items-center justify-center rounded-lg text-[#A3A19C] hover:text-white hover:bg-white/[0.08] transition-colors"
+            className="ml-auto h-8 w-8 flex items-center justify-center rounded-lg text-sb-muted hover:text-sb-ink hover:bg-sb-ink/[0.08] transition-colors"
           >
             <PanelToggleIcon />
           </button>
@@ -187,19 +187,20 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
       )}
 
       {!collapsed && (
-        <div className="sb-fade">
+        // relative z-20: la tendina del workspace resta sopra le voci del menu (che animate creano livelli propri).
+        <div className="sb-fade relative z-20">
           {workspace && <WorkspaceSwitcher {...workspace} />}
           <button
             type="button"
             onClick={() => window.dispatchEvent(new Event("angar:search-open"))}
-            className="mb-4 w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-white/[0.12] text-[#A3A19C] hover:border-white/30 transition-colors"
+            className="mb-4 w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-sb-ink/[0.12] text-sb-muted hover:border-sb-ink/30 transition-colors"
           >
             <svg width="15" height="15" viewBox="0 0 14 14" fill="none" className="shrink-0">
               <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.3" />
               <path d="M9.2 9.2L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
             </svg>
-            <span className="flex-1 min-w-0 text-left text-sm text-[#8A8884]">Search…</span>
-            <kbd className="text-[10px] text-[#A3A19C] border border-white/[0.15] rounded px-1 shrink-0">Ctrl K</kbd>
+            <span className="flex-1 min-w-0 text-left text-sm text-sb-faint">Search…</span>
+            <kbd className="text-[10px] text-sb-muted border border-sb-ink/[0.15] rounded px-1 shrink-0">Ctrl K</kbd>
           </button>
         </div>
       )}
@@ -244,24 +245,24 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
       </nav>
 
       {trial && <TrialCard trial={trial} collapsed={collapsed} />}
-      <div className="mt-3 pt-3 border-t border-white/[0.08] flex flex-col gap-0.5">
+      <div className="mt-3 pt-3 border-t border-sb-ink/[0.08] flex flex-col gap-0.5">
         <div ref={menuRef} className="relative">
           {menuOpen && (
-            <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-white/[0.12] bg-[#2F3238] p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
-              {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-[#A3A19C] truncate border-b border-white/[0.08] mb-1">{userEmail}</div>}
+            <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-sb-ink/[0.12] bg-pop p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
+              {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-sb-muted truncate border-b border-sb-ink/[0.08] mb-1">{userEmail}</div>}
               {[
                 ...((workspace?.workspaces.length ?? 0) > 1 ? [{ href: "/partner", label: "Partner console", icon: "partner" }, { href: "/group", label: "Group view", icon: "budget" }] : []),
                 ...MENU_ITEMS.filter((m) => !(onprem && m.href === "/billing")),
                 ...(platformAdmin ? [{ href: "/system", label: "System", icon: "assurance" }] : []),
               ].map((item) => (
-                <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive(item.href) ? "text-white bg-white/[0.09]" : "text-[#C8C6C1] hover:text-white hover:bg-white/[0.06]"}`}>
+                <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive(item.href) ? "text-sb-ink bg-sb-ink/[0.09]" : "text-sb-text hover:text-sb-ink hover:bg-sb-ink/[0.06]"}`}>
                   <Icon name={item.icon} />
                   {item.label}
                 </Link>
               ))}
-              <div className="my-1 border-t border-white/[0.08]" />
+              <div className="my-1 border-t border-sb-ink/[0.08]" />
               <form action={signOutAction}>
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#C8C6C1] hover:text-white hover:bg-white/[0.06] transition-colors">
+                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sb-text hover:text-sb-ink hover:bg-sb-ink/[0.06] transition-colors">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0"><path d="M6 3H3.5v10H6M10.5 5.5 13 8l-2.5 2.5M13 8H6.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   Sign out
                 </button>
@@ -271,15 +272,15 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
           <button
             onClick={() => setMenuOpen((v) => !v)}
             aria-expanded={menuOpen}
-            className={`w-full flex items-center gap-3 rounded-lg hover:bg-white/[0.05] transition-colors ${menuOpen ? "bg-white/[0.05]" : ""} ${collapsed ? "justify-center py-1" : "px-2 py-2"}`}
+            className={`w-full flex items-center gap-3 rounded-lg hover:bg-sb-ink/[0.05] transition-colors ${menuOpen ? "bg-sb-ink/[0.05]" : ""} ${collapsed ? "justify-center py-1" : "px-2 py-2"}`}
           >
-            <span className="h-9 w-9 rounded-lg bg-white/[0.08] flex items-center justify-center text-sm text-white shrink-0">
+            <span className="h-9 w-9 rounded-lg bg-sb-ink/[0.08] flex items-center justify-center text-sm text-sb-ink shrink-0">
               {(userName ?? orgName ?? "A").charAt(0).toUpperCase()}
             </span>
             {!collapsed && (
               <span className="flex-1 min-w-0 text-left sb-fade">
-                <span className="block text-sm font-medium text-white truncate">{userName ?? "Account"}</span>
-                <span className="block text-xs text-[#A3A19C] truncate">{orgName}</span>
+                <span className="block text-sm font-medium text-sb-ink truncate">{userName ?? "Account"}</span>
+                <span className="block text-xs text-sb-muted truncate">{orgName}</span>
               </span>
             )}
             {!collapsed && <span className={`transition-transform ${menuOpen ? "rotate-180" : ""}`}><Chevron /></span>}
@@ -306,36 +307,36 @@ function TrialCard({ trial, collapsed }: { trial: SidebarTrial; collapsed: boole
     const r = 13;
     const c = 2 * Math.PI * r;
     return (
-      <Link href="/billing" title={trial.trialing ? `${planLabel(TRIAL_PLAN)} trial · ${trial.daysLeft} days left` : "Trial ended — choose a plan"} className="mx-auto mt-2 h-10 w-10 rounded-lg flex items-center justify-center hover:bg-white/[0.06] transition-colors relative">
+      <Link href="/billing" title={trial.trialing ? `${planLabel(TRIAL_PLAN)} trial · ${trial.daysLeft} days left` : "Trial ended — choose a plan"} className="mx-auto mt-2 h-10 w-10 rounded-lg flex items-center justify-center hover:bg-sb-ink/[0.06] transition-colors relative">
         <svg width="32" height="32" viewBox="0 0 32 32" className="-rotate-90">
-          <circle cx="16" cy="16" r={r} fill="none" strokeWidth="2.5" stroke="rgba(255,255,255,0.1)" />
+          <circle cx="16" cy="16" r={r} fill="none" strokeWidth="2.5" className="stroke-sb-ink/10" />
           <circle cx="16" cy="16" r={r} fill="none" strokeWidth="2.5" strokeLinecap="round" stroke={color} strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} />
         </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-white tabular">{trial.trialing ? trial.daysLeft : "!"}</span>
+        <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-sb-ink tabular">{trial.trialing ? trial.daysLeft : "!"}</span>
       </Link>
     );
   }
   return (
-    <Link href="/billing" className="group mt-2 block rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] px-3 py-2.5 transition-colors">
+    <Link href="/billing" className="group mt-2 block rounded-xl border border-sb-ink/[0.08] bg-sb-ink/[0.03] hover:bg-sb-ink/[0.06] px-3 py-2.5 transition-colors">
       <div className="flex items-baseline justify-between gap-2 text-xs">
-        <span className="font-medium text-white">{trial.trialing ? `${planLabel(TRIAL_PLAN)} trial` : "Trial ended"}</span>
-        <span className="tabular" style={{ color: urgent ? color : "#A3A19C" }}>
+        <span className="font-medium text-sb-ink">{trial.trialing ? `${planLabel(TRIAL_PLAN)} trial` : "Trial ended"}</span>
+        <span className={`tabular ${urgent ? "text-signal dark:text-[#D9A928]" : "text-sb-muted"}`}>
           {trial.trialing ? `${trial.daysLeft} day${trial.daysLeft === 1 ? "" : "s"} left` : "Free limits"}
         </span>
       </div>
       {trial.trialing && (
-        <div className="mt-2 h-1 rounded-full bg-white/[0.08] overflow-hidden">
+        <div className="mt-2 h-1 rounded-full bg-sb-ink/[0.08] overflow-hidden">
           <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
         </div>
       )}
-      <div className="mt-2 text-xs text-[#A3A19C] group-hover:text-white transition-colors">Choose a plan →</div>
+      <div className="mt-2 text-xs text-sb-muted group-hover:text-sb-ink transition-colors">Choose a plan →</div>
     </Link>
   );
 }
 
 function Chevron() {
   return (
-    <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="shrink-0 text-[#A3A19C]">
+    <svg width="12" height="12" viewBox="0 0 10 10" fill="none" className="shrink-0 text-sb-muted">
       <path d="M2.5 4l2.5 2.5L7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );

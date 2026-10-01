@@ -91,7 +91,7 @@ export function MicButton({ voice, className = "" }: { voice: ReturnType<typeof 
       onClick={() => (voice.listening ? voice.stop() : voice.start())}
       aria-label={voice.listening ? "Stop listening" : "Speak"}
       title={voice.listening ? "Listening… click to stop" : "Speak a question or an instruction"}
-      className={`relative shrink-0 h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${voice.listening ? "text-white bg-accent" : "text-[#A3A19C] hover:text-white hover:bg-white/[0.08]"} ${className}`}
+      className={`relative shrink-0 h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${voice.listening ? "text-white bg-accent" : "text-sb-muted hover:text-sb-ink hover:bg-sb-ink/[0.08]"} ${className}`}
     >
       {voice.listening && <span aria-hidden className="absolute inset-0 rounded-lg bg-accent/60 animate-ping" />}
       <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="relative">

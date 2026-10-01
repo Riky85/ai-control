@@ -19,10 +19,10 @@ export default function CommandReply({ reply, onNavigate, tone = "dark" }: { rep
   const router = useRouter();
   const [pending, start] = useTransition();
   const [done, setDone] = useState(false);
-  const btn = tone === "dark" ? "text-xs rounded-lg border border-white/15 px-2.5 py-1 text-white hover:bg-white/[0.08]" : "btn btn-secondary btn-sm";
+  const btn = tone === "dark" ? "text-xs rounded-lg border border-sb-ink/15 px-2.5 py-1 text-sb-ink hover:bg-sb-ink/[0.08]" : "btn btn-secondary btn-sm";
   return (
     <div className="flex flex-col gap-2">
-      <p className={`text-sm leading-relaxed whitespace-pre-line ${tone === "dark" ? "text-white" : "text-ink-100"}`}>{done ? "Done." : reply.answer}</p>
+      <p className={`text-sm leading-relaxed whitespace-pre-line ${tone === "dark" ? "text-sb-ink" : "text-ink-100"}`}>{done ? "Done." : reply.answer}</p>
       <div className="flex flex-wrap items-center gap-2">
         {reply.confirm && !done && (
           <button

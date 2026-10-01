@@ -165,7 +165,7 @@ function OsIcon({ os }: { os: DesktopOs }) {
 /** Anteprima dell'app desktop (stessa grafica della finestra vera, schermata "You're all set"). */
 function AppPreview({ company, email }: { company: string; email: string }) {
   return (
-    <div className="force-dark w-[300px] rounded-t-xl border border-b-0 border-[#34383D] bg-[#1A1C1D] shadow-[0_-10px_60px_rgba(0,0,0,0.45)] text-[#EDEDEF] select-none" aria-hidden>
+    <div className="force-dark w-[300px] rounded-t-xl border border-b-0 border-[#34383D] bg-[#1A1C1D] shadow-[0_-8px_32px_rgba(20,20,24,0.12)] dark:shadow-[0_-10px_60px_rgba(0,0,0,0.45)] text-[#EDEDEF] select-none" aria-hidden>
       <div className="flex items-center h-10 px-4 border-b border-[#34383D]">
         <Wordmark size={13} />
         <span className="ml-auto text-[#9CA0A8] text-sm leading-none">×</span>

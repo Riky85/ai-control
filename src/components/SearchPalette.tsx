@@ -132,10 +132,10 @@ export default function SearchPalette() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[12vh]" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={close} />
-      <div className="relative w-full max-w-xl rounded-2xl border border-white/10 bg-[#2F3238] shadow-2xl overflow-hidden">
-        <div className="flex items-center gap-3 px-4 border-b border-white/10">
-          <svg width="17" height="17" viewBox="0 0 14 14" fill="none" className="shrink-0 text-[#A3A19C]">
+      <div className="absolute inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-sm" onClick={close} />
+      <div className="relative w-full max-w-xl rounded-2xl border border-sb-ink/10 bg-pop shadow-2xl overflow-hidden">
+        <div className="flex items-center gap-3 px-4 border-b border-sb-ink/10">
+          <svg width="17" height="17" viewBox="0 0 14 14" fill="none" className="shrink-0 text-sb-muted">
             <circle cx="6" cy="6" r="4.2" stroke="currentColor" strokeWidth="1.3" />
             <path d="M9.2 9.2L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
           </svg>
@@ -160,24 +160,24 @@ export default function SearchPalette() {
               }
             }}
             placeholder={voice.listening ? voice.interim || "Listening…" : "Search, or ask — “how much do we spend on ChatGPT?”"}
-            className="flex-1 bg-transparent py-3.5 text-[15px] text-white placeholder:text-[#8A8884] outline-none"
+            className="flex-1 bg-transparent py-3.5 text-[15px] text-sb-ink placeholder:text-sb-faint outline-none"
           />
           <MicButton voice={voice} />
-          <kbd className="text-[10px] text-[#A3A19C] border border-white/15 rounded px-1.5 py-0.5 shrink-0">Esc</kbd>
+          <kbd className="text-[10px] text-sb-muted border border-sb-ink/15 rounded px-1.5 py-0.5 shrink-0">Esc</kbd>
         </div>
 
         {(reply || asking || voice.error) && (
-          <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
-            {asking ? <p className="text-sm text-[#A3A19C]">Thinking…</p> : reply ? <CommandReply reply={reply} onNavigate={close} /> : <p className="text-sm text-[#A3A19C]">{voice.error}</p>}
+          <div className="px-4 py-3 border-b border-sb-ink/10 bg-sb-ink/[0.03]">
+            {asking ? <p className="text-sm text-sb-muted">Thinking…</p> : reply ? <CommandReply reply={reply} onNavigate={close} /> : <p className="text-sm text-sb-muted">{voice.error}</p>}
           </div>
         )}
         <div className="max-h-[52vh] overflow-y-auto py-2">
           {!query && (
-            <div className="px-4 py-5 text-sm text-[#A3A19C] flex flex-col gap-2">
+            <div className="px-4 py-5 text-sm text-sb-muted flex flex-col gap-2">
               <p>Search your AI, people and pages — or ask{VOICE_ENABLED && voice.supported ? " (or press the mic and speak)" : ""}:</p>
               <div className="flex flex-wrap gap-1.5">
                 {["How much do we spend on AI?", "Where can we save?", "Unused seats", "What's new this month?", "What needs review?"].map((x) => (
-                  <button key={x} onClick={() => { setQ(x); ask(x); }} className="text-xs rounded-full border border-white/15 px-2.5 py-1 text-[#C8C6C1] hover:text-white hover:bg-white/[0.06]">
+                  <button key={x} onClick={() => { setQ(x); ask(x); }} className="text-xs rounded-full border border-sb-ink/15 px-2.5 py-1 text-sb-text hover:text-sb-ink hover:bg-sb-ink/[0.06]">
                     {x}
                   </button>
                 ))}
@@ -190,7 +190,7 @@ export default function SearchPalette() {
             if (group.length === 0) return null;
             return (
               <div key={type} className="mb-1">
-                <div className="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8A8884]">{GROUP_LABEL[type]}</div>
+                <div className="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-sb-faint">{GROUP_LABEL[type]}</div>
                 {group.map((h) => {
                   const idx = hits.indexOf(h) + (askFirst && query ? 1 : 0);
                   return (
@@ -198,20 +198,20 @@ export default function SearchPalette() {
                       key={h.href + h.label}
                       onMouseEnter={() => setActive(idx)}
                       onClick={() => go(h)}
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${idx === active ? "bg-white/[0.08]" : "hover:bg-white/[0.04]"}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${idx === active ? "bg-sb-ink/[0.08]" : "hover:bg-sb-ink/[0.04]"}`}
                     >
                       {h.type === "ai" ? (
                         <VendorBadge vendor={h.vendor ?? ""} name={h.label} size={26} />
                       ) : (
-                        <span className="h-[26px] w-[26px] shrink-0 rounded-lg bg-white/[0.06] flex items-center justify-center text-[#C8C6C1]">
+                        <span className="h-[26px] w-[26px] shrink-0 rounded-lg bg-sb-ink/[0.06] flex items-center justify-center text-sb-text">
                           {h.type === "person" ? <PersonGlyph /> : <PageGlyph />}
                         </span>
                       )}
                       <span className="min-w-0 flex-1">
-                        <span className="block text-sm text-white truncate">{h.label}</span>
-                        {h.sub && <span className="block text-xs text-[#A3A19C] truncate">{h.sub}</span>}
+                        <span className="block text-sm text-sb-ink truncate">{h.label}</span>
+                        {h.sub && <span className="block text-xs text-sb-muted truncate">{h.sub}</span>}
                       </span>
-                      {idx === active && <span className="text-[11px] text-[#A3A19C] shrink-0">↵</span>}
+                      {idx === active && <span className="text-[11px] text-sb-muted shrink-0">↵</span>}
                     </button>
                   );
                 })}
@@ -227,14 +227,14 @@ export default function SearchPalette() {
 
 function AskRow({ q, active, onHover, onClick }: { q: string; active: boolean; onHover: () => void; onClick: () => void }) {
   return (
-    <button onMouseEnter={onHover} onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${active ? "bg-white/[0.08]" : "hover:bg-white/[0.04]"}`}>
+    <button onMouseEnter={onHover} onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${active ? "bg-sb-ink/[0.08]" : "hover:bg-sb-ink/[0.04]"}`}>
       <span className="h-[26px] w-[26px] shrink-0 rounded-lg bg-accent/15 text-accent flex items-center justify-center">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z" /></svg>
       </span>
-      <span className="min-w-0 flex-1 text-sm text-white truncate">
-        Ask angar: <span className="text-[#C8C6C1]">“{q}”</span>
+      <span className="min-w-0 flex-1 text-sm text-sb-ink truncate">
+        Ask angar: <span className="text-sb-text">“{q}”</span>
       </span>
-      {active && <span className="text-[11px] text-[#A3A19C] shrink-0">↵</span>}
+      {active && <span className="text-[11px] text-sb-muted shrink-0">↵</span>}
     </button>
   );
 }

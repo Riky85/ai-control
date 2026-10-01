@@ -1,7 +1,8 @@
 // Anteprime illustrative per i riquadri della pagina Connect: finte schermate
 // (numeri d'esempio) che salgono dal bordo inferiore. Toni neutri, al massimo un dettaglio arancione.
 
-const frame = "rounded-t-xl border border-b-0 border-line bg-sidebar select-none";
+// Chiaro: cornice grigio chiarissimo (le schede interne bianche restano leggibili); scuro: come la sidebar.
+const frame = "rounded-t-xl border border-b-0 border-line bg-ink dark:bg-sidebar select-none";
 
 /** Estratto conto: le righe AI evidenziate, le altre spente. */
 export function BankPreview() {

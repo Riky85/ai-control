@@ -10,7 +10,7 @@ export default function ProductShot() {
   return (
     <div className="relative w-full max-w-[520px] mx-auto">
       {/* Bagliore appena percettibile dietro la finestra */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-10 top-10 bottom-0 rounded-[40px] bg-accent/[0.07] blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-10 top-10 bottom-0 rounded-[40px] bg-accent/[0.07] blur-3xl hidden dark:block" />
 
       <figure className="relative rounded-2xl border border-line bg-panel shadow-[0_1px_2px_rgba(20,20,24,0.04),0_24px_48px_-24px_rgba(20,20,24,0.22)] overflow-hidden">
         {/* Barra della finestra */}

@@ -10,14 +10,26 @@
   --c-text: 20 20 24;
   --c-muted: 95 95 105;
   --c-panel: 255 255 255;
-  --c-line: 230 230 235;
+  --c-line: 228 228 233;
   --c-accent-soft: 255 241 232;
-  --c-signal: 202 150 0;
-  --c-steady: 31 146 84;
+  /* Chiaro: segnale e verde un filo più scuri, leggibili come testo sul bianco (WCAG AA). */
+  --c-signal: 160 108 0;
+  --c-steady: 24 128 74;
   --c-alarm: 196 67 59;
   --c-edge: 201 201 214;
   --c-node-strong: 189 189 198;
   --c-alarm-soft: 253 241 240;
+  /* Sidebar chiara: bianca, bordo grigio, logo e icone quasi neri.
+     "sb-ink" è anche la base delle velature di hover/attivo (nero leggero). */
+  --c-sidebar: 255 255 255;
+  --c-sidebar-line: 229 231 235;
+  --c-sb-ink: 17 17 17;
+  --c-sb-soft: 38 38 42;
+  --c-sb-text: 52 52 58;
+  --c-sb-muted: 107 107 115;
+  --c-sb-faint: 128 128 136;
+  /* Menu e finestre a comparsa (palette di ricerca, tendine della sidebar). */
+  --c-pop: 255 255 255;
 }
 /* .force-dark: pagine sempre scure a prescindere dal tema (accesso, registrazione). */
 html.dark,
@@ -35,6 +47,15 @@ html.dark,
   --c-edge: 70 70 76;
   --c-node-strong: 90 90 96;
   --c-alarm-soft: 52 26 24;
+  /* Sidebar scura: valori identici a quelli storici (#27292F, bianco, #C8C6C1…). */
+  --c-sidebar: 39 41 47;
+  --c-sidebar-line: 39 41 47;
+  --c-sb-ink: 255 255 255;
+  --c-sb-soft: 232 230 225;
+  --c-sb-text: 200 198 193;
+  --c-sb-muted: 163 161 156;
+  --c-sb-faint: 138 136 132;
+  --c-pop: 47 50 56;
 }
 
 body {

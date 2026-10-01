@@ -6,7 +6,7 @@ const config: Config = {
   theme: {
     extend: {
       // Colori come variabili CSS (globals.css): tema chiaro e scuro con gli
-      // stessi nomi. La sidebar resta sempre scura (#27292F).
+      // stessi nomi. Sidebar scura (#27292F) nel tema scuro, bianca nel chiaro.
       colors: {
         ink: {
           DEFAULT: "rgb(var(--c-subtle) / <alpha-value>)",
@@ -23,7 +23,19 @@ const config: Config = {
         signal: "rgb(var(--c-signal) / <alpha-value>)",
         steady: "rgb(var(--c-steady) / <alpha-value>)",
         alarm: "rgb(var(--c-alarm) / <alpha-value>)",
-        sidebar: "#27292F",
+        // Sidebar: #27292F nel tema scuro, bianca con bordo grigio nel chiaro.
+        sidebar: {
+          DEFAULT: "rgb(var(--c-sidebar) / <alpha-value>)",
+          line: "rgb(var(--c-sidebar-line) / <alpha-value>)",
+        },
+        sb: {
+          ink: "rgb(var(--c-sb-ink) / <alpha-value>)",
+          soft: "rgb(var(--c-sb-soft) / <alpha-value>)",
+          text: "rgb(var(--c-sb-text) / <alpha-value>)",
+          muted: "rgb(var(--c-sb-muted) / <alpha-value>)",
+          faint: "rgb(var(--c-sb-faint) / <alpha-value>)",
+        },
+        pop: "rgb(var(--c-pop) / <alpha-value>)",
       },
       fontFamily: {
         display: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
