@@ -202,6 +202,7 @@ export const addonById = (id: string) => ADDONS.find((a) => a.id === id);
 export type Feature =
   | "microsoft365"
   | "googleWorkspace"
+  | "okta"
   | "registerExport"
   | "evidencePack"
   | "complianceExports"
@@ -214,6 +215,7 @@ export type Feature =
 export const FEATURES: Record<Feature, { label: string; minPlan: Plan; addon?: AddonId }> = {
   microsoft365: { label: "Microsoft 365", minPlan: "GROWTH" },
   googleWorkspace: { label: "Google Workspace", minPlan: "GROWTH" },
+  okta: { label: "Okta", minPlan: "GROWTH" },
   registerExport: { label: "AI register export", minPlan: "GROWTH", addon: "COMPLIANCE" },
   evidencePack: { label: "AI Act evidence pack", minPlan: "SCALE", addon: "COMPLIANCE" },
   complianceExports: { label: "Compliance exports", minPlan: "SCALE", addon: "COMPLIANCE" },

@@ -35,7 +35,9 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
   const accountingState: RowState = accountingRow?.lastSyncedAt ? "connected" : chiftConfigured() ? "available" : "soon";
   const ficState: RowState = fic?.credentialsEncrypted ? "connected" : ficConfigured() ? "available" : "soon";
   const workplaceEnabled = await featureEnabled(orgId, "microsoft365");
-  const keys = connectors.filter((c) => !["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK", "FATTURE_IN_CLOUD", "BANK", "ACCOUNTING", "JIRA", "SERVICENOW"].includes(c.provider));
+  const keys = connectors.filter((c) => !["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK", "FATTURE_IN_CLOUD", "BANK", "ACCOUNTING", "JIRA", "SERVICENOW", "OKTA", "CLOUDFLARE_GATEWAY", "CISCO_UMBRELLA"].includes(c.provider));
+  // Log di rete (Cloudflare Gateway, Cisco Umbrella): riga a parte, non tra le chiavi dei provider AI.
+  const networkLogs = connectors.filter((c) => c.provider === "CLOUDFLARE_GATEWAY" || c.provider === "CISCO_UMBRELLA");
 
   return (
     <div className="flex flex-col gap-4">
@@ -74,16 +76,20 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
               {p.connected ? (
                 <span className="text-xs text-steady">Connected</span>
               ) : p.available ? (
-                workplaceEnabled ? <a href={p.connectUrl} className="btn btn-secondary btn-sm">Connect</a> : <LockedNote feature={p.id === "GOOGLE_WORKSPACE" ? "googleWorkspace" : "microsoft365"} />
+                workplaceEnabled ? <a href={p.connectUrl} className="btn btn-secondary btn-sm">Connect</a> : <LockedNote feature={p.id === "GOOGLE_WORKSPACE" ? "googleWorkspace" : p.id === "OKTA" ? "okta" : "microsoft365"} />
               ) : (
                 <span className="text-xs text-ink-400">Coming soon</span>
               )}
             </SourceRow>
             );
           })}
-          <SourceRow label="AI provider keys" hint="OpenAI, Anthropic, Gemini, Mistral…">
+          <SourceRow label="AI provider keys" hint="OpenAI, Anthropic, Gemini, Azure OpenAI, Bedrock, Vertex AI…">
             {keys.length > 0 && <span className="text-xs text-steady">{keys.length} connected</span>}
             <Link href="/connectors" className="btn btn-secondary btn-sm">{keys.length ? "Manage" : "Add a key"}</Link>
+          </SourceRow>
+          <SourceRow label="Network logs" hint="Cloudflare Gateway, Cisco Umbrella, Zscaler, Fortinet, DNS servers">
+            {networkLogs.length > 0 && <span className="text-xs text-steady">{networkLogs.length} connected</span>}
+            <Link href="/connectors#network-logs" className="btn btn-secondary btn-sm">{networkLogs.length ? "Manage" : "Connect or upload"}</Link>
           </SourceRow>
           <AutoRow label="Bank account" state={bankState} connectHref="/sources/bank" syncAction={syncBankAction} />
           <AutoRow label="Accounting software" hint="DATEV, Pennylane, Exact, Sage, Xero…" state={accountingState} connectHref="/api/connectors/accounting/connect" syncAction={syncAccountingAction} />

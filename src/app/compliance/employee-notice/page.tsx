@@ -25,7 +25,7 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
     db.organization.findUnique({ where: { id: orgId }, select: { name: true, country: true, privacyMode: true } }),
     db.desktopDevice.count({ where: { organizationId: orgId } }),
     db.aiAssetActivity.findFirst({ where: { eventType: "extension.active", aiAsset: { organizationId: orgId } }, select: { id: true } }),
-    db.connector.findMany({ where: { organizationId: orgId, status: { not: "DISCONNECTED" }, provider: { in: ["MICROSOFT_365", "GOOGLE_WORKSPACE"] } }, select: { provider: true } }),
+    db.connector.findMany({ where: { organizationId: orgId, status: { not: "DISCONNECTED" }, provider: { in: ["MICROSOFT_365", "GOOGLE_WORKSPACE", "OKTA"] } }, select: { provider: true } }),
     db.edgeSensor.findMany({ where: { organizationId: orgId }, select: { syslogEnabled: true } }),
     db.aiAsset.findMany({ where: { organizationId: orgId, deletedAt: null, status: { not: "UNAPPROVED" } }, select: { name: true }, orderBy: { lastSeenAt: { sort: "desc", nulls: "last" } }, take: 8 }),
   ]);
@@ -42,6 +42,7 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
         extension: !!extension,
         microsoft365: connectors.some((c) => c.provider === "MICROSOFT_365"),
         google: connectors.some((c) => c.provider === "GOOGLE_WORKSPACE"),
+        okta: connectors.some((c) => c.provider === "OKTA"),
         edge: sensors.length > 0,
         firewallBytes: sensors.some((x) => x.syslogEnabled),
       },

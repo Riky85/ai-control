@@ -23,11 +23,12 @@ export default async function ConnectPage() {
         organizationId: orgId,
         status: "CONNECTED",
         credentialsEncrypted: { not: null },
-        provider: { notIn: ["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK", "FATTURE_IN_CLOUD", "BANK", "ACCOUNTING", "JIRA", "SERVICENOW"] },
+        provider: { notIn: ["MICROSOFT_365", "GOOGLE_WORKSPACE", "NETWORK", "FATTURE_IN_CLOUD", "BANK", "ACCOUNTING", "JIRA", "SERVICENOW", "OKTA", "CLOUDFLARE_GATEWAY", "CISCO_UMBRELLA"] },
       },
     }),
     desktopDeviceCounts(orgId),
-    db.edgeSensor.count({ where: { organizationId: orgId } }),
+    // I sensori "import" sono i log di rete importati, non box o software angar Edge.
+    db.edgeSensor.count({ where: { organizationId: orgId, kind: { not: "import" } } }),
   ]);
   const accounts = workplace.connected.length;
 
@@ -47,7 +48,7 @@ export default async function ConnectPage() {
     {
       key: "accounts",
       title: "Company accounts",
-      text: "Microsoft 365 or Google Workspace — who uses which AI.",
+      text: "Microsoft 365, Google Workspace or Okta — who uses which AI.",
       status: accounts ? workplace.connected.map((l) => l.split(" /")[0]).join(" · ") : null,
       href: "/sources#accounts",
       cta: accounts ? "Manage" : "Connect",
@@ -111,6 +112,7 @@ export default async function ConnectPage() {
         <span>Also:</span>
         <Link href="/connectors" className="hover:text-ink-100 underline">AI provider keys{keyCount ? ` (${keyCount})` : ""}</Link>
         <Link href="/connectors#import" className="hover:text-ink-100 underline">Import a list</Link>
+        <Link href="/connectors#network-logs" className="hover:text-ink-100 underline">Network logs</Link>
       </div>
     </div>
   );

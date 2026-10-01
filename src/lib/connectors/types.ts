@@ -51,6 +51,8 @@ export interface ObservedAsset {
   dataAccess?: { name: string; sensitivity: DataSensitivity }[];
   /** Asset trovati per caso (rete, log): partono "da rivedere". Default: sì. */
   needsReview?: boolean;
+  /** Addebiti giornalieri dalla fatturazione cloud (source "cloud"). */
+  spend?: ObservedSpend[];
 }
 
 export interface ConnectorSyncResult {
@@ -58,6 +60,17 @@ export interface ConnectorSyncResult {
   assets: ObservedAsset[];
   syncedAt: Date;
   warnings: string[]; // es. "report Copilot Studio non disponibile per questo piano"
+  /** Cursore incrementale da salvare (cifrato, insieme alle credenziali) solo se il sync va a buon fine. */
+  cursor?: Record<string, unknown>;
+}
+
+/** Addebito giornaliero letto dalla fatturazione cloud (Azure, AWS, GCP): diventa una riga SpendRecord. */
+export interface ObservedSpend {
+  /** Stabile tra un sync e l'altro (piattaforma|giorno|chiave, senza importo): rieseguire aggiorna, non duplica. */
+  fingerprint: string;
+  date: Date;
+  amountEur: number;
+  description: string;
 }
 
 export interface Connector {

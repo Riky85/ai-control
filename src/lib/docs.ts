@@ -112,6 +112,34 @@ Create a dedicated key named "angar" in the provider's console — each card has
 Copy the whole key without spaces, and check it isn't revoked or expired. Disconnect deletes the key; your data stays.`,
   },
   {
+    slug: "cloud-ai-platforms",
+    section: "Connect",
+    title: "Azure OpenAI, AWS Bedrock and Google Vertex AI",
+    summary: "Read the daily cost of the AI models you run on Azure, AWS or Google Cloud straight from your own cloud billing. Read-only.",
+    keywords: ["azure", "azure openai", "foundry", "aws", "bedrock", "amazon", "google cloud", "gcp", "vertex", "gemini api", "bigquery", "billing export", "cost explorer", "cost management", "cloud", "hyperscaler"],
+    body: `Most API spend runs through a cloud account. Connect it in Connect → AI provider keys → Cloud AI platforms and angar reads the AI lines of your cloud bill every day: cost by day, model and resource, converted to EUR.
+## Azure OpenAI / AI Foundry
+1. In Microsoft Entra ID, register an app and create a client secret.
+2. On the subscription, give the app the role "Cost Management Reader". Optional: "Monitoring Reader" adds token counts for each OpenAI resource.
+3. Paste tenant ID, client ID, secret value and subscription ID.
+angar reads Cost Management for Cognitive Services and Foundry Models and keeps the model lines (gpt-4o, o3, Llama…). Speech, Vision and Translator are left out.
+## AWS Bedrock
+1. Enable Cost Explorer once in the Billing console.
+2. Create an IAM user with one permission: ce:GetCostAndUsage. Create an access key for it.
+3. Paste the access key ID and secret.
+Models sold through Bedrock, such as Claude or Llama, are shown as "Claude … (Anthropic via Bedrock)". AWS charges $0.01 for each Cost Explorer call; a daily sync makes about two, the first one about ten.
+## Google Vertex AI and Gemini API
+1. Turn on Billing → Billing export → Standard usage cost to BigQuery. Data appears from the day you turn it on.
+2. Create a service account. Give it "BigQuery Data Viewer" on the export dataset and "BigQuery Job User" on the project that holds it. Create a JSON key.
+3. Paste the table name (project.dataset.gcp_billing_export_v1_…), the dataset location if it isn't US or EU multi-region, and the JSON key.
+angar queries only the Vertex AI and Gemini API lines, credits included.
+## How it stays up to date
+- The first sync reads up to 12 months, newest first; if that takes too long it continues on the next sync.
+- Every day angar re-reads the last 35 days, because cloud bills settle for a few days. Charges are updated in place, never counted twice.
+- Amounts in USD or other currencies are converted to EUR; the original amount stays in the charge description.
+- Data is read from your own cloud accounts with your read-only credentials, stored encrypted. Disconnect deletes them.`,
+  },
+  {
     slug: "import-csv",
     section: "Connect",
     title: "Import a list or add one AI",
@@ -337,6 +365,55 @@ Companies that want to try angar directly can apply to the pilot programme at /p
 - Keep AI answers inside the EU (Settings → Privacy): nothing from your workspace goes to Anthropic. The assistant answers from the documentation and contracts are read by rules.
 - EU-only mode for a whole deployment: set ANGAR_EU_ONLY=1 and send email through your own SMTP server (SMTP_URL), for example Brevo or Mailjet, both in France. Resend and AI answers are then never used.
 - Where data lives, sub-processors, the DPA, a DPIA template and works council templates: [Trust Center](/trust).`,
+  },
+  {
+    slug: "okta",
+    section: "Connect",
+    title: "Okta",
+    summary: "For companies on Okta: which AI apps are assigned in Okta, who signs in to them and which OAuth consents people gave.",
+    keywords: ["okta", "identity", "sso", "single sign-on", "system log", "api token", "ssws", "read-only administrator", "oauth", "consent", "idp"],
+    body: `1. In the Okta Admin Console, sign in as an administrator with the Read-Only Administrator role.
+2. Open Security → API → Tokens and create a token. The token has the same rights as the person who creates it, so a read-only administrator keeps it read-only.
+3. In angar, open Connect → AI provider keys → Identity, enter your Okta domain (for example acme.okta.com, or your custom sign-in domain) and paste the token.
+4. Press Test & connect. angar tries the token with one read of your apps before saving it, then runs the first sync.
+## What angar sees
+- AI apps configured in Okta, recognised from their name and sign-in addresses.
+- The people assigned to each of those apps: work email, name and department.
+- From the Okta System Log, the last 90 days: who signed in to those apps with single sign-on (first and last time, how often) and OAuth consents given to them.
+angar never reads passwords, MFA factors, groups or any other app. New AI found this way appears in To review.
+## Good to know
+- Names and emails follow your privacy setting (Settings → Privacy): outside "By person" angar keeps only pseudonyms.
+- The token is encrypted at rest (AES-256-GCM) and deleted on Disconnect. You can also revoke it in Okta at any time.
+- angar respects Okta's rate limits and stops a sync after about 4 minutes; later syncs only read new events.
+- An OAuth service app (scopes okta.apps.read, okta.users.read, okta.logs.read) instead of an API token is planned.`,
+  },
+  {
+    slug: "network-logs",
+    section: "Connect",
+    title: "Network logs (Cloudflare, Umbrella, Zscaler, Fortinet, DNS)",
+    summary: "Find AI in the DNS and firewall logs your company already has — no angar Edge box needed.",
+    keywords: ["network", "logs", "dns", "firewall", "proxy", "cloudflare", "gateway", "zero trust", "warp", "umbrella", "cisco", "zscaler", "nss", "fortinet", "fortigate", "fortianalyzer", "bind", "windows dns", "pi-hole", "pfsense", "opnsense", "unbound", "syslog", "csv", "upload", "shadow ai"],
+    body: `Open Connect → AI provider keys → Network logs. Results show up next to angar Edge (Connect → angar Edge) and new AI lands in To review.
+## Cloudflare Gateway
+1. In the Cloudflare dashboard, create an API token with Account Analytics: Read on your account.
+2. Copy the account ID from Account home.
+3. Paste both in angar and press Test & connect. The first sync reads the last 7 days; after that angar reads new DNS queries once a day.
+## Cisco Umbrella
+1. In Umbrella, open Admin → API Keys and add a key with the Reports read-only scope.
+2. Paste the key and the secret in angar and press Test & connect. Same schedule as Cloudflare.
+## Upload a log file
+For Zscaler, Fortinet and DNS servers, export the logs and drop the files (.csv, .log, .txt, .json, or a .zip of them, up to 50 MB). angar recognises the format on its own:
+- Zscaler NSS web logs (CSV) and Zscaler JSON exports.
+- FortiGate and FortiAnalyzer traffic, web filter and DNS logs (key=value lines).
+- BIND query logs, Windows DNS debug logs, Pi-hole and dnsmasq, pfSense and OPNsense (Unbound).
+- Cisco Umbrella and Cloudflare exports, Palo Alto, Sophos and Meraki syslog.
+- Any CSV with a domain, host or URL column, plus optional user, IP and time columns.
+After the upload you see how many lines were read, the AI services found and how many people or devices used them.
+## What angar keeps
+- Only AI services from the catalog (and new sites that look like AI), the day, a count, and the person or device as your privacy setting allows.
+- Never full URLs, paths, query strings or any other site. Everything else in the file is dropped while it is read.
+- Outside "By person" people are kept as pseudonyms; with "Company totals only" not even devices are kept.
+- API tokens and secrets are encrypted at rest (AES-256-GCM) and deleted on Disconnect.`,
   },
 ];
 

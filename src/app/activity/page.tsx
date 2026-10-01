@@ -22,6 +22,9 @@ const SOURCE_LABEL: Record<string, string> = {
   ANTHROPIC: "Claude",
   OPENAI: "ChatGPT",
   GOOGLE_WORKSPACE: "Google Workspace",
+  AZURE_OPENAI: "Azure Cost Management",
+  AWS_BEDROCK: "AWS Cost Explorer",
+  GOOGLE_VERTEX: "Google Cloud billing",
 };
 
 interface SnapshotPayload {

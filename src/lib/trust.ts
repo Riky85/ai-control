@@ -112,6 +112,16 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     euOnly: "optional",
     euOnlyText: "Not blocked — only if you connect it; outside the EEA",
   },
+  {
+    name: "Microsoft Azure, Amazon Web Services, Google Cloud (your accounts)",
+    purpose: "Reading the AI lines of your own cloud bill: Azure OpenAI / AI Foundry, AWS Bedrock, Google Vertex AI and Gemini API",
+    data: "angar fetches the data from your own cloud accounts with read-only credentials you create (Cost Management Reader, ce:GetCostAndUsage, BigQuery Data Viewer + Job User). They act for you as your providers, not as angar's sub-processors; nothing from angar is sent to them beyond the read request.",
+    location: "Wherever your cloud account and billing data are; Cost Explorer answers only from us-east-1",
+    when: "optional",
+    whenText: "Only if you connect them",
+    euOnly: "optional",
+    euOnlyText: "Not blocked — only if you connect them; location depends on your account",
+  },
 ];
 
 /**
@@ -144,6 +154,9 @@ export const COLLECTED: { source: string; text: string }[] = [
   { source: "angar Edge (network sensor)", text: "Which AI services are contacted, connection counts per device and, if you turn on firewall logs, bytes sent. Never URLs or content." },
   { source: "Your team in angar", text: "Members' names, work emails, roles, sign-in records and an audit log of administrator actions." },
   { source: "Email history (Microsoft 365, Google Workspace)", text: "Only messages from known AI services' sender addresses, back up to 24 months. angar reads the sender, the date and the subject; the subject is used in memory to tell sign-ups, sign-ins and receipts apart and is never stored. The body is never read. Stored: the AI service, first and last date, a count of each kind and the person (a pseudonym outside \"By person\"). Admins can turn it off in Sources." },
+  { source: "Okta", text: "Which AI apps are configured in Okta, the people assigned to them (name, work email, department), and from the System Log of the last 90 days who signed in to those apps and which OAuth consents they gave, with dates. Never passwords, MFA factors, groups or other apps. The API token is encrypted at rest." },
+  { source: "Cloud AI platforms (Azure, AWS, Google Cloud)", text: "From your own cloud accounts: the daily cost of AI services (Azure OpenAI / AI Foundry, Bedrock, Vertex AI, Gemini API) by model, resource or SKU, and usage quantities such as tokens. Never prompts, outputs, resources' content or any other part of the bill. Credentials are read-only and encrypted at rest." },
+  { source: "Network logs (Cloudflare Gateway, Cisco Umbrella, uploaded firewall and DNS logs)", text: "Only lines that reach an AI service: the service, the day, a count, whether it was blocked and the person or device (work email, kept as a pseudonym outside \"By person\", or internal IP; neither with company totals only). Every other line, full URLs, paths and query strings are dropped while the logs are read; uploaded files are not stored. API tokens and secrets are read-only and encrypted at rest." },
 ];
 
 export const NEVER_COLLECTED: string[] = [

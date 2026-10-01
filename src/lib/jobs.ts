@@ -165,6 +165,10 @@ export async function syncCosts() {
       await db.connector.update({ where: { id: r.id }, data: { lastSyncError: (err as Error).message.slice(0, 500) } });
     }
   }
+  // Piattaforme cloud (Azure OpenAI, Bedrock, Vertex): sync incrementale giornaliero.
+  const { runConnectorSync } = await import("@/lib/connectors/sync");
+  const cloud = await db.connector.findMany({ where: { provider: { in: ["AZURE_OPENAI", "AWS_BEDROCK", "GOOGLE_VERTEX"] }, status: { not: "DISCONNECTED" }, credentialsEncrypted: { not: null } } });
+  for (const r of cloud) if ((await runConnectorSync(r.organizationId, r.provider)).ok) ok++;
   return ok;
 }
 
@@ -227,6 +231,8 @@ export async function runDueJobs(now = new Date()) {
   // Storico email (Microsoft 365 / Google Workspace): ogni connettore una volta al giorno,
   // e a ogni giro il seguito delle scansioni lunghe interrotte dal tempo massimo.
   await (await import("@/lib/connectors/email-history")).emailHistoryJob(now).catch((err) => console.error("[jobs] email history failed", err));
+  // Log di rete via API (Cloudflare Gateway, Cisco Umbrella): ogni connettore una volta al giorno, con cursore.
+  await (await import("@/lib/connectors/network-logs")).networkLogsJob(now).catch((err) => console.error("[jobs] network logs failed", err));
   // Mensile: il 1° del mese dalle 9.
   if (day.endsWith("-01") && hour >= 9 && (await claim("monthly-report", day.slice(0, 7)))) {
     summary.reports = await monthlyReports().catch(() => 0);

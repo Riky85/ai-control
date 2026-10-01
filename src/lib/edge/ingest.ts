@@ -154,10 +154,11 @@ export async function processEdgeBatch(sensor: Sensor, batch: EdgeBatch): Promis
 
   const allIps = [...batch.events.map((e) => e.client), ...batch.candidates.map((c) => c.client), ...batch.localModels.map((m) => m.ip)];
   const ipEmail = anonymous ? new Map<string, string>() : await emailsByIp(organizationId, allIps);
-  const emailOf = (client: string) => (anonymous || client === "*" ? null : ipEmail.get(client) ?? null);
+  // Email dal log stesso (Cloudflare, Zscaler, Umbrella…) se c'è, altrimenti dall'IP dell'app desktop.
+  const emailOf = (client: string, fromLog?: string | null) => (anonymous ? null : fromLog || (client === "*" ? null : ipEmail.get(client) ?? null));
   // Etichetta visibile solo in modalità "per persona": email (app desktop) o nome host.
   // (Uno pseudonimo p_… non è un nome: non diventa mai un'etichetta.)
-  const labelOf = (client: string, name?: string | null) => (mode === "individual" && client !== "*" ? displayableRef(emailOf(client)) ?? name ?? null : null);
+  const labelOf = (client: string, name?: string | null, fromLog?: string | null) => (mode === "individual" && client !== "*" ? displayableRef(emailOf(client, fromLog)) ?? name ?? null : null);
 
   // 1. Righe unificate (eventi, AI candidate, modelli locali), senza doppioni nel batch.
   const rows = new Map<string, Row>();
@@ -181,8 +182,8 @@ export async function processEdgeBatch(sensor: Sensor, batch: EdgeBatch): Promis
       serviceName: svc?.name ?? cand!,
       kind: svc?.kind ?? "web",
       client,
-      clientLabel: labelOf(client, e.clientName),
-      email: emailOf(client),
+      clientLabel: labelOf(client, e.clientName, e.email),
+      email: emailOf(client, e.email),
       hits: e.hits,
       bytesUp: e.bytesUp,
       blocked: e.blocked,
@@ -195,10 +196,10 @@ export async function processEdgeBatch(sensor: Sensor, batch: EdgeBatch): Promis
     const known = catalogMatcher.service(c.domain);
     if (known) {
       const svc = edgeService(known.serviceId)!;
-      put({ day: c.day, serviceId: svc.id, serviceName: svc.name, kind: svc.kind, client, clientLabel: labelOf(client), email: emailOf(client), hits: c.hits, bytesUp: 0, blocked: 0, source: c.source });
+      put({ day: c.day, serviceId: svc.id, serviceName: svc.name, kind: svc.kind, client, clientLabel: labelOf(client, null, c.email), email: emailOf(client, c.email), hits: c.hits, bytesUp: 0, blocked: 0, source: c.source });
       continue;
     }
-    put({ day: c.day, serviceId: `cand:${c.domain}`, serviceName: c.domain, kind: "web", client, clientLabel: labelOf(client), email: emailOf(client), hits: c.hits, bytesUp: 0, blocked: 0, source: c.source });
+    put({ day: c.day, serviceId: `cand:${c.domain}`, serviceName: c.domain, kind: "web", client, clientLabel: labelOf(client, null, c.email), email: emailOf(client, c.email), hits: c.hits, bytesUp: 0, blocked: 0, source: c.source });
   }
   for (const m of batch.localModels) {
     const client = anonymous ? "*" : m.ip;
@@ -255,7 +256,7 @@ export async function processEdgeBatch(sensor: Sensor, batch: EdgeBatch): Promis
   }
 
   // 4. Inventario: solo i primi avvistamenti (costo limitato: una volta al giorno per client/AI).
-  await feedInventory(organizationId, sensor.name, fresh).catch((err) => console.error("[edge] inventory", err));
+  await feedInventory(organizationId, sensor, fresh).catch((err) => console.error("[edge] inventory", err));
 
   // 5. Avvisi.
   const alerts = await raiseAlerts(sensor, mode, list, fresh, batch.localModels, today).catch((err) => {
@@ -265,7 +266,10 @@ export async function processEdgeBatch(sensor: Sensor, batch: EdgeBatch): Promis
   return { rows: list.length, newRows: fresh.length, alerts };
 }
 
-async function feedInventory(organizationId: string, sensorName: string, fresh: Row[]) {
+async function feedInventory(organizationId: string, sensor: { name: string; kind: string }, fresh: Row[]) {
+  // Log importati o letti via API (sensore "import"): "network logs", non "angar Edge".
+  const imported = sensor.kind === "import";
+  const via = (source: string) => (imported ? `network logs ${source}` : `angar Edge ${source}`);
   // Solo ciò che si vede davvero usato (i tentativi bloccati non contano come uso).
   const used = fresh.filter((r) => r.hits > r.blocked || r.kind === "local-model");
   if (!used.length) return;
@@ -277,14 +281,14 @@ async function feedInventory(organizationId: string, sensorName: string, fresh: 
     const hits = Math.max(1, r.hits - r.blocked);
     let f: Finding;
     if (r.kind === "local-model") f = { kind: "app", value: r.serviceName, hits, lastSeen, via: r.client === "*" ? "local models on the network" : `local models on ${r.client}` };
-    else if (r.serviceId.startsWith("cand:")) f = { kind: "candidate", value: r.serviceId.slice(5), hits, lastSeen, via: `angar Edge ${r.source}` };
-    else f = { kind: "env", value: r.serviceId, hits, lastSeen, via: `angar Edge ${r.source}` };
+    else if (r.serviceId.startsWith("cand:")) f = { kind: "candidate", value: r.serviceId.slice(5), hits, lastSeen, via: via(r.source) };
+    else f = { kind: "env", value: r.serviceId, hits, lastSeen, via: via(r.source) };
     const k = r.email ?? "";
     const g = groups.get(k) ?? [];
     if (g.length < 500) g.push(f);
     groups.set(k, g);
   }
-  const device = `angar Edge · ${sensorName}`.slice(0, 120);
+  const device = (imported ? `Network logs · ${sensor.name}` : `angar Edge · ${sensor.name}`).slice(0, 120);
   // Costo limitato: al massimo 50 persone per invio (le altre arrivano al primo avvistamento di domani).
   const entries = [...groups.entries()].sort((a, b) => (a[0] === "" ? -1 : b[0] === "" ? 1 : 0)).slice(0, 51);
   for (const [email, findings] of entries) {
@@ -396,7 +400,7 @@ async function raiseAlerts(sensor: Sensor, mode: PrivacyMode, rows: Row[], fresh
       kind: "policy",
       severity: "info",
       title: `Blocked on the network: ${b.name}`,
-      body: `angar Edge blocked ${b.n} attempt${b.n === 1 ? "" : "s"} to reach ${b.name} today.${instead ? ` Remind people to use ${instead.name} instead.` : ""}`,
+      body: `${sensor.kind === "import" ? `Your network logs show ${b.n} blocked attempt${b.n === 1 ? "" : "s"} to reach ${b.name}.` : `angar Edge blocked ${b.n} attempt${b.n === 1 ? "" : "s"} to reach ${b.name} today.`}${instead ? ` Remind people to use ${instead.name} instead.` : ""}`,
       href: hrefOf(sid),
       dedupeKey: `edge-blocked:${sid}:${today}`,
     });

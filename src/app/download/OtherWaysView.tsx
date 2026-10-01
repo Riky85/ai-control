@@ -104,7 +104,7 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
           </div>
           {canEdit ? (
             <form action={uploadNetworkLogAction} className="flex flex-col gap-3 mt-auto">
-              <CsvDropzone accept=".log,.txt,.csv,.json,.tsv,text/plain,text/csv,application/json" label="Choose a log file or drag it here" />
+              <CsvDropzone accept=".log,.txt,.csv,.json,.jsonl,.tsv,.gz,.zip,text/plain,text/csv,application/json,application/zip" multiple label="Choose log files or drag them here" />
               <button className="btn btn-primary self-start">Find AI in this log</button>
             </form>
           ) : (

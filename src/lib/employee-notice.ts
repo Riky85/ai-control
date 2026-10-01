@@ -29,6 +29,7 @@ export interface NoticeContext {
     extension: boolean;
     microsoft365: boolean;
     google: boolean;
+    okta?: boolean;
     edge: boolean;
     firewallBytes: boolean;
   };
@@ -57,6 +58,7 @@ export function buildEmployeeNotice(c: NoticeContext, lang: NoticeLang): Notice 
       s.extension && "Dall'estensione angar del browser aziendale: i nomi dei siti di IA visitati, per giorno.",
       s.microsoft365 && "Da Microsoft 365: gli accessi con l'account aziendale ad app di IA (nome dell'app e data).",
       s.google && "Da Google Workspace: le app di IA collegate all'account aziendale (nome dell'app e data).",
+      s.okta && "Da Okta: le app di IA assegnate e gli accessi con l'account aziendale (nome dell'app e date).",
       s.edge && `Dalla rete aziendale (angar Edge): quali servizi di IA vengono contattati e il numero di connessioni per dispositivo${s.firewallBytes ? ", e la quantità di dati inviati (byte) ricavata dai log del firewall" : ""}.`,
       "Dall'elenco utenti aziendale: nome, email di lavoro e reparto.",
       "Costi degli abbonamenti di IA da fatture ed estratti conto aziendali (dati dell'azienda, non tuoi).",
@@ -116,6 +118,7 @@ export function buildEmployeeNotice(c: NoticeContext, lang: NoticeLang): Notice 
       s.extension && "Über die angar-Erweiterung im Firmenbrowser: die Namen der besuchten KI-Websites pro Tag.",
       s.microsoft365 && "Aus Microsoft 365: Anmeldungen mit dem Firmenkonto bei KI-Apps (Name der App und Datum).",
       s.google && "Aus Google Workspace: mit dem Firmenkonto verbundene KI-Apps (Name der App und Datum).",
+      s.okta && "Aus Okta: zugewiesene KI-Apps und Anmeldungen mit dem Firmenkonto (Name der App und Datum).",
       s.edge && `Aus dem Firmennetz (angar Edge): welche KI-Dienste kontaktiert werden und die Anzahl der Verbindungen pro Gerät${s.firewallBytes ? " sowie die gesendete Datenmenge (Bytes) aus den Firewall-Protokollen" : ""}.`,
       "Aus dem Benutzerverzeichnis des Unternehmens: Name, dienstliche E-Mail-Adresse und Abteilung.",
       "Kosten der KI-Abonnements aus Rechnungen und Kontoauszügen des Unternehmens (Unternehmensdaten, nicht Ihre).",
@@ -175,6 +178,7 @@ export function buildEmployeeNotice(c: NoticeContext, lang: NoticeLang): Notice 
       s.extension && "Depuis l'extension angar du navigateur de l'entreprise : le nom des sites d'IA consultés, par jour.",
       s.microsoft365 && "Depuis Microsoft 365 : les connexions à des applications d'IA avec le compte professionnel (nom de l'application et date).",
       s.google && "Depuis Google Workspace : les applications d'IA reliées au compte professionnel (nom de l'application et date).",
+      s.okta && "Depuis Okta : les applications d'IA attribuées et les connexions avec le compte professionnel (nom de l'application et dates).",
       s.edge && `Depuis le réseau de l'entreprise (angar Edge) : les services d'IA contactés et le nombre de connexions par appareil${s.firewallBytes ? ", ainsi que le volume de données envoyées (octets) issu des journaux du pare-feu" : ""}.`,
       "Depuis l'annuaire de l'entreprise : nom, adresse e-mail professionnelle et service.",
       "Le coût des abonnements d'IA, à partir des factures et relevés bancaires de l'entreprise (données de l'entreprise, pas les vôtres).",
@@ -234,6 +238,7 @@ export function buildEmployeeNotice(c: NoticeContext, lang: NoticeLang): Notice 
       s.extension && "Desde la extensión angar del navegador de la empresa: los nombres de los sitios de IA visitados, por día.",
       s.microsoft365 && "Desde Microsoft 365: los inicios de sesión en aplicaciones de IA con la cuenta de la empresa (nombre de la aplicación y fecha).",
       s.google && "Desde Google Workspace: las aplicaciones de IA conectadas a la cuenta de la empresa (nombre de la aplicación y fecha).",
+      s.okta && "Desde Okta: las aplicaciones de IA asignadas y los accesos con la cuenta de la empresa (nombre de la aplicación y fechas).",
       s.edge && `Desde la red de la empresa (angar Edge): qué servicios de IA se contactan y el número de conexiones por dispositivo${s.firewallBytes ? ", y la cantidad de datos enviados (bytes) a partir de los registros del cortafuegos" : ""}.`,
       "Desde el directorio de la empresa: nombre, correo electrónico de trabajo y departamento.",
       "El coste de las suscripciones de IA, a partir de facturas y extractos bancarios de la empresa (datos de la empresa, no tuyos).",
@@ -292,6 +297,7 @@ export function buildEmployeeNotice(c: NoticeContext, lang: NoticeLang): Notice 
     s.extension && "From the angar extension in the company browser: the names of AI websites visited, per day.",
     s.microsoft365 && "From Microsoft 365: sign-ins to AI apps with your company account (app name and date).",
     s.google && "From Google Workspace: AI apps connected to your company account (app name and date).",
+    s.okta && "From Okta: AI apps assigned to you and sign-ins with your company account (app name and dates).",
     s.edge && `From the company network (angar Edge): which AI services are contacted and the number of connections per device${s.firewallBytes ? ", and the amount of data sent (bytes) from the firewall logs" : ""}.`,
     "From the company directory: name, work email and department.",
     "Costs of AI subscriptions from company invoices and bank statements (company data, not yours).",

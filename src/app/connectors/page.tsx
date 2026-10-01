@@ -7,6 +7,9 @@ import { syncConnectorAction, connectWithApiKeyAction, disconnectConnectorAction
 import { fmtDateTime } from "@/lib/format";
 import { decryptJson } from "@/lib/crypto";
 import CsvDropzone from "@/components/CsvDropzone";
+import OktaConnectCard, { oktaConnected } from "@/components/OktaConnectCard";
+import CloudAiCards, { CLOUD_AI, cloudAiConnected } from "@/components/CloudAiCards";
+import NetworkLogCards from "@/components/NetworkLogCards";
 import type { Connector, ConnectorProvider } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -32,15 +35,6 @@ const COMING_SOON: { group: string; items: { label: string; vendor: string }[] }
       { label: "Slack", vendor: "Slack" },
       { label: "Salesforce", vendor: "Salesforce" },
       { label: "Notion", vendor: "Notion" },
-      { label: "Okta", vendor: "Okta" },
-    ],
-  },
-  {
-    group: "Cloud AI",
-    items: [
-      { label: "AWS Bedrock", vendor: "Bedrock" },
-      { label: "Azure OpenAI", vendor: "Azure" },
-      { label: "Google Vertex AI", vendor: "Google" },
     ],
   },
 ];
@@ -53,7 +47,7 @@ const input = "field w-full";
 export default async function ConnectorsPage({
   searchParams,
 }: {
-  searchParams: { connected?: string; error?: string; provider?: string; imported?: string };
+  searchParams: { connected?: string; error?: string; provider?: string; imported?: string; netlog?: string; fmt?: string; warn?: string; logerror?: string };
 }) {
   const rows = await db.connector.findMany({ where: { organizationId: currentOrgId() } });
   const byProvider = new Map<ConnectorProvider, Connector>(rows.map((c) => [c.provider, c]));
@@ -64,7 +58,7 @@ export default async function ConnectorsPage({
   const githubOrg = decryptJson<{ org?: string }>(github?.credentialsEncrypted)?.org;
   // Stessa definizione delle card sotto: provider AI + GitHub.
   const providerConnected = (row?: Connector) => row?.status === "CONNECTED" || (Boolean(row?.credentialsEncrypted) && row?.status !== "DISCONNECTED");
-  const connectedCount = AI_PROVIDERS.filter((p) => providerConnected(byProvider.get(p.provider))).length + (githubConnected ? 1 : 0);
+  const connectedCount = AI_PROVIDERS.filter((p) => providerConnected(byProvider.get(p.provider))).length + (githubConnected ? 1 : 0) + (oktaConnected(byProvider.get("OKTA")) ? 1 : 0) + CLOUD_AI.filter((p) => cloudAiConnected(byProvider.get(p.provider))).length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -137,6 +131,8 @@ export default async function ConnectorsPage({
         })}
       </Section>
 
+      <CloudAiCards rows={byProvider} errorFor={searchParams.provider} error={searchParams.error} />
+
       {/* Codice: una riga sola, il modulo si apre solo quando serve. */}
       <section id="GITHUB" className="scroll-mt-6">
         <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
@@ -190,6 +186,10 @@ export default async function ConnectorsPage({
           )}
         </div>
       </section>
+
+      <OktaConnectCard row={byProvider.get("OKTA")} error={searchParams.provider === "OKTA" ? searchParams.error : undefined} />
+
+      <NetworkLogCards rows={byProvider} errorFor={searchParams.provider} error={searchParams.error} uploadError={searchParams.logerror} result={{ netlog: searchParams.netlog, fmt: searchParams.fmt, warn: searchParams.warn }} />
 
       <Section title="Import" subtitle="Works for any AI — including tools without an API. One row for each AI system.">
         <div id="import" className={`${card} scroll-mt-6 sm:col-span-2`}>

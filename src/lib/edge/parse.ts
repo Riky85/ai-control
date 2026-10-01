@@ -450,6 +450,8 @@ export interface EdgeEventIn {
   kind?: string;
   client: string;
   clientName?: string | null;
+  /** Email della persona, quando il log la riporta (Cloudflare, Zscaler, Umbrella…). */
+  email?: string | null;
   hits: number;
   bytesUp: number;
   blocked: number;
@@ -460,6 +462,7 @@ export interface EdgeCandidateIn {
   day: string;
   domain: string;
   client: string;
+  email?: string | null;
   hits: number;
   source: string;
 }

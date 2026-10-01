@@ -352,10 +352,18 @@ export function graphMailSource(token: string): MailSource {
 
 // ── Google (delega a livello di dominio, gmail.readonly, format=metadata) ──
 
-interface ServiceAccount {
+export interface ServiceAccount {
   client_email: string;
   private_key: string;
   client_id?: string;
+}
+
+/** Asserzione JWT (RS256) per lo scambio con oauth2.googleapis.com/token; `subject` solo per la delega di dominio. */
+export function googleJwtAssertion(sa: ServiceAccount, scope: string, subject?: string, now = Date.now()): string {
+  const b64 = (o: unknown) => Buffer.from(JSON.stringify(o)).toString("base64url");
+  const iat = Math.floor(now / 1000);
+  const unsigned = `${b64({ alg: "RS256", typ: "JWT" })}.${b64({ iss: sa.client_email, scope, aud: "https://oauth2.googleapis.com/token", ...(subject ? { sub: subject } : {}), iat, exp: iat + 3600 })}`;
+  return `${unsigned}.${createSign("RSA-SHA256").update(unsigned).sign(sa.private_key, "base64url")}`;
 }
 
 export function googleServiceAccount(): ServiceAccount | null {
@@ -372,15 +380,12 @@ export function googleServiceAccount(): ServiceAccount | null {
 
 /** Token per leggere la casella `subject` (JWT firmato dall'account di servizio di angar). */
 async function delegatedToken(sa: ServiceAccount, subject: string, deadline: number): Promise<string> {
-  const b64 = (o: unknown) => Buffer.from(JSON.stringify(o)).toString("base64url");
-  const iat = Math.floor(Date.now() / 1000);
-  const unsigned = `${b64({ alg: "RS256", typ: "JWT" })}.${b64({ iss: sa.client_email, scope: GOOGLE_MAIL_SCOPE, aud: "https://oauth2.googleapis.com/token", sub: subject, iat, exp: iat + 3600 })}`;
-  const signature = createSign("RSA-SHA256").update(unsigned).sign(sa.private_key, "base64url");
+  const assertion = googleJwtAssertion(sa, GOOGLE_MAIL_SCOPE, subject);
   if (Date.now() > deadline) throw new BudgetError("time budget");
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: `${unsigned}.${signature}` }),
+    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion }),
     cache: "no-store",
   });
   if (res.ok) return ((await res.json()) as { access_token: string }).access_token;

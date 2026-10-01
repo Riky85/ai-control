@@ -5,6 +5,10 @@ import { googleWorkspaceConnector } from "./google-workspace";
 import { githubConnector } from "./github";
 import { anthropicConnector } from "./anthropic";
 import { openaiConnector } from "./openai";
+import { oktaConnector } from "./okta";
+import { azureOpenAiConnector } from "./azure-openai";
+import { awsBedrockConnector } from "./aws-bedrock";
+import { googleVertexConnector } from "./google-vertex";
 import { recordInventorySnapshot } from "@/lib/evidence";
 import { apiKeyConnector, API_KEY_PROVIDERS } from "./api-key-providers";
 import { decryptJson } from "@/lib/crypto";
@@ -17,9 +21,18 @@ const REGISTRY: Record<string, Connector> = {
   GITHUB: githubConnector,
   ANTHROPIC: anthropicConnector,
   OPENAI: openaiConnector,
+  OKTA: oktaConnector,
+  AZURE_OPENAI: azureOpenAiConnector,
+  AWS_BEDROCK: awsBedrockConnector,
+  GOOGLE_VERTEX: googleVertexConnector,
 };
 
 export async function runConnectorSync(organizationId: string, provider: ConnectorProvider) {
+  // Log di rete via API (Cloudflare Gateway, Cisco Umbrella): passano dalla pipeline di angar Edge.
+  if (provider === "CLOUDFLARE_GATEWAY" || provider === "CISCO_UMBRELLA") {
+    const r = await (await import("./network-logs")).syncNetworkLogs(organizationId, provider);
+    return r.ok ? { ok: true as const, assetsTouched: 0, warnings: r.warnings, assetIds: [] as string[] } : { ok: false as const, error: r.error ?? "Sync failed." };
+  }
   // Anthropic/OpenAI: connettore completo (utenti) solo con chiave Admin;
   // con una chiave normale, e per tutti gli altri provider di modelli,
   // il connettore generico a chiave API.

@@ -4,6 +4,14 @@ import type { ConnectorSyncResult } from "./types";
 import { assessAssetRisk } from "@/lib/risk-engine";
 import { runAssuranceChecks } from "@/lib/assurance-engine";
 import { identitiesFor, isPseudonym } from "@/lib/discovery/pseudonym";
+import { decryptJson, encryptJson } from "@/lib/crypto";
+import { saveCloudSpend } from "./cloud-ai";
+
+async function withCursor(connectorId: string, cursor: Record<string, unknown>) {
+  const row = await db.connector.findUnique({ where: { id: connectorId }, select: { credentialsEncrypted: true } });
+  const creds = decryptJson<Record<string, unknown>>(row?.credentialsEncrypted);
+  return creds ? { credentialsEncrypted: encryptJson({ ...creds, cursor }) } : {};
+}
 
 /**
  * Scrive il risultato di un sync nel database in modo idempotente:
@@ -77,6 +85,9 @@ export async function persistSyncResult(
     } else if (observed.seats) {
       await db.aiSystemCost.updateMany({ where: { aiAssetId: asset.id }, data: { seats: observed.seats, ...(observed.planId ? { planId: observed.planId } : {}) } });
     }
+
+    // Addebiti giornalieri dalla fatturazione cloud: impronta stabile, quindi aggiornati e mai duplicati.
+    if (observed.spend?.length) await saveCloudSpend(organizationId, asset.id, observed.serviceId ?? asset.serviceId ?? observed.externalId, observed.spend);
 
     // Change detection: confronto diretto vecchio/nuovo su model e vendor —
     // i due campi di "dipendenza" che il sync può davvero osservare cambiare.
@@ -159,6 +170,8 @@ export async function persistSyncResult(
         status: "CONNECTED",
         lastSyncError: null,
         lastSyncWarnings: result.warnings.length > 0 ? result.warnings : Prisma.JsonNull,
+        // Cursore incrementale: salvato con le credenziali (cifrato) solo dopo che i dati sono scritti.
+        ...(result.cursor ? await withCursor(connectorId, result.cursor) : {}),
       },
     });
   }

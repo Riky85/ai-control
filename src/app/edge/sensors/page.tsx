@@ -131,7 +131,9 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
             {sensors.map((x) => {
               const st = (x.stats ?? {}) as Stats;
               const on = isOnline(x);
-              const cloud = x.kind === "cloud";
+              // "import": log di rete caricati o letti via API (Cloudflare, Umbrella), senza token.
+              const imported = x.kind === "import";
+              const cloud = x.kind === "cloud" || imported;
               const dev = isDevice(x);
               const gone = returned(x);
               const fields: { f: string; label: string; v: boolean }[] = cloud
@@ -147,8 +149,8 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                   <td className={td}>
                     <div className="font-medium text-ink-100">{x.name}</div>
                     <div className="text-xs text-ink-400">
-                      {cloud ? "Cloud logs" : dev ? "angar device" : "Software"} ·{" "}
-                      {dev ? (x.device ? <><span className="font-mono">{x.device.serial}</span> · {MODEL_LABEL[x.device.model] ?? x.device.model}</> : "returned") : x.tokenHint}
+                      {imported ? "Network logs" : cloud ? "Cloud logs" : dev ? "angar device" : "Software"} ·{" "}
+                      {imported ? (x.tokenHint === "import:upload" ? "uploaded files" : "API") : dev ? (x.device ? <><span className="font-mono">{x.device.serial}</span> · {MODEL_LABEL[x.device.model] ?? x.device.model}</> : "returned") : x.tokenHint}
                     </div>
                   </td>
                   <td className={td}>
@@ -172,7 +174,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                   </td>
                   <td className={td}>
                     {cloud ? (
-                      <span className="text-xs text-ink-400">Log push · {base}/api/edge/logs</span>
+                      <span className="text-xs text-ink-400">{imported ? <a href="/connectors#network-logs" className="underline hover:text-ink-100">Network logs settings</a> : <>Log push · {base}/api/edge/logs</>}</span>
                     ) : (
                       <div className="flex flex-wrap gap-1.5">
                         {fields.map((t) => (
@@ -223,7 +225,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                                 <span />
                               )
                             ) : (
-                              <RotateToken sensorId={x.id} name={x.name} kind={x.kind} appUrl={base} edgeImage={EDGE_IMAGE} />
+                              imported ? <span /> : <RotateToken sensorId={x.id} name={x.name} kind={x.kind} appUrl={base} edgeImage={EDGE_IMAGE} />
                             )}
                             <form action={deleteSensorAction}>
                               <input type="hidden" name="sensorId" value={x.id} />

@@ -20,6 +20,9 @@ const SEEN_IN: Record<string, string> = {
   BANK: "Bank",
   ACCOUNTING: "Accounting",
   FATTURE_IN_CLOUD: "Invoices",
+  AZURE_OPENAI: "Azure billing",
+  AWS_BEDROCK: "AWS billing",
+  GOOGLE_VERTEX: "Google Cloud billing",
 };
 const seenIn = (provider?: string | null) =>
   provider ? SEEN_IN[provider] ?? provider.replace(/_/g, " ").toLowerCase().replace(/^\w/, (m) => m.toUpperCase()) : "Added manually";

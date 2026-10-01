@@ -27,12 +27,18 @@ enum ConnectorProvider {
   TOGETHER
   OPENROUTER
   HUGGINGFACE
+  AZURE_OPENAI // spesa AI da Azure Cost Management (sottoscrizione del cliente)
+  AWS_BEDROCK // spesa AI da AWS Cost Explorer (account del cliente)
+  GOOGLE_VERTEX // spesa AI dall'export di fatturazione BigQuery (progetto del cliente)
   FATTURE_IN_CLOUD // fatture passive (Italia), per i costi
   BANK // conti bancari via Enable Banking (PSD2), per i costi
   ACCOUNTING // software di contabilità europei via Chift, per i costi
   NETWORK // scoperta automatica: scanner angar sui computer / log DNS e firewall
+  CLOUDFLARE_GATEWAY // log DNS di Cloudflare Zero Trust Gateway (GraphQL Analytics API)
+  CISCO_UMBRELLA // log DNS di Cisco Umbrella (Reporting API v2)
   JIRA // ticket automatici per anomalie e AI non consentite
   SERVICENOW // idem, per chi usa ServiceNow
+  OKTA // identità: app AI assegnate in Okta, accessi SSO e consensi OAuth
 }
 
 enum ConnectorStatus {

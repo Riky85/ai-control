@@ -92,6 +92,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const sources = [
     spend.some((r) => r.source === "bank") && "Bank statement",
     spend.some((r) => r.source === "invoice") && "Invoices",
+    spend.some((r) => r.source === "cloud") && "Cloud billing",
     asset.connector && asset.connector.provider !== "NETWORK" && asset.connector.provider.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
     asset.activities.some((a) => a.eventType === "discovery.seen") && "Scan",
     asset.activities.some((a) => a.eventType === "edge.seen") && "angar Edge",
@@ -227,7 +228,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 <tr key={r.id}>
                   <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDate(r.date)}</td>
                   <td className={`${td} text-ink-100`}>{r.description}</td>
-                  <td className={`${td} text-ink-400`}>{r.source === "bank" ? "Bank statement" : "Invoice"}</td>
+                  <td className={`${td} text-ink-400`}>{r.source === "bank" ? "Bank statement" : r.source === "cloud" ? "Cloud billing" : "Invoice"}</td>
                   <td className={`${td} text-right tabular text-ink-100`}>{fmtEur(r.amountEur, { decimals: true })}</td>
                 </tr>
               ))}

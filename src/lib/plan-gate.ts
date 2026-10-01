@@ -75,6 +75,7 @@ export type GateResult = { ok: true; state: PlanState } | { ok: false; state: Pl
 const CONNECTOR_FEATURE: Partial<Record<ConnectorProvider, Feature>> = {
   MICROSOFT_365: "microsoft365",
   GOOGLE_WORKSPACE: "googleWorkspace",
+  OKTA: "okta",
 };
 
 /** Connessioni che contano nel limite: collegate con credenziali (come nella pagina Billing). */

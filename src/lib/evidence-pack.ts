@@ -26,6 +26,10 @@ const SOURCE_LABEL: Record<string, string> = {
   FATTURE_IN_CLOUD: "Invoices",
   bank: "Bank statement",
   invoice: "Invoices",
+  cloud: "Cloud billing",
+  AZURE_OPENAI: "Azure Cost Management",
+  AWS_BEDROCK: "AWS Cost Explorer",
+  GOOGLE_VERTEX: "Google Cloud billing export",
 };
 const sourceLabel = (s: string) => SOURCE_LABEL[s] ?? s.replace(/_/g, " ").toLowerCase().replace(/^\w/, (m) => m.toUpperCase());
 
