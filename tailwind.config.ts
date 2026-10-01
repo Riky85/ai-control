@@ -6,7 +6,7 @@ const config: Config = {
   theme: {
     extend: {
       // Colori come variabili CSS (globals.css): tema chiaro e scuro con gli
-      // stessi nomi. Sidebar scura (#27292F) nel tema scuro, bianca nel chiaro.
+      // stessi nomi. Sidebar scura (#212327) nel tema scuro, bianca nel chiaro.
       colors: {
         ink: {
           DEFAULT: "rgb(var(--c-subtle) / <alpha-value>)",
@@ -24,7 +24,7 @@ const config: Config = {
         signal: "rgb(var(--c-signal) / <alpha-value>)",
         steady: "rgb(var(--c-steady) / <alpha-value>)",
         alarm: "rgb(var(--c-alarm) / <alpha-value>)",
-        // Sidebar: #27292F nel tema scuro, bianca con bordo grigio nel chiaro.
+        // Sidebar: #212327 nel tema scuro, bianca con bordo grigio nel chiaro.
         sidebar: {
           DEFAULT: "rgb(var(--c-sidebar) / <alpha-value>)",
           line: "rgb(var(--c-sidebar-line) / <alpha-value>)",

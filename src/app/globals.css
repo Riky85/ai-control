@@ -50,9 +50,9 @@ html.dark,
   --c-edge: 70 70 76;
   --c-node-strong: 90 90 96;
   --c-alarm-soft: 52 26 24;
-  /* Sidebar scura: valori identici a quelli storici (#27292F, bianco, #C8C6C1…). */
-  --c-sidebar: 39 41 47;
-  --c-sidebar-line: 39 41 47;
+  /* Sidebar scura: #212327, stesso colore per il bordo. */
+  --c-sidebar: 33 35 39; /* #212327 */
+  --c-sidebar-line: 33 35 39;
   --c-sb-ink: 255 255 255;
   --c-sb-soft: 232 230 225;
   --c-sb-text: 200 198 193;

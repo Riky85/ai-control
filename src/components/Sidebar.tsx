@@ -159,7 +159,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
   return (
     <aside
       className={`shrink-0 bg-sidebar border-r border-sidebar-line h-full py-3 flex flex-col transition-[width,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
-        collapsed ? "w-[60px] px-2.5" : "w-64 px-3"
+        collapsed ? "w-[64px] px-2" : "w-64 px-3"
       }`}
     >
       {collapsed ? (
