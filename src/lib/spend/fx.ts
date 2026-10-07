@@ -1,13 +1,15 @@
 /**
  * Conversione in EUR degli importi letti da estratti conto e fatture.
  *
- * USD: usa USD_TO_EUR del catalogo prezzi (stessa fonte del resto dell'app).
+ * USD: usa USD_TO_EUR qui sotto (stessa fonte del resto dell'app; il catalogo
+ * prezzi in USD passa da qui per diventare EUR).
  * Le altre valute europee usano una tabella STATICA e APPROSSIMATIVA
  * (cambi medi indicativi, settembre 2026, NON di mercato): basta a stimare
  * la spesa AI mensile, non a fare contabilità. Valute non in tabella: l'importo
  * resta nella valuta originale e viene marcato (convertible = false).
  */
-import { USD_TO_EUR } from "@/lib/pricing/catalog";
+/** Cambio usato per confrontare listini in USD con addebiti in EUR (sovrascrivibile da variabile d'ambiente). */
+export const USD_TO_EUR = Number(process.env.USD_TO_EUR ?? 0.86);
 
 /** EUR per 1 unità di valuta — APPROSSIMATIVO, aggiornare a mano se serve. */
 const APPROX_EUR_PER_UNIT: Record<string, number> = {

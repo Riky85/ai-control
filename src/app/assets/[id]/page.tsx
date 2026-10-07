@@ -18,8 +18,11 @@ import { StatCard, Tabs, Panel, Table, td } from "@/components/ui";
 import StatusDot from "@/components/StatusDot";
 import VendorRiskCard from "@/components/VendorRiskCard";
 import ExportMenu from "@/components/ExportMenu";
-import { computeSavingsCached, categoryOf, monthlyOf } from "@/lib/savings";
-import { CATEGORY_LABEL, PLANS, MANAGE_URL } from "@/lib/pricing/catalog";
+import { computeSavingsCached, categoryOf, monthlyOf, serviceOf as serviceOfAsset } from "@/lib/savings";
+import { CATEGORY_LABEL, MANAGE_URL } from "@/lib/pricing/catalog";
+import { legacyPlanById } from "@/lib/pricing/service";
+import { buildEconomics } from "@/lib/pricing/economics";
+import EconomicsBlock, { EstimatedTag } from "@/components/EconomicsBlock";
 import { priceForAsset } from "@/lib/engine/price-index";
 import { MarketPriceStrip, pickRow } from "@/components/engine/PriceIndexCard";
 import VendorTermsCard from "@/components/engine/VendorRiskCard";
@@ -41,7 +44,7 @@ const DAY = 86400000;
 const CONF: Record<string, string> = { HIGH: "Sure", MEDIUM: "Likely", LOW: "Worth checking" };
 
 // Il passaporto di un'AI: quanto costa, chi la usa, come risparmiare, cosa tocca.
-export default async function AssetDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { tab?: string; reminded?: string; error?: string; removed?: string; saved?: string } }) {
+export default async function AssetDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { tab?: string; reminded?: string; error?: string; removed?: string; saved?: string; edit?: string } }) {
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "overview";
   const orgId = currentOrgId();
 
@@ -58,6 +61,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         assuranceReports: { orderBy: { createdAt: "desc" }, take: 1 },
         activities: { orderBy: { occurredAt: "desc" }, take: 30 },
         cost: true,
+        subscriptions: { where: { effectiveUntil: null }, orderBy: [{ origin: "desc" }, { updatedAt: "desc" }], take: 1, include: { seatLines: true } },
       },
     }),
     db.user.findMany({ where: { organizationId: orgId }, orderBy: { name: "asc" } }),
@@ -79,7 +83,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const cat = categoryOf(asset);
   // Classe AI Act (automatica o scelta a mano), con motivi e obblighi.
   const aiAct = classifyAiAct({ ...asset, category: cat, dataNames: asset.dataAccess.map((d) => d.dataAsset.name), override: asset.aiActTier, overrideNote: asset.aiActNote });
-  const plan = asset.cost?.planId ? PLANS.find((p) => p.id === asset.cost!.planId) : null;
+  const plan = legacyPlanById(asset.cost?.planId);
   const seats = asset.cost?.seats ?? null;
   // Condizioni del fornitore col piano in uso (business o personale).
   const vendorRisk = vendorRiskFor(asset);
@@ -89,6 +93,32 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const manage = asset.serviceId ? MANAGE_URL[asset.serviceId] : undefined;
   const mine = items.filter((i) => (i.kind === "duplicate" ? i.assets.slice(1) : i.assets).some((a) => a.id === asset.id));
   const canSave = mine.reduce((t, i) => t + (i.kind === "duplicate" ? (i.assets[0]?.id === asset.id ? 0 : m?.eur ?? 0) : i.monthlyEur), 0);
+  // Economia: reale vs stimato, posti per tipo, provenienza dei prezzi (catalogo prezzi AI).
+  const sub = asset.subscriptions[0] ?? null;
+  const economics = buildEconomics({
+    id: asset.id,
+    name: asset.name,
+    type: asset.type,
+    serviceId: serviceOfAsset(asset),
+    model: asset.model,
+    cost: asset.cost,
+    usages: asset.usages,
+    subscription: sub
+      ? {
+          planId: sub.planId,
+          billingModel: sub.billingModel,
+          billingCycle: sub.billingCycle,
+          renewalDate: sub.renewalDate,
+          actualMonthly: sub.actualMonthly,
+          contractMonthly: sub.contractMonthly,
+          currency: sub.currency,
+          source: sub.source,
+          confidence: sub.confidence,
+          seatLines: sub.seatLines.map((l) => ({ seatTypeId: l.seatTypeId, label: l.label, paidSeats: l.paidSeats, activeSeats: l.activeSeats })),
+        }
+      : null,
+    spend,
+  });
   const sources = [
     spend.some((r) => r.source === "bank") && "Bank statement",
     spend.some((r) => r.source === "invoice") && "Invoices",
@@ -157,7 +187,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           href={`/assets/${asset.id}?tab=spend`}
           label="Cost / month"
           value={m ? `${m.estimated ? "≈ " : ""}${fmtEur(m.eur)}` : "Not paid"}
-          hint={asset.cost?.monthlyCostEstimate != null ? costSource(asset.cost) : m ? "Estimated from list prices" : "Free, or paid personally"}
+          hint={asset.cost?.monthlyCostEstimate != null ? costSource(asset.cost) : m ? "Estimated · seats × list price" : "Free, or paid personally"}
         />
         <StatCard href={`/assets/${asset.id}?tab=spend`} label="Plan" value={plan ? (seats && seats > 1 ? `${seats} seats` : "1 seat") : m && !m.estimated ? "Usage" : "—"} hint={plan?.name ?? (m ? "Pay as you go" : "Unknown")} />
         <StatCard
@@ -177,6 +207,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           {tab === "overview" && (
             <>
               {market && market.verdict !== "unknown" && <MarketPriceStrip row={pickRow(market)} />}
+              <EconomicsBlock e={economics} assetId={asset.id} />
               {vendorRisk && <VendorTermsCard risk={vendorRisk} tier={tier} detailsHref={`/assets/${asset.id}?tab=risk`} />}
               <Panel flush title="How to save" subtitle="Calculated automatically from your bills, seats and list prices">
                 <div className="divide-y divide-line">
@@ -222,13 +253,14 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             </>
           )}
 
+          {tab === "spend" && <EconomicsBlock e={economics} assetId={asset.id} />}
           {tab === "spend" && (
             <Table columns={["Date", "Charge", "Source", { label: "Amount", className: "text-right" }]} empty={spend.length === 0 ? "No charges yet — add a bank statement or invoices in Sources." : false}>
               {spend.map((r) => (
                 <tr key={r.id}>
                   <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDate(r.date)}</td>
                   <td className={`${td} text-ink-100`}>{r.description}</td>
-                  <td className={`${td} text-ink-400`}>{r.source === "bank" ? "Bank statement" : r.source === "cloud" ? "Cloud billing" : "Invoice"}</td>
+                  <td className={`${td} text-ink-400`}>{r.source === "bank" ? "Bank statement" : r.source === "cloud" ? "Cloud billing" : r.source === "gateway" ? <>angar Gateway<EstimatedTag /></> : "Invoice"}</td>
                   <td className={`${td} text-right tabular text-ink-100`}>{fmtEur(r.amountEur, { decimals: true })}</td>
                 </tr>
               ))}
@@ -388,7 +420,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           </details>
 
           {/* Contratto: date, preavviso, rinnovo, ordine, centro di costo (registro contratti su /savings?view=contracts). */}
-          <details className="pt-5 border-t border-line group" open={searchParams.saved === "contract" || undefined}>
+          <details id="contract" className="pt-5 border-t border-line group scroll-mt-6" open={searchParams.saved === "contract" || searchParams.edit === "contract" || undefined}>
           <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none flex items-center justify-between gap-2">
             <span>Contract & renewal</span>
             {(() => {

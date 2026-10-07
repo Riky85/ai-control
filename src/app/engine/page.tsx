@@ -4,8 +4,7 @@ import type { ReactNode } from "react";
 import PublicHeader from "@/components/PublicHeader";
 import { currentSession } from "@/lib/auth";
 import { networkStats } from "@/lib/engine/price-index";
-import ScoreRing from "@/components/engine/ScoreRing";
-import { AxisGauge } from "@/components/engine/ScoreCard";
+import ScoreMock from "@/components/engine/marketing/ScoreMock";
 import ForecastCard, { type ForecastCardProps } from "@/components/engine/ForecastCard";
 import PriceIndexCard, { PriceRangeBar, VerdictPill, type PriceRow } from "@/components/engine/PriceIndexCard";
 import ProductShot from "@/components/engine/marketing/ProductShot";
@@ -156,18 +155,8 @@ export default async function EnginePage() {
         <section className="flex flex-col gap-8">
           <Heading kicker="Four engines" title="From raw charges to decisions." />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <EngineCard id="engine-score" n="01" name="angar Score" title="A rating the board reads in five seconds." text="0–100 across efficiency, governance, risk and adoption. Every point is explained and linked to the fix.">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="flex justify-center shrink-0">
-                  <ScoreRing score={72} grade="B" size={112} />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 flex-1 min-w-0">
-                  <AxisGauge label="Efficiency" value={58} />
-                  <AxisGauge label="Governance" value={76} />
-                  <div className="hidden sm:block"><AxisGauge label="Risk" value={84} /></div>
-                  <div className="hidden sm:block"><AxisGauge label="Adoption" value={64} /></div>
-                </div>
-              </div>
+            <EngineCard id="engine-score" n="01" name="angar Score" title="One number for AI spend efficiency." text="0–100 across five dimensions: spend visibility, license utilization, tool efficiency, consumption efficiency and savings opportunity. Ratios only — spending less never scores higher. Every point is explained, and each fix shows the points it gains.">
+              <ScoreMock compact />
             </EngineCard>
 
             <EngineCard id="engine-price" n="02" name="AI Price Index" title="What everyone else really pays." text="Seat prices and seat use from real bills across the network — anonymous, and shown only when 5+ companies contribute.">

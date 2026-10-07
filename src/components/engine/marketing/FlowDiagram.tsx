@@ -11,7 +11,7 @@ const SOURCES: Node[] = [
 ];
 
 const OUTPUTS: Node[] = [
-  { title: "angar Score", caption: "A 0–100 rating, 4 axes", Icon: IconGauge, href: "#engine-score" },
+  { title: "angar Score", caption: "AI spend efficiency, 5 dimensions", Icon: IconGauge, href: "#engine-score" },
   { title: "AI Price Index", caption: "Your price vs the market", Icon: IconTag, href: "#engine-price" },
   { title: "Forecast", caption: "12 months, plus anomalies", Icon: IconTrend, href: "#engine-forecast" },
   { title: "Autopilot", caption: "Savings, proven on bills", Icon: IconAutopilot, href: "#engine-autopilot" },

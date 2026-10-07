@@ -16,7 +16,7 @@ import type { Connector, ConnectorSyncResult, ObservedAsset } from "./types";
 import { decryptJson } from "@/lib/crypto";
 import { matchMerchant } from "@/lib/pricing/merchants";
 import { AI_SERVICES } from "@/lib/discovery/catalog";
-import { USD_TO_EUR, PLANS } from "@/lib/pricing/catalog";
+import { legacyPlanById, seatsEur } from "@/lib/pricing/service";
 
 const GRAPH = "https://graph.microsoft.com";
 
@@ -134,12 +134,12 @@ export const microsoft365Connector: Connector = {
       const copilot = skus.filter((s) => /copilot/i.test(s.skuPartNumber ?? ""));
       const seats = copilot.reduce((t, s) => t + (s.prepaidUnits?.enabled ?? 0), 0);
       if (seats > 0) {
-        const plan = PLANS.find((p) => p.id === "copilot-m365")!;
+        const plan = legacyPlanById("copilot-m365")!;
         const a = assetFor("copilot", "Microsoft 365 Copilot", "Microsoft");
         a.name = "Microsoft 365 Copilot";
         a.seats = seats;
         a.planId = plan.id;
-        a.monthlyCost = seats * plan.monthlyUsd * USD_TO_EUR;
+        a.monthlyCost = seatsEur(plan.id, seats);
         a.costBasis = "estimate";
         a.costNote = `${seats} licences × list price · looks like ${seats} × ${plan.name}`;
       }

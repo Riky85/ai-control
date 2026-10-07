@@ -207,6 +207,8 @@ model Organization {
   gatewayPolicy    GatewayPolicy?
   gatewayUpstreams GatewayUpstream[]
   gatewayRequests  GatewayRequest[]
+  // Economia AI: abbonamenti normalizzati (piano, tipi di posto, listino vs fatturato).
+  customerSubscriptions CustomerSubscription[]
 }
 
 // Avvisi della piattaforma (campanella in alto a destra): rinnovi in arrivo,
@@ -439,6 +441,7 @@ model AiAsset {
   changes          AssetChange[]
   cost             AiSystemCost?
   alternatives     ModelAlternative[]
+  subscriptions    CustomerSubscription[]
   relationsFrom    AiAssetRelationship[]    @relation("RelationSource")
   relationsTo      AiAssetRelationship[]    @relation("RelationTarget")
   spendRecords     SpendRecord[]
@@ -1125,4 +1128,271 @@ model GatewayRequest {
 
   @@index([organizationId, createdAt])
   @@index([keyId, createdAt])
+}
+
+// ───────────────────────── Economia AI: catalogo globale ─────────────────────────
+// Catalogo prezzi AI CONDIVISO tra tutte le aziende (nessun organizationId):
+// fornitori, prodotti, piani, tipi di posto, modelli, deployment e regole di prezzo.
+// Fonte dei dati: src/lib/pricing/catalog-data/*.ts, caricati da pricing/catalog-sync.ts
+// (idempotente, a ogni deploy e nel job giornaliero). Ogni prezzo ha provenienza
+// (URL, tipo di fonte, verificato il, confidenza) e date di validità: un prezzo nuovo
+// è una riga nuova, quella vecchia resta (storico). Mai sovrascrivere un prezzo.
+
+model AiProvider {
+  id              String   @id // slug: "openai", "anthropic", "google", "mistral", "microsoft", "aws"…
+  name            String
+  kind            String   // "model_provider" | "cloud" | "app_vendor"
+  website         String?
+  pricingUrl      String?
+  hqRegion        String?  // "US" | "EU" | …
+  euDataResidency Boolean? // null = non noto
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+
+  products    AiProduct[]
+  models      AiModel[]
+  deployments AiDeployment[]
+}
+
+// Un prodotto vendibile: un abbonamento a posti (ChatGPT Business) o un'API (OpenAI API).
+model AiProduct {
+  id           String     @id // "chatgpt", "openai-api", "github-copilot"…
+  providerId   String
+  provider     AiProvider @relation(fields: [providerId], references: [id])
+  name         String
+  kind         String     // "seat" | "api" | "hybrid"
+  serviceId    String?    // servizio di discovery/catalog.ts (riconoscimento da banca, scansione…)
+  billingModel String     // SEAT_BASED | USAGE_BASED | TOKEN_BASED | CREDIT_BASED | HYBRID | CONTRACTED | CUSTOM
+  website      String?
+  pricingUrl   String?
+  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime   @default(now())
+
+  plans         AiPlan[]
+  pricingRules  AiPricingRule[]
+  subscriptions CustomerSubscription[]
+
+  @@index([serviceId])
+}
+
+model AiPlan {
+  id           String    @id // "chatgpt-business", "claude-team"…
+  productId    String
+  product      AiProduct @relation(fields: [productId], references: [id])
+  name         String
+  audience     String    // "personal" | "business" | "enterprise"
+  billingModel String
+  minSeats     Int?
+  maxSeats     Int?
+  status       String    @default("active") // "active" | "retired"
+  notes        String?
+  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime  @default(now())
+
+  seatTypes     AiSeatType[]
+  pricingRules  AiPricingRule[]
+  subscriptions CustomerSubscription[]
+
+  @@index([productId])
+}
+
+// Tipo di posto di un piano (Standard, Premium…): un abbonamento può averne più d'uno.
+model AiSeatType {
+  id           String   @id // "chatgpt-business:premium"
+  planId       String
+  plan         AiPlan   @relation(fields: [planId], references: [id])
+  key          String   // "standard" | "premium" | "developer" | …
+  name         String
+  isDefault    Boolean  @default(false)
+  // Id del vecchio catalogo (AiSystemCost.planId), per non perdere i dati già salvati.
+  legacyPlanId String?  @unique
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  pricingRules AiPricingRule[]
+  seatLines    CustomerSeatLine[]
+
+  @@unique([planId, key])
+}
+
+model AiModel {
+  id             String     @id // "openai:gpt-6.1-sol"
+  providerId     String
+  provider       AiProvider @relation(fields: [providerId], references: [id])
+  apiId          String     // id come lo usa l'API: "gpt-6.1-sol", "claude-sonnet-5"
+  name           String
+  family         String     // "GPT-6", "Claude Sonnet", "Gemini Flash"…
+  tier           String?    // "frontier" | "balanced" | "light" (per i confronti, mai per la compatibilità)
+  lifecycle      String     // "active" | "preview" | "deprecated" | "sunset" | "retired"
+  releasedAt     DateTime?
+  deprecatedAt   DateTime?
+  retiresAt      DateTime?
+  replacementId  String?
+  contextWindow  Int?
+  maxOutput      Int?
+  modalitiesIn   String[]   @default([]) // "text" | "image" | "audio" | "video" | "pdf"
+  modalitiesOut  String[]   @default([])
+  // Capacità: { toolCalling, structuredOutput, vision, audio, reasoning, batch, caching,
+  // streaming, embeddings, fineTuning, mcp } — true / false, assente = non noto.
+  capabilities   Json
+  sourceUrl      String?
+  sourceType     String     // "official" | "secondary" | "customer" | "angar_estimate"
+  lastVerifiedAt DateTime
+  confidence     String     // "HIGH" | "MEDIUM" | "LOW"
+  updatedAt      DateTime   @updatedAt
+  createdAt      DateTime   @default(now())
+
+  pricingRules AiPricingRule[]
+
+  @@unique([providerId, apiId])
+}
+
+// Dove si compra un modello: API diretta, Azure, Bedrock, Vertex… (stesso modello, prezzi diversi).
+model AiDeployment {
+  id             String     @id // "openai-direct", "azure-openai", "aws-bedrock", "google-vertex"
+  kind           String     // "DIRECT_API" | "AZURE" | "BEDROCK" | "VERTEX" | "OTHER"
+  hostProviderId String
+  hostProvider   AiProvider @relation(fields: [hostProviderId], references: [id])
+  name           String
+  regions        String[]   @default([]) // "global", "eu", "us", "eu-central-1"…
+  updatedAt      DateTime   @updatedAt
+  createdAt      DateTime   @default(now())
+
+  pricingRules AiPricingRule[]
+}
+
+// Una regola di prezzo: COSA si paga (modello o piano / tipo di posto), DOVE (deployment)
+// e COME (modello di fatturazione, ciclo). Le voci con i numeri sono AiPricingComponent.
+model AiPricingRule {
+  id           String        @id // chiave stabile: "model:openai:gpt-6.1-sol@openai-direct", "seat:chatgpt-business:premium"
+  billingModel String        // SEAT_BASED | USAGE_BASED | TOKEN_BASED | CREDIT_BASED | HYBRID | CONTRACTED | CUSTOM
+  modelId      String?
+  model        AiModel?      @relation(fields: [modelId], references: [id])
+  productId    String?
+  product      AiProduct?    @relation(fields: [productId], references: [id])
+  planId       String?
+  plan         AiPlan?       @relation(fields: [planId], references: [id])
+  seatTypeId   String?
+  seatType     AiSeatType?   @relation(fields: [seatTypeId], references: [id])
+  deploymentId String?
+  deployment   AiDeployment? @relation(fields: [deploymentId], references: [id])
+  minSeats     Int?
+  notes        String?
+  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime      @default(now())
+
+  components AiPricingComponent[]
+
+  @@index([modelId])
+  @@index([planId])
+}
+
+// Una voce di prezzo VERSIONATA: input, output, cache, batch, posto mensile/annuale…
+// Mai sovrascritta: un cambio di prezzo chiude la riga (effectiveUntil) e ne apre una nuova,
+// che ricorda il prezzo precedente e quando angar se n'è accorto (detectedAt).
+model AiPricingComponent {
+  id             String        @id @default(cuid())
+  ruleId         String
+  rule           AiPricingRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  kind           String        // input | output | cached_input | cache_write | cache_write_1h | reasoning | image_input | audio_input | audio_output | image_output | embedding | search | tool_call | session_hour | credit | seat_monthly | seat_annual
+  unit           String        // "1M_tokens" | "seat_month" | "1K_requests" | "image" | "hour" | "credit"
+  price          Float
+  currency       String        // "USD" | "EUR"
+  region         String        @default("global") // "global" | "eu" | "us" | regione cloud
+  serviceTier    String        @default("standard") // standard | batch | flex | priority | fast | promotion
+  contextAbove   Int           @default(0) // prezzo valido per prompt OLTRE questi token (0 = tutti)
+  effectiveFrom  DateTime
+  effectiveUntil DateTime?
+  sourceUrl      String?
+  sourceType     String        // "official" | "secondary" | "customer" | "angar_estimate"
+  lastVerifiedAt DateTime
+  confidence     String        // "HIGH" | "MEDIUM" | "LOW"
+  previousPrice  Float?
+  detectedAt     DateTime      @default(now())
+  note           String?
+
+  @@unique([ruleId, kind, region, serviceTier, contextAbove, effectiveFrom])
+  @@index([ruleId, kind])
+}
+
+// Cambiamenti del mercato AI (prezzi, nuovi modelli, deprecazioni…). Vuota per ora:
+// la popolerà la pipeline di verifica (fase 4) e il feed dei cambiamenti (fase 7).
+model AiMarketChange {
+  id          String    @id @default(cuid())
+  providerId  String?
+  modelId     String?
+  productId   String?
+  planId      String?
+  changeType  String    // "price" | "new_model" | "deprecation" | "retirement" | "capability" | "deployment" | "region" | "tier" | "service" | "provider"
+  oldState    Json?
+  newState    Json?
+  announcedAt DateTime?
+  effectiveAt DateTime?
+  sourceUrl   String?
+  sourceType  String    // "official" | "secondary" | "customer" | "angar_estimate"
+  confidence  String    // "HIGH" | "MEDIUM" | "LOW"
+  detectedAt  DateTime  @default(now())
+  summary     String?
+
+  @@index([changeType, effectiveAt])
+  @@index([modelId])
+}
+
+// ───────────────────────── Economia AI: livello del cliente ─────────────────────────
+// Abbonamento di un'azienda a un prodotto AI, normalizzato: piano, righe di posti per tipo,
+// listino vs prezzo di contratto vs importo fatturato. Collegato all'AI (AiAsset).
+// AiSystemCost resta il costo mensile "attuale" della singola AI (e il registro contratti):
+// pricing/subscriptions.ts deriva da lì gli abbonamenti (origin "derived"); quelli inseriti
+// a mano o da contratto (origin "manual") non vengono mai riscritti.
+model CustomerSubscription {
+  id                String       @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiAssetId         String?
+  aiAsset           AiAsset?     @relation(fields: [aiAssetId], references: [id], onDelete: SetNull)
+  providerId        String?
+  productId         String?
+  product           AiProduct?   @relation(fields: [productId], references: [id])
+  planId            String?
+  plan              AiPlan?      @relation(fields: [planId], references: [id])
+  billingModel      String       // stessa tassonomia di AiPricingRule
+  billingCycle      String?      // "monthly" | "annual" | "usage"
+  contractStart     DateTime?
+  renewalDate       DateTime?
+  currency          String       @default("EUR")
+  // Importi MENSILI nella valuta indicata. null = non noto (mai sostituire uno con l'altro).
+  listMonthly       Float?       // listino del fornitore × posti
+  contractMonthly   Float?       // prezzo negoziato, se noto
+  discountPct       Float?
+  actualMonthly     Float?       // importo realmente fatturato (banca, fattura, billing)
+  taxIncluded       Boolean?
+  source            String       // "bank" | "invoice" | "billing_connector" | "manual" | "contract" | "estimate"
+  confidence        String       @default("MEDIUM")
+  origin            String       @default("derived") // "derived" (da AiSystemCost) | "manual"
+  effectiveFrom     DateTime     @default(now())
+  effectiveUntil    DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  seatLines CustomerSeatLine[]
+
+  @@index([organizationId])
+  @@index([aiAssetId])
+}
+
+// Una riga di posti: N posti di un tipo (es. 35 Standard + 4 Premium nello stesso abbonamento).
+model CustomerSeatLine {
+  id                String               @id @default(cuid())
+  subscriptionId    String
+  subscription      CustomerSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  seatTypeId        String?
+  seatType          AiSeatType?          @relation(fields: [seatTypeId], references: [id])
+  label             String
+  paidSeats         Int
+  activeSeats       Int?
+  unitListPrice     Float?   // al mese, nella valuta del listino
+  unitContractPrice Float?   // al mese, se noto
+  currency          String   @default("USD")
+
+  @@index([subscriptionId])
 }

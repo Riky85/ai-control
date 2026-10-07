@@ -211,7 +211,9 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
           const online = item.key === "connect" && connectedComputers > 0;
           return (
             <div key={item.href} className="flex flex-col gap-0.5">
-            <Link href={item.href} title={collapsed ? item.label : undefined} className={itemClass(isActive(item.href))}>
+            {/* Voci secondarie (Governance): dopo una riga sottile, testo più tenue. */}
+            {item.secondary && <div aria-hidden className="my-2 mx-2 border-t border-sb-ink/[0.08]" />}
+            <Link href={item.href} title={collapsed ? item.label : undefined} className={`${itemClass(isActive(item.href))} ${item.secondary && !isActive(item.href) ? "opacity-70" : ""}`}>
               <span className="relative shrink-0">
                 <Icon name={item.icon} />
                 {collapsed && badge > 0 && (

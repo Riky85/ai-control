@@ -91,24 +91,27 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-[44px] leading-none font-semibold tracking-tight tabular">{p.engine.score.score}</span>
-                  <span className="text-lg font-semibold text-[#FF7323]">{p.engine.score.grade}</span>
+                  <span className="text-lg font-semibold">{p.engine.score.levelLabel}</span>
                 </div>
-                <div className="text-xs text-[#5F5F69] mt-2">{p.engine.score.verdict}</div>
+                <div className="text-xs text-[#5F5F69] mt-2">
+                  {p.engine.score.verdict}
+                  {p.engine.score.savingsMonthlyEur >= 1 ? ` ${eur(p.engine.score.savingsMonthlyEur)} a month could be saved.` : ""}
+                </div>
                 <div className="text-xs text-[#5F5F69] mt-1">
                   {p.engine.score.delta90 != null && Math.abs(p.engine.score.delta90) >= 1
                     ? `${p.engine.score.delta90 > 0 ? "+" : "−"}${Math.abs(p.engine.score.delta90)} points in 90 days`
                     : p.engine.score.trend.length > 1 ? "Stable over 90 days" : "Trend builds up day by day"}
-                  {" · "}{p.engine.score.confidence} confidence
+                  {" · "}{p.engine.score.confidence}
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 {p.engine.score.axes.map((a) => (
-                  <div key={a.key} className="grid grid-cols-[92px_1fr_32px] items-center gap-3 text-sm">
+                  <div key={a.key} className="grid grid-cols-[150px_1fr_130px] items-center gap-3 text-sm">
                     <span className="text-[#5F5F69]">{a.label}</span>
                     <span className="relative h-1.5 rounded-full bg-[#EBEBEF] overflow-hidden">
-                      <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.max(0, Math.min(100, a.value))}%`, background: a.value >= 70 ? "#1F9D55" : a.value >= 50 ? "#FF7323" : "#D64545" }} />
+                      {a.value != null && <span className="absolute inset-y-0 left-0 rounded-full bg-[#8A8A94]" style={{ width: `${Math.max(0, Math.min(100, a.value))}%` }} />}
                     </span>
-                    <span className="tabular text-right font-medium">{Math.round(a.value)}</span>
+                    <span className="tabular text-right font-medium">{a.value != null ? `${Math.round(a.value)} · ${a.levelLabel}` : a.levelLabel}</span>
                   </div>
                 ))}
                 <ScoreTrend points={p.engine.score.trend} />
@@ -117,7 +120,7 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
           ) : (
             <p className="text-sm text-[#5F5F69] mt-3">The angar Score isn't available yet.</p>
           )}
-          <p className="text-xs text-[#5F5F69] mt-2">0–100 from efficiency, governance, risk and adoption; computed only from facts in angar.</p>
+          <p className="text-xs text-[#5F5F69] mt-2">AI spend efficiency, 0–100: spend visibility, license utilization, tool efficiency, consumption efficiency and savings opportunity; computed only from facts in angar.</p>
         </section>
 
         <section className="mt-10 avoid-break">

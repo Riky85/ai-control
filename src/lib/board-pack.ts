@@ -77,7 +77,8 @@ export interface BoardRisk {
 
 /**
  * Rischi principali: anomalie gravi, AI non consentite ancora in uso e i
- * driver di rischio/governance dell'angar Score che pesano di più. Pura.
+ * driver degli indici di rischio e governance (control.ts, fuori dall'angar
+ * Score dal metodo 2) che pesano di più. Pura.
  */
 export function topRisks(
   input: {
@@ -100,7 +101,7 @@ export function topRisks(
     .sort((a, b) => a.scoreImpact - b.scoreImpact);
   for (const d of drivers) {
     if (seen.has(d.label.toLowerCase())) continue;
-    out.push({ label: d.label, detail: `Costs ${Math.abs(Math.round(d.scoreImpact * 10) / 10)} points of the angar Score (${d.axis}).`, severity: d.scoreImpact <= -5 ? "warning" : "info" });
+    out.push({ label: d.label, detail: `Costs ${Math.abs(Math.round(d.scoreImpact * 10) / 10)} points of the ${d.axis} index.`, severity: d.scoreImpact <= -5 ? "warning" : "info" });
   }
   const order = { critical: 0, warning: 1, info: 2 };
   return out.sort((a, b) => order[a.severity] - order[b.severity]).slice(0, n);
@@ -182,7 +183,7 @@ export async function buildBoardPack(organizationId: string, asked?: string | nu
   ]);
 
   // ── angar Engine (sola lettura; ogni parte può mancare senza rompere il pack) ──
-  const [{ computeScore, scoreHistory, AXES, AXIS_LABEL }, { forecastSpend, detectAnomalies }] = await Promise.all([import("@/lib/engine/score"), import("@/lib/engine/forecast")]);
+  const [{ computeScore, scoreHistory }, { forecastSpend, detectAnomalies }] = await Promise.all([import("@/lib/engine/score"), import("@/lib/engine/forecast")]);
   const [score, history, forecast, anomalies, verifiedRows] = await Promise.all([
     computeScore(organizationId).catch((err) => (console.error("[board-pack] score failed", err), null)),
     scoreHistory(organizationId, 90, now).catch(() => []),
@@ -252,15 +253,18 @@ export async function buildBoardPack(organizationId: string, asked?: string | nu
   const qoqPct = selectedActual != null && prevActual ? Math.round(((selectedActual - prevActual) / prevActual) * 100) : null;
   const trend = history.map((p) => ({ day: p.day, score: p.score }));
   const scoreDelta90 = score && trend.length ? score.score - trend[0].score : null;
-  const risks = topRisks({ anomalies, blockedInUse, drivers: score?.drivers ?? [] });
+  // Rischi: indici di controllo (impatto ×0,25 come il peso che avevano nel vecchio punteggio).
+  const risks = topRisks({ anomalies, blockedInUse, drivers: (score?.control.drivers ?? []).map((d) => ({ ...d, scoreImpact: Math.round(d.impact * 2.5) / 10 })) });
   const engine = {
     score: score
       ? {
           score: score.score,
-          grade: score.grade,
+          levelLabel: score.levelLabel,
           verdict: score.verdict,
-          confidence: score.confidence,
-          axes: AXES.map((k) => ({ key: k, label: AXIS_LABEL[k], value: score.axes[k] })),
+          confidence: score.confidenceLabel,
+          savingsMonthlyEur: score.savingsMonthlyEur,
+          // Dimensioni misurate (quelle senza dati non hanno un valore da mostrare).
+          axes: score.dimensions.map((d) => ({ key: d.axis, label: d.label, value: d.status === "measured" || d.status === "partial" ? d.value : null, levelLabel: d.levelLabel })),
           trend,
           delta90: scoreDelta90,
         }
@@ -292,7 +296,7 @@ export async function buildBoardPack(organizationId: string, asked?: string | nu
     doneMonthly: saved?.doneMonthly ?? 0,
     identifiedMonthly: savings.totalMonthly,
     score: score?.score ?? null,
-    grade: score?.grade ?? null,
+    grade: score?.levelLabel ?? null,
     scoreDelta90,
     topRisk: risks[0]?.label ?? null,
     aiActScore: ai.score,

@@ -95,17 +95,12 @@ export async function loadSimModel(orgId: string, now = Date.now()): Promise<Sim
       .map((a) => a.id),
   })).filter((c) => c.assetIds.length >= 2);
 
-  const f = score.facts;
   return {
     assets: simAssets,
     personDept,
     departments,
     categories,
-    score: {
-      score: score.score,
-      grade: score.grade,
-      axes: score.axes,
-      facts: { monthlySpendEur: f.monthlySpendEur, wasteMonthlyEur: f.wasteMonthlyEur, costKnown: f.costKnown, unapprovedInUse: f.unapprovedInUse, usageKnown: f.usageKnown, peopleBase: f.peopleBase },
-    },
+    // Fatti dell'angar Score (solo numeri e nomi delle AI): il simulatore ricalcola con la stessa funzione.
+    score: { score: score.score, axes: score.axes, facts: score.facts },
   };
 }

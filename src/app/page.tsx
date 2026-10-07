@@ -17,7 +17,7 @@ import { cookies } from "next/headers";
 import SetupWizard from "@/components/SetupWizard";
 import { WIZARD_COOKIE } from "@/lib/wizard";
 import ScoreCard, { type ScoreCardData } from "@/components/engine/ScoreCard";
-import { computeScoreCached, scoreHistory, topImprovement } from "@/lib/engine/score";
+import { computeScoreCached, scoreHistory, scoreActions } from "@/lib/engine/score";
 
 export const dynamic = "force-dynamic";
 
@@ -55,21 +55,28 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   let scoreCard: ScoreCardData | null = null;
   if (all.length > 0) {
     const [score, history] = await Promise.all([computeScoreCached(orgId), scoreHistory(orgId, 30)]);
-    const top = topImprovement(score);
+    const plan = scoreActions(score.facts, score);
     scoreCard = {
       score: score.score,
-      grade: score.grade,
+      level: score.level,
+      levelLabel: score.levelLabel,
       verdict: score.verdict,
-      axes: score.axes,
+      savingsMonthlyEur: score.savingsMonthlyEur,
       confidence: score.confidence,
-      top: top && { label: top.label, scoreImpact: top.scoreImpact, href: top.href },
-      delta: history.length ? score.score - history[0].score : null,
+      confidenceLabel: score.confidenceLabel,
+      // Una dimensione non misurata mostra "—" (conta 60, spiegato su /score).
+      dims: score.dimensions.map((d) => ({ axis: d.axis, label: d.label, value: d.status === "unmeasured" || d.status === "na" ? null : d.value, level: d.level, levelLabel: d.levelLabel })),
+      potential: plan.potential,
+      actions: plan.actions.filter((a) => a.points > 0).length,
+      // Solo fotografie dello stesso metodo: le vecchie (assi diversi) non sono confrontabili.
+      delta: history.length && history[0].day !== history[history.length - 1].day ? { points: score.score - history[0].score, since: history[0].day } : null,
     };
   }
 
   const costed = assets.map((a) => monthlyOf(a)).filter((m): m is NonNullable<typeof m> => !!m && m.eur > 0);
   const spend = costed.reduce((s, m) => s + m.eur, 0);
   const estimated = costed.filter((m) => m.estimated).length;
+  const estimatedEur = costed.filter((m) => m.estimated).reduce((t, m) => t + m.eur, 0);
   // I server MCP non si pagano come un'AI: non contano tra "non pagate dall'azienda".
   const unpaid = assets.filter((a) => a.type !== "MCP_SERVER" && !monthlyOf(a)).length;
   const shown = filterAssets(all, searchParams);
@@ -124,12 +131,12 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         </div>
       ) : (
         <>
-          <SetupWizard steps={wizardSteps} initialHidden={cookies().get(WIZARD_COOKIE)?.value === "1"} />
+          <SetupWizard steps={wizardSteps} initialHidden={cookies().get(WIZARD_COOKIE)?.value === "1"} primary={!scoreCard} />
           {scoreCard && <ScoreCard data={scoreCard} />}
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} found by the scan to decide` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} tone="accent" href={toReview ? "/review" : "/providers"} />
-            <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (org?.employees ? `${fmtEur(spend / org.employees, { decimals: true })} for each employee` : estimated ? `${estimated} estimated from list prices` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
+            <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} found by the scan to decide` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} tone={scoreCard ? undefined : "accent"} href={toReview ? "/review" : "/providers"} />
+            <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (estimated ? `${fmtEur(estimatedEur)} of it estimated from list prices` : org?.employees ? `${fmtEur(spend / org.employees, { decimals: true })} for each employee` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
             <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"} →` : "Nothing found yet"} href="/savings" />
             <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : undefined} />
           </div>

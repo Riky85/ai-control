@@ -15,7 +15,7 @@
  */
 import { monthlyOf, type Saving } from "@/lib/savings";
 import type { Anomaly } from "@/lib/engine/forecast";
-import type { Driver, Grade } from "@/lib/engine/score";
+
 
 export type DecisionKind = "review" | "saving" | "anomaly" | "policy" | "score";
 
@@ -121,10 +121,12 @@ export function policyCandidates(assets: { id: string; name: string }[]): Decisi
 
 export interface ScoreInput {
   score: number;
-  grade: Grade;
-  /** Punteggio di circa 7 giorni fa (null se non c'è storia). */
+  /** Livello (Excellent / Good / Fair / Needs attention). */
+  grade: string;
+  /** Punteggio di circa 7 giorni fa, stesso metodo (null se non c'è storia). */
   previous: number | null;
-  top: Pick<Driver, "label" | "scoreImpact" | "href"> | null;
+  /** La migliore prossima azione di "Improve my score": titolo, punti guadagnati, link. */
+  top: { label: string; scoreImpact: number; href: string } | null;
 }
 export function scoreCandidate(s: ScoreInput): DecisionCandidate[] {
   const drop = s.previous != null ? s.previous - s.score : 0;
@@ -347,7 +349,12 @@ export async function loadBrief(orgId: string, now = new Date()) {
     ...savingCandidates(savings.items),
     ...anomalyCandidates(anomalies),
     ...policyCandidates(blocked),
-    ...(result ? scoreCandidate({ score: result.score, grade: result.grade, previous: prev?.score ?? null, top: score.topImprovement(result) }) : []),
+    ...(result
+      ? (() => {
+          const best = score.scoreActions(result.facts, result).best;
+          return scoreCandidate({ score: result.score, grade: result.levelLabel, previous: prev?.score ?? null, top: best && best.points > 0 ? { label: best.title, scoreImpact: best.points, href: "/score/improve" } : null });
+        })()
+      : []),
   ];
   const summary = {
     orgName: org?.name ?? "your company",

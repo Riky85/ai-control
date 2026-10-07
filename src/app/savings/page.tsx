@@ -51,6 +51,8 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
     db.organization.findUnique({ where: { id: orgId }, select: { plan: true, createdAt: true } }),
   ]);
   const spend = assets.reduce((s, a) => s + (monthlyOf(a)?.eur ?? 0), 0);
+  // Parte della spesa stimata da listino (non da bollette): dichiarata quando si mescola al reale.
+  const estimatedSpend = assets.reduce((s, a) => { const m = monthlyOf(a); return s + (m?.estimated ? m.eur : 0); }, 0);
   const inProgress = saved.counts.accepted + saved.counts.done;
   const soonDeadlines = contracts.filter((c) => c.daysLeft != null && c.daysLeft >= 0 && c.daysLeft <= NOTICE_ALERT_DAYS).length;
 
@@ -63,6 +65,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
           <>
             <Link href="/providers" className="btn btn-ghost btn-sm">Providers</Link>
             <Link href="/advisor" className="btn btn-ghost btn-sm">Advisor</Link>
+            <Link href="/catalog" className="btn btn-ghost btn-sm">AI price list</Link>
             <Link href="/simulate" className="btn btn-secondary btn-sm">Simulate</Link>
             <ExportMenu dataset="savings" />
           </>
@@ -70,7 +73,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <StatCard label="You could save" value={`${fmtEur(totalMonthly)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% of ${fmtEur(spend)}/mo AI spend` : `${fmtEur(totalMonthly * 12)} a year`} tone="accent" />
+        <StatCard label="You could save" value={`${fmtEur(totalMonthly)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% of ${fmtEur(spend)}/mo AI spend${estimatedSpend >= 1 ? ` (${fmtEur(estimatedSpend)} estimated)` : ""}` : `${fmtEur(totalMonthly * 12)} a year`} tone="accent" />
         <StatCard
           label="Saved so far"
           value={`${fmtEur(saved.savedMonthly)}/mo`}
@@ -151,7 +154,7 @@ async function Suggestions({
           </div>
           {/* Barra grigia in basso: nota sulle stime e suggerimenti nascosti. */}
           <div className="flex items-center justify-between gap-3 bg-ink border-t border-line px-5 py-3 text-xs text-ink-400 bar-foot">
-            <span>Estimates, list prices as of {PRICES_AS_OF}.</span>
+            <span>Estimates, list prices as of {PRICES_AS_OF} · <Link href="/catalog" className="underline hover:text-ink-100">AI price list</Link></span>
             {dismissed > 0 && (
               <form action={restoreSavingsAction}>
                 <button className="underline hover:text-ink-100">Show {dismissed} hidden suggestion{dismissed === 1 ? "" : "s"}</button>
@@ -181,7 +184,7 @@ async function Suggestions({
 
       {items.length === 0 && dismissed > 0 && (
         <div className="flex items-center justify-between text-xs text-ink-400">
-          <span>Estimates, list prices as of {PRICES_AS_OF}.</span>
+          <span>Estimates, list prices as of {PRICES_AS_OF} · <Link href="/catalog" className="underline hover:text-ink-100">AI price list</Link></span>
           <form action={restoreSavingsAction}>
             <button className="underline hover:text-ink-100">Show {dismissed} hidden suggestion{dismissed === 1 ? "" : "s"}</button>
           </form>

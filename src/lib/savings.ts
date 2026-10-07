@@ -8,7 +8,8 @@ import { db } from "@/lib/db";
 import { countActive, SEAT_WINDOW_DAYS } from "@/lib/seats";
 import { AI_SERVICES } from "@/lib/discovery/catalog";
 import { matchMerchant } from "@/lib/pricing/merchants";
-import { PLANS, SERVICE_CATEGORY, CATEGORY_LABEL, categoryPlural, USD_TO_EUR, apiModelFor, cheaperModel, blended, estimateMonthlyEur, type Category } from "@/lib/pricing/catalog";
+import { SERVICE_CATEGORY, categoryPlural, type Category } from "@/lib/pricing/catalog";
+import { legacyPlans, legacyPlanById, legacyApiModelFor, cheaperApiModel, blendedPrice, defaultBusinessSeat, estimateSeatCost, seatsEur } from "@/lib/pricing/service";
 
 export type Confidence = "HIGH" | "MEDIUM" | "LOW";
 export interface Saving {
@@ -55,7 +56,7 @@ export const categoryOf = (a: { serviceId: string | null; name: string; vendor: 
   return (s && SERVICE_CATEGORY[s]) || (a.type === "AI_API" ? "api" : a.type === "AI_DEV_TOOL" ? "coding" : null);
 };
 
-/** Costo mensile: reale se c'è, altrimenti stima da utenti × listino. */
+/** Costo mensile: reale se c'è, altrimenti stima da utenti × listino (servizio prezzi). */
 export function monthlyOf(
   a: Pick<AssetForSavings, "cost" | "serviceId" | "name" | "vendor"> & { usages: readonly unknown[]; type?: string }
 ): { eur: number; estimated: boolean } | null {
@@ -63,20 +64,19 @@ export function monthlyOf(
   const s = serviceOf(a);
   const users = a.usages.length;
   if (s && users > 0) {
-    const e = estimateMonthlyEur(s, users);
-    if (e) return { eur: e.eur, estimated: true };
+    const st = defaultBusinessSeat(s);
+    const e = st ? estimateSeatCost([{ seatType: st.id, seats: users, cycle: "monthly" }]) : null;
+    if (e && e.known) return { eur: Math.round(e.eur * 100) / 100, estimated: true };
   }
   return null;
 }
 
 export async function computeSavings(organizationId: string) {
-  const [assets, dismissed, network] = await Promise.all([
+  const [assets, dismissed, ledger, network] = await Promise.all([
     loadAssets(organizationId),
     // Nascosti: "not for us" e quelli già accettati nel registro dei risparmi (tranne i falliti).
-    db.savingDismissal.findMany({ where: { organizationId }, select: { key: true } }).then(async (d) => [
-      ...d,
-      ...(await db.savingAction.findMany({ where: { organizationId, savingKey: { not: null }, status: { not: "failed" } }, select: { savingKey: true } })).map((a) => ({ key: a.savingKey! })),
-    ]),
+    db.savingDismissal.findMany({ where: { organizationId }, select: { key: true } }),
+    db.savingAction.findMany({ where: { organizationId, savingKey: { not: null }, status: { not: "failed" } }, select: { savingKey: true, status: true } }),
     db.connector.findUnique({ where: { organizationId_provider: { organizationId, provider: "NETWORK" } } }),
   ]);
   const out: Saving[] = [];
@@ -86,7 +86,7 @@ export async function computeSavings(organizationId: string) {
   for (const a of assets) {
     const m = monthlyOf(a);
     if (!m || m.eur <= 0) continue;
-    const plan = a.cost?.planId ? PLANS.find((p) => p.id === a.cost!.planId) : null;
+    const plan = legacyPlanById(a.cost?.planId);
     const seats = a.cost?.seats ?? null;
 
     // 1. Fatturazione annuale invece che mensile (piani business).
@@ -124,11 +124,12 @@ export async function computeSavings(organizationId: string) {
 
     // 3. Posti "premium" dove probabilmente basta lo standard.
     if (plan && /premium|max-20x|chatgpt-pro/.test(plan.id)) {
-      const standard = PLANS.find((p) => p.service === plan.service && p.business === plan.business && !/premium|max|pro$/.test(p.id) && p.monthlyUsd < plan.monthlyUsd) ??
-        PLANS.find((p) => p.service === plan.service && p.monthlyUsd < plan.monthlyUsd && p.id !== plan.id);
+      const plans = legacyPlans();
+      const standard = plans.find((p) => p.service === plan.service && p.business === plan.business && !/premium|max|pro$/.test(p.id) && p.monthlyUsd < plan.monthlyUsd) ??
+        plans.find((p) => p.service === plan.service && p.monthlyUsd < plan.monthlyUsd && p.id !== plan.id);
       if (standard) {
         const n = seats ?? 1;
-        const save = m.eur - n * standard.monthlyUsd * USD_TO_EUR;
+        const save = m.eur - seatsEur(standard.id, n);
         if (save > 10)
           out.push({
             key: `premium:${a.id}`,
@@ -144,10 +145,10 @@ export async function computeSavings(organizationId: string) {
     }
 
     // 4. Modello API più grande del necessario.
-    const model = a.model && !a.model.includes(",") ? apiModelFor(a.model) : null;
-    const cheaper = model ? cheaperModel(model) : null;
+    const model = a.model && !a.model.includes(",") ? legacyApiModelFor(a.model) : null;
+    const cheaper = model ? cheaperApiModel(model) : null;
     if (model && cheaper && categoryOf(a) === "api") {
-      const ratio = blended(cheaper) / blended(model);
+      const ratio = blendedPrice(cheaper) / blendedPrice(model);
       const save = m.eur * (1 - ratio) * 0.5; // ipotesi prudente: metà del traffico è spostabile
       if (save >= 10)
         out.push({
@@ -220,7 +221,10 @@ export async function computeSavings(organizationId: string) {
     });
   }
 
-  const hidden = new Set(dismissed.map((d) => d.key));
+  const hidden = new Set([...dismissed.map((d) => d.key), ...ledger.map((a) => a.savingKey!)]);
+  // Accettati ma non ancora fatti: fuori dall'elenco, ma l'angar Score li conta ancora (lo spreco c'è ancora).
+  const accepted = new Set(ledger.filter((a) => a.status === "accepted").map((a) => a.savingKey!));
+  const inProgress = out.filter((s) => accepted.has(s.key) && s.monthlyEur >= 1);
   const visible = out.filter((s) => !hidden.has(s.key) && s.monthlyEur >= 1);
   // Se un'AI va tolta perché doppione, gli altri suggerimenti su di lei non servono.
   const dropped = new Set(visible.filter((s) => s.kind === "duplicate").flatMap((s) => s.assets.slice(1).map((a) => a.id)));
@@ -249,7 +253,7 @@ export async function computeSavings(organizationId: string) {
     total += add;
     addKind(s.kind, add);
   }
-  return { items, totalMonthly: total, assets, byKind };
+  return { items, totalMonthly: total, assets, byKind, inProgress };
 }
 
 /** computeSavings una volta sola per richiesta (layout, pagina e componenti la condividono). */

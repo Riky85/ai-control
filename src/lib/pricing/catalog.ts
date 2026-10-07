@@ -1,29 +1,25 @@
 /**
- * Catalogo prezzi di listino (USD, IVA esclusa) — verificato settembre 2026.
- * Serve a: 1) riconoscere piano e numero di posti da un addebito in banca,
- * 2) stimare il costo quando non c'è fatturazione collegata, 3) calcolare i
- * risparmi. I prezzi cambiano: aggiornare qui (una sola fonte).
+ * Compatibilità col vecchio catalogo prezzi.
  *
- * Valuta: i numeri restano in USD come da listino ufficiale. Ogni importo che
- * finisce nel database o in pagina come € passa da USD_TO_EUR (estimateMonthlyEur,
- * price-index listSeatEur, rightsize, savings, advisor, microsoft365); dove si usano
- * solo rapporti tra prezzi (annuale/mensile, piano/piano, blended dei modelli API)
- * la valuta non conta. I testi che citano il listino lo mostrano con "$".
+ * I prezzi NON stanno più qui: vivono nel catalogo versionato con provenienza
+ * (pricing/catalog-data/*, caricato nel database da pricing/catalog-sync.ts) e si
+ * leggono da pricing/service.ts. Questo file espone le vecchie forme (PLANS,
+ * API_MODELS, apiModelFor…) ricavate da quel catalogo, per i chiamanti che non
+ * sono ancora passati al servizio, più la tassonomia delle categorie (non prezzi).
  */
-export const PRICES_AS_OF = "September 2026";
-/** Cambio usato per confrontare listini in USD con addebiti in EUR. */
-export const USD_TO_EUR = Number(process.env.USD_TO_EUR ?? 0.86);
+import { legacyPlans, legacyApiModels, legacyApiModelFor, blendedPrice, cheaperApiModel, estimateSeatCost, CATALOG_VERIFIED_AT, type LegacyPlan, type LegacyApiModel } from "@/lib/pricing/service";
+import { USD_TO_EUR } from "@/lib/spend/fx";
+
+export { USD_TO_EUR };
+
+const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+/** Mese dell'ultima verifica dei listini ufficiali, es. "October 2026". */
+export const PRICES_AS_OF = `${MONTH[CATALOG_VERIFIED_AT.getUTCMonth()]} ${CATALOG_VERIFIED_AT.getUTCFullYear()}`;
 
 export type Category = "assistant" | "coding" | "search" | "media" | "writing" | "meetings" | "api" | "local";
 
-export interface Plan {
-  id: string;
-  service: string; // id del servizio (vedi discovery/catalog.ts)
-  name: string;
-  monthlyUsd: number; // per posto, fatturazione mensile
-  annualMonthlyUsd?: number; // per posto al mese, fatturazione annuale
-  business: boolean;
-}
+/** Un tipo di posto del catalogo nella forma del vecchio elenco (prezzi in USD dal listino). */
+export type Plan = LegacyPlan;
 
 export const SERVICE_CATEGORY: Record<string, Category> = {
   chatgpt: "assistant", claude: "assistant", gemini: "assistant", copilot: "assistant", mistral: "assistant", "meta-ai": "assistant",
@@ -56,104 +52,25 @@ export const CATEGORY_LABEL: Record<Category, string> = {
   local: "Local models",
 };
 
-export const PLANS: Plan[] = [
-  { id: "chatgpt-go", service: "chatgpt", name: "ChatGPT Go", monthlyUsd: 8, business: false },
-  { id: "chatgpt-plus", service: "chatgpt", name: "ChatGPT Plus", monthlyUsd: 20, business: false },
-  { id: "chatgpt-pro-5x", service: "chatgpt", name: "ChatGPT Pro 5×", monthlyUsd: 100, business: false },
-  { id: "chatgpt-pro", service: "chatgpt", name: "ChatGPT Pro", monthlyUsd: 200, business: false },
-  { id: "chatgpt-business", service: "chatgpt", name: "ChatGPT Business", monthlyUsd: 25, annualMonthlyUsd: 20, business: true },
-  { id: "chatgpt-business-premium", service: "chatgpt", name: "ChatGPT Business (premium seat)", monthlyUsd: 125, annualMonthlyUsd: 100, business: true },
-  { id: "claude-pro", service: "claude", name: "Claude Pro", monthlyUsd: 20, annualMonthlyUsd: 17, business: false },
-  { id: "claude-max-5x", service: "claude", name: "Claude Max 5×", monthlyUsd: 100, business: false },
-  { id: "claude-max-20x", service: "claude", name: "Claude Max 20×", monthlyUsd: 200, business: false },
-  { id: "claude-team", service: "claude", name: "Claude Team", monthlyUsd: 25, annualMonthlyUsd: 20, business: true },
-  { id: "claude-team-premium", service: "claude", name: "Claude Team (premium seat)", monthlyUsd: 125, annualMonthlyUsd: 100, business: true },
-  { id: "gemini-ai-plus", service: "gemini", name: "Google AI Plus", monthlyUsd: 7.99, business: false },
-  { id: "gemini-ai-pro", service: "gemini", name: "Google AI Pro", monthlyUsd: 19.99, business: false },
-  { id: "gemini-ai-ultra", service: "gemini", name: "Google AI Ultra", monthlyUsd: 200, business: false },
-  { id: "gemini-workspace", service: "gemini", name: "Google Workspace with Gemini", monthlyUsd: 14, annualMonthlyUsd: 12, business: true },
-  { id: "copilot-pro", service: "copilot", name: "Copilot Pro / Microsoft 365 Premium", monthlyUsd: 20, business: false },
-  { id: "copilot-business", service: "copilot", name: "Microsoft 365 Copilot Business", monthlyUsd: 25.2, annualMonthlyUsd: 21, business: true },
-  { id: "copilot-m365", service: "copilot", name: "Microsoft 365 Copilot", monthlyUsd: 31.5, annualMonthlyUsd: 30, business: true },
-  { id: "github-copilot-pro", service: "github-copilot", name: "GitHub Copilot Pro", monthlyUsd: 10, annualMonthlyUsd: 8.33, business: false },
-  { id: "github-copilot-pro-plus", service: "github-copilot", name: "GitHub Copilot Pro+", monthlyUsd: 39, business: false },
-  { id: "github-copilot-business", service: "github-copilot", name: "GitHub Copilot Business", monthlyUsd: 19, business: true },
-  { id: "github-copilot-enterprise", service: "github-copilot", name: "GitHub Copilot Enterprise", monthlyUsd: 39, business: true },
-  { id: "cursor-pro", service: "cursor", name: "Cursor Pro", monthlyUsd: 20, annualMonthlyUsd: 16, business: false },
-  { id: "cursor-pro-plus", service: "cursor", name: "Cursor Pro+", monthlyUsd: 60, annualMonthlyUsd: 48, business: false },
-  { id: "cursor-ultra", service: "cursor", name: "Cursor Ultra", monthlyUsd: 200, annualMonthlyUsd: 160, business: false },
-  { id: "cursor-teams", service: "cursor", name: "Cursor Teams", monthlyUsd: 40, annualMonthlyUsd: 32, business: true },
-  { id: "cursor-teams-premium", service: "cursor", name: "Cursor Teams (premium seat)", monthlyUsd: 120, annualMonthlyUsd: 96, business: true },
-  { id: "windsurf-pro", service: "windsurf", name: "Windsurf Pro", monthlyUsd: 20, business: false },
-  { id: "windsurf-max", service: "windsurf", name: "Windsurf Max", monthlyUsd: 200, business: false },
-  { id: "windsurf-teams", service: "windsurf", name: "Windsurf Teams", monthlyUsd: 40, business: true },
-  { id: "perplexity-pro", service: "perplexity", name: "Perplexity Pro", monthlyUsd: 20, annualMonthlyUsd: 16.67, business: false },
-  { id: "perplexity-max", service: "perplexity", name: "Perplexity Max", monthlyUsd: 200, business: false },
-  { id: "perplexity-enterprise", service: "perplexity", name: "Perplexity Enterprise Pro", monthlyUsd: 40, annualMonthlyUsd: 33.33, business: true },
-  { id: "perplexity-enterprise-max", service: "perplexity", name: "Perplexity Enterprise Max", monthlyUsd: 325, annualMonthlyUsd: 270.83, business: true },
-  { id: "mistral-pro", service: "mistral", name: "Le Chat Pro", monthlyUsd: 14.99, business: false },
-  { id: "mistral-team", service: "mistral", name: "Le Chat Team", monthlyUsd: 24.99, annualMonthlyUsd: 19.99, business: true },
-  { id: "grok-supergrok", service: "grok", name: "SuperGrok", monthlyUsd: 30, business: false },
-  { id: "grok-heavy", service: "grok", name: "SuperGrok Heavy", monthlyUsd: 300, business: false },
-  { id: "midjourney-basic", service: "midjourney", name: "Midjourney Basic", monthlyUsd: 10, annualMonthlyUsd: 8, business: false },
-  { id: "midjourney-standard", service: "midjourney", name: "Midjourney Standard", monthlyUsd: 30, annualMonthlyUsd: 24, business: false },
-  { id: "midjourney-pro", service: "midjourney", name: "Midjourney Pro", monthlyUsd: 60, annualMonthlyUsd: 48, business: false },
-  { id: "midjourney-mega", service: "midjourney", name: "Midjourney Mega", monthlyUsd: 120, annualMonthlyUsd: 96, business: false },
-  { id: "deepl-starter", service: "deepl", name: "DeepL Pro Starter", monthlyUsd: 10.49, business: true },
-  { id: "grammarly-pro", service: "grammarly", name: "Grammarly Pro", monthlyUsd: 30, business: true },
-  { id: "elevenlabs-starter", service: "elevenlabs", name: "ElevenLabs Starter", monthlyUsd: 6, business: false },
-  { id: "elevenlabs-creator", service: "elevenlabs", name: "ElevenLabs Creator", monthlyUsd: 22, business: false },
-  { id: "elevenlabs-pro", service: "elevenlabs", name: "ElevenLabs Pro", monthlyUsd: 99, business: false },
-  { id: "otter-pro", service: "otter", name: "Otter Pro", monthlyUsd: 16.99, business: false },
-  { id: "fireflies-pro", service: "fireflies", name: "Fireflies Pro", monthlyUsd: 18, business: false },
-  { id: "fireflies-business", service: "fireflies", name: "Fireflies Business", monthlyUsd: 29, business: true },
-  { id: "notion-business", service: "notion-ai", name: "Notion Business (AI included)", monthlyUsd: 20, business: true },
-  { id: "v0-team", service: "v0", name: "v0 Team", monthlyUsd: 30, business: true },
-];
+/** Piani a posti, ricavati dal catalogo (stesso ordine e stessi id del vecchio elenco). */
+export const PLANS: Plan[] = legacyPlans();
 
 export type Tier = "frontier" | "balanced" | "light";
-export interface ApiModel {
-  match: RegExp; // riconosce l'id del modello come lo restituisce il provider
-  name: string;
-  vendor: string;
-  inUsd: number; // per 1M token in ingresso
-  outUsd: number; // per 1M token in uscita
-  tier: Tier;
-}
+export type ApiModel = LegacyApiModel;
 
-// Solo i modelli più diffusi; l'ordine conta (il primo che corrisponde vince).
-export const API_MODELS: ApiModel[] = [
-  { match: /fable/i, name: "Claude Fable", vendor: "Anthropic", inUsd: 10, outUsd: 50, tier: "frontier" },
-  { match: /opus/i, name: "Claude Opus", vendor: "Anthropic", inUsd: 4, outUsd: 20, tier: "frontier" },
-  { match: /sonnet/i, name: "Claude Sonnet", vendor: "Anthropic", inUsd: 2, outUsd: 10, tier: "balanced" },
-  { match: /haiku/i, name: "Claude Haiku", vendor: "Anthropic", inUsd: 1, outUsd: 5, tier: "light" },
-  { match: /gpt-6[-. ]?astra|gpt-5\.5(?!.*mini)/i, name: "GPT flagship", vendor: "OpenAI", inUsd: 10, outUsd: 50, tier: "frontier" },
-  { match: /nano|4o-mini|-mini/i, name: "GPT mini", vendor: "OpenAI", inUsd: 0.15, outUsd: 0.6, tier: "light" },
-  { match: /gpt-6|gpt-5|gpt-4\.1|gpt-4o|o3|o4/i, name: "GPT", vendor: "OpenAI", inUsd: 2, outUsd: 10, tier: "balanced" },
-  { match: /gemini.*pro/i, name: "Gemini Pro", vendor: "Google", inUsd: 2, outUsd: 12, tier: "frontier" },
-  { match: /gemini.*flash-lite/i, name: "Gemini Flash-Lite", vendor: "Google", inUsd: 0.1, outUsd: 0.4, tier: "light" },
-  { match: /gemini.*flash/i, name: "Gemini Flash", vendor: "Google", inUsd: 0.75, outUsd: 3.75, tier: "light" },
-  { match: /mistral-large/i, name: "Mistral Large", vendor: "Mistral", inUsd: 0.5, outUsd: 1.5, tier: "balanced" },
-  { match: /mistral-medium/i, name: "Mistral Medium", vendor: "Mistral", inUsd: 0.4, outUsd: 2, tier: "balanced" },
-  { match: /mistral-small|ministral/i, name: "Mistral Small", vendor: "Mistral", inUsd: 0.15, outUsd: 0.6, tier: "light" },
-  { match: /deepseek/i, name: "DeepSeek", vendor: "DeepSeek", inUsd: 0.27, outUsd: 1.1, tier: "balanced" },
-  { match: /grok/i, name: "Grok", vendor: "xAI", inUsd: 2, outUsd: 6, tier: "balanced" },
-];
+/** Modelli API con prezzo a token, dal catalogo. */
+export const API_MODELS: ApiModel[] = legacyApiModels();
 
 export function apiModelFor(model: string | null | undefined): ApiModel | null {
-  if (!model) return null;
-  return API_MODELS.find((m) => m.match.test(model)) ?? null;
+  return legacyApiModelFor(model);
 }
 
 /** Prezzo medio "misto" per 1M token (3 parti input, 1 output), per confronti. */
-export const blended = (m: ApiModel) => (m.inUsd * 3 + m.outUsd) / 4;
+export const blended = (m: ApiModel) => blendedPrice(m);
 
 /** Alternativa più economica di un livello sotto, stesso fornitore se possibile. */
 export function cheaperModel(m: ApiModel): ApiModel | null {
-  const next: Tier | null = m.tier === "frontier" ? "balanced" : m.tier === "balanced" ? "light" : null;
-  if (!next) return null;
-  const same = API_MODELS.filter((x) => x.vendor === m.vendor && x.tier === next).sort((a, b) => blended(a) - blended(b))[0];
-  return same ?? API_MODELS.filter((x) => x.tier === next).sort((a, b) => blended(a) - blended(b))[0] ?? null;
+  return cheaperApiModel(m);
 }
 
 export const plansFor = (service: string) => PLANS.filter((p) => p.service === service);
@@ -182,11 +99,12 @@ export function guessPlan(service: string, monthlyEur: number): { plan: Plan; se
   return best ? { plan: best.plan, seats: best.seats, annual: best.annual } : null;
 }
 
-/** Stima quando non c'è un addebito: posti × prezzo del piano business più comune. */
+/** Stima quando non c'è un addebito: posti × prezzo del piano business più comune (listino dal servizio prezzi). */
 export function estimateMonthlyEur(service: string, users: number): { eur: number; plan: Plan } | null {
   const plan = plansFor(service).find((p) => p.business) ?? plansFor(service)[0];
   if (!plan || users < 1) return null;
-  return { eur: Math.round(users * plan.monthlyUsd * USD_TO_EUR * 100) / 100, plan };
+  const e = estimateSeatCost([{ seatType: plan.id, seats: users, cycle: "monthly" }]);
+  return { eur: Math.round(e.eur * 100) / 100, plan };
 }
 
 /** "AI assistants", "coding assistants"… per i titoli. */

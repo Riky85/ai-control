@@ -16,7 +16,7 @@ export interface Holdback {
   pts: number;
 }
 
-/** Testata: asse Governance dell'angar Score + prontezza AI Act, e cosa li tiene giù. */
+/** Testata: indice di governance (non fa parte dell'angar Score) + prontezza AI Act, e cosa li tiene giù. */
 export function GovernanceHeader({ governance, readiness, holds }: { governance: number | null; readiness: number; holds: Holdback[] }) {
   return (
     <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="gov-readiness-title">
@@ -26,7 +26,7 @@ export function GovernanceHeader({ governance, readiness, holds }: { governance:
       </div>
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] gap-5 p-5">
         <div className="grid grid-cols-2 gap-3">
-          {governance != null && <AxisGauge label="Governance" value={governance} size={72} href="/score#axis-governance" />}
+          {governance != null && <AxisGauge label="Governance" value={governance} size={72} />}
           <div className={governance != null ? "" : "col-span-2"}>
             <AxisGauge label="AI Act readiness" value={readiness} size={72} href="/compliance" />
           </div>

@@ -13,10 +13,11 @@ const eur = (n: number) => "€" + Math.round(n).toLocaleString("en-GB");
 const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0");
 
 const AXIS_WHY: Record<Axis, string> = {
-  efficiency: "Waste against spend",
-  governance: "Unchanged by these scenarios",
-  risk: "AI not allowed but in use",
-  adoption: "Use on approved AI",
+  visibility: "What angar sees of your spend",
+  utilization: "Paid seats in use",
+  tools: "Tools doing the same job",
+  consumption: "Unchanged by these scenarios",
+  savings: "Savings left, against spend",
 };
 
 function Toggle({ on, onChange, label, hint, disabled }: { on: boolean; onChange: (v: boolean) => void; label: string; hint: string; disabled?: boolean }) {
@@ -87,7 +88,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
             {r.score.after}
             {r.score.after !== r.score.before && <span className={`ml-2 text-sm font-medium ${r.score.after > r.score.before ? "text-steady" : "text-alarm"}`}>{signed(r.score.after - r.score.before)}</span>}
           </span>
-          <span className="text-xs text-ink-400 truncate">Grade {r.score.grade} · today {model.score.score}</span>
+          <span className="text-xs text-ink-400 truncate">{r.score.levelLabel} · today {model.score.score}</span>
         </div>
       </section>
 
@@ -168,15 +169,26 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
           <section className="rounded-2xl border border-line bg-panel animate-rise">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
               <h2 className="font-bold text-ink-100">Effect on the score</h2>
-              <p className="text-xs text-ink-400">Approximate — same rules as the angar Score</p>
+              <p className="text-xs text-ink-400">Same calculation as the angar Score</p>
             </div>
             <ul className="divide-y divide-line">
               {AXES.map((a) => {
-                const before = model.score.axes[a];
-                const after = r.score.axes[a];
+                const b0 = model.score.axes[a];
+                const a0 = r.score.axes[a];
+                // Dimensione non misurata (senza peso): una riga semplice.
+                if (b0 == null || a0 == null)
+                  return (
+                    <li key={a} className="grid grid-cols-[9.5rem_minmax(0,1fr)_3rem] items-center gap-4 px-5 py-3">
+                      <span className="block text-sm text-ink-100">{AXIS_LABEL[a]}</span>
+                      <span className="text-xs text-ink-400">Not measured yet</span>
+                      <span className="text-right text-sm text-ink-400">—</span>
+                    </li>
+                  );
+                const before = b0;
+                const after = a0;
                 const d = r.score.delta[a];
                 return (
-                  <li key={a} className="grid grid-cols-[6.5rem_minmax(0,1fr)_3rem] items-center gap-4 px-5 py-3">
+                  <li key={a} className="grid grid-cols-[9.5rem_minmax(0,1fr)_3rem] items-center gap-4 px-5 py-3">
                     <span className="min-w-0">
                       <span className="block text-sm text-ink-100">{AXIS_LABEL[a]}</span>
                       <span className="block text-[11px] text-ink-400 truncate" title={r.score.notes[a] ?? AXIS_WHY[a]}>

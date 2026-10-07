@@ -18,7 +18,9 @@ export interface WizardStep {
 // Aperto: come il blocco Download (bagliore arancio, anteprima a destra).
 // Chiuso: una barra sottile con l'avanzamento e il prossimo passo.
 
-export default function SetupWizard({ steps, initialHidden = false }: { steps: WizardStep[]; initialHidden?: boolean }) {
+// primary = false: sulla Overview con l'angar Score il pulsante principale è "Improve my score", qui solo secondari.
+export default function SetupWizard({ steps, initialHidden = false, primary = true }: { steps: WizardStep[]; initialHidden?: boolean; primary?: boolean }) {
+  const main = primary ? "btn-primary" : "btn-secondary";
   // Aperto la prima volta; se lo chiudi resta chiuso (cookie), anche ricaricando la pagina.
   const [hidden, setHidden] = useState(initialHidden);
   const store = (v: boolean) => {
@@ -40,7 +42,7 @@ export default function SetupWizard({ steps, initialHidden = false }: { steps: W
           <div className="text-sm font-medium text-ink-100">Setup guide · {doneCount} of {steps.length} done</div>
           <div className="text-xs text-ink-400 truncate">Next: {next.title}</div>
         </div>
-        <Link href={next.href} className="relative btn btn-primary btn-sm shrink-0">
+        <Link href={next.href} className={`relative btn ${main} btn-sm shrink-0`}>
           {next.cta}
         </Link>
         <button onClick={() => store(false)} className="relative btn btn-ghost btn-sm shrink-0">
@@ -87,7 +89,7 @@ export default function SetupWizard({ steps, initialHidden = false }: { steps: W
                   {active && <div className="text-xs text-ink-400 mt-0.5">{s.desc}</div>}
                 </div>
                 {!s.done && (
-                  <Link href={s.href} className={`btn btn-sm shrink-0 ${active ? "btn-primary" : "btn-ghost"}`}>
+                  <Link href={s.href} className={`btn btn-sm shrink-0 ${active ? main : "btn-ghost"}`}>
                     {s.cta}
                   </Link>
                 )}

@@ -3,7 +3,7 @@
  *
  * Dall'uso di ciascuna persona (giorni attivi e minuti dell'app desktop /
  * estensione negli ultimi 30 giorni, ultimo accesso) e dal piano di ogni AI
- * (catalogo PLANS) raccomanda:
+ * (catalogo prezzi, pricing/service.ts) raccomanda:
  *  - chi la usa molto → tenere (o, se usa davvero tanto, valutare il piano superiore);
  *  - chi la usa poco → piano più economico, oppure piano gratuito / posto condiviso;
  *  - chi non la usa da 30 giorni → togliere il posto.
@@ -14,7 +14,7 @@
 import { db } from "@/lib/db";
 import { loadAssets, monthlyOf, serviceOf } from "@/lib/savings";
 import { SEAT_WINDOW_DAYS } from "@/lib/seats";
-import { PLANS, USD_TO_EUR, type Plan } from "@/lib/pricing/catalog";
+import { legacyPlans, legacyPlanById, seatsEur, type LegacyPlan as Plan } from "@/lib/pricing/service";
 import { orgPrivacyMode, showsPeople, type PrivacyMode } from "@/lib/privacy";
 import { isPseudonym } from "@/lib/discovery/pseudonym";
 
@@ -55,12 +55,12 @@ const isPower = (p: PersonUse) => p.activeDays >= POWER_DAYS && p.minutes >= POW
 
 /** Piano più economico dello stesso servizio (stesso tipo business/personale), il più vicino sotto. */
 export function cheaperPlan(plan: Plan): Plan | null {
-  return PLANS.filter((p) => p.service === plan.service && p.business === plan.business && p.monthlyUsd < plan.monthlyUsd).sort((a, b) => b.monthlyUsd - a.monthlyUsd)[0] ?? null;
+  return legacyPlans().filter((p) => p.service === plan.service && p.business === plan.business && p.monthlyUsd < plan.monthlyUsd).sort((a, b) => b.monthlyUsd - a.monthlyUsd)[0] ?? null;
 }
 
 /** Piano superiore (premium) dello stesso servizio, il più vicino sopra. */
 export function upperPlan(plan: Plan): Plan | null {
-  return PLANS.filter((p) => p.service === plan.service && p.business === plan.business && p.monthlyUsd > plan.monthlyUsd).sort((a, b) => a.monthlyUsd - b.monthlyUsd)[0] ?? null;
+  return legacyPlans().filter((p) => p.service === plan.service && p.business === plan.business && p.monthlyUsd > plan.monthlyUsd).sort((a, b) => a.monthlyUsd - b.monthlyUsd)[0] ?? null;
 }
 
 /** Piano "premium": costa almeno il doppio del piano più economico dello stesso tipo. */
@@ -190,11 +190,12 @@ export async function rightsizeFor(orgId: string, now = Date.now()): Promise<Rig
   const seated = assets
     .map((a) => {
       const m = monthlyOf(a);
-      const plan = a.cost?.planId ? PLANS.find((p) => p.id === a.cost!.planId) ?? null : null;
+      const plan = legacyPlanById(a.cost?.planId);
       const seats = a.cost?.seats && a.cost.seats > 0 ? a.cost.seats : null;
       if (!m || m.eur <= 0 || (!plan && !seats)) return null;
       const users = seats ?? a.usages.length;
-      const list = plan ? (a.cost?.annualBilling && plan.annualMonthlyUsd ? plan.annualMonthlyUsd : plan.monthlyUsd) * USD_TO_EUR : null;
+      // Listino di un posto (annuale se fatturato così e se il listino lo prevede), dal servizio prezzi.
+      const list = plan ? seatsEur(plan.id, 1, Boolean(a.cost?.annualBilling)) : null;
       const seatEur = users > 0 ? m.eur / users : list;
       if (!seatEur || a.usages.length === 0) return null;
       return { a, plan, seats, seatEur, service: serviceOf(a) };

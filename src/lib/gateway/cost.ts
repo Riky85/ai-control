@@ -1,20 +1,11 @@
 /**
  * angar Gateway — costo di una richiesta dai token misurati (puro).
  *
- * Prezzi: la tabella API_MODELS del catalogo (stessa fonte di Savings e del
- * simulatore). Gli embedding non sono in quella tabella: piccola tabella qui
- * sotto. Conversione USD → EUR con spend/fx.ts.
+ * Prezzi: dal servizio prezzi (pricing/service.ts), cioè dal catalogo versionato
+ * con provenienza — stessa fonte di Savings e del simulatore, embedding compresi.
+ * Il costo è una STIMA (token × listino), convertita in EUR con spend/fx.ts.
  */
-import { apiModelFor } from "@/lib/pricing/catalog";
-import { toEur } from "@/lib/spend/fx";
-
-/** Embedding: prezzo di listino, settembre 2026 (USD per 1M token in ingresso). */
-const EMBEDDING_USD: [RegExp, number][] = [
-  [/text-embedding-3-large/i, 0.13],
-  [/text-embedding-3-small/i, 0.02],
-  [/text-embedding-ada/i, 0.1],
-  [/embed/i, 0.1],
-];
+import { estimateTokenCost, getPrice } from "@/lib/pricing/service";
 
 export interface Usage {
   inputTokens: number;
@@ -30,17 +21,23 @@ export interface Price {
   known: boolean;
 }
 
+/** Prezzo di listino (API diretta) di input e output per 1M token. */
 export function priceFor(model: string | null | undefined): Price {
   if (!model) return { inUsd: 0, outUsd: 0, known: false };
-  for (const [re, usd] of EMBEDDING_USD) if (re.test(model)) return { inUsd: usd, outUsd: 0, known: true };
-  const m = apiModelFor(model);
-  return m ? { inUsd: m.inUsd, outUsd: m.outUsd, known: true } : { inUsd: 0, outUsd: 0, known: false };
+  const i = getPrice(model, null, null, "input");
+  if (!i) return { inUsd: 0, outUsd: 0, known: false };
+  const o = getPrice(model, null, null, "output");
+  return { inUsd: i.price, outUsd: o?.price ?? 0, known: true };
 }
 
-/** Costo in USD e in EUR. Cache Anthropic: scrittura 1,25×, lettura 0,1× del prezzo di ingresso. */
+/** Costo stimato in valuta di listino e in EUR (cache: voci del catalogo, altrimenti 1,25× / 0,1× l'input). */
 export function costOf(model: string | null | undefined, u: Usage): { usd: number; eur: number; known: boolean } {
-  const p = priceFor(model);
-  const inEq = u.inputTokens + (u.cacheWriteTokens ?? 0) * 1.25 + (u.cacheReadTokens ?? 0) * 0.1;
-  const usd = (inEq * p.inUsd + u.outputTokens * p.outUsd) / 1_000_000;
-  return { usd, eur: toEur(usd, "USD").eur, known: p.known };
+  const e = estimateTokenCost({
+    model: model ?? "",
+    inputTokens: u.inputTokens,
+    outputTokens: u.outputTokens,
+    cacheWriteTokens: u.cacheWriteTokens,
+    cachedInputTokens: u.cacheReadTokens,
+  });
+  return { usd: e.amount, eur: e.eur, known: e.known };
 }

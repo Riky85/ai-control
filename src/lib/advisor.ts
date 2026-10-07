@@ -7,7 +7,8 @@
 import { db } from "@/lib/db";
 import { loadAssets, monthlyOf, categoryOf, serviceOf, type AssetForSavings, type Confidence } from "@/lib/savings";
 import { AI_SERVICES } from "@/lib/discovery/catalog";
-import { PLANS, CATEGORY_LABEL, USD_TO_EUR, MANAGE_URL, plansFor, type Category, type Plan } from "@/lib/pricing/catalog";
+import { PLANS, CATEGORY_LABEL, MANAGE_URL, plansFor, type Category, type Plan } from "@/lib/pricing/catalog";
+import { seatsEur } from "@/lib/pricing/service";
 
 const DAY = 86400000;
 const ACTIVE_DAYS = 30;
@@ -74,7 +75,7 @@ function businessPlan(service: string | null): Plan | null {
 /** Prezzo per posto (EUR/mese) dello strumento: piano business di listino, altrimenti costo attuale ÷ posti. */
 function perSeatEur(t: Tool): number | null {
   const biz = businessPlan(t.service);
-  if (biz) return biz.monthlyUsd * USD_TO_EUR;
+  if (biz) return seatsEur(biz.id, 1);
   const seats = t.seats ?? (t.known.size || null);
   return seats && t.eur > 0 ? t.eur / seats : null;
 }
@@ -186,7 +187,7 @@ export async function computeAdvice(organizationId: string) {
     const onBusiness = std.assets.some((a) => PLANS.find((p) => p.id === a.cost?.planId)?.business);
     const planKnown = std.assets.some((a) => a.cost?.planId);
     if (biz && (seats >= 2 || onBusiness || !planKnown)) {
-      estimatedEur = seats * biz.monthlyUsd * USD_TO_EUR;
+      estimatedEur = seatsEur(biz.id, seats);
       planName = biz.name;
     } else if (seatPrice != null && (std.seats ?? std.known.size) > 0) {
       const cur = std.eur / (std.seats ?? std.known.size);
@@ -198,7 +199,7 @@ export async function computeAdvice(organizationId: string) {
 
     // (b) Piani personali → piano business.
     if (biz && personalCount >= 2) {
-      const bizCost = personalCount * biz.monthlyUsd * USD_TO_EUR;
+      const bizCost = seatsEur(biz.id, personalCount);
       const personalEur = personal.reduce((s, a) => s + (monthlyOf(a)?.eur ?? 0), 0);
       const diff = personalEur - bizCost;
       recs.push({

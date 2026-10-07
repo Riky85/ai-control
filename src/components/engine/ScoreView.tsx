@@ -1,0 +1,236 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { PageHeader } from "@/components/ui";
+import { LevelPill, ScoreBar, scoreSentence } from "@/components/engine/ScoreCard";
+import type { ScorePoint, FullScore } from "@/lib/engine/score";
+import type { Dimension, ActionPlan } from "@/lib/engine/score-model";
+import { AXIS_HINT, AXIS_WEIGHT, CONFIDENCE_TEXT, UNMEASURED_CAP, LEVEL_STYLE } from "@/lib/engine/score-meta";
+
+const eur = (n: number) => "€" + Math.round(n).toLocaleString("en-GB");
+const fmtDay = (day: string) => new Date(day + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+const minus = (n: number) => (n < 0 ? `−${Math.abs(n)}` : n > 0 ? `+${n}` : "0");
+
+export interface ScoreViewProps {
+  result: FullScore;
+  plan: ActionPlan;
+  /** Fotografie del metodo attuale (la più vecchia per prima). */
+  current: ScorePoint[];
+  /** Primo giorno del metodo attuale, se ci sono fotografie del metodo precedente. */
+  changedOn: string | null;
+  changed: { from: number; to: number; since: string; savedMonthlyEur: number } | null;
+  children?: ReactNode;
+}
+
+/**
+ * Pagina /score (solo presentazione, dati dal server): testata con numero,
+ * livello, confidenza e andamento; le 5 dimensioni; "Why is my score X?".
+ */
+export default function ScoreView({ result, plan, current, changedOn, changed, children }: ScoreViewProps) {
+  const first = current[0];
+  const delta = current.length >= 2 ? result.score - first.score : null;
+  return (
+    <div className="flex flex-col gap-4">
+      <PageHeader
+        title="angar Score"
+        subtitle="AI spend efficiency — how well your company turns AI spend into AI use."
+        action={
+          <Link href="/simulate" className="btn btn-ghost btn-sm">
+            What if…
+          </Link>
+        }
+      />
+
+      {/* Testata: numero, livello, confidenza, frase, andamento */}
+      <section className="rounded-2xl border border-line bg-panel animate-rise">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-8 p-5 sm:p-7">
+          <div className="flex flex-col min-w-0">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-ink-400">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-line px-2 py-0.5 text-ink-100 font-medium">
+                <span className={`h-1.5 w-1.5 rounded-full ${result.confidence === "high" || result.confidence === "measured" ? LEVEL_STYLE.strong.dot : result.confidence === "early" ? LEVEL_STYLE.fair.dot : LEVEL_STYLE.none.dot}`} aria-hidden />
+                {result.confidenceLabel}
+              </span>
+              {delta != null && delta !== 0 && (
+                <span className="tabular">
+                  {delta > 0 ? "▲" : "▼"} {Math.abs(delta)} since {fmtDay(first.day)}
+                </span>
+              )}
+            </div>
+            <div className="flex items-end gap-3 mt-4">
+              <span className="font-display text-[72px] leading-[0.85] font-bold tracking-tight tabular text-ink-100">{result.score}</span>
+              <span className="text-sm text-ink-400 pb-1.5">/ 100</span>
+              <LevelPill level={result.level} label={result.levelLabel} className="mb-2" />
+            </div>
+            <ScoreBar value={result.score} className="mt-5 max-w-md" />
+            <p className="text-[15px] text-ink-100 mt-4 leading-snug max-w-lg">{scoreSentence(result)}</p>
+            {changed && changed.to !== changed.from && (
+              <p className="text-sm text-ink-100 mt-2 tabular">
+                <span className="font-semibold">What changed:</span> {changed.from} → {changed.to}
+                {changed.savedMonthlyEur >= 1 && ` · ${eur(changed.savedMonthlyEur)} a month saved`}
+                <span className="text-ink-400"> since {fmtDay(changed.since)}</span>
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-2 mt-5">
+              <Link href="/score/improve" className="btn btn-primary">
+                Improve my score
+              </Link>
+              {plan.potential > result.score && (
+                <span className="text-sm text-ink-400 tabular">
+                  Potential score: <b className="text-ink-100 font-semibold">{result.score} → {plan.potential}</b>
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col gap-3 min-w-0 justify-center">
+            <Trend points={current} />
+            {changedOn && <p className="text-xs text-ink-400">Method changed on {fmtDay(changedOn)}: earlier scores used different dimensions and aren&apos;t shown.</p>}
+            <p className="text-xs text-ink-400">{CONFIDENCE_TEXT[result.confidence]}</p>
+            {result.gaps.length > 0 && (
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                {result.gaps.map((g) => (
+                  <Link key={g.label} href={g.href} className="text-ink-100 hover:underline">
+                    {g.label} →
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Le 5 dimensioni */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {result.dimensions.map((d) => (
+          <DimensionCard key={d.axis} d={d} />
+        ))}
+      </div>
+
+      <WhySection result={result} />
+
+      {/* angar Engine: previsione e anomalie (passata dalla pagina) */}
+      {children}
+    </div>
+  );
+}
+
+function DimensionCard({ d }: { d: Dimension }) {
+  const unmeasured = d.status === "unmeasured" || d.status === "na";
+  return (
+    <section id={`axis-${d.axis}`} className="scroll-mt-6 rounded-xl border border-line bg-panel animate-rise flex flex-col min-w-0 p-4 gap-3 target:border-ink-400">
+      <div className="flex flex-col gap-1.5 min-w-0">
+        <h3 className="text-sm font-bold text-ink-100 leading-snug">{d.label}</h3>
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-display text-[28px] leading-none font-semibold tabular text-ink-100">{unmeasured ? "—" : d.value}</span>
+          <LevelPill level={d.level} label={d.levelLabel} />
+        </div>
+      </div>
+      <ScoreBar value={unmeasured ? 0 : d.value ?? 0} />
+      <p className="text-xs text-ink-400 leading-snug">
+        {AXIS_HINT[d.axis]}
+        <br />
+        {d.status === "na"
+          ? d.axis === "consumption"
+            ? "No API or usage-based spend data yet: not counted, the other weights are rescaled."
+            : "No seat-based AI: not counted, the other weights are rescaled."
+          : d.status === "unmeasured"
+            ? `Counts as ${UNMEASURED_CAP} until measured · ${Math.round(d.weight * 100)}% of the score`
+            : `${Math.round(d.weight * 100)}% of the score${Math.round(d.weight * 100) !== Math.round(AXIS_WEIGHT[d.axis] * 100) ? ` (${Math.round(AXIS_WEIGHT[d.axis] * 100)}% base, rescaled)` : ""}`}
+      </p>
+      {d.drivers.length > 0 ? (
+        <ul className="flex flex-col divide-y divide-line -my-1">
+          {d.drivers.map((x) => (
+            <li key={x.label}>
+              <Link href={x.href} className="flex items-start gap-2 py-2 text-sm group" title={`${minus(x.points)} on the angar Score`}>
+                <span className="w-8 shrink-0 tabular font-medium text-ink-400">{minus(x.impact)}</span>
+                <span className="flex-1 min-w-0 text-ink-100 leading-snug group-hover:underline">{x.label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : d.status === "measured" || d.status === "partial" ? (
+        <p className="text-sm text-ink-400">Nothing to fix.</p>
+      ) : null}
+    </section>
+  );
+}
+
+/** "Why is my score X?": cosa lo tiene giù, per dimensione e motivo per motivo. Somma = 100 − punteggio. */
+function WhySection({ result }: { result: FullScore }) {
+  const limits = result.dimensions.filter((d) => d.points < 0).sort((a, b) => a.points - b.points);
+  const strong = result.dimensions.filter((d) => d.level === "strong" && d.status === "measured");
+  const total = result.drivers.reduce((s, d) => s + d.points, 0);
+  return (
+    <section id="why" className="scroll-mt-6 rounded-2xl border border-line bg-panel animate-rise p-5 sm:p-6">
+      <h2 className="text-base font-bold text-ink-100">Why is my score {result.score}?</h2>
+      <p className="text-sm text-ink-400 mt-1">Every point below 100 has a reason. The reasons add up to exactly {minus(total)}.</p>
+      {result.drivers.length === 0 ? (
+        <p className="text-sm text-ink-100 mt-4">Nothing holds it back.</p>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-6 lg:gap-10 mt-5">
+          <div className="min-w-0">
+            <h3 className="text-xs font-semibold text-ink-400 mb-1">Your score is limited by</h3>
+            <ul className="divide-y divide-line">
+              {limits.map((d) => (
+                <li key={d.axis}>
+                  <a href={`#axis-${d.axis}`} className="flex items-baseline justify-between gap-3 py-2 text-sm group">
+                    <span className="text-ink-100 group-hover:underline">{d.label}</span>
+                    <span className="tabular font-semibold text-ink-100">{minus(d.points)}</span>
+                  </a>
+                </li>
+              ))}
+              {result.capPoints > 0 && (
+                <li className="flex items-baseline justify-between gap-3 py-2 text-sm">
+                  <span className="text-ink-100">Provisional cap (no usage data)</span>
+                  <span className="tabular font-semibold text-ink-100">{minus(-result.capPoints)}</span>
+                </li>
+              )}
+            </ul>
+            {strong.length > 0 && <p className="text-xs text-ink-400 mt-3">Strong: {strong.map((d) => d.label).join(", ")}.</p>}
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-xs font-semibold text-ink-400 mb-1">Every reason</h3>
+            <ul className="divide-y divide-line">
+              {result.drivers
+                .filter((d) => d.points < 0)
+                .map((d) => (
+                  <li key={`${d.axis}:${d.label}`}>
+                    <Link href={d.href} className="flex items-start gap-3 py-2 text-sm group">
+                      <span className="w-8 shrink-0 tabular font-semibold text-ink-100">{minus(d.points)}</span>
+                      <span className="flex-1 min-w-0 leading-snug text-ink-100 group-hover:underline">{d.label}</span>
+                      {d.missingData && <span className="shrink-0 text-[11px] text-ink-400 rounded-full border border-line px-2 py-0.5">Data</span>}
+                    </Link>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** Andamento del punteggio (solo il metodo attuale), linea grigia. Con meno di due giorni non c'è ancora una linea. */
+function Trend({ points }: { points: ScorePoint[] }) {
+  if (points.length < 2) return <div className="text-xs text-ink-400">The trend starts tomorrow: angar saves one snapshot a day.</div>;
+  const W = 480;
+  const H = 72;
+  const vals = points.map((p) => p.score);
+  const lo = Math.max(0, Math.min(...vals) - 5);
+  const hi = Math.min(100, Math.max(...vals) + 5);
+  const x = (i: number) => (i * W) / (points.length - 1);
+  const y = (v: number) => 4 + (1 - (v - lo) / Math.max(1, hi - lo)) * (H - 8);
+  const line = vals.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  return (
+    <div className="w-full">
+      <div className="text-xs text-ink-400 mb-2">Last {points.length} snapshots</div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-[72px] text-ink-400" preserveAspectRatio="none" aria-label={`Score trend, from ${vals[0]} to ${vals[vals.length - 1]}`}>
+        <path d={line} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+      </svg>
+      <div className="flex justify-between text-xs text-ink-400 tabular mt-1">
+        <span>
+          {fmtDay(points[0].day)} · {vals[0]}
+        </span>
+        <span>Today · {vals[vals.length - 1]}</span>
+      </div>
+    </div>
+  );
+}

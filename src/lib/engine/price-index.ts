@@ -15,7 +15,10 @@ import { MIN_COMPANIES, sizeBandOf, type PeerStats, type SizeBand } from "@/lib/
 import { loadAssets, monthlyOf, serviceOf } from "@/lib/savings";
 import { countActive, SEAT_WINDOW_DAYS } from "@/lib/seats";
 import { AI_SERVICES } from "@/lib/discovery/catalog";
-import { PLANS, API_MODELS, PRICES_AS_OF, SERVICE_CATEGORY, CATEGORY_LABEL, USD_TO_EUR, plansFor, type Plan } from "@/lib/pricing/catalog";
+import { PRICES_AS_OF, SERVICE_CATEGORY, CATEGORY_LABEL } from "@/lib/pricing/catalog";
+import { legacyPlans, legacyPlanById, legacyApiModels, seatsEur, type LegacyPlan as Plan } from "@/lib/pricing/service";
+
+const plansFor = (service: string) => legacyPlans().filter((p) => p.service === service);
 
 export { MIN_COMPANIES };
 
@@ -205,10 +208,10 @@ export function serviceName(serviceId: string, fallback?: string) {
 
 /** Prezzo di listino di un posto in EUR (piano indicato, altrimenti il piano business del servizio). */
 export function listSeatEur(serviceId: string, planId?: string | null, annual = false): { eur: number; plan: Plan } | null {
-  const plan = (planId && PLANS.find((p) => p.id === planId)) || plansFor(serviceId).find((p) => p.business) || plansFor(serviceId)[0];
+  const plan = legacyPlanById(planId) || plansFor(serviceId).find((p) => p.business) || plansFor(serviceId)[0];
   if (!plan) return null;
-  const usd = annual && plan.annualMonthlyUsd ? plan.annualMonthlyUsd : plan.monthlyUsd;
-  return { eur: Math.round(usd * USD_TO_EUR * 100) / 100, plan };
+  // Listino dal servizio prezzi: annuale se richiesto e previsto, altrimenti mensile.
+  return { eur: Math.round(seatsEur(plan.id, 1, annual) * 100) / 100, plan };
 }
 
 // ───────────────────────── indice prezzi dell'azienda ─────────────────────────
@@ -296,7 +299,7 @@ export async function priceIndexFor(orgId: string): Promise<PriceIndex> {
       name: list.length === 1 ? list[0].name : serviceName(svc, list[0].name),
       vendor: list[0].vendor,
       assetIds: list.map((a) => a.id),
-      planName: planId ? (PLANS.find((p) => p.id === planId)?.name ?? null) : null,
+      planName: legacyPlanById(planId)?.name ?? null,
       seats: totalSeats > 0 ? totalSeats : null,
       monthlyEur: monthly,
       yourSeatEur,
@@ -421,9 +424,9 @@ export async function networkStats(): Promise<NetworkStats> {
   const points = [...(await loadNetwork()).values()];
   const catalog = {
     aiServices: AI_SERVICES.length,
-    pricedPlans: PLANS.length,
-    pricedServices: new Set(PLANS.map((p) => p.service)).size,
-    apiModels: API_MODELS.length,
+    pricedPlans: legacyPlans().length,
+    pricedServices: new Set(legacyPlans().map((p) => p.service)).size,
+    apiModels: legacyApiModels().length,
     pricesAsOf: PRICES_AS_OF,
   };
   const base = { catalog, minCompanies: MIN_COMPANIES };

@@ -8,7 +8,8 @@ export interface NavPage {
 
 export const NAV_PAGES: NavPage[] = [
   { href: "/", label: "Overview", keywords: "home dashboard start" },
-  { href: "/score", label: "angar Score", keywords: "score rating health grade maturity" },
+  { href: "/score", label: "angar Score", keywords: "score rating health efficiency spend visibility license utilization tool consumption savings opportunity dimensions" },
+  { href: "/score/improve", label: "Improve my score", keywords: "improve score actions plan potential best next action raise points" },
   { href: "/savings", label: "Savings", keywords: "save money risparmi cut costs waste unused seats" },
   { href: "/usage", label: "Usage", keywords: "who uses people activity seats active for each person" },
   { href: "/review", label: "To review", keywords: "approve pending new found shadow ai decide" },

@@ -1,17 +1,14 @@
-import ScoreRing from "@/components/engine/ScoreRing";
-import { AxisGauge } from "@/components/engine/ScoreCard";
+import ScoreMock from "@/components/engine/marketing/ScoreMock";
 import { fmtEur } from "@/lib/format";
 
 /**
- * "Foto del prodotto" per l'hero: finestra con barra del titolo, anello
- * dell'angar Score, i quattro assi e una riga di risparmio. Dati illustrativi.
+ * "Foto del prodotto" per l'hero: finestra con barra del titolo, angar Score
+ * (numero, livello e le 5 dimensioni), la prima azione e una riga di
+ * risparmio. Dati illustrativi.
  */
 export default function ProductShot() {
   return (
     <div className="relative w-full max-w-[520px] mx-auto">
-      {/* Bagliore appena percettibile dietro la finestra */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-10 top-10 bottom-0 rounded-[40px] bg-accent/[0.07] blur-3xl hidden dark:block" />
-
       <figure className="relative rounded-2xl border border-line bg-panel shadow-[0_1px_2px_rgba(20,20,24,0.04),0_24px_48px_-24px_rgba(20,20,24,0.22)] overflow-hidden">
         {/* Barra della finestra */}
         <div className="flex items-center gap-3 border-b border-line px-4 h-10">
@@ -27,28 +24,10 @@ export default function ProductShot() {
         </div>
 
         <div className="p-3.5 sm:p-5 flex flex-col gap-4">
-          <div className="flex items-center gap-4 sm:gap-5">
-            <ScoreRing score={72} grade="B" size={132} />
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs text-ink-400">
-                <span className="font-medium text-ink-100">angar Score</span>
-                <span className="tabular font-medium text-steady">▲ 6</span>
-              </div>
-              <div className="text-sm text-ink-100 mt-1 leading-snug">Well run, with clear room to save.</div>
-              <div className="mt-3 flex flex-col gap-1 text-xs text-ink-400">
-                <span>Top way to improve</span>
-                <span className="text-ink-100">
-                  Remove 9 unused ChatGPT seats <span className="tabular text-accent font-medium">+5 pts</span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-            <AxisGauge label="Efficiency" value={58} />
-            <AxisGauge label="Governance" value={76} />
-            <AxisGauge label="Risk" value={84} />
-            <AxisGauge label="Adoption" value={64} />
+          <ScoreMock compact />
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-line px-3 py-2 text-xs">
+            <span className="text-ink-100 min-w-0 truncate">Remove 9 inactive ChatGPT seats</span>
+            <span className="tabular text-ink-100 font-medium shrink-0">+5 points</span>
           </div>
         </div>
 
@@ -61,7 +40,7 @@ export default function ProductShot() {
             <b className="font-semibold">{fmtEur(1240)}</b> <span className="text-ink-400">a month</span>
           </span>
         </div>
-        <figcaption className="sr-only">Example company: angar Score 72 out of 100, grade B.</figcaption>
+        <figcaption className="sr-only">Example company: angar Score 82 out of 100, Good.</figcaption>
       </figure>
     </div>
   );

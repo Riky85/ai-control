@@ -115,9 +115,9 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
   const vendorRows = [...byVendor.values()].sort((a, b) => b.trainsCount - a.trainsCount || b.aiCount - a.aiCount || a.vendor.localeCompare(b.vendor));
   const vendorFlagged = vendorAssets.filter((a) => vendorFlags(vendorRiskFor(a), { type: a.type, dataSensitivities: a.dataAccess.map((d) => d.dataAsset.sensitivity), paidPlan: !!a.cost?.planId }).length > 0).length;
 
-  // Cosa tiene giù il punteggio: driver dell'asse Governance, altrimenti i controlli AI Act non superati.
+  // Cosa tiene giù l'indice di governance (fuori dall'angar Score), altrimenti i controlli AI Act non superati.
   const holds: Holdback[] = score
-    ? score.drivers
+    ? score.control.drivers
         .filter((d) => d.axis === "governance" && d.impact < 0 && !d.missingData)
         .sort((a, b) => a.impact - b.impact)
         .map((d) => ({ label: d.label, href: HREF_FIX[d.href] ?? d.href, pts: -d.impact }))
@@ -159,7 +159,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
         ]}
       />
 
-      <GovernanceHeader governance={score ? score.axes.governance : null} readiness={r.score} holds={holds} />
+      <GovernanceHeader governance={score ? score.control.governance : null} readiness={r.score} holds={holds} />
 
       {assurance ? (
         <AssuranceView orgId={orgId} />

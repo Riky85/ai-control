@@ -220,6 +220,20 @@ export async function runDueJobs(now = new Date()) {
       console.error("[jobs] USD cost fix failed", err);
     }
   }
+  // Catalogo prezzi AI (globale): caricato una volta per versione del catalogo, cioè al primo giro dopo un deploy.
+  {
+    const { CATALOG_VERSION } = await import("@/lib/pricing/service");
+    if (await claim("pricing-catalog", CATALOG_VERSION)) {
+      try {
+        const r = await (await import("@/lib/pricing/catalog-sync")).syncPricingCatalog();
+        console.log(`[jobs] pricing catalog ${r.version}: ${r.componentsCreated} prices added, ${r.componentsUpdated} updated, ${r.corrections} corrections`);
+        await finish("pricing-catalog", CATALOG_VERSION);
+      } catch (err) {
+        // Resta "running": riprovato dopo STALE_RUN_MS.
+        console.error("[jobs] pricing catalog sync failed", err);
+      }
+    }
+  }
   // Giornalieri: dalle 7 in poi (ora di Roma), una volta al giorno. Prima i costi, poi gli avvisi.
   if (hour >= 7 && (await claim("daily", day))) {
     summary.synced = await syncCosts().catch(() => 0);
@@ -233,6 +247,8 @@ export async function runDueJobs(now = new Date()) {
         summary.budgets += (await checkBudgets(o.id)).filter((b) => b.alerted).length;
         summary.renewals += await (await import("@/lib/contracts")).noticeDeadlineAlerts(o.id).catch(() => 0);
         await (await import("@/lib/savings-ledger")).verifySavingActions(o.id, now).catch((err) => console.error("[jobs] saving verification failed", o.id, err));
+        // Economia AI: abbonamenti normalizzati (piano, posti per tipo, listino vs fatturato).
+        await (await import("@/lib/pricing/subscriptions")).normaliseSubscriptions(o.id, undefined, now).catch((err) => console.error("[jobs] subscription normalisation failed", o.id, err));
         // angar Engine: autopilot dei risparmi, anomalie e fotografia dell'angar Score.
         await (await import("@/lib/engine/autopilot")).runAutopilot(o.id).catch((err) => console.error("[jobs] autopilot failed", o.id, err));
         await (await import("@/lib/engine/forecast")).anomalyAlerts(o.id).catch((err) => console.error("[jobs] anomalies failed", o.id, err));

@@ -146,19 +146,21 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
 
   // ——— angar Score ———
   if (/\b(score|punteggio|rating|voto|valutazione|health|salute|maturit\w*)\b/.test(t)) {
-    const { computeScore, topImprovement } = await import("@/lib/engine/score");
+    const { computeScore, scoreActions } = await import("@/lib/engine/score");
     const r = await computeScore(orgId);
-    const axes = Object.entries(r.axes) as [string, number][];
-    const weakest = axes.sort((a, b) => a[1] - b[1])[0];
-    const fix = topImprovement(r);
+    const plan = scoreActions(r.facts, r);
+    // Dimensione più debole tra quelle misurate (le altre non hanno ancora un valore).
+    const weakest = r.dimensions.filter((d) => d.value != null && (d.status === "measured" || d.status === "partial")).sort((a, b) => (a.value ?? 0) - (b.value ?? 0))[0];
+    const best = plan.best;
+    const save = r.savingsMonthlyEur >= 1 ? fmtEur(r.savingsMonthlyEur) : null;
     return {
       handled: true,
       answer: L(
-        `Your angar Score is ${r.score} (${r.grade}). Weakest area: ${weakest[0]} ${weakest[1]}.${fix ? ` Best next step: ${fix.label}.` : ""}`,
-        `Il vostro angar Score è ${r.score} (${r.grade}). Area più debole: ${weakest[0]} ${weakest[1]}.${fix ? ` Prossimo passo migliore: ${fix.label}.` : ""}`
+        `Your angar Score is ${r.score} (${r.levelLabel}, ${r.confidenceLabel.toLowerCase()}) — AI spend efficiency.${weakest ? ` Weakest: ${weakest.label.toLowerCase()} ${weakest.value}.` : ""}${save ? ` ${save} a month could be saved.` : ""}${best ? ` Best next action: ${best.title}${best.points > 0 ? ` (+${best.points} points)` : ""}.` : ""}`,
+        `Il vostro angar Score è ${r.score} (${r.levelLabel}, ${r.confidenceLabel.toLowerCase()}) — efficienza della spesa AI.${weakest ? ` Più debole: ${weakest.label.toLowerCase()} ${weakest.value}.` : ""}${save ? ` Si possono risparmiare ${save} al mese.` : ""}${best ? ` Prossima azione migliore: ${best.title}${best.points > 0 ? ` (+${best.points} punti)` : ""}.` : ""}`
       ),
-      href: "/score",
-      hrefLabel: L("Open angar Score", "Apri angar Score"),
+      href: best ? "/score/improve" : "/score",
+      hrefLabel: best ? L("Improve my score", "Migliora il punteggio") : L("Open angar Score", "Apri angar Score"),
     };
   }
 

@@ -15,7 +15,8 @@ import { upcomingRenewals } from "@/lib/renewals";
 import { priceForAsset, listSeatEur } from "@/lib/engine/price-index";
 import { loadAssets, monthlyOf, serviceOf, categoryOf } from "@/lib/savings";
 import { countActive, SEAT_WINDOW_DAYS } from "@/lib/seats";
-import { PLANS, CATEGORY_LABEL, type Category } from "@/lib/pricing/catalog";
+import { CATEGORY_LABEL, type Category } from "@/lib/pricing/catalog";
+import { legacyPlanById } from "@/lib/pricing/service";
 import type { PeerStats } from "@/lib/benchmark";
 import { fmtDate, fmtEur } from "@/lib/format";
 
@@ -323,7 +324,7 @@ export async function loadDossier(orgId: string, assetId: string, sender: string
     : null;
   const m = monthlyOf(asset);
   const svc = serviceOf(asset);
-  const plan = c?.planId ? PLANS.find((p) => p.id === c.planId) ?? null : null;
+  const plan = legacyPlanById(c?.planId);
   const category = categoryOf(asset);
   const annualRatio = plan?.annualMonthlyUsd && plan.annualMonthlyUsd < plan.monthlyUsd ? plan.annualMonthlyUsd / plan.monthlyUsd : null;
 

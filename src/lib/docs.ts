@@ -242,6 +242,33 @@ New AI found by any source lands here. For each one choose Allow or Not allowed 
 Each suggestion says how sure angar is and has a button to the provider's billing page. Mark it done and angar checks the next bills to confirm the saving.`,
   },
   {
+    slug: "angar-score",
+    section: "Using angar",
+    title: "angar Score",
+    summary: "One number, 0–100, for how efficiently your company turns AI spend into AI use — with the reasons and the actions that raise it.",
+    keywords: ["score", "rating", "efficiency", "improve", "dimensions", "provisional", "confidence", "utilization", "licenses", "visibility", "consumption"],
+    body: `The angar Score measures AI spend efficiency: not how much you spend, and not how much you use AI, but how well spend turns into use. It only uses ratios, so a company spending €15,000 a month at 96% seat use scores higher than one spending €1,000 at 30%.
+## The five dimensions
+- Spend visibility (20%) — how much of your AI spend angar sees: bank or cards, invoices and, for API spend, provider billing; charges matched to a known AI; real costs instead of list-price estimates; an owner for each paid AI.
+- License utilization (30%) — paid seats against seats used in the last 30 days, across seat-based AI such as ChatGPT, Claude, Copilot, Gemini and Cursor. 25% use or less scores 0, full use scores 100.
+- Tool efficiency (20%) — money spent twice on tools that do the same job, including personal plans next to a company plan.
+- Consumption efficiency (20%) — API and usage-based spend: models bigger than needed and spend above what the previous months predicted. With no API or usage-based spend data it doesn't count, and the other weights are rescaled.
+- Savings opportunity (10%) — savings angar found, as a share of spend: high-confidence savings count fully, medium half, low a quarter.
+## Levels
+90 and above is Excellent, 80 Good, 70 Fair, below 70 Needs attention.
+## How sure the score is
+- Provisional — spend only. Seat use can't be measured, so License utilization counts as 60 and the total can't go above 70 until usage data arrives. Install the desktop app or connect company accounts.
+- Early measurement — usage measured for less than 30 days.
+- Measured — 30 days or more.
+- High confidence — 60 days or more, with people known on most paid seats.
+## Why is my score what it is?
+Every point below 100 has a reason with a link to fix it, and the reasons add up exactly to the gap. Missing data is marked as such: it isn't held against you as waste.
+## Improve my score
+Each action shows the points it gains — calculated by running the score again with the fix applied — the saving with its calculation (for example 35 seats × €25 → 21 seats × €25 = €350 a month), how sure angar is (High, Medium or Investigation required) and a button to the existing review. The best next action has the best mix of certainty, saving and points. When you mark a saving done, the next score reflects it and shows what changed.
+## History
+angar keeps one snapshot a day. Scores from before the method changed in October 2026 used different dimensions: they're hidden from the trend and never compared with today's score.`,
+  },
+  {
     slug: "seat-cleanup",
     section: "Using angar",
     title: "Usage and unused seats",
