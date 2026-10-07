@@ -33,12 +33,12 @@ export default async function SignInSecurityPanel({ message }: { message?: strin
           >
             {/* Senza SSO configurato sulla piattaforma le opzioni SSO non si mostrano (restano solo se già attive). */}
             {(ssoOn || org.ssoRequired) && (
-              <Row title={`Require ${providers || "Microsoft or Google"}`} hint={ssoOn ? "Password sign-ins are refused." : "Not set up on this deployment yet."}>
+              <Row title={`Require ${providers || "Microsoft or Google"}`} hint={ssoOn ? "Passwords refused." : "Not set up."}>
                 <input type="checkbox" name="ssoRequired" aria-label="Require single sign-on" defaultChecked={org.ssoRequired} disabled={!ssoOn && !org.ssoRequired} className={check} />
                 <input name="ssoDomain" defaultValue={org.ssoDomain ?? ""} placeholder="Only company.com (optional)" aria-label="Only for emails at this domain" className="field w-full sm:w-56 min-w-0" />
               </Row>
             )}
-            <Row title="Require two-step" hint="For password sign-ins. Set up right after signing in.">
+            <Row title="Require two-step" hint="For password sign-ins.">
               <input type="checkbox" name="mfaRequired" aria-label="Require two-step verification" defaultChecked={org.mfaRequired} className={check} />
             </Row>
             <Row title="Your two-step" hint="Your own authenticator app.">

@@ -34,8 +34,7 @@ export default function McpServers({ rows, canDecide, newAppComputers }: { rows:
         </h2>
         <span className="flex items-center gap-2 text-xs text-ink-400">
           {sensitive > 0 && <Pill tone="signal">{sensitive} reach sensitive data</Pill>}
-          {toReview > 0 && <Pill tone="accent">{toReview} to review</Pill>}
-          {!rows.length && <span>Tools that let AI act on your systems</span>}
+          {toReview > 0 && <Pill tone="signal">{toReview} to review</Pill>}
         </span>
       </div>
 
@@ -43,8 +42,8 @@ export default function McpServers({ rows, canDecide, newAppComputers }: { rows:
         <div className="border-t border-line px-4 py-4 text-sm text-ink-400 flex flex-wrap items-center justify-between gap-2">
           <span>
             {newAppComputers > 0
-              ? `No MCP servers found on ${plural(newAppComputers, "computer", "computers")} with the desktop app 0.5.6+.`
-              : "Install the desktop app 0.5.6+ to find MCP servers on computers."}
+              ? "None found."
+              : "Needs the desktop app 0.5.6+."}
           </span>
           {newAppComputers === 0 && (
             <Link href="/download" className="text-ink-100 hover:underline shrink-0">

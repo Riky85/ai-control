@@ -66,8 +66,8 @@ export function PriceRangeBar({ row, className = "" }: { row: Pick<PriceRow, "pe
   return (
     <div className={`relative h-3 ${className}`} role="img" aria-label={label} title={label}>
       <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line" />
-      {p && <div className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-accent/25" style={{ left: x(p.p25), width: `calc(${x(p.p75)} - ${x(p.p25)})` }} />}
-      <div className={`absolute top-0 h-3 w-px ${p ? "bg-accent" : "bg-ink-400"}`} style={{ left: x(ref) }} />
+      {p && <div className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-ink-100/20" style={{ left: x(p.p25), width: `calc(${x(p.p75)} - ${x(p.p25)})` }} />}
+      <div className={`absolute top-0 h-3 w-px ${p ? "bg-ink-100" : "bg-ink-400"}`} style={{ left: x(ref) }} />
       {row.yourSeatEur != null && (
         <div className={`absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-panel ${dot}`} style={{ left: x(row.yourSeatEur) }} />
       )}
@@ -79,22 +79,21 @@ export function PriceRangeBar({ row, className = "" }: { row: Pick<PriceRow, "pe
 export default function PriceIndexCard({ rows, networkCompanies, minCompanies }: PriceIndexCardProps) {
   const shown = rows.slice(0, MAX_ROWS);
   return (
-    <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="price-index-title">
+    <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="price-index-title">
       <BlockHead
         id="price-index-title"
-        rounded="rounded-t-2xl"
-        title="What you pay vs the market"
-        note="Price of one seat, a month"
+        rounded="rounded-t-xl"
+        title="Seat price vs market"
         action={
           <span className="flex items-center gap-3 text-[11px] text-ink-400 shrink-0" aria-hidden>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-ink-100" />You</span>
-            <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-accent/25" />{networkCompanies ? "Middle 50%" : "List"}</span>
+            <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-ink-100/20" />{networkCompanies ? "Middle 50%" : "List"}</span>
           </span>
         }
       />
 
       {shown.length === 0 ? (
-        <p className="p-5 text-sm text-ink-400">No paid AI with seats yet. <Link href="/sources" className="underline hover:text-ink-100">Add a bank statement</Link> to compare prices.</p>
+        <p className="p-5 text-sm text-ink-400">No seat prices yet.</p>
       ) : (
         <ul className="divide-y divide-line">
           {shown.map((r) => (
@@ -123,8 +122,8 @@ export default function PriceIndexCard({ rows, networkCompanies, minCompanies }:
         </ul>
       )}
 
-      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-xs text-ink-400 bar-foot">
-        <span>{networkCompanies ? `Based on ${networkCompanies} companies on angar · anonymous` : `Market data unlocks at ${minCompanies} similar companies — showing list prices`}</span>
+      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-xl px-5 py-3 text-xs text-ink-400 bar-foot">
+        <span title={networkCompanies ? "Anonymous" : `Market data unlocks at ${minCompanies} similar companies`}>{networkCompanies ? `${networkCompanies} companies` : "List prices"}</span>
         {rows.length > MAX_ROWS && <span className="tabular shrink-0">+{rows.length - MAX_ROWS} more</span>}
       </div>
     </section>

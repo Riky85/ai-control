@@ -43,11 +43,11 @@ export function Section({
   className?: string;
 }) {
   return (
-    <section id={id} className={`rounded-2xl border border-line bg-panel animate-rise scroll-mt-6 flex flex-col ${className}`} aria-labelledby={id ? `${id}-title` : undefined}>
+    <section id={id} className={`rounded-xl border border-line bg-panel animate-rise scroll-mt-6 flex flex-col ${className}`} aria-labelledby={id ? `${id}-title` : undefined}>
       {/* Barra grigia in alto: titolo a sinistra, contesto e azioni a destra (regola della casa). */}
-      <BlockHead id={id ? `${id}-title` : undefined} title={title} note={meta} action={action} rounded="rounded-t-2xl" />
+      <BlockHead id={id ? `${id}-title` : undefined} title={title} note={meta} action={action} rounded="rounded-t-xl" />
       {children && <div className="flex-1">{children}</div>}
-      {footer && <div className="bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-sm bar-foot">{footer}</div>}
+      {footer && <div className="bg-ink border-t border-line rounded-b-xl px-5 py-3 text-sm bar-foot">{footer}</div>}
     </section>
   );
 }
@@ -64,7 +64,7 @@ export function NextStep({ href, label, done }: { href?: string; label: React.Re
   }
   return (
     <Link href={href} className="flex items-center gap-2 group">
-      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink-400" aria-hidden />
       <span className="flex-1 min-w-0 truncate text-ink-100 group-hover:underline">{label}</span>
       <span className="text-ink-400 group-hover:text-ink-100 shrink-0">→</span>
     </Link>

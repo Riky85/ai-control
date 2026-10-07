@@ -21,7 +21,7 @@ const API_SOURCES: { provider: ConnectorProvider; label: string; vendor: string;
     provider: "CLOUDFLARE_GATEWAY",
     label: "Cloudflare Gateway",
     vendor: "Cloudflare",
-    text: "AI seen in your Zero Trust DNS logs, with the person when WARP knows them. Read-only.",
+    text: "AI in your DNS logs.",
     fields: [
       { name: "accountId", placeholder: "Account ID" },
       { name: "apiToken", placeholder: "API token", secret: true },
@@ -34,7 +34,7 @@ const API_SOURCES: { provider: ConnectorProvider; label: string; vendor: string;
     provider: "CISCO_UMBRELLA",
     label: "Cisco Umbrella",
     vendor: "Cisco",
-    text: "AI seen in your Umbrella DNS activity, with the identity when Umbrella has one. Read-only.",
+    text: "AI in your DNS activity.",
     fields: [
       { name: "apiKey", placeholder: "API key" },
       { name: "apiSecret", placeholder: "API secret", secret: true },
@@ -75,8 +75,7 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
     <section id="network-logs" className="scroll-mt-6">
       <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise divide-y divide-line">
         <div className="px-4 py-3">
-          <h2 className="text-sm font-bold text-ink-100">Network logs</h2>
-          <p className="text-xs text-ink-400">Find AI in the DNS and firewall logs you already have — no angar Edge box needed. Only AI services, days and counts are kept.</p>
+          <h2 className="text-sm font-bold text-ink-100" title="Only AI services, days and counts are kept.">Network logs</h2>
         </div>
         {API_SOURCES.map((p) => {
           const row = rows.get(p.provider);
@@ -138,8 +137,8 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
           <div className="flex flex-wrap items-center gap-3 px-4 py-3">
             <VendorBadge vendor="Firewall" name="Firewall" size={32} />
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-ink-100">Firewall &amp; DNS logs (Zscaler, Fortinet, others)</div>
-              <div className="text-xs text-ink-400">Upload an export: the format is recognised on its own.</div>
+              <div className="text-sm font-medium text-ink-100">Firewall &amp; DNS logs</div>
+              <div className="text-xs text-ink-400">Zscaler, Fortinet, others</div>
             </div>
           </div>
           <UploadResult {...(result ?? {})} />
@@ -149,12 +148,12 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
             </summary>
             <form action={uploadNetworkLogAction} className="px-4 pb-4 flex flex-col gap-2">
               <input type="hidden" name="back" value="/connectors" />
-              <CsvDropzone accept={LOG_ACCEPT} multiple label="Drop .csv, .log, .txt, .json or .zip files here" />
+              <CsvDropzone accept={LOG_ACCEPT} multiple label="Drop log files" />
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs text-ink-400 min-w-0 flex-1">
-                  Zscaler NSS web logs, FortiGate or FortiAnalyzer logs, BIND, Windows DNS debug, Pi-hole, pfSense or OPNsense, Umbrella and Cloudflare exports, or any CSV with a domain column. Up to 50 MB.
+                <p className="text-xs text-ink-400 min-w-0 flex-1" title="Zscaler NSS web logs, FortiGate or FortiAnalyzer logs, BIND, Windows DNS debug, Pi-hole, pfSense or OPNsense, Umbrella and Cloudflare exports, or any CSV with a domain column.">
+                  Up to 50 MB.
                 </p>
-                <button className="btn btn-secondary btn-sm">Find AI in these logs</button>
+                <button className="btn btn-secondary btn-sm">Find AI</button>
               </div>
               {uploadError && <p className="text-xs text-alarm">{uploadError}</p>}
             </form>

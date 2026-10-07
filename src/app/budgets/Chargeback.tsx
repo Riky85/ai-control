@@ -7,23 +7,19 @@ import AutoSubmitSelect from "@/components/AutoSubmitSelect";
 import { fmtEur } from "@/lib/format";
 import { maskCount, orgPrivacyMode, showsDepartments, showsPeople } from "@/lib/privacy";
 
-const DIRECTORY: Record<string, string> = { MICROSOFT_365: "Microsoft 365", GOOGLE_WORKSPACE: "Google Workspace" };
 
 /** Scheda Chargeback di /budgets: costo AI del mese per reparto e centro di costo, con export contabili. */
 export default async function Chargeback({ orgId, month: asked }: { orgId: string; month?: string }) {
   const months = recentMonths(12);
   const month = asked && months.includes(asked) ? asked : currentMonth();
-  const [cb, settings, mode, directory, withDept] = await Promise.all([
+  const [cb, settings, mode] = await Promise.all([
     computeChargeback(orgId, month),
     db.accountingSettings.findUnique({ where: { organizationId: orgId } }),
     orgPrivacyMode(orgId),
-    db.connector.findMany({ where: { organizationId: orgId, provider: { in: ["MICROSOFT_365", "GOOGLE_WORKSPACE"] }, status: { in: ["CONNECTED", "SYNCING"] } }, select: { provider: true } }),
-    db.user.count({ where: { organizationId: orgId, department: { not: null } } }),
   ]);
   if (!cb) return null;
   const people = (n: number) => (!showsDepartments(mode) ? "—" : showsPeople(mode) ? String(n) : maskCount(n));
   const missingCodes = cb.rows.filter((r) => !r.costCenter).length;
-  const source = directory.map((c) => DIRECTORY[c.provider]).join(" and ");
   const exportHref = (format: string) => `/api/export/chargeback?month=${month}&format=${format}`;
   const accountsSet = !!settings?.expenseAccount;
 
@@ -59,16 +55,15 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
         <StatCard
           label={`AI cost in ${monthLabel(month)}`}
           value={fmtEur(cb.totalEur)}
-          hint={cb.runRateEur > 0 ? `${fmtEur(cb.actualEur)} from charges, ${fmtEur(cb.runRateEur)} at the current monthly cost` : cb.totalEur ? "All from real charges" : "No AI cost for this month"}
-          tone="accent"
+          hint={cb.runRateEur > 0 ? `${fmtEur(cb.actualEur)} from charges` : cb.totalEur ? "Real charges" : undefined}
         />
-        <StatCard label="Charged to teams" value={fmtEur(cb.allocatedEur)} hint={cb.totalEur ? `${Math.round((cb.allocatedEur / cb.totalEur) * 100)}% of the cost · ${cb.rows.length} team${cb.rows.length === 1 ? "" : "s"}` : undefined} />
-        <StatCard label="Unallocated" value={fmtEur(cb.unallocatedEur)} hint={cb.unallocatedEur ? "Unused seats, people without a team, unknown users" : "Everything is charged to a team"} tone={cb.unallocatedEur > 0 ? "signal" : undefined} />
+        <StatCard label="Charged to teams" value={fmtEur(cb.allocatedEur)} hint={cb.totalEur ? `${Math.round((cb.allocatedEur / cb.totalEur) * 100)}% · ${cb.rows.length} team${cb.rows.length === 1 ? "" : "s"}` : undefined} />
+        <StatCard label="Unallocated" value={fmtEur(cb.unallocatedEur)} hint={undefined} tone={cb.unallocatedEur > 0 ? "signal" : undefined} />
       </div>
 
       <Table
-        columns={["Team", { label: "Cost centre", className: "w-[340px]" }, "What it pays for", { label: "People", className: "text-right" }, { label: "Amount", className: "text-right" }]}
-        empty={cb.rows.length === 0 ? "No AI cost can be charged to a team this month. Set departments on people so angar can split the cost." : false}
+        columns={["Team", { label: "Cost centre", className: "w-[340px]" }, "Pays for", { label: "People", className: "text-right" }, { label: "Amount", className: "text-right" }]}
+        empty={cb.rows.length === 0 ? "Nothing to charge this month." : false}
       >
         {cb.rows.map((r) => (
           <tr key={r.department}>
@@ -119,10 +114,13 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
       <details className="rounded-xl border border-line bg-panel overflow-hidden group">
         <summary className="cursor-pointer list-none flex items-center justify-between gap-3 bg-ink px-5 py-3 group-open:border-b group-open:border-line [&::-webkit-details-marker]:hidden bar-head">
           <span>
-            <span className="text-sm font-semibold text-ink-100">Accounts for DATEV and TeamSystem</span>
-            <span className="block text-xs text-ink-400 mt-0.5">
-              {accountsSet ? `Expense ${settings!.expenseAccount}${settings?.clearingAccount ? ` · clearing ${settings.clearingAccount}` : ""}` : "Each team's cost is booked to the expense account with its cost centre, against a clearing account."}
-            </span>
+            <span className="text-sm font-semibold text-ink-100">Accounting accounts</span>
+            {accountsSet && (
+              <span className="block text-xs text-ink-400 mt-0.5">
+                Expense {settings!.expenseAccount}
+                {settings?.clearingAccount ? ` · clearing ${settings.clearingAccount}` : ""}
+              </span>
+            )}
           </span>
           <span className="text-xs text-ink-400 group-open:hidden">Edit</span>
         </summary>
@@ -132,16 +130,11 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
           <Field name="clearingAccount" label="Clearing account" placeholder="e.g. 1590" value={settings?.clearingAccount} />
           <Field name="datevConsultant" label="DATEV consultant no." placeholder="Beraternummer" value={settings?.datevConsultant} />
           <Field name="datevClient" label="DATEV client no." placeholder="Mandantennummer" value={settings?.datevClient} />
-          <button className="btn btn-primary btn-sm">Save accounts</button>
+          <button className="btn btn-secondary btn-sm">Save accounts</button>
         </form>
       </details>
 
-      <p className="text-xs text-ink-400">
-        Per-seat tools are charged by the seats each team uses; shared tools (APIs) by each team&apos;s share of active users. Past months use the real charges; the current month
-        uses the current monthly cost until charges arrive. Teams come from each person&apos;s department
-        {source ? ` — departments from ${source}${withDept ? "" : " (none synced yet)"}` : ""}
-        {missingCodes > 0 ? ` · ${missingCodes} team${missingCodes === 1 ? " has" : "s have"} no cost centre code yet.` : "."}
-      </p>
+      {missingCodes > 0 && <p className="text-xs text-ink-400">{missingCodes} team{missingCodes === 1 ? "" : "s"} without a cost centre code.</p>}
     </div>
   );
 }

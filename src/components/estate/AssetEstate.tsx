@@ -89,7 +89,7 @@ export function DependenciesPanel({ est, assetId, admin }: { est: EstateData; as
     <Panel
       flush
       title="Dependencies"
-      subtitle={impact && (impact.processes.length || impact.applications.length) ? `${impact.processes.length} process${impact.processes.length === 1 ? "" : "es"} · ${impact.applications.length} app${impact.applications.length === 1 ? "" : "s"} depend on it` : "Upstream and downstream"}
+      subtitle={impact && (impact.processes.length || impact.applications.length) ? `${impact.processes.length} process${impact.processes.length === 1 ? "" : "es"} · ${impact.applications.length} app${impact.applications.length === 1 ? "" : "s"}` : undefined}
       footer={
         admin ? (
           <details className="w-full group">
@@ -143,7 +143,7 @@ export function DependenciesPanel({ est, assetId, admin }: { est: EstateData; as
           />
         ))}
         {providers.map((p) => <Row key={p.node.key + p.edge.relation} rel={REL[p.edge.relation] ?? p.edge.relation} node={p.node} e={p.edge} back={back} admin={false} extra={`via ${p.via.label}`} />)}
-        {upstream.length + deps.length === 0 && <li className="px-5 py-4 text-sm text-ink-400">No dependencies seen yet. They appear from Gateway logs, cloud billing and connectors, or link a process above.</li>}
+        {upstream.length + deps.length === 0 && <li className="px-5 py-4 text-sm text-ink-400" title="They appear from Gateway logs, cloud billing and connectors.">No dependencies yet.</li>}
       </ul>
     </Panel>
   );
@@ -155,12 +155,10 @@ function AltRow({ a, current }: { a: Alternative; current: number | null }) {
   return (
     <tr>
       <td className="px-5 py-2.5">
-        <div className="text-ink-100">{a.name}</div>
-        <div className="text-xs text-ink-400">{[a.providerName, a.inUse ? "already used in your company" : null, a.gaps.slice(0, 2).join(", ") || null].filter(Boolean).join(" · ")}</div>
+        <div className="text-ink-100" title={a.gaps.slice(0, 2).join(", ") || undefined}>{a.name}</div>
+        <div className="text-xs text-ink-400">{[a.providerName, a.inUse ? "in use" : null].filter(Boolean).join(" · ")}</div>
       </td>
-      <td className="px-3 py-2.5 text-right tabular text-ink-100">{a.compatibility}%</td>
-      <td className="px-3 py-2.5 text-ink-400">{CONF[a.confidence]}</td>
-      <td className="px-3 py-2.5 text-ink-400">{a.tested ? "Tested" : "Not tested"}</td>
+      <td className="px-3 py-2.5 text-right tabular text-ink-100" title={`Confidence ${CONF[a.confidence]} · ${a.tested ? "Tested" : "Not tested"}`}>{a.compatibility}%</td>
       <td className="px-3 py-2.5 text-ink-400">{a.effort}</td>
       <td className="px-5 py-2.5 text-right tabular" title={a.estimateBasis}>
         {a.estimatedMonthlyEur != null ? <span className="text-ink-100">≈ {fmtEur(a.estimatedMonthlyEur)}</span> : <span className="text-ink-400">Unknown</span>}
@@ -192,7 +190,7 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
       <Panel
         flush
         title="Replaceability"
-        subtitle={repl.applicable ? `${repl.kind === "seat" ? "Seat product" : `Current: ${repl.current.label}`}${repl.current.costEur != null ? ` · ${fmtEur(repl.current.costEur)} a month ${repl.current.costKind === "actual" ? "actual" : "estimated"}` : ""}` : undefined}
+        subtitle={repl.applicable ? (repl.kind === "seat" ? "Seat product" : repl.current.label) : undefined}
         footer={
           admin ? (
             <details className="w-full">
@@ -201,7 +199,7 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
                 <form action={saveProfileAction} className="flex flex-col gap-2 text-xs text-ink-400">
                   <input type="hidden" name="back" value={back} />
                   <input type="hidden" name="assetId" value={assetId} />
-                  <span>Needs (leave empty to assume everything the current model does)</span>
+                  <span title="Leave empty to assume everything the current model does">Needs</span>
                   <div className="flex flex-wrap gap-x-3 gap-y-1">
                     {capKeys.map((k) => (
                       <label key={k} className="flex items-center gap-1.5 text-ink-100">
@@ -265,9 +263,8 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
               </div>
               <ul className="flex flex-col gap-2 min-w-0">
                 {repl.components.map((c) => (
-                  <li key={c.key} className="grid grid-cols-[176px_1fr_44px] items-baseline gap-3 text-sm">
-                    <span className="text-ink-100">{c.label}</span>
-                    <span className="text-xs text-ink-400 truncate" title={c.reason}>{c.reason}</span>
+                  <li key={c.key} className="grid grid-cols-[1fr_44px] items-baseline gap-3 text-sm max-w-md">
+                    <span className="text-ink-100" title={c.reason}>{c.label}</span>
                     <span className="text-right tabular text-ink-100">{c.score == null ? "—" : c.score}</span>
                   </li>
                 ))}
@@ -277,12 +274,10 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-xs text-ink-400 text-left">
-                    <th className="px-5 py-2 font-medium">Top alternatives</th>
-                    <th className="px-3 py-2 font-medium text-right">Compatible</th>
-                    <th className="px-3 py-2 font-medium">Confidence</th>
-                    <th className="px-3 py-2 font-medium">Behaviour</th>
+                    <th className="px-5 py-2 font-medium">Alternatives</th>
+                    <th className="px-3 py-2 font-medium text-right">Fit</th>
                     <th className="px-3 py-2 font-medium">Effort</th>
-                    <th className="px-5 py-2 font-medium text-right">Est. a month</th>
+                    <th className="px-5 py-2 font-medium text-right" title={`Estimates from list prices${repl.current.surface ? ` · current API: ${SURFACE_LABEL[repl.current.surface]}` : ""} · ranked by compatibility, not price${repl.required.assumed ? " · needs assumed from the current model" : ""}`}>A month</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
@@ -290,23 +285,17 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
                 </tbody>
               </table>
             </div>
-            <p className="px-5 py-3 text-xs text-ink-400 border-t border-line">
-              Alternative costs are estimates from list prices{repl.current.surface ? ` · current API: ${SURFACE_LABEL[repl.current.surface]}` : ""} · ranked by compatibility, not price{repl.required.assumed ? " · needs assumed from the current model" : ""}.
-            </p>
           </div>
         )}
       </Panel>
 
       <div className="rounded-xl border border-line bg-panel px-5 py-4 flex flex-wrap items-center gap-x-4 gap-y-2 animate-rise">
         <span className="text-sm font-bold text-ink-100">Exit readiness</span>
-        <span className="flex items-center gap-2 text-sm text-ink-100 tabular">
+        <span className="flex items-center gap-2 text-sm text-ink-100 tabular" title={exit.blockers.join(" · ") || undefined}>
           <span className={`h-2 w-2 rounded-full ${STATUS_TONE[exit.status]}`} />
           {exit.score}/100 · {exit.status}
         </span>
         {fallback.configured && <span className="text-xs text-ink-400">Fallback: {fallback.configured}</span>}
-        <span className="flex flex-wrap gap-1.5 basis-full sm:basis-auto">
-          {exit.blockers.map((b) => <span key={b} className="text-xs rounded-full bg-ink px-2.5 py-1 text-ink-400">{b}</span>)}
-        </span>
       </div>
     </>
   );

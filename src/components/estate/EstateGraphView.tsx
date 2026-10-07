@@ -77,7 +77,7 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
           list="estate-nodes"
           value={query}
           onChange={(e) => pick(e.target.value)}
-          placeholder="What depends on… (OpenAI, a model, a dataset)"
+          placeholder="What depends on…"
           className="field w-full sm:w-80"
           aria-label="What depends on"
         />
@@ -167,7 +167,7 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
           })}
         </svg>
       </div>
-      <p className="text-xs text-ink-400">Solid lines are observed, declared or from the catalog; dashed lines are inferred and wait for confirmation. Click a node to see what depends on it.</p>
+      <p className="text-xs text-ink-400" title="Solid lines are observed, declared or from the catalog; dashed lines are inferred and wait for confirmation. Click a node to see what depends on it.">Dashed = inferred</p>
     </div>
   );
 }

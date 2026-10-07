@@ -44,69 +44,37 @@ export default async function ProvidersPage() {
   if (assets.length === 0)
     return (
       <div className="flex flex-col gap-4">
-        <PageHeader title="Providers" subtitle="Who your company depends on for AI, and how much you pay each one." />
+        <PageHeader title="Providers" />
         <EmptyState title="No providers yet" text="Drop a bank statement or invoices — angar finds every AI provider you pay." href="/sources" cta="Add costs" />
       </div>
     );
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Providers" subtitle="Who your company depends on for AI, and how much you pay each one." action={<ExportMenu dataset="providers" />} />
+      <PageHeader title="Providers" action={<ExportMenu dataset="providers" />} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard href="/#your-ai" label="Providers" value={String(rows.length)} hint={`${assets.length} AI in total`} tone="accent" />
-        <StatCard href="/?paid=yes#your-ai" label="Monthly spend" value={total ? fmtEur(total) : "—"} hint={total ? `${fmtEur(total * 12)} a year` : "Add a bank statement"} />
+        <StatCard href="/#your-ai" label="Providers" value={String(rows.length)} hint={`${assets.length} AI`} />
+        <StatCard href="/?paid=yes#your-ai" label="Monthly spend" value={total ? fmtEur(total) : "—"} hint={total ? `${fmtEur(total * 12)} a year` : undefined} />
         <StatCard
           href={top ? `/?q=${encodeURIComponent(top.vendor)}#your-ai` : "/"}
-          label="Biggest dependency"
+          label="Largest share"
           value={top ? `${topShare}%` : "—"}
-          hint={top ? `of spend on ${top.vendor}` : "—"}
+          hint={top ? top.vendor : undefined}
           tone={topShare >= 60 ? "signal" : undefined}
         />
-        <StatCard href="/savings" label="Could save" value={totalSave >= 1 ? `${fmtEur(totalSave)}/mo` : "—"} hint={totalSave >= 1 ? `${fmtEur(totalSave * 12)} a year` : "Nothing found"} />
+        <StatCard href="/savings" label="Could save" value={totalSave >= 1 ? `${fmtEur(totalSave)}/mo` : "—"} hint={totalSave >= 1 ? `${fmtEur(totalSave * 12)} a year` : undefined} />
       </div>
 
       {above.length > 0 && (
         <Insight tone="signal" href={`/assets/${above[0].assetIds[0]}`} cta={`Open ${above[0].name}`}>
-          You pay more than the {priceIndex.networkCompanies ? "market" : "list price"} for {above.slice(0, 2).map((r) => r.name).join(" and ")}
-          {above.length > 2 ? ` and ${above.length - 2} more` : ""} — worth asking for a better price.
+          Above {priceIndex.networkCompanies ? "market" : "list price"}: {above.slice(0, 2).map((r) => r.name).join(", ")}
+          {above.length > 2 ? ` +${above.length - 2}` : ""}
         </Insight>
       )}
-      {total > 0 && (
-        <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4 animate-rise">
-          <div className="-mx-5 -mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
-            <h2 className="text-sm font-bold text-ink-100">Share of AI spend</h2>
-            {topShare >= 60 && top && (
-              <span className="text-xs text-signal">
-                {topShare}% on {top.vendor} — if its prices change or it goes down, {top.list.length} AI {top.list.length === 1 ? "is" : "are"} affected.
-              </span>
-            )}
-          </div>
-          <div className="flex h-3 w-full gap-0.5 rounded-full overflow-hidden bg-ink">
-            {rows.filter((r) => r.spend > 0).map((r, i) => (
-              <div
-                key={r.vendor}
-                title={`${r.vendor}: ${fmtEur(r.spend)} (${Math.round((r.spend / total) * 100)}%)`}
-                className="h-full animate-grow bg-ink-100"
-                style={{ width: `${(r.spend / total) * 100}%`, opacity: Math.max(0.25, 1 - i * 0.18) }}
-              />
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            {rows.filter((r) => r.spend > 0).map((r, i) => (
-              <span key={r.vendor} className="flex items-center gap-2 text-ink-400">
-                <span className="h-2.5 w-2.5 rounded-full bg-ink-100" style={{ opacity: Math.max(0.25, 1 - i * 0.18) }} />
-                <span className="text-ink-100">{r.vendor}</span>
-                <span className="tabular">{Math.round((r.spend / total) * 100)}%</span>
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
-
       <Table
-        columns={["Provider", "AI", { label: "Share", className: "w-56" }, { label: "Cost / month", className: "text-right" }, { label: "Could save", className: "text-right" }]}
-        empty={rows.length === 0 && "No AI yet — add a bank statement or another source."}
+        columns={["Provider", "AI", { label: "Share", className: "w-56" }, { label: "Monthly", className: "text-right" }, { label: "Save", className: "text-right" }]}
+        empty={rows.length === 0 && "No AI yet."}
       >
         {rows.map((r) => {
           const share = total ? (r.spend / total) * 100 : 0;

@@ -110,7 +110,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }, { label: "angar Edge", href: "/edge" }]}
         title="Sensors"
-        subtitle="Network sensors that see every AI your company reaches — from DNS, firewall or cloud logs. Never content or URLs."
+        subtitle="Never content or URLs."
         action={<Link href="/edge" className="btn btn-secondary btn-sm">About angar Edge</Link>}
       />
       {searchParams.notice && <Notice tone="success">{searchParams.notice}</Notice>}

@@ -28,11 +28,11 @@ function Switch({ field, on, disabled, label }: { field: string; on: boolean; di
   );
 }
 
-function Rule({ title, text, control, children, id }: { title: string; text: React.ReactNode; control?: React.ReactNode; children?: React.ReactNode; id?: string }) {
+function Rule({ title, text, help, control, children, id }: { title: string; text: React.ReactNode; help?: string; control?: React.ReactNode; children?: React.ReactNode; id?: string }) {
   return (
     <div id={id} className="px-5 py-4 scroll-mt-6">
       <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
+        <div className="min-w-0" title={help}>
           <div className="text-sm font-bold text-ink-100">{title}</div>
           <div className="text-sm text-ink-400 mt-0.5">{text}</div>
         </div>
@@ -53,22 +53,23 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
       <section className={card}>
         <div className={head}>
           <h2 className="text-sm font-bold text-ink-100">Rules</h2>
-          <span className="text-xs text-ink-400">Checked on every request, in this order{ro ? " · admins can change them" : ""}</span>
+          <span className="text-xs text-ink-400">{ro ? "View only" : ""}</span>
         </div>
         <div className="divide-y divide-line">
           <Rule
             title="EU-only providers"
             text={
               view.forcedEuOnly
-                ? `On for the whole ${view.forcedEuOnly === "deployment" ? "deployment" : "workspace (Settings → Privacy)"}. Requests go only to endpoints hosted in the EU; others are blocked.`
-                : "Send requests only to provider endpoints hosted in the EU. Others are blocked."
+                ? `On for the whole ${view.forcedEuOnly === "deployment" ? "deployment" : "workspace"}.`
+                : "Non-EU endpoints are blocked."
             }
+            help="Send requests only to provider endpoints hosted in the EU. Others are blocked."
             control={<Switch field="euOnly" on={euOn} disabled={ro || view.forcedEuOnly !== null} label="EU-only providers" />}
           >
-            {euOn && !view.upstreams.some((u) => u.euHosted) && <p className="text-xs text-alarm">No EU endpoint is set yet: every request is blocked until you add one under Provider keys.</p>}
+            {euOn && !view.upstreams.some((u) => u.euHosted) && <p className="text-xs text-alarm">No EU endpoint set: every request is blocked.</p>}
           </Rule>
 
-          <Rule title="Allowed models" text="Requests to any other model are blocked. A name also allows its dated versions." control={<Switch field="modelsRestricted" on={p.modelsRestricted} disabled={ro} label="Allowed models" />}>
+          <Rule title="Allowed models" text="Other models are blocked." help="A name also allows its dated versions." control={<Switch field="modelsRestricted" on={p.modelsRestricted} disabled={ro} label="Allowed models" />}>
             <form action={saveGatewayPolicyAction} className="flex flex-col gap-2">
               <input type="hidden" name="section" value="models" />
               {p.allowedModels.length > 0 && (
@@ -89,11 +90,11 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
             </form>
           </Rule>
 
-          <Rule title="Block health data" text="Stop requests that mention diagnoses, medical records or medication (English, Italian, German, French, Spanish)." control={<Switch field="blockHealth" on={p.blockHealth} disabled={ro} label="Block health data" />} />
+          <Rule title="Block health data" text="Diagnoses, records, medication." help="English, Italian, German, French, Spanish." control={<Switch field="blockHealth" on={p.blockHealth} disabled={ro} label="Block health data" />} />
 
-          <Rule id="caps" title="Monthly caps" text="New requests from a team are blocked once its cap is reached. Caps reset on the 1st; a key can also have its own cap.">
+          <Rule id="caps" title="Monthly caps" text="A team stops at its cap." help="Caps reset on the 1st; a key can also have its own cap.">
             <div className="flex flex-col gap-3">
-              {view.teams.length === 0 && <p className="text-sm text-ink-400">No teams yet. Give keys a team in the Keys tab.</p>}
+              {view.teams.length === 0 && <p className="text-sm text-ink-400">No teams yet.</p>}
               {view.teams.map((team) => {
                 const cap = p.teamCaps[team] ?? null;
                 const spent = view.teamSpend[team] ?? 0;
@@ -129,7 +130,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
             </div>
           </Rule>
 
-          <Rule title="Redact sensitive values" text="Mask these values before the request leaves the company. The provider sees [IBAN], [EMAIL] and so on." control={<Switch field="redact" on={p.redact} disabled={ro} label="Redact sensitive values" />}>
+          <Rule title="Redact sensitive values" text="Masked before leaving the company." help="The provider sees [IBAN], [EMAIL] and so on." control={<Switch field="redact" on={p.redact} disabled={ro} label="Redact sensitive values" />}>
             <form action={saveGatewayPolicyAction} className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <input type="hidden" name="section" value="redact" />
               {REDACT_KINDS.map((k) => (
@@ -142,7 +143,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
             </form>
           </Rule>
 
-          <Rule title="Rate limit" text="Requests a minute for each key. Above it the gateway answers 429.">
+          <Rule title="Rate limit" text="Requests a minute, each key." help="Above it the gateway answers 429.">
             <form action={saveGatewayPolicyAction} className="flex items-center gap-2">
               <input type="hidden" name="section" value="rate" />
               <input name="rpm" type="number" min={1} max={100000} defaultValue={p.rpmLimit} disabled={ro} className="field w-28 tabular" aria-label="Requests a minute" />
@@ -151,7 +152,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
             </form>
           </Rule>
 
-          <Rule title="Store prompt text" text="Never. Only metadata is logged: time, key, model, tokens, cost, result and redaction counts." control={<span className="text-sm text-ink-400 shrink-0">Off, always</span>} />
+          <Rule title="Store prompt text" text="Never." help="Only metadata is logged: time, key, model, tokens, cost, result and redaction counts." control={<span className="text-sm text-ink-400 shrink-0">Off, always</span>} />
         </div>
       </section>
 
@@ -162,7 +163,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
             <span className="text-xs text-ink-400">Two lines</span>
           </div>
           <div className="p-5 flex flex-col gap-4">
-            <p className="text-sm text-ink-400">Keep your SDK. Use an angar key and change the base URL. Provider keys stay with angar.</p>
+            <p className="text-sm text-ink-400">Keep your SDK, change the base URL.</p>
             <ConnectSnippets openaiUrl={openaiUrl} anthropicUrl={anthropicUrl} />
             <dl className="text-sm divide-y divide-line">
               <div className="flex justify-between gap-4 py-2">

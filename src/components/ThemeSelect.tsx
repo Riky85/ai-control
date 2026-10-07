@@ -68,7 +68,7 @@ export default function ThemeSelect({ initial }: { initial: Theme }) {
               setTheme(o.id);
               apply(o.id);
             }}
-            className={`btn btn-sm ${on ? "border border-accent text-ink-100 bg-accent-soft" : "btn-secondary text-ink-400"}`}
+            className={`btn btn-sm ${on ? "border border-ink-400 text-ink-100 bg-ink-100/[0.06]" : "btn-secondary text-ink-400"}`}
           >
             {o.icon}
             {o.label}

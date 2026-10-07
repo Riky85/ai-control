@@ -3,7 +3,7 @@ import { Tabs } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import { AxisTrack } from "@/components/engine/ScoreCard";
 import { fmtEur } from "@/lib/format";
-import { Pill, Section, NextStep } from "@/components/governance/parts";
+import { Pill, Section } from "@/components/governance/parts";
 
 /**
  * Blocchi di presentazione della pagina Usage: solo dati serializzabili in
@@ -38,25 +38,25 @@ export interface UsageSummaryData {
 
 /** Una sola riga di numeri: persone attive, AI in uso, posti usati/pagati, posti non usati in €. */
 export function UsageSummary({ d }: { d: UsageSummaryData }) {
-  const cell = "rounded-xl border border-line bg-panel px-5 py-4 flex flex-col gap-1 min-w-0";
-  const link = `${cell} hover:bg-ink-100/[0.02] transition-colors`;
-  const big = "font-display text-[26px] leading-tight font-semibold tracking-tight tabular";
+  // Stessa grafica di StatCard: etichetta in grassetto, numero grande, nota breve.
+  const cell = "rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-3 min-w-0";
+  const link = `${cell} hover:border-ink-400 transition-colors`;
+  const big = "font-display text-[30px] leading-none font-semibold tracking-tight tabular";
+  const lab = "text-sm font-semibold text-ink-100";
   return (
     <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-rise" aria-label="Usage summary">
       <Link href={d.peopleHref} className={link}>
-        <span className="text-xs text-ink-400">Active people · 30 days</span>
+        <span className={lab}>Active people</span>
         <span className={`${big} text-ink-100`}>{d.people}</span>
-        <span className="text-xs text-ink-400 truncate">Used any AI</span>
       </Link>
       <div className={cell}>
-        <span className="text-xs text-ink-400">AI in use</span>
+        <span className={lab}>AI in use</span>
         <span className={`${big} text-ink-100`}>{d.aiInUse}</span>
-        <span className="text-xs text-ink-400 truncate">In the last 30 days</span>
       </div>
       <Link href={d.seatsHref} className={link}>
-        <span className="flex items-center justify-between gap-2 text-xs text-ink-400">
+        <span className={`flex items-center justify-between gap-2 ${lab}`}>
           Seats used
-          {d.seatsPaid ? <span className="tabular">{pct(d.seatsUsed ?? 0, d.seatsPaid)}%</span> : null}
+          {d.seatsPaid ? <span className="tabular text-xs font-normal text-ink-400">{pct(d.seatsUsed ?? 0, d.seatsPaid)}%</span> : null}
         </span>
         <span className={`${big} text-ink-100`}>
           {d.seatsPaid ? (
@@ -68,15 +68,15 @@ export function UsageSummary({ d }: { d: UsageSummaryData }) {
             "—"
           )}
         </span>
-        {d.seatsPaid ? <SeatTrack used={d.seatsUsed ?? 0} paid={d.seatsPaid} /> : <span className="text-xs text-ink-400">No seat plans with known users</span>}
+        {d.seatsPaid ? <SeatTrack used={d.seatsUsed ?? 0} paid={d.seatsPaid} /> : null}
       </Link>
       <Link href="/savings?kind=seats" className={link}>
-        <span className="flex items-center justify-between gap-2 text-xs text-ink-400">
+        <span className={`flex items-center gap-2 ${lab}`}>
+          {d.unusedSeats > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-signal" aria-hidden />}
           Unused seats
-          {d.unusedSeats > 0 && <Pill tone="signal">{d.unusedSeats}</Pill>}
         </span>
-        <span className={`${big} ${d.unusedEur >= 1 ? "text-accent" : "text-ink-100"}`}>{d.unusedEur >= 1 ? eur(d.unusedEur) : "—"}</span>
-        <span className="text-xs text-ink-400 truncate">{d.unusedEur >= 1 ? `a month · ${eur(d.unusedEur * 12)} a year` : d.unusedSeats ? "No seat price" : "Every paid seat is used"}</span>
+        <span className={`${big} text-ink-100`}>{d.unusedEur >= 1 ? eur(d.unusedEur) : d.unusedSeats || "—"}</span>
+        <span className="text-xs text-ink-400 truncate tabular">{d.unusedEur >= 1 ? `a month · ${d.unusedSeats} seats` : d.unusedSeats ? "No seat price" : "All used"}</span>
       </Link>
     </section>
   );
@@ -99,14 +99,11 @@ export interface AiUsageRow {
 
 /** "By AI": persone, barra dei posti usati e pillola con i posti non usati in € al mese. */
 export function ByAiList({ rows }: { rows: AiUsageRow[] }) {
-  const idleTotal = rows.reduce((t, r) => t + r.idle, 0);
-  const top = rows.find((r) => r.idle > 0);
   return (
     <Section
       id="by-ai"
       title="By AI"
-      meta={rows.length ? `${rows.length} AI · seats used in the last 30 days` : "No usage yet"}
-      footer={top ? <NextStep href={top.cleanupHref} label={`Clean up ${idleTotal} unused seat${idleTotal === 1 ? "" : "s"}, starting with ${top.name}`} /> : rows.length ? <NextStep done label="No unused paid seats" /> : undefined}
+      meta={rows.length ? undefined : "No usage yet"}
     >
       {rows.length > 0 && (
         <ul className="divide-y divide-line">
@@ -120,7 +117,6 @@ export function ByAiList({ rows }: { rows: AiUsageRow[] }) {
                     <span className="block text-sm font-medium text-ink-100 truncate group-hover:underline">{r.name}</span>
                     <span className="block text-xs text-ink-400 tabular truncate">
                       <b className="font-medium text-ink-100">{r.people}</b> {r.people === "1" ? "person" : "people"}
-                      {r.visits ? ` · ${r.visits.toLocaleString("en-GB")} visits` : ""}
                     </span>
                   </span>
                 </Link>
@@ -128,22 +124,20 @@ export function ByAiList({ rows }: { rows: AiUsageRow[] }) {
                   {r.seats && r.measured && used != null ? (
                     <>
                       <div className="text-xs text-ink-400 tabular mb-0.5">
-                        <b className="font-medium text-ink-100">{used}</b> of {r.seats} seats used
+                        <b className="font-medium text-ink-100">{used}</b> / {r.seats} seats
                       </div>
                       <SeatTrack used={used} paid={r.seats} />
                     </>
                   ) : (
-                    <div className="text-xs text-ink-400">{r.seats ? `${r.seats} seats · users unknown` : "No seat plan"}</div>
+                    <div className="text-xs text-ink-400">{r.seats ? `${r.seats} seats` : "—"}</div>
                   )}
                 </div>
                 <div className="flex items-center sm:justify-end gap-2 empty:hidden">
                   {r.idle > 0 ? (
                     <Pill tone="signal">
-                      {r.idle} unused seat{r.idle === 1 ? "" : "s"}
-                      {r.save >= 1 ? ` · ${eur(r.save)} a month` : ""}
+                      {r.idle} unused
+                      {r.save >= 1 ? ` · ${eur(r.save)}` : ""}
                     </Pill>
-                  ) : r.seats && r.measured ? (
-                    <Pill tone="steady">All seats used</Pill>
                   ) : null}
                   {r.idle > 0 && (
                     <Link href={r.cleanupHref} className="btn btn-secondary btn-sm">

@@ -42,7 +42,6 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="AI Act"
-        subtitle="EU AI Act readiness for every AI your company uses."
         action={
           (await featureEnabled(currentOrgId(), "registerExport")) ? (
             <a href="/api/export/register" className="btn btn-secondary btn-sm">

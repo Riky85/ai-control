@@ -7,7 +7,7 @@ import { savedSoFar, LEDGER_KIND_LABEL, VERIFY_AFTER_DAYS, type LedgerKind, type
 import { contractRows, NOTICE_ALERT_DAYS } from "@/lib/contracts";
 import { VendorBadge } from "@/components/VendorIcon";
 import ExportMenu from "@/components/ExportMenu";
-import { Notice, PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
+import { EmptyState, Notice, PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
 import { PRICES_AS_OF, MANAGE_URL } from "@/lib/pricing/catalog";
 import { upcomingRenewals } from "@/lib/renewals";
@@ -53,8 +53,6 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
     db.organization.findUnique({ where: { id: orgId }, select: { plan: true, createdAt: true } }),
   ]);
   const spend = assets.reduce((s, a) => s + (monthlyOf(a)?.eur ?? 0), 0);
-  // Parte della spesa stimata da listino (non da bollette): dichiarata quando si mescola al reale.
-  const estimatedSpend = assets.reduce((s, a) => { const m = monthlyOf(a); return s + (m?.estimated ? m.eur : 0); }, 0);
   const inProgress = saved.counts.accepted + saved.counts.done;
   const soonDeadlines = contracts.filter((c) => c.daysLeft != null && c.daysLeft >= 0 && c.daysLeft <= NOTICE_ALERT_DAYS).length;
 
@@ -62,7 +60,6 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Savings"
-        subtitle="Where you can cut your AI bill."
         action={
           <>
             <Link href="/providers" className="btn btn-ghost btn-sm">Providers</Link>
@@ -75,11 +72,11 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <StatCard label="You could save" value={`${fmtEur(totalMonthly)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% of ${fmtEur(spend)}/mo AI spend${estimatedSpend >= 1 ? ` (${fmtEur(estimatedSpend)} estimated)` : ""}` : `${fmtEur(totalMonthly * 12)} a year`} tone="accent" />
+        <StatCard label="You could save" value={`${fmtEur(totalMonthly)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% of ${fmtEur(spend)}/mo` : `${fmtEur(totalMonthly * 12)} a year`} />
         <StatCard
           label="Saved so far"
           value={`${fmtEur(saved.savedMonthly)}/mo`}
-          hint={saved.verifiedMonthly >= 1 ? `${fmtEur(saved.verifiedMonthly)}/mo confirmed on your bills` : saved.savedMonthly >= 1 ? `${fmtEur(saved.savedMonthly * 12)} a year` : "Accept a suggestion to track it"}
+          hint={saved.verifiedMonthly >= 1 ? `${fmtEur(saved.verifiedMonthly)}/mo confirmed` : saved.savedMonthly >= 1 ? `${fmtEur(saved.savedMonthly * 12)} a year` : undefined}
           href="/savings?view=progress"
         />
       </div>
@@ -133,22 +130,14 @@ async function Suggestions({
               options: KIND_ORDER.filter((k) => all.some((i) => i.kind === k)).map((k) => ({ value: k, label: KIND_LABEL[k] })),
             },
           ]}
-          right={`${items.length} of ${all.length} suggestion${all.length === 1 ? "" : "s"}`}
+          right={`${items.length} of ${all.length}`}
         />
       )}
 
       {items.length === 0 && all.length > 0 ? (
-        <p className="text-sm text-ink-400">No suggestions match these filters.</p>
+        <p className="text-sm text-ink-400">No match.</p>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-line bg-panel p-10 text-center">
-          <h2 className="text-lg font-bold text-ink-100">{spend ? "Nothing to save right now" : "angar needs to see what you pay"}</h2>
-          <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">
-            {spend
-              ? "Your AI spend looks tidy."
-              : "Upload a bank statement or invoices to find savings."}
-          </p>
-          {!spend && <Link href="/sources" className="btn btn-primary mt-5">Add a bank statement</Link>}
-        </div>
+        <EmptyState text={spend ? "Nothing to save right now." : "Add what you pay to find savings."} action={!spend ? <Link href="/sources" className="btn btn-primary">Add a bank statement</Link> : undefined} />
       ) : (
         <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
           <div className="divide-y divide-line">
@@ -158,10 +147,10 @@ async function Suggestions({
           </div>
           {/* Barra grigia in basso: nota sulle stime e suggerimenti nascosti. */}
           <div className="flex items-center justify-between gap-3 bg-ink border-t border-line px-5 py-3 text-xs text-ink-400 bar-foot">
-            <span>Estimates, list prices as of {PRICES_AS_OF} · <Link href="/catalog" className="underline hover:text-ink-100">AI price list</Link></span>
+            <span>List prices as of {PRICES_AS_OF}</span>
             {dismissed > 0 && (
               <form action={restoreSavingsAction}>
-                <button className="underline hover:text-ink-100">Show {dismissed} hidden suggestion{dismissed === 1 ? "" : "s"}</button>
+                <button className="underline hover:text-ink-100">Show {dismissed} hidden</button>
               </form>
             )}
           </div>
@@ -187,10 +176,9 @@ async function Suggestions({
       )}
 
       {items.length === 0 && dismissed > 0 && (
-        <div className="flex items-center justify-between text-xs text-ink-400">
-          <span>Estimates, list prices as of {PRICES_AS_OF} · <Link href="/catalog" className="underline hover:text-ink-100">AI price list</Link></span>
+        <div className="flex items-center justify-end text-xs text-ink-400">
           <form action={restoreSavingsAction}>
-            <button className="underline hover:text-ink-100">Show {dismissed} hidden suggestion{dismissed === 1 ? "" : "s"}</button>
+            <button className="underline hover:text-ink-100">Show {dismissed} hidden</button>
           </form>
         </div>
       )}
@@ -217,13 +205,12 @@ function SavingRow({ s }: { s: Saving }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <Link href={s.href} className="text-[15px] font-semibold text-ink-100 hover:underline">{s.title}</Link>
-          <span className={`text-[11px] font-medium rounded-full px-2 py-0.5 ${c.cls}`}>{c.label}</span>
+          {s.confidence !== "HIGH" && <span className={`text-[11px] font-medium rounded-full px-2 py-0.5 ${c.cls}`}>{c.label}</span>}
         </div>
         <p className="text-sm text-ink-400 mt-0.5">{s.detail}</p>
       </div>
-      <div className="text-right shrink-0">
+      <div className="text-right shrink-0" title={`${fmtEur(s.monthlyEur * 12)} a year`}>
         <div className="font-display text-xl font-semibold text-ink-100 tabular">{fmtEur(s.monthlyEur)}<span className="text-sm text-ink-400 font-normal">/mo</span></div>
-        <div className="text-xs text-ink-400 tabular">{fmtEur(s.monthlyEur * 12)} a year</div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         {manageUrl(s) && (
@@ -256,7 +243,7 @@ const STATUS_ORDER: Record<string, number> = { accepted: 0, done: 1, verified: 2
 
 function statusOf(r: SavedSoFar["rows"][number], notConfirmed: Set<string>) {
   if (r.status === "accepted") return { label: "To do", cls: "text-ink-100 bg-ink-100/10" };
-  if (r.status === "done") return notConfirmed.has(r.id) ? { label: "Not confirmed yet", cls: "text-signal bg-signal/10" } : { label: "Done · checking bills", cls: "text-accent bg-accent/10" };
+  if (r.status === "done") return notConfirmed.has(r.id) ? { label: "Not confirmed yet", cls: "text-signal bg-signal/10" } : { label: "Checking bills", cls: "text-ink-400 bg-ink-100/[0.06]" };
   if (r.status === "verified") return { label: "Confirmed", cls: "text-steady bg-steady/10" };
   return { label: "Didn't work", cls: "text-alarm bg-alarm/10" };
 }
@@ -273,25 +260,23 @@ function Progress({ saved, canSave, org }: { saved: SavedSoFar; canSave: number;
         <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
           <div className="flex items-baseline justify-between gap-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
             <h2 className="text-sm font-bold text-ink-100">90-day guarantee</h2>
-            <span className="text-xs text-ink-400">{day <= 90 ? `Day ${day} of 90` : "First 90 days completed"}</span>
+            <span className="text-xs text-ink-400">{day <= 90 ? `Day ${day} of 90` : "Done"}</span>
           </div>
           <div className="p-5 flex flex-col gap-3">
           <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-ink-100/[0.06]">
-            <span className={`h-full ${pct >= 100 ? "bg-steady" : "bg-accent"}`} style={{ width: `${pct}%` }} />
+            <span className={`h-full ${pct >= 100 ? "bg-steady" : "bg-ink-100/40"}`} style={{ width: `${pct}%` }} />
           </div>
-          <p className="text-sm text-ink-400">
-            Saved <span className="text-ink-100 font-medium">{fmtEur(saved.savedMonthly)}/mo</span> of your {fmtEur(price)}/mo subscription
-            {pct >= 100 ? " — angar has paid for itself." : "."}
-            <span className="block text-xs mt-1">{GUARANTEE}</span>
+          <p className="text-sm text-ink-400 tabular" title={GUARANTEE}>
+            <span className="text-ink-100 font-medium">{fmtEur(saved.savedMonthly)}/mo</span> of {fmtEur(price)}/mo
+            {pct >= 100 ? " · paid for itself" : ""}
           </p>
           </div>
         </section>
       ) : null}
 
       <Table
-        columns={["Change", "Type", "Status", { label: "Expected", className: "text-right" }, { label: "Confirmed", className: "text-right" }, "Since", ""]}
-        empty={rows.length === 0 ? "Nothing in progress yet. Accept a suggestion to track it here." : false}
-        footer={<span className="text-xs text-ink-400">angar confirms each saving on the next bills (within {VERIFY_AFTER_DAYS} days).</span>}
+        columns={["Change", "Status", { label: "Expected", className: "text-right" }, { label: "Confirmed", className: "text-right" }, "Since", ""]}
+        empty={rows.length === 0 ? "Nothing in progress." : false}
       >
         {rows.map((r) => {
           const st = statusOf(r, saved.notConfirmedIds);
@@ -299,9 +284,8 @@ function Progress({ saved, canSave, org }: { saved: SavedSoFar; canSave: number;
             <tr key={r.id}>
               <td className={`${td} text-ink-100`}>
                 {r.assetId ? <Link href={`/assets/${r.assetId}`} className="hover:underline">{r.title}</Link> : r.title}
-                <span className="block text-xs text-ink-400">by {r.createdBy}</span>
+                <span className="block text-xs text-ink-400">{LEDGER_KIND_LABEL[r.kind as LedgerKind] ?? r.kind} · {r.createdBy}</span>
               </td>
-              <td className={`${td} text-ink-400`}>{LEDGER_KIND_LABEL[r.kind as LedgerKind] ?? r.kind}</td>
               <td className={td}>
                 <span className={`text-xs font-medium rounded-full px-2 py-0.5 whitespace-nowrap ${st.cls}`} title={st.label === "Not confirmed yet" ? `No lower charge ${VERIFY_AFTER_DAYS} days after it was done — check the provider's billing.` : undefined}>
                   {st.label}
@@ -341,15 +325,11 @@ function ActionButton({ id, to, label }: { id: string; to: "done" | "failed" | "
 function Contracts({ rows }: { rows: Awaited<ReturnType<typeof contractRows>> }) {
   return (
     <>
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-sm text-ink-400">By notice deadline — alert {NOTICE_ALERT_DAYS} days before.</p>
-        {rows.length > 0 && (
-          <a href="/savings/contracts.csv" className="btn btn-secondary btn-sm shrink-0">Export CSV</a>
-        )}
-      </div>
       <Table
-        columns={["AI", "Cost centre", "Owner", "Auto-renew", "Term ends", "Notice deadline", { label: "Cost", className: "text-right" }, ""]}
-        empty={rows.length === 0 ? "No contracts yet — add one from an AI's page." : false}
+        title="Contracts"
+        action={rows.length > 0 ? <a href="/savings/contracts.csv" className="btn btn-secondary btn-sm shrink-0">Export CSV</a> : undefined}
+        columns={["AI", "Owner", "Auto-renew", { label: "Notice by", className: "" }, { label: "Cost", className: "text-right" }, ""]}
+        empty={rows.length === 0 ? "No contracts yet." : false}
       >
         {rows.map((r) => (
           <tr key={r.assetId}>
@@ -358,13 +338,11 @@ function Contracts({ rows }: { rows: Awaited<ReturnType<typeof contractRows>> })
                 <VendorBadge vendor={r.vendor ?? ""} name={r.name} size={24} />
                 {r.name}
               </Link>
-              {r.poNumber && <span className="block text-xs text-ink-400">PO {r.poNumber}</span>}
+              {(r.poNumber || r.costCenter) && <span className="block text-xs text-ink-400">{[r.poNumber && `PO ${r.poNumber}`, r.costCenter].filter(Boolean).join(" · ")}</span>}
             </td>
-            <td className={`${td} text-ink-400`}>{r.costCenter ?? "—"}</td>
             <td className={`${td} text-ink-400`}>{r.owner ?? "—"}</td>
             <td className={`${td} text-ink-400`}>{r.autoRenew == null ? "—" : r.autoRenew ? "Yes" : "No"}</td>
-            <td className={`${td} text-ink-400 tabular whitespace-nowrap`}>{r.termEnd ? fmtDate(r.termEnd) : "—"}</td>
-            <td className={`${td} tabular whitespace-nowrap`}>
+            <td className={`${td} tabular whitespace-nowrap`} title={r.termEnd ? `Term ends ${fmtDate(r.termEnd)}` : undefined}>
               {r.deadline ? (
                 <span className={r.daysLeft! < 0 ? "text-ink-400" : r.daysLeft! <= NOTICE_ALERT_DAYS ? "text-signal font-medium" : "text-ink-100"}>
                   {fmtDate(r.deadline)}
@@ -376,7 +354,7 @@ function Contracts({ rows }: { rows: Awaited<ReturnType<typeof contractRows>> })
             </td>
             <td className={`${td} text-right tabular text-ink-100`}>{r.monthlyEur != null ? `${fmtEur(r.monthlyEur)}/mo` : "—"}</td>
             <td className={`${td} text-right whitespace-nowrap`}>
-              <Link href={`/negotiate/${r.assetId}`} className="btn btn-secondary btn-sm">Prepare negotiation</Link>
+              <Link href={`/negotiate/${r.assetId}`} className="btn btn-secondary btn-sm">Negotiate</Link>
             </td>
           </tr>
         ))}
@@ -391,22 +369,20 @@ const BASIS_LABEL: Record<string, string> = { billed: "Billed", contract: "Contr
 function Subscriptions({ rows }: { rows: SubscriptionRow[] }) {
   return (
     <>
-      <p className="text-sm text-ink-400">By renewal date. Add or edit a subscription from an AI&apos;s page.</p>
       <Table
-        columns={["AI", "Plan", "Seats", "Source", "Billing", "Renewal", { label: "Cost", className: "text-right" }]}
-        empty={rows.length === 0 ? "No subscriptions yet — add one from an AI's page." : false}
+        columns={["AI", "Plan", "Seats", "Billing", "Renewal", { label: "Cost", className: "text-right" }]}
+        empty={rows.length === 0 ? "No subscriptions yet." : false}
       >
         {rows.map((r) => (
           <tr key={r.assetId}>
             <td className={td}>
-              <Link href={`/assets/${r.assetId}`} className="flex items-center gap-2 text-ink-100 hover:underline">
+              <Link href={`/assets/${r.assetId}`} className="flex items-center gap-2 text-ink-100 hover:underline" title={r.source}>
                 <VendorBadge vendor={r.vendor ?? ""} name={r.name} size={24} />
                 {r.name}
               </Link>
             </td>
             <td className={`${td} text-ink-400`}>{r.plan}</td>
             <td className={`${td} text-ink-400 tabular`}>{r.seats}</td>
-            <td className={`${td} text-xs ${r.manual ? "text-ink-100" : "text-ink-400"}`}>{r.source}</td>
             <td className={`${td} text-ink-400`}>{r.cycle === "annual" ? "Yearly" : r.cycle === "monthly" ? "Monthly" : r.cycle === "usage" ? "On usage" : "—"}</td>
             <td className={`${td} text-ink-400 tabular whitespace-nowrap`}>{r.renewalDate ? fmtDate(r.renewalDate) : "—"}</td>
             <td className={`${td} text-right tabular whitespace-nowrap`}>

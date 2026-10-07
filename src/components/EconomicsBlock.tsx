@@ -10,8 +10,6 @@ import { discountText } from "@/lib/pricing/discount";
 // posti per tipo, costo unitario, rinnovo, confidenza e provenienza dei prezzi.
 // Quello che non si sa è UNKNOWN: mai un numero inventato.
 
-const CONF_LABEL: Record<string, string> = { HIGH: "High", MEDIUM: "Medium", LOW: "Low" };
-
 export function EstimatedTag() {
   return <span className="ml-1.5 inline-block align-middle rounded border border-line px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-ink-400">Estimated</span>;
 }
@@ -48,7 +46,7 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
   return (
     <Panel
       title="Economics"
-      subtitle={[e.billingModelLabel ? `Billing: ${e.billingModelLabel}` : "Billing model unknown", m?.sourceLabel].filter(Boolean).join(" · ")}
+      subtitle={e.billingModelLabel ?? undefined}
       action={
         canEdit ? (
           <Link href={`/assets/${assetId}/subscription`} className="btn btn-secondary btn-sm">
@@ -62,26 +60,24 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
         <div className="min-w-0">
           <div className="text-sm font-bold text-ink-100">Actual</div>
           <div className="font-display text-2xl font-semibold tracking-tight tabular text-ink-100 mt-1">{actual ? money(actual.eur) : <Unknown />}</div>
-          <div className="text-xs text-ink-400 mt-1">{actual ? `Source: ${actual.source}` : "No bill or invoice linked yet"}</div>
+          <div className="text-xs text-ink-400 mt-1 truncate">{actual ? actual.source : "No bill linked"}</div>
         </div>
         <div className="min-w-0">
           <div className="text-sm font-bold text-ink-100 flex items-center">Estimated<EstimatedTag /></div>
           <div className="font-display text-2xl font-semibold tracking-tight tabular text-ink-100 mt-1">{estimated && estimated.eur > 0 ? money(estimated.eur) : <Unknown />}</div>
-          <div className="text-xs text-ink-400 mt-1 break-words">{estimated ? estimated.basis : "No seats, plan or usage to price"}</div>
+          <div className="text-xs text-ink-400 mt-1 truncate" title={estimated?.basis}>{estimated ? estimated.basis : "Nothing to price"}</div>
         </div>
         <div className="min-w-0">
           <div className="text-sm font-bold text-ink-100">Variance</div>
           <div className="font-display text-2xl font-semibold tracking-tight tabular text-ink-100 mt-1">{variance ? pct : <Unknown />}</div>
-          <div className="text-xs text-ink-400 mt-1">{variance ? `${variance.eur >= 0 ? "+" : "−"}${fmtEur(Math.abs(variance.eur))} actual vs estimated` : "Needs both an actual and an estimated cost"}</div>
+          {variance && <div className="text-xs text-ink-400 mt-1 tabular">{`${variance.eur >= 0 ? "+" : "−"}${fmtEur(Math.abs(variance.eur))} vs estimate`}</div>}
         </div>
       </div>
 
       <dl className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-5 pt-5">
-        <Item label="Billing model">{e.billingModelLabel ?? <Unknown />}</Item>
         <Item label="Plan" hint={e.cycle ? (e.cycle === "annual" ? "Billed yearly" : e.cycle === "monthly" ? "Billed monthly" : "Billed on usage") : undefined}>
           {e.planName ?? <Unknown />}
         </Item>
-        <Item label="Cost confidence">{e.confidence ? CONF_LABEL[e.confidence] : <Unknown />}</Item>
         <Item label="Subscription" hint={e.subscriptionCost?.note}>
           {e.subscriptionCost ? (
             <span className="tabular">
@@ -106,7 +102,7 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
             <Unknown />
           )}
         </Item>
-        <Item label="Effective unit cost" hint={e.contractMonthly != null && !m ? `Contract price ${money(e.contractMonthly)}` : undefined}>
+        <Item label="Unit cost" hint={e.contractMonthly != null && !m ? `Contract price ${money(e.contractMonthly)}` : undefined}>
           {e.unitCost ? (
             <span className="tabular">
               {fmtEur(e.unitCost.eur, { decimals: true })} a {e.unitCost.unit} a month
@@ -117,7 +113,7 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
           )}
         </Item>
         <Item label="Renewal" hint={e.renewal?.inferred ? "From the last charge" : e.renewal ? "From the contract" : undefined}>
-          {e.renewal ? fmtDate(e.renewal.date) : <Link href={`/assets/${assetId}?edit=contract#contract`} className="text-ink-400 hover:text-ink-100 underline">UNKNOWN · add the contract</Link>}
+          {e.renewal ? fmtDate(e.renewal.date) : <Link href={`/assets/${assetId}?edit=contract#contract`} className="text-ink-400 hover:text-ink-100 underline">Add contract</Link>}
         </Item>
         {m && (
           <Item label="Contract price" hint={m.contractMonthly != null ? (m.discountPct != null ? discountText(m.discountPct) : "Discount UNKNOWN · no list price to compare") : undefined}>
@@ -152,7 +148,6 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
                     "List price UNKNOWN"
                   )}
                   {l.contractUnit != null && ` · ${l.discountPct != null ? discountText(l.discountPct) : "Discount UNKNOWN"}`}
-                  {l.observed && l.active != null && " · active seen in the last 30 days"}
                 </span>
               </dd>
             ))
@@ -162,7 +157,7 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
             </dd>
           )}
           {e.seatLines.length > 1 && e.seatLines.some((l) => l.active == null) && e.observedActive != null && (
-            <dd className="text-xs text-ink-400 mt-1.5">{e.observedActive} people active in the last 30 days across all seat types</dd>
+            <dd className="text-xs text-ink-400 mt-1.5">{e.observedActive} active in total</dd>
           )}
         </div>
         {m?.note && (
@@ -188,7 +183,9 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
       </dl>
 
       {e.provenance.length > 0 && (
-        <div className="mt-5 pt-4 border-t border-line flex flex-col gap-1 text-xs text-ink-400">
+        <details className="mt-5 pt-4 border-t border-line text-xs text-ink-400">
+          <summary className="cursor-pointer list-none hover:text-ink-100 select-none w-fit">Price sources</summary>
+          <div className="mt-2 flex flex-col gap-1">
           {e.provenance.map((p) => (
             <span key={p.line}>
               {p.url ? (
@@ -201,7 +198,8 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
             </span>
           ))}
           <Link href="/catalog" className="hover:text-ink-100 hover:underline w-fit">AI price list →</Link>
-        </div>
+          </div>
+        </details>
       )}
     </Panel>
   );

@@ -53,7 +53,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }]}
         title="Desktop app"
-        subtitle="See which AI is used at work — never pages or prompts."
+        subtitle="Never pages or prompts."
       />
       <Tabs active={view} items={VIEWS.map((v) => ({ key: v.key, label: v.label, href: v.key === "download" ? "/download" : `/download?view=${v.key}` }))} />
     </>
@@ -178,7 +178,7 @@ function AppPreview({ company, email }: { company: string; email: string }) {
           <div className="text-[17px] font-semibold">You&apos;re all set</div>
           <div className="text-[11px] text-[#9CA0A8] mt-1 leading-snug">angar is on and runs quietly in the background. It starts by itself — there&apos;s nothing else to do.</div>
         </div>
-        <div className="rounded-lg border border-[#2A2A2A] bg-[#151515] px-3 py-2 flex flex-col gap-1.5 text-[11px]">
+        <div className="rounded-lg border border-[#23232A] bg-[#0B0B10] px-3 py-2 flex flex-col gap-1.5 text-[11px]">
           {[
             ["Company", company],
             ["Email", email],

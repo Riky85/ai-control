@@ -67,7 +67,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: { q?:
   if (everyone.length === 0)
     return (
       <div className="flex flex-col gap-4">
-        <PageHeader title="People" subtitle="Everyone angar has seen using or owning an AI." />
+        <PageHeader title="People" />
         <EmptyState title="Nobody here yet" text="People appear when Microsoft 365, Google Workspace, an AI provider key or the desktop app is connected." href="/connect" cta="Connect a source" />
       </div>
     );
@@ -76,7 +76,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: { q?:
     <div className="flex flex-col gap-4">
       <PageHeader
         title="People"
-        subtitle="Everyone angar has seen using or owning an AI."
+       
         action={<ExportMenu dataset="people" />}
       />
 
@@ -154,7 +154,7 @@ async function PeopleAggregate({ mode }: { mode: PrivacyMode }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="People" subtitle={mode === "department" ? "AI use by department — no names." : "AI use across the company — no names."} action={<ExportMenu dataset="people" />} />
+      <PageHeader title="People" subtitle="No names" action={<ExportMenu dataset="people" />} />
       <PrivacyNotice mode={mode} what="People" />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

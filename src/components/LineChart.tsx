@@ -55,9 +55,9 @@ export default function LineChart({ labels, series, unit = "count", height = 150
           const last = s.values.length - 1;
           return (
             <g key={s.name}>
-              <path d={path(s.values)} fill="none" stroke={main ? "#FF7323" : "rgb(var(--c-muted))"} strokeWidth={2} strokeDasharray={main ? undefined : "5 5"} strokeLinejoin="round" strokeLinecap="round" />
+              <path d={path(s.values)} fill="none" stroke={main ? "rgb(var(--c-text))" : "rgb(var(--c-muted))"} strokeWidth={2} strokeDasharray={main ? undefined : "5 5"} strokeLinejoin="round" strokeLinecap="round" />
               {s.values.map((v, i) => (hover === i || i === last) && (
-                <circle key={i} cx={x(i)} cy={y(v)} r={4} fill={main ? "#FF7323" : "rgb(var(--c-muted))"} stroke="rgb(var(--c-panel))" strokeWidth={2} />
+                <circle key={i} cx={x(i)} cy={y(v)} r={4} fill={main ? "rgb(var(--c-text))" : "rgb(var(--c-muted))"} stroke="rgb(var(--c-panel))" strokeWidth={2} />
               ))}
             </g>
           );
@@ -72,7 +72,7 @@ export default function LineChart({ labels, series, unit = "count", height = 150
           {series.map((s) => (
             <div key={s.name} className="flex items-center justify-between gap-4 text-ink-400">
               <span className="flex items-center gap-1.5">
-                <span className={`inline-block w-3 h-0.5 ${s.style === "ghost" ? "bg-ink-400" : "bg-accent"}`} />
+                <span className={`inline-block w-3 h-0.5 ${s.style === "ghost" ? "bg-ink-400" : "bg-ink-100"}`} />
                 {s.name}
               </span>
               <span className="tabular text-ink-100">{format(s.values[hover])}</span>

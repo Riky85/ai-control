@@ -31,14 +31,14 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
     <div className="flex flex-col gap-4">
       <PageHeader
         title={`AI report — ${r.month}`}
-        subtitle={`${r.org?.name ?? ""} · sent every month to owners and admins${emailEnabled() ? "" : " once email is set up"}.`}
+        subtitle={r.org?.name ?? undefined}
         action={
           <div className="flex flex-wrap items-center gap-2">
             <form action={sendReportNowAction}>
-              <button className="btn btn-secondary">Email it to me</button>
+              <button className="btn btn-ghost" title={`Sent every month to owners and admins${emailEnabled() ? "" : " once email is set up"}`}>Email it to me</button>
             </form>
             <PrintButton />
-            <Link href="/report/board" className="btn btn-primary" title="Quarterly board report: angar Score, 12-month forecast, verified savings and top risks — ready to print as PDF">Board report</Link>
+            <Link href="/report/board" className={`btn ${r.assets.length ? "btn-primary" : "btn-secondary"}`} title="Quarterly board report: angar Score, 12-month forecast, verified savings and top risks — ready to print as PDF">Board report</Link>
           </div>
         }
       />
@@ -51,19 +51,19 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard href="/#your-ai" label="AI in use" value={String(r.assets.length)} tone="accent" />
+        <StatCard href="/#your-ai" label="AI in use" value={String(r.assets.length)} />
         <StatCard href="/?paid=yes#your-ai" label="Monthly spend" value={r.spend ? fmtEur(r.spend) : "—"} hint={r.spend ? `${fmtEur(r.spend * 12)} a year` : undefined} />
         <StatCard href="/savings" label="You could save" value={r.canSave ? `${fmtEur(r.canSave)}/mo` : "—"} hint={r.canSave ? `${fmtEur(r.canSave * 12)} a year` : undefined} />
-        <StatCard href="/savings?view=progress" label="Saved so far" value={r.saved.monthly >= 1 ? `${fmtEur(r.saved.monthly)}/mo` : "—"} hint={r.saved.verified >= 1 ? `${fmtEur(r.saved.verified)}/mo confirmed on your bills` : r.saved.monthly >= 1 ? `${fmtEur(r.saved.monthly * 12)} a year` : "Accept a suggestion to track it"} />
+        <StatCard href="/savings?view=progress" label="Saved so far" value={r.saved.monthly >= 1 ? `${fmtEur(r.saved.monthly)}/mo` : "—"} hint={r.saved.verified >= 1 ? `${fmtEur(r.saved.verified)}/mo confirmed` : r.saved.monthly >= 1 ? `${fmtEur(r.saved.monthly * 12)} a year` : undefined} />
       </div>
 
       {mom != null && Math.abs(mom) >= 5 && lastM && prevM ? (
         <Insight tone={mom > 0 ? "signal" : "steady"} href={mom > 0 ? "/savings" : undefined} cta="See savings">
-          AI spend was {trendWord(mom)} in {monthLabel(lastM.month)} ({fmtEur(lastM.eur)}) vs {monthLabel(prevM.month)} ({fmtEur(prevM.eur)}).
+          Spend {trendWord(mom)} in {monthLabel(lastM.month)}: {fmtEur(lastM.eur)} vs {fmtEur(prevM.eur)}
         </Insight>
       ) : topCost && topShare >= 30 ? (
         <Insight href={`/assets/${topCost.a.id}`} cta={`Open ${topCost.a.name}`}>
-          <b className="font-medium">{topCost.a.name}</b> is {topShare}% of your AI spend — the first place to look for savings.
+          <b className="font-medium">{topCost.a.name}</b> is {topShare}% of spend
         </Insight>
       ) : null}
 
@@ -89,24 +89,21 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
                 <span className="tabular text-ink-100 shrink-0">{fmtEur(s.monthlyEur)}/mo</span>
               </div>
             ))}
-            {r.savings.length === 0 && <p className="px-5 py-3 text-sm text-ink-400">Nothing to save right now.</p>}
+            {r.savings.length === 0 && <p className="px-5 py-3 text-sm text-ink-400">Nothing to save.</p>}
           </div>
         </Panel>
       </div>
       <BenchmarkCard orgId={currentOrgId()} variant="section" />
-      <Panel title="What changed this month">
+      <Panel title="What changed">
         <ul className="flex flex-col gap-2 text-sm">
           {r.events.map((e, i) => (
             <li key={i} className="text-ink-100">
-              {e.title} <span className="text-ink-400">— {e.detail}</span>
+              <span title={e.detail}>{e.title}</span>
             </li>
           ))}
           {r.events.length === 0 && <li className="text-ink-400">Nothing new.</li>}
         </ul>
       </Panel>
-      <p className="text-xs text-ink-400 print:hidden">
-        <Link href="/savings" className="underline">Open Savings</Link> for details and actions.
-      </p>
     </div>
   );
 }

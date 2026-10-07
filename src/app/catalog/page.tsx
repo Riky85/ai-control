@@ -2,9 +2,9 @@ import Link from "next/link";
 import { PageHeader, Panel, Table, Tabs, td } from "@/components/ui";
 import FilterBar from "@/components/FilterBar";
 import { VendorBadge } from "@/components/VendorIcon";
-import { catalog, componentsOfRule, getPrice, priceHistory, providerNameOf, modelById, fmtMoney, fmtDay, planOf, productOf, deploymentOf, BILLING_MODEL_LABEL, SOURCE_LABEL, CATALOG_VERIFIED_AT, type PriceFact } from "@/lib/pricing/service";
+import { catalog, componentsOfRule, getPrice, providerNameOf, modelById, fmtMoney, fmtDay, planOf, productOf, deploymentOf, BILLING_MODEL_LABEL, SOURCE_LABEL, CATALOG_VERIFIED_AT, type PriceFact } from "@/lib/pricing/service";
 import { USD_TO_EUR } from "@/lib/spend/fx";
-import { DIRECT_DEPLOYMENT, type CatComponent, type CatModel } from "@/lib/pricing/catalog-data";
+import { type CatComponent, type CatModel } from "@/lib/pricing/catalog-data";
 
 export const dynamic = "force-dynamic";
 
@@ -47,24 +47,6 @@ function Source({ f }: { f: Pick<PriceFact, "provenance"> | null }) {
 
 const price = (f: PriceFact | null) => (f ? fmtMoney(f.price, f.currency) : "—");
 
-/** Piccola linea a gradini del prezzo nel tempo (solo se ci sono più versioni). */
-function Spark({ versions, now }: { versions: CatComponent[]; now: number }) {
-  if (versions.length < 2) return null;
-  const w = 64;
-  const h = 18;
-  const ps = versions.map((v) => v.price);
-  const max = Math.max(...ps);
-  const min = Math.min(...ps);
-  const y = (p: number) => (max === min ? h / 2 : h - 2 - ((p - min) / (max - min)) * (h - 4));
-  const step = w / versions.length;
-  const pts = versions.flatMap((v, i) => [`${i * step},${y(v.price)}`, `${(i + 1) * step},${y(v.price)}`]).join(" ");
-  const future = versions.some((v) => v.effectiveFrom.getTime() > now);
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="text-ink-400 inline-block align-middle" aria-label={`${versions.length} price versions${future ? ", one announced" : ""}`}>
-      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  );
-}
 
 export default async function CatalogPage({ searchParams }: { searchParams: { view?: string; provider?: string; status?: string; model?: string; q?: string } }) {
   const view = searchParams.view === "plans" ? "plans" : "models";
@@ -101,7 +83,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: { vi
       <PageHeader
         crumbs={[{ label: "Savings", href: "/savings" }, { label: "AI price list" }]}
         title="AI price list"
-        subtitle={`The list prices angar uses for estimates, with their source and when they were last checked (latest check ${fmtDay(CATALOG_VERIFIED_AT)}).`}
+        subtitle={`Checked ${fmtDay(CATALOG_VERIFIED_AT)}`}
       />
 
       <Tabs
@@ -118,25 +100,21 @@ export default async function CatalogPage({ searchParams }: { searchParams: { vi
           { param: "provider", label: "Provider", options: (view === "models" ? providers : Array.from(new Set(cat.products.filter((p) => p.kind !== "api").map((p) => p.providerId)))).map((p) => ({ value: p, label: providerNameOf(p) })) },
           ...(view === "models" ? [{ param: "status", label: "Status", options: Object.entries(LIFECYCLE).map(([value, l]) => ({ value, label: l.label })) }] : []),
         ]}
-        right={`${official} of ${cat.components.length} prices verified on official pages`}
+        right={`${official} of ${cat.components.length} verified`}
       />
 
       {view === "models" && selected && <ModelHistory m={selected} now={now} />}
 
       {view === "models" && (
         <Table
-          columns={["Model", "Status", { label: "Input / 1M tokens", className: "text-right" }, { label: "Cached input / 1M tokens", className: "text-right" }, { label: "Output / 1M tokens", className: "text-right" }, { label: "Context", className: "text-right" }, "Source", "Verified", "History"]}
-          empty={models.length === 0 ? "No models match these filters." : false}
-          footer={<span className="text-xs text-ink-400">Direct API, standard tier, global region. Prices in the provider&apos;s currency; estimates convert USD to EUR at {USD_TO_EUR}. Select a model for every tier, region and version.</span>}
+          columns={["Model", "Status", { label: "Input", className: "text-right" }, { label: "Cached", className: "text-right" }, { label: "Output", className: "text-right" }, { label: "Context", className: "text-right" }, "Source", "Checked"]}
+          empty={models.length === 0 ? "No match." : false}
+          footer={<span className="text-xs text-ink-400" title={`Direct API, standard tier, global region. Estimates convert USD to EUR at ${USD_TO_EUR}.`}>Prices for 1M tokens</span>}
         >
           {models.map((m) => {
             const i = getPrice(m.id, null, null, "input", now);
             const c = getPrice(m.id, null, null, "cached_input", now);
             const o = getPrice(m.id, null, null, "output", now);
-            const direct = `model:${m.id}@${DIRECT_DEPLOYMENT[m.providerId]}`;
-            const versions = priceHistory(direct, "input");
-            const outVersions = priceHistory(direct, "output");
-            const hist = versions.length > 1 ? versions : outVersions;
             return (
               <tr key={m.id}>
                 <td className={`${td} min-w-[200px]`}>
@@ -159,9 +137,6 @@ export default async function CatalogPage({ searchParams }: { searchParams: { vi
                   <Source f={i} />
                 </td>
                 <td className={`${td} text-ink-400 whitespace-nowrap tabular`}>{i ? fmtDay(i.provenance.lastVerifiedAt) : "—"}</td>
-                <td className={td}>
-                  <Spark versions={hist} now={now.getTime()} />
-                </td>
               </tr>
             );
           })}
@@ -170,9 +145,8 @@ export default async function CatalogPage({ searchParams }: { searchParams: { vi
 
       {view === "plans" && (
         <Table
-          columns={["Plan", "Seat type", "Billing", { label: "Billed monthly", className: "text-right" }, { label: "Billed yearly, a month", className: "text-right" }, "Source", "Verified"]}
-          empty={seatRows.length === 0 ? "No plans match these filters." : false}
-          footer={<span className="text-xs text-ink-400">Seat prices a month, before tax, in the provider&apos;s currency. Custom plans have no list price.</span>}
+          columns={["Plan", "Seat", "Billing", { label: "Monthly", className: "text-right" }, { label: "Yearly, a month", className: "text-right" }, "Source", "Checked"]}
+          empty={seatRows.length === 0 ? "No match." : false}
         >
           {seatRows.map((r) => {
             const f = r.monthly ?? r.annual;

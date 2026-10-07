@@ -52,7 +52,7 @@ export default function SetupWizard({ steps, initialHidden = false, primary = tr
     );
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-line bg-panel grid grid-cols-1 lg:grid-cols-[1fr_auto]">
+    <section className="relative overflow-hidden rounded-xl border border-line bg-panel grid grid-cols-1 lg:grid-cols-[1fr_auto]">
       <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent/20 blur-3xl hidden dark:block" />
       <button
         onClick={() => store(true)}

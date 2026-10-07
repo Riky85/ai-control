@@ -8,7 +8,7 @@ export default function DocsIndex({ searchParams }: { searchParams: { q?: string
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Documentation" subtitle="Short guides, in the same order as the sidebar. Or ask the assistant with the book icon at the top right." />
+      <PageHeader title="Documentation" />
       <form className="w-full max-w-xl">
         <label className="flex items-center gap-2 border border-line rounded-lg bg-panel px-3 py-2.5 focus-within:border-ink-400">
           <svg width="15" height="15" viewBox="0 0 14 14" fill="none" className="text-ink-400 shrink-0">

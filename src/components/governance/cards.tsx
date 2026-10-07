@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { AxisGauge, AxisTrack } from "@/components/engine/ScoreCard";
-import { LEVEL, levelOf } from "@/components/engine/score-level";
+import { AxisGauge } from "@/components/engine/ScoreCard";
 import { LockIcon } from "@/components/LockedFeature";
 import { Pill, Section, NextStep, StackBar } from "./parts";
 
@@ -19,9 +18,9 @@ export interface Holdback {
 /** Testata: indice di governance (non fa parte dell'angar Score) + prontezza AI Act, e cosa li tiene giù. */
 export function GovernanceHeader({ governance, readiness, holds }: { governance: number | null; readiness: number; holds: Holdback[] }) {
   return (
-    <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="gov-readiness-title">
+    <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="gov-readiness-title">
       {/* Barra grigia in alto con il titolo del blocco. */}
-      <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
+      <div className="bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm bar-head">
         <h2 id="gov-readiness-title" className="font-bold text-ink-100">Governance readiness</h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] gap-5 p-5">
@@ -32,11 +31,11 @@ export function GovernanceHeader({ governance, readiness, holds }: { governance:
           </div>
         </div>
         <div className="min-w-0 flex flex-col">
-          <div className="text-xs text-ink-400 mb-1.5">What holds it back</div>
+          <div className="text-xs text-ink-400 mb-1.5">To fix</div>
           {holds.length === 0 ? (
             <p className="text-sm text-ink-400 flex items-center gap-2 py-2">
               <span className="h-1.5 w-1.5 rounded-full bg-steady" aria-hidden />
-              Nothing — every check passes.
+              Nothing.
             </p>
           ) : (
             <ul className="divide-y divide-line">
@@ -44,7 +43,7 @@ export function GovernanceHeader({ governance, readiness, holds }: { governance:
                 <li key={h.label}>
                   <Link href={h.href} className="flex items-baseline gap-3 py-2 text-sm group">
                     <span className="flex-1 min-w-0 truncate text-ink-100 group-hover:underline">{h.label}</span>
-                    <span className="tabular text-accent font-medium shrink-0">+{h.pts} pts</span>
+                    <span className="tabular text-ink-100 font-medium shrink-0">+{h.pts}</span>
                   </Link>
                 </li>
               ))}
@@ -81,8 +80,8 @@ export function DecisionsCard({ d }: { d: DecisionsData }) {
     <Section
       id="decisions"
       title="AI decisions"
-      meta={total ? `${total} AI found` : "No AI found yet"}
-      footer={next ? <NextStep href={next.href} label={next.label} /> : <NextStep done label={total ? "Every AI has a decision" : "Connect a source to find AI"} />}
+      meta={total ? `${total} AI` : undefined}
+      footer={next ? <NextStep href={next.href} label={next.label} /> : undefined}
     >
       <div className="px-5 py-4 flex flex-col gap-4">
         <StackBar
@@ -95,12 +94,12 @@ export function DecisionsCard({ d }: { d: DecisionsData }) {
         />
         <dl className="divide-y divide-line border-t border-line text-sm">
           <div className="flex items-center justify-between gap-3 pt-2.5 pb-2">
-            <dt className="text-ink-400">Not allowed but still used</dt>
-            <dd>{d.blockedInUse ? <Pill tone="alarm">{d.blockedInUse} in the last 30 days</Pill> : <Pill tone="steady">None</Pill>}</dd>
+            <dt className="text-ink-400" title="In the last 30 days">Not allowed, still used</dt>
+            <dd>{d.blockedInUse ? <Pill tone="alarm">{d.blockedInUse}</Pill> : <span className="tabular text-ink-400">0</span>}</dd>
           </div>
           <div className="flex items-center justify-between gap-3 pt-2 pb-0.5">
-            <dt className="text-ink-400">Allowed AI without an owner</dt>
-            <dd>{d.noOwner ? <Pill tone="signal">{d.noOwner}</Pill> : <Pill tone="steady">None</Pill>}</dd>
+            <dt className="text-ink-400">No owner</dt>
+            <dd>{d.noOwner ? <Pill tone="signal">{d.noOwner}</Pill> : <span className="tabular text-ink-400">0</span>}</dd>
           </div>
         </dl>
       </div>
@@ -139,9 +138,7 @@ function until(iso: string, now = Date.now()) {
 
 /** EU AI Act: prontezza, AI per livello di rischio e prossima scadenza. */
 export function AiActCard({ d }: { d: AiActData }) {
-  const total = TIERS.reduce((t, x) => t + d.tiers[x.key], 0);
   const max = Math.max(1, ...TIERS.map((x) => d.tiers[x.key]));
-  const lv = LEVEL[levelOf(d.readiness)];
   const next =
     d.tiers.UNCLASSIFIED > 0
       ? { href: "/compliance", label: `Classify ${d.tiers.UNCLASSIFIED} AI` }
@@ -154,21 +151,14 @@ export function AiActCard({ d }: { d: AiActData }) {
     <Section
       id="ai-act"
       title="EU AI Act"
-      meta={
-        <span className="flex items-center gap-2">
-          Readiness <b className="font-medium text-ink-100 tabular">{d.readiness}/100</b>
-          <Pill tone={levelOf(d.readiness) === "weak" ? "alarm" : levelOf(d.readiness) === "fair" ? "accent" : levelOf(d.readiness) === "good" ? "signal" : "steady"}>{lv.label}</Pill>
-        </span>
-      }
       action={
         <Link href="/compliance" className="text-sm text-ink-400 hover:text-ink-100">
           Open →
         </Link>
       }
-      footer={next ? <NextStep href={next.href} label={next.label} /> : <NextStep done label="Ready for what is in force today" />}
+      footer={next ? <NextStep href={next.href} label={next.label} /> : undefined}
     >
       <div className="px-5 py-4 flex flex-col gap-4">
-        <AxisTrack value={d.readiness} />
         <ul className="flex flex-col gap-2" aria-label="AI by risk class">
           {TIERS.map((t) => {
             const n = d.tiers[t.key];
@@ -195,12 +185,8 @@ export function AiActCard({ d }: { d: AiActData }) {
           ) : (
             <span>Every phase is in force</span>
           )}
-          <span className="tabular shrink-0">
-            {d.nextDate ? `${until(d.nextDate.date)} · ` : ""}
-            {d.inForce} of {d.phases} phases in force
-          </span>
+          <span className="tabular shrink-0" title={`${d.inForce} of ${d.phases} phases in force`}>{d.nextDate ? until(d.nextDate.date) : ""}</span>
         </div>
-        {total === 0 && <p className="text-xs text-ink-400 -mt-2">No AI to classify yet.</p>}
       </div>
     </Section>
   );
@@ -217,8 +203,8 @@ export interface RecordLink {
 /** Registri: export del registro AI, evidence pack, audit log e gli altri archivi. */
 export function RecordsCard({ links }: { links: RecordLink[] }) {
   return (
-    <Section id="records" title="Records" meta="Proof for auditors, the board and NIS2">
-      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line rounded-b-2xl overflow-hidden">
+    <Section id="records" title="Records">
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line rounded-b-xl overflow-hidden">
         {links.map((l) => {
           const inner = (
             <>
@@ -283,7 +269,7 @@ export function RegisterCard({ d }: { d: RegisterCardData }) {
         d.toComplete > 0 ? (
           <NextStep href="/governance/register" label={`Complete ${d.toComplete} ${d.toComplete === 1 ? "record" : "records"}`} />
         ) : (
-          <NextStep done label={d.rows ? "Every record is complete" : "No AI processes personal data yet"} />
+          undefined
         )
       }
     >

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pill, Section, NextStep } from "./parts";
+import { Pill, Section } from "./parts";
 
 /** Chiavi API di AI trovate nel codice su GitHub (sola lettura, chiave sempre mascherata). */
 export interface ExposedKeyRow {
@@ -21,17 +21,14 @@ export default function ExposedKeys({ rows, githubConnected }: { rows: ExposedKe
     <Section
       id="exposed-keys"
       title="Exposed AI keys"
-      meta={rows.length ? "Found in code on GitHub · the full key is never stored" : "angar looks for AI keys in your GitHub code at every sync"}
-      action={rows.length ? <Pill tone="alarm">{rows.length} found</Pill> : <Pill tone="steady">None found</Pill>}
+      action={rows.length ? <Pill tone="alarm">{rows.length} found</Pill> : <span className="text-xs text-ink-400">None found</span>}
       footer={
         rows.length ? (
           <span className="flex items-center gap-2 text-ink-100">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-alarm" aria-hidden />
-            Revoke the key at the provider, then remove it from the code.
+            Revoke at the provider, then remove from code.
           </span>
-        ) : (
-          <NextStep done label="No AI keys found in your repositories" />
-        )
+        ) : undefined
       }
     >
       {rows.length > 0 && (

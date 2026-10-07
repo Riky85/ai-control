@@ -32,7 +32,7 @@ export function NewApiKey({ disabled }: { disabled?: boolean }) {
         <button className="btn btn-secondary btn-sm" disabled={disabled || pending}>{pending ? "Creating…" : "Create key"}</button>
       </form>
       {error && <p className="text-xs text-alarm">{error}</p>}
-      {key && <Secret value={key} note="Copy this key now — it won't be shown again." />}
+      {key && <Secret value={key} note="Copy it now: it won&apos;t be shown again." />}
     </div>
   );
 }
@@ -80,7 +80,7 @@ export function NewWebhook({ events, disabled }: { events: readonly Ev[]; disabl
 function Secret({ value, note }: { value: string; note: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="rounded-lg border border-accent/40 bg-accent/[0.04] p-3 flex flex-col gap-2">
+    <div className="rounded-lg border border-line bg-ink-100/[0.03] p-3 flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <input readOnly value={value} className="field flex-1 min-w-0 font-mono text-xs" onFocus={(e) => e.target.select()} />
         <button

@@ -79,7 +79,7 @@ export default function KeyCreate({ teams, disabled }: { teams: string[]; disabl
               {copied ? "Copied" : "Copy"}
             </button>
           </div>
-          <p className="text-xs text-ink-400">Copy this key now — it won&apos;t be shown again. Use it in place of the provider key, with the gateway base URL.</p>
+          <p className="text-xs text-ink-400">Copy it now: it won&apos;t be shown again.</p>
         </div>
       )}
     </div>

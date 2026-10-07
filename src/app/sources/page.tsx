@@ -41,14 +41,15 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader crumbs={[{ label: "Connect", href: "/connect" }]} title="Sources" subtitle="Your costs and accounts, in one place." />
+      <PageHeader crumbs={[{ label: "Connect", href: "/connect" }]} title="Sources" />
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
-      <Card title="Bank & invoices" text="Upload a statement or invoices to see every AI you pay for." status={spendCount ? `${spendCount} AI charge${spendCount === 1 ? "" : "s"}${lastSpend ? ` · last ${fmtDate(lastSpend.createdAt)}` : ""}` : null}>
+      <Card title="Bank & invoices" status={spendCount ? `${spendCount} AI charge${spendCount === 1 ? "" : "s"}${lastSpend ? ` · last ${fmtDate(lastSpend.createdAt)}` : ""}` : null}>
         <form action={uploadSpendAction} className="flex flex-col gap-3">
           <input type="hidden" name="back" value="/sources" />
-          <CsvDropzone accept={SPEND_ACCEPT} multiple label="Drop bank/card exports or e-invoices here" />
-          <p className="text-xs text-ink-400">Bank or card exports (CSV, Excel) and e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X, Facturae) — XML, PDF or zip.</p>
+          <div title="Bank or card exports (CSV, Excel) and e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X, Facturae): XML, PDF or zip.">
+            <CsvDropzone accept={SPEND_ACCEPT} multiple label="Drop a statement or invoices" />
+          </div>
           <div className="flex items-center justify-between gap-3">
             <button className="btn btn-primary">Find my AI spend</button>
             <a href="/api/spend/sample" className="text-xs text-ink-400 hover:text-ink-100 underline">Try a sample</a>
@@ -57,8 +58,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
         {/* Contratti, order form e fatture in PDF: lettura dei campi del contratto. */}
         <Link href="/contracts/upload" className="flex items-center justify-between gap-3 border-t border-line pt-3 text-sm group">
           <span className="min-w-0">
-            <span className="text-ink-100 group-hover:underline">Read a contract (PDF)</span>
-            <span className="text-ink-400"> — plan, seats, price, renewal and notice from a contract, order form or invoice</span>
+            <span className="text-ink-100 group-hover:underline" title="Plan, seats, price, renewal and notice from a contract, order form or invoice">Read a contract (PDF)</span>
           </span>
           <span className="text-ink-400 group-hover:text-ink-100 shrink-0" aria-hidden>→</span>
         </Link>
@@ -89,7 +89,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
           </SourceRow>
           <SourceRow label="Network logs" hint="Cloudflare Gateway, Cisco Umbrella, Zscaler, Fortinet, DNS servers">
             {networkLogs.length > 0 && <span className="text-xs text-steady">{networkLogs.length} connected</span>}
-            <Link href="/connectors#network-logs" className="btn btn-secondary btn-sm">{networkLogs.length ? "Manage" : "Connect or upload"}</Link>
+            <Link href="/connectors#network-logs" className="btn btn-secondary btn-sm">{networkLogs.length ? "Manage" : "Connect"}</Link>
           </SourceRow>
           <AutoRow label="Bank account" state={bankState} connectHref="/sources/bank" syncAction={syncBankAction} />
           <AutoRow label="Accounting software" hint="DATEV, Pennylane, Exact, Sage, Xero…" state={accountingState} connectHref="/api/connectors/accounting/connect" syncAction={syncAccountingAction} />
@@ -100,7 +100,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
   );
 }
 
-function Card({ title, text, status, children }: { title: string; text: string; status: string | null; children: React.ReactNode }) {
+function Card({ title, status, children }: { title: string; status: string | null; children: React.ReactNode }) {
   return (
     <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4 animate-rise">
       {/* Barra grigia in alto: titolo e stato. */}
@@ -108,7 +108,6 @@ function Card({ title, text, status, children }: { title: string; text: string; 
         <h2 className="text-sm font-bold text-ink-100">{title}</h2>
         {status && <span className="text-xs text-steady">✓ {status}</span>}
       </div>
-      <p className="text-sm text-ink-400">{text}</p>
       <div className="flex flex-col gap-3 mt-auto">{children}</div>
     </section>
   );
@@ -119,8 +118,7 @@ function SourceRow({ label, hint, detail, children }: { label: string; hint?: st
     <div className="px-4 py-2.5">
       <div className="flex items-center justify-between gap-3">
         <span className="min-w-0">
-          <span className="block text-sm text-ink-100">{label}</span>
-          {hint && <span className="block text-xs text-ink-400 truncate">{hint}</span>}
+          <span className="block text-sm text-ink-100" title={hint}>{label}</span>
         </span>
         <span className="flex items-center gap-2 shrink-0">{children}</span>
       </div>

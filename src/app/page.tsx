@@ -85,9 +85,9 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       {(searchParams.connected || searchParams.imported || searchParams.spend) && (
         <div className="rounded-xl border border-line bg-panel dark:bg-ink px-4 py-3 text-sm text-ink-100">
           {searchParams.spend ? (
-            <><b>{searchParams.spend} AI service{searchParams.spend === "1" ? "" : "s"} found in your files.</b> Costs, plans and seats are filled in below.</>
+            <><b>{searchParams.spend} AI service{searchParams.spend === "1" ? "" : "s"} found.</b></>
           ) : searchParams.connected ? (
-            <><b>Connected.</b> What angar found is now in the list below.</>
+            <><b>Connected.</b></>
           ) : (
             <><b>{searchParams.imported} AI systems imported.</b></>
           )}
@@ -95,21 +95,18 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       )}
       {broken > 0 && (
         <Link href="/sources" className="rounded-xl bg-alarm/10 px-4 py-3 text-sm text-alarm">
-          {broken} source{broken === 1 ? " stopped" : "s stopped"} syncing — open Sources to fix.
+          {broken} source{broken === 1 ? " stopped" : "s stopped"} syncing →
         </Link>
       )}
 
       {assets.length === 0 ? (
         <div className="rounded-xl border border-line bg-panel p-6 sm:p-10 flex flex-col items-center text-center gap-5">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-ink-100">Which AI does your company pay for?</h2>
-            <p className="text-sm text-ink-400 mt-1.5 max-w-xl">
-              Drop a bank statement or invoices — angar lists every AI subscription and its cost.
-            </p>
+            <h2 className="text-2xl font-bold tracking-tight text-ink-100">Which AI do you pay for?</h2>
           </div>
           <form action={uploadSpendAction} className="w-full max-w-xl flex flex-col gap-3">
             <input type="hidden" name="back" value="/" />
-            <CsvDropzone accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.xsig,.p7m,.zip,.pdf" multiple label="Drop your bank statement or invoices here" />
+            <CsvDropzone accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.xsig,.p7m,.zip,.pdf" multiple label="Drop a bank statement or invoices" />
             <button className="btn btn-primary">Show my AI spend</button>
           </form>
           <div className="flex items-center gap-4 text-sm text-ink-400">
@@ -123,10 +120,10 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
           {scoreCard && <ScoreCard data={scoreCard} />}
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} found by the scan to decide` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} tone={scoreCard ? undefined : "accent"} href={toReview ? "/review" : "/providers"} />
-            <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (estimated ? `${fmtEur(estimatedEur)} of it estimated from list prices` : org?.employees ? `${fmtEur(spend / org.employees, { decimals: true })} for each employee` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
-            <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"} →` : "Nothing found yet"} href="/savings" />
-            <StatCard label="Not paid by the company" value={String(unpaid)} hint={unpaid ? "Free or personal accounts" : "Everything is on the books"} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : undefined} />
+            <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} to review` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} href={toReview ? "/review" : "/providers"} />
+            <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (estimated ? `${fmtEur(estimatedEur)} estimated` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
+            <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"}` : undefined} href="/savings" />
+            <StatCard label="Not company-paid" value={String(unpaid)} hint={unpaid ? "Free or personal" : undefined} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : undefined} />
           </div>
 
           <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">
@@ -142,8 +139,8 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
               <EstateView orgId={orgId} />
             ) : (
               <>
-                <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />
-                <AiTable assets={shown} savings={savings} empty="Nothing matches these filters." />
+                <FilterBar search={{ placeholder: "Find an AI" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />
+                <AiTable assets={shown} savings={savings} empty="No match." />
               </>
             )}
           </div>

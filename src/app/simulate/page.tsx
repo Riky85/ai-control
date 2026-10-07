@@ -14,7 +14,7 @@ export default async function SimulatePage() {
       <PageHeader
         crumbs={[{ label: "Savings", href: "/savings" }, { label: "Simulator" }]}
         title="What if…"
-        subtitle="Try changes on today's real numbers. Nothing is applied."
+        subtitle="Nothing is applied."
         action={
           <Link href="/score" className="btn btn-ghost btn-sm">
             angar Score

@@ -5,7 +5,7 @@ import CopyField from "@/components/CopyField";
 import CopyButton from "@/components/CopyButton";
 import { AxisTrack } from "@/components/engine/ScoreCard";
 import { Pill, Section, NextStep, Chevron } from "@/components/governance/parts";
-import { policyAckStats, genericToken, ackLink, MAX_REMINDERS } from "@/lib/policy-ack";
+import { policyAckStats, genericToken, ackLink } from "@/lib/policy-ack";
 import { sendPolicyAckAction, publishPolicyAction, remindPolicyAckAction } from "@/lib/policy-ack-actions";
 import { QUIZ_TOTAL } from "@/lib/literacy";
 import { fmtDate } from "@/lib/format";
@@ -49,8 +49,8 @@ export default async function PolicyAckPanel({
   return (
     <Section
       id="ack"
-      title="AI literacy & acknowledgements"
-      meta={s.version ? `Policy ${s.version}${s.publishedAt ? ` · published ${fmtDate(new Date(s.publishedAt))}` : ""}` : "AI Act art. 4 evidence"}
+      title="AI literacy"
+      meta={s.version ? `Policy ${s.version}` : undefined}
       action={
         <>
           {s.personal ? (
@@ -71,15 +71,15 @@ export default async function PolicyAckPanel({
           )}
         </>
       }
-      footer={"href" in next && next.href ? <NextStep href={next.href} label={next.label} /> : <NextStep done={next.done} label={next.label} />}
+      footer={"href" in next && next.href ? <NextStep href={next.href} label={next.label} /> : undefined}
     >
       <div className="px-5 py-4 flex flex-col gap-4">
         {flash?.error && <Notice tone="error">{flash.error}</Notice>}
-        {flash?.ack === "sent" && <Notice tone="success">Sent to {n} {n === 1 ? "person" : "people"}. Reminders go out automatically after 7 days (max {MAX_REMINDERS}).</Notice>}
-        {flash?.ack === "links" && <Notice>Created {n} personal link{n === 1 ? "" : "s"}. Email isn&apos;t configured on this deployment — copy the links below and send them yourself.</Notice>}
+        {flash?.ack === "sent" && <Notice tone="success">Sent to {n} {n === 1 ? "person" : "people"}.</Notice>}
+        {flash?.ack === "links" && <Notice>Created {n} personal link{n === 1 ? "" : "s"}. Email is off: copy them below.</Notice>}
         {flash?.ack === "reminded" && <Notice tone="success">Reminded {n} {n === 1 ? "person" : "people"}.</Notice>}
-        {flash?.ack === "published" && <Notice tone="success">Policy published — share the link below.</Notice>}
-        {s.changed && <Notice>Your AI policy changed since it was last sent (allowed AI or policies). {s.personal ? "Send it again to collect confirmations for the new version." : "Publish the new version and share the new link."}</Notice>}
+        {flash?.ack === "published" && <Notice tone="success">Policy published.</Notice>}
+        {s.changed && <Notice>Your AI policy changed. {s.personal ? "Send it again." : "Publish the new version."}</Notice>}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4">
           {s.personal ? (
@@ -87,17 +87,17 @@ export default async function PolicyAckPanel({
               label="Acknowledged"
               value={pct}
               big={pct == null ? "—" : `${pct}%`}
-              hint={s.version ? `${s.acknowledged} of ${s.total} people${s.pending ? ` · ${s.pending} pending` : ""}${s.reminded ? ` · ${s.reminded} reminded` : ""}` : "Not sent yet"}
+              hint={s.version ? `${s.acknowledged} of ${s.total}${s.pending ? ` · ${s.pending} pending` : ""}` : "Not sent"}
             />
           ) : (
             <Meter
               label="Completions"
               value={reach}
               big={s.version ? String(s.generic) : "—"}
-              hint={!s.version ? "No link yet" : reach != null ? `≈ ${reach}% of ${org?.employees} employees` : "Anonymous — set employees in Settings for a %"}
+              hint={!s.version ? "No link yet" : reach != null ? `≈ ${reach}% of ${org?.employees}` : "Anonymous"}
             />
           )}
-          <Meter label="Literacy check" value={quizPct} big={s.avgScore == null ? "—" : `${s.avgScore}/${QUIZ_TOTAL}`} hint={`Average score · ${QUIZ_TOTAL} questions`} />
+          <Meter label="Literacy check" value={quizPct} big={s.avgScore == null ? "—" : `${s.avgScore}/${QUIZ_TOTAL}`} hint="Average" />
           <div className="min-w-0">
             <div className="flex items-center justify-between gap-2 text-xs text-ink-400">
               <span>Training recorded</span>
@@ -105,14 +105,14 @@ export default async function PolicyAckPanel({
             </div>
             <div className="font-display text-[22px] leading-tight font-semibold tabular text-ink-100 mt-1">{training ? fmtDate(training.date) : "—"}</div>
             <div className="text-xs text-ink-400 mt-1 truncate" title={training?.summary}>
-              {training ? training.summary : <Link href="/compliance" className="underline hover:text-ink-100">Record it on the AI Act page</Link>}
+              {training ? training.summary : <Link href="/compliance" className="underline hover:text-ink-100">Record it</Link>}
             </div>
           </div>
         </div>
 
         {generic && (
           <div className="flex flex-col gap-1.5 border-t border-line pt-3">
-            <div className="text-xs text-ink-400">{s.personal ? "Generic link — no per-person tracking, for intranet or people without email" : "Share with all employees (intranet, email, Teams) — only totals are recorded"}</div>
+            <div className="text-xs text-ink-400">{s.personal ? "Generic link" : "Link for all employees"}</div>
             <CopyField value={generic} />
           </div>
         )}

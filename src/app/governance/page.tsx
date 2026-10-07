@@ -148,7 +148,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Governance" subtitle="Rules and records for every AI." action={<ExportMenu dataset="assets" />} />
+      <PageHeader title="Governance" action={<ExportMenu dataset="assets" />} />
 
       <Tabs
         active={assurance ? "assurance" : "overview"}

@@ -21,7 +21,7 @@ export default async function ContractUploadPage({ searchParams }: { searchParam
       <PageHeader
         crumbs={[{ label: "Savings", href: "/savings" }, { label: "Contracts", href: "/savings?view=contracts" }]}
         title="Read a contract"
-        subtitle="Upload a contract, order form or invoice as PDF. angar fills in the plan, seats, price, dates and notice — you check them before anything is saved."
+        subtitle="Contract, order form or invoice (PDF)."
       />
       {assets.length === 0 ? (
         <Notice>

@@ -65,9 +65,9 @@ const external = (href: string) => /^https?:\/\//.test(href);
 export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin }: AutopilotPanelProps) {
   const off = summary.mode === "off";
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="autopilot-title">
+    <section className="relative overflow-hidden rounded-xl border border-line bg-panel animate-rise" aria-labelledby="autopilot-title">
       {/* Barra grigia in alto: titolo, stato e modalità. */}
-      <header className="relative flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-2.5 text-sm bar-head">
+      <header className="relative flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-5 py-2.5 text-sm bar-head">
         <div className="flex items-center gap-2.5">
           <span aria-hidden className={`relative inline-flex h-2 w-2 rounded-full ${off ? "bg-ink-400/50" : "bg-steady"}`} />
           <h2 id="autopilot-title" className="font-bold text-ink-100">Autopilot</h2>
@@ -76,17 +76,17 @@ export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin
       </header>
 
       {off ? (
-        <p className="relative p-5 text-sm text-ink-400">Off. Turn it on and angar turns each saving into a plan it can run.</p>
+        <p className="relative p-5 text-sm text-ink-400">Off.</p>
       ) : (
         <>
           <dl className="relative grid grid-cols-3 gap-px border-b border-line bg-line">
-            <Figure label="Ready to save" value={`${fmtEur(summary.proposedMonthlyEur)}`} unit="a month" hint={summary.proposedCount ? `${summary.proposedCount} plan${summary.proposedCount === 1 ? "" : "s"} to approve` : "Nothing waiting"} accent={summary.proposedMonthlyEur > 0} />
-            <Figure label="In progress" value={String(summary.runningCount)} hint={summary.doneMonthlyEur > 0 ? `${fmtEur(summary.doneMonthlyEur)} a month done` : "plans running"} />
-            <Figure label="Verified on bills" value={fmtEur(summary.verifiedMonthlyEur)} unit="a month" hint="from real charges" good={summary.verifiedMonthlyEur > 0} />
+            <Figure label="Ready to save" value={`${fmtEur(summary.proposedMonthlyEur)}`} unit="a month" hint={summary.proposedCount ? `${summary.proposedCount} to approve` : ""} accent={summary.proposedMonthlyEur > 0} />
+            <Figure label="In progress" value={String(summary.runningCount)} hint={summary.doneMonthlyEur > 0 ? `${fmtEur(summary.doneMonthlyEur)} a month done` : ""} />
+            <Figure label="Verified" value={fmtEur(summary.verifiedMonthlyEur)} unit="a month" hint="" good={summary.verifiedMonthlyEur > 0} />
           </dl>
 
           {tasks.length === 0 ? (
-            <p className="relative px-5 py-6 text-sm text-ink-400">No plans yet. angar prepares one for each saving it finds.</p>
+            <p className="relative px-5 py-6 text-sm text-ink-400">No plans yet.</p>
           ) : (
             <ul className="relative divide-y divide-line">
               {tasks.map((t) => (
@@ -95,12 +95,12 @@ export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin
             </ul>
           )}
 
-          <footer className="relative flex flex-wrap items-center justify-between gap-2 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-[11px] text-ink-400 bar-foot">
+          <footer className="relative flex flex-wrap items-center justify-between gap-2 bg-ink border-t border-line rounded-b-xl px-5 py-3 text-[11px] text-ink-400 bar-foot">
             <span className="flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-accent" />angar does this</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-ink-100" />angar does this</span>
               <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full ring-1 ring-ink-400" />you do this</span>
             </span>
-            <span>{more > 0 ? `+${more} more` : "Proved on your next bills"}</span>
+            <span>{more > 0 ? `+${more} more` : ""}</span>
           </footer>
         </>
       )}
@@ -135,12 +135,12 @@ function ModeControl({ mode, canAdmin }: { mode: AutopilotMode; canAdmin: boolea
 function Figure({ label, value, unit, hint, accent, good }: { label: string; value: string; unit?: string; hint: string; accent?: boolean; good?: boolean }) {
   return (
     <div className="bg-panel px-5 py-3.5 min-w-0">
-      <dt className="text-xs text-ink-400">{label}</dt>
+      <dt className="text-sm font-semibold text-ink-100">{label}</dt>
       <dd className="mt-1">
         <span className={`font-display text-2xl font-semibold tracking-tight tabular ${accent ? "text-ink-100" : good ? "text-steady" : "text-ink-100"}`}>{value}</span>
         {unit && <span className="ml-1 text-xs text-ink-400">{unit}</span>}
       </dd>
-      <dd className="text-[11px] text-ink-400 mt-0.5 truncate">{hint}</dd>
+      {hint && <dd className="text-[11px] text-ink-400 mt-0.5 truncate">{hint}</dd>}
     </div>
   );
 }
@@ -167,7 +167,7 @@ function TaskRow({ t, canEdit }: { t: AutopilotTaskView; canEdit: boolean }) {
             {t.needsApproval && (
               <form action={approveAutopilotAction}>
                 <input type="hidden" name="id" value={t.id} />
-                <button className="btn btn-primary btn-sm">Approve</button>
+                <button className="btn btn-secondary btn-sm">Approve</button>
               </form>
             )}
             {t.status === "failed" && (
@@ -198,12 +198,12 @@ function Steps({ t, canMark }: { t: AutopilotTaskView; canMark: boolean }) {
         const cls = s.done
           ? "border-steady/30 text-ink-400"
           : s.auto
-            ? "border-accent/30 text-ink-100"
+            ? "border-ink-400/40 text-ink-100"
             : "border-line text-ink-100";
         const mark = s.done ? (
           <span className="text-steady" aria-label="done">✓</span>
         ) : s.auto ? (
-          <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-label="angar does this" />
+          <span className="h-1.5 w-1.5 rounded-full bg-ink-100" aria-label="angar does this" />
         ) : (
           <span className="h-1.5 w-1.5 rounded-full ring-1 ring-ink-400" aria-label="you do this" />
         );
@@ -228,7 +228,7 @@ function Steps({ t, canMark }: { t: AutopilotTaskView; canMark: boolean }) {
                 <form action={markAutopilotStepAction} className="contents">
                   <input type="hidden" name="id" value={t.id} />
                   <input type="hidden" name="step" value={i} />
-                  <button className="ml-0.5 rounded-full px-1.5 text-[10px] font-medium text-accent hover:bg-accent/10" title="Mark this step done">Done</button>
+                  <button className="ml-0.5 rounded-full px-1.5 text-[10px] font-medium text-ink-100 hover:bg-ink-100/10" title="Mark this step done">Done</button>
                 </form>
               )}
             </span>

@@ -6,11 +6,11 @@ import Link from "next/link";
  * (nessuna libreria) e uno stato vuoto con una sola azione.
  */
 
-const DOT = { accent: "bg-accent", signal: "bg-signal", alarm: "bg-alarm", steady: "bg-steady", muted: "bg-ink-400" } as const;
+const DOT = { accent: "bg-ink-400", signal: "bg-signal", alarm: "bg-alarm", steady: "bg-steady", muted: "bg-ink-400" } as const;
 export type InsightTone = keyof typeof DOT;
 
 /** Una frase che dice qualcosa di utile, con il link per agire. */
-export function Insight({ tone = "accent", children, href, cta }: { tone?: InsightTone; children: React.ReactNode; href?: string; cta?: string }) {
+export function Insight({ tone = "muted", children, href, cta }: { tone?: InsightTone; children: React.ReactNode; href?: string; cta?: string }) {
   return (
     <div className="rounded-xl border border-line bg-panel px-4 py-3 flex items-center gap-3 text-sm animate-rise">
       <span className={`h-2 w-2 shrink-0 rounded-full ${DOT[tone]}`} aria-hidden />
@@ -24,14 +24,13 @@ export function Insight({ tone = "accent", children, href, cta }: { tone?: Insig
   );
 }
 
-/** Stato vuoto: una riga di spiegazione e l'unica azione che lo riempie. */
+/** Stato vuoto: una riga e l'unica azione che lo riempie (la spiegazione resta nel tooltip). */
 export function EmptyState({ title, text, href, cta }: { title: string; text?: React.ReactNode; href?: string; cta?: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-line bg-panel p-8 text-center animate-rise">
-      <h2 className="text-base font-bold text-ink-100">{title}</h2>
-      {text && <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">{text}</p>}
+    <div className="rounded-xl border border-line bg-panel px-5 py-8 flex flex-col items-center gap-3 text-center animate-rise" title={typeof text === "string" ? text : undefined}>
+      <h2 className="text-sm font-semibold text-ink-100">{title}</h2>
       {href && cta && (
-        <Link href={href} className="btn btn-primary btn-sm mt-4">
+        <Link href={href} className="btn btn-primary btn-sm">
           {cta}
         </Link>
       )}
@@ -54,7 +53,7 @@ export function DayBars({ values, labels, height = 44, unit = "" }: { values: nu
       {values.map((v, i) => {
         const h = v > 0 ? Math.max(2, (v / max) * (height - 2)) : 1;
         return (
-          <rect key={i} x={i * 10 + 1} y={height - h} width={8} height={h} rx={1.5} className={v > 0 ? "fill-accent" : "fill-ink-400"} fillOpacity={v > 0 ? (i === n - 1 ? 1 : 0.55) : 0.25}>
+          <rect key={i} x={i * 10 + 1} y={height - h} width={8} height={h} rx={1.5} className={v > 0 ? "fill-ink-100" : "fill-ink-400"} fillOpacity={v > 0 ? (i === n - 1 ? 1 : 0.55) : 0.25}>
             <title>{`${labels?.[i] ?? ""}${labels?.[i] ? ": " : ""}${v}${unit}`}</title>
           </rect>
         );

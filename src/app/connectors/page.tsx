@@ -40,7 +40,7 @@ const COMING_SOON: { group: string; items: { label: string; vendor: string }[] }
 ];
 
 const card = "rounded-xl border border-line bg-panel p-4 flex flex-col gap-3";
-const btnPrimary = "btn btn-primary";
+const btnPrimary = "btn btn-secondary";
 const btnSecondary = "btn btn-secondary";
 const input = "field w-full";
 
@@ -65,24 +65,23 @@ export default async function ConnectorsPage({
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }]}
         title="AI provider keys"
-        subtitle="Paste a provider key for exact API costs, or import a list of AI tools."
         action={<span className="text-sm text-ink-400">{connectedCount} connected</span>}
       />
 
       {searchParams.connected && (
         <Notice>
-          <b>Connected.</b> First sync done — your systems are now in <a href="/#your-ai" className="underline">Your AI</a>.
+          <b>Connected.</b> <a href="/#your-ai" className="underline">See Your AI</a>
         </Notice>
       )}
       {searchParams.imported && (
         <Notice>
-          <b>{searchParams.imported} AI system{searchParams.imported === "1" ? "" : "s"} imported.</b> See them in <a href="/#your-ai" className="underline">Your AI</a>.
+          <b>{searchParams.imported} AI imported.</b> <a href="/#your-ai" className="underline">See Your AI</a>
         </Notice>
       )}
       {/* Errore di una connessione: resta accanto a quella connessione, non nel toast globale. */}
       {searchParams.error && searchParams.provider && <span data-keeps-url-error hidden />}
 
-      <Section title="AI providers" subtitle="A normal API key is enough. Admin keys (Anthropic, OpenAI) also bring in users and exact costs.">
+      <Section title="AI providers" subtitle="Admin keys (Anthropic, OpenAI) also bring in users and exact costs.">
         {AI_PROVIDERS.map((p) => {
           const row = byProvider.get(p.provider);
           const connected = providerConnected(row);
@@ -94,11 +93,12 @@ export default async function ConnectorsPage({
                 <VendorBadge vendor={p.provider} name={p.label} size={36} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-ink-100 truncate">{p.label}</div>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    <Badge>{connected ? "CONNECTED" : "DISCONNECTED"}</Badge>
-                    {connected && row?.status === "ERROR" && <Badge>SYNC_FAILED</Badge>}
-                    {connected && mode === "admin" && <Badge>ADMIN_KEY</Badge>}
-                  </div>
+                  {connected && (
+                    <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs">
+                      {row?.status === "ERROR" ? <Badge>SYNC_FAILED</Badge> : <span className="text-steady">✓ Connected</span>}
+                      {mode === "admin" && <span className="text-ink-400">Admin key</span>}
+                    </div>
+                  )}
                 </div>
               </div>
               {connected ? (
@@ -147,7 +147,7 @@ export default async function ConnectorsPage({
               <div className="text-xs text-ink-400 truncate">
                 {githubConnected
                   ? `${githubOrg ?? "Personal repositories"}${github?.lastSyncedAt ? ` · scanned ${fmtDateTime(github.lastSyncedAt)}` : ""}`
-                  : "Finds the AI libraries in your repositories. Read-only."}
+                  : "AI libraries in your code."}
               </div>
             </div>
             {githubConnected ? (
@@ -175,7 +175,7 @@ export default async function ConnectorsPage({
                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_200px_auto] gap-2">
                   <input name="token" type="password" required autoComplete="off" placeholder="github_pat_…" className={input} />
                   <input name="org" placeholder="Organization (optional)" className={input} />
-                  <button className="btn btn-primary btn-sm">Connect</button>
+                  <button className="btn btn-secondary btn-sm">Connect</button>
                 </div>
                 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer" className="text-xs text-ink-400 hover:text-ink-100 underline self-start">
                   Create a token — All repositories, Contents: Read-only
@@ -191,12 +191,9 @@ export default async function ConnectorsPage({
 
       <NetworkLogCards rows={byProvider} errorFor={searchParams.provider} error={searchParams.error} uploadError={searchParams.logerror} result={{ netlog: searchParams.netlog, fmt: searchParams.fmt, warn: searchParams.warn }} />
 
-      <Section title="Import" subtitle="Works for any AI — including tools without an API. One row for each AI system.">
+      <Section title="Import" subtitle="">
         <div id="import" className={`${card} scroll-mt-6 sm:col-span-2`}>
-          <div className="text-sm font-medium text-ink-100">Upload a spreadsheet (CSV)</div>
-          <p className="text-xs text-ink-400">
-            Columns: <code>name</code> (required), <code>vendor</code>, <code>type</code>, <code>model</code>, <code>owner_email</code>, <code>department</code>, <code>monthly_cost</code>. Export it from Excel or Google Sheets as CSV.
-          </p>
+          <div className="text-sm font-medium text-ink-100" title="Columns: name (required), vendor, type, model, owner_email, department, monthly_cost.">Upload a CSV</div>
           <form action={importCsvAction} className="flex flex-col gap-3 mt-auto">
             <CsvDropzone />
             <div className="flex items-center justify-between">
@@ -219,7 +216,7 @@ export default async function ConnectorsPage({
       </Section>
 
       {COMING_SOON.map((g) => (
-        <Section key={g.group} title={g.group} subtitle="Coming soon — needs an admin sign-in flow we haven't built yet. Use Import meanwhile.">
+        <Section key={g.group} title={g.group} subtitle="">
           {g.items.map((i) => (
             <div key={i.label} className="rounded-xl border border-dashed border-line bg-panel p-4 flex items-center gap-3">
               <VendorBadge vendor={i.vendor} name={i.label} size={32} />
@@ -236,8 +233,7 @@ export default async function ConnectorsPage({
 function Section({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-base font-bold text-ink-100">{title}</h2>
-      <p className="text-sm text-ink-400 mb-3">{subtitle}</p>
+      <h2 className="text-sm font-bold text-ink-100 mb-3" title={subtitle || undefined}>{title}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">{children}</div>
     </section>
   );

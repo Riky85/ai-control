@@ -16,7 +16,7 @@ export default async function BenchmarkCard({ orgId, variant = "compact" }: { or
   if (!b.peers || b.yours === null) return <Locked b={b} />;
   return (
     <section className="rounded-xl border border-line bg-panel px-4 py-3 flex flex-col md:flex-row md:items-center gap-3 md:gap-6 animate-rise">
-      <span className="hidden md:flex h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] items-center justify-center text-accent">
+      <span className="hidden md:flex h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] items-center justify-center text-ink-100">
         <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 14.5h12M5 14.5V9M9 14.5V5M13 14.5v-7" /></svg>
       </span>
       <div className="relative flex-1 min-w-0">
@@ -52,7 +52,7 @@ function Sentence({ b }: { b: Benchmark }) {
     return (
       <>
         Benchmark unlocks when 5+ similar companies use angar.{" "}
-        <Link href="/settings?tab=general#employees" className="underline hover:text-accent">Add number of employees</Link> to compare your AI spend for each employee.
+        <Link href="/settings?tab=general#employees" className="underline hover:text-ink-100">Add employees</Link> to compare.
       </>
     );
   const you = b.yours !== null ? per(b.yours) : "—";
@@ -86,12 +86,12 @@ function RangeBar({ b, className = "" }: { b: Benchmark; className?: string }) {
       <div className="relative h-2 rounded-full bg-ink">
         <div className="absolute inset-y-0 rounded-full bg-ink-400/30" style={{ left: pos(p.p25), width: `calc(${pos(p.p75)} - ${pos(p.p25)})` }} />
         <div className="absolute -top-1 h-4 w-0.5 bg-ink-100" style={{ left: pos(p.median) }} title={`Median ${per(p.median)}`} />
-        <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent ring-2 ring-panel" style={{ left: pos(you) }} title={`You ${per(you)}`} />
+        <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink-100 ring-2 ring-panel" style={{ left: pos(you) }} title={`You ${per(you)}`} />
       </div>
       <div className="flex justify-between text-[11px] text-ink-400 mt-1.5 tabular">
         <span>€0</span>
         <span className="flex items-center gap-3">
-          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-accent" />you</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-ink-100" />you</span>
           <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-0.5 bg-ink-100" />median</span>
           <span className="flex items-center gap-1"><span className="inline-block h-2 w-3 rounded-sm bg-ink-400/30" />middle 50%</span>
         </span>
@@ -105,16 +105,15 @@ function Section({ b }: { b: Benchmark }) {
   return (
     <div className="rounded-xl border border-line bg-panel p-5 animate-rise">
       <div className="-mx-5 -mt-5 mb-5 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
-        <h2 className="text-sm font-bold text-ink-100">Benchmark vs similar companies</h2>
-        <p className="text-xs text-ink-400 mt-0.5">AI spend a month for each employee — anonymous, aggregated across angar customers. Shown only when {b.minCompanies}+ comparable companies exist.</p>
+        <h2 className="text-sm font-bold text-ink-100" title={`AI spend a month for each employee, anonymous. Shown only when ${b.minCompanies}+ comparable companies exist.`}>Benchmark</h2>
       </div>
       {b.peers && b.yours !== null ? (
         <div className="grid grid-cols-[1fr_320px] gap-8 items-center">
           <div className="grid grid-cols-3 gap-4">
-            <Figure label="You" value={per(b.yours)} accent />
+            <Figure label="You" value={per(b.yours)} />
             <Figure label="Median" value={per(b.peers.median)} />
             <Figure label="Middle 50%" value={`${per(b.peers.p25)}–${per(b.peers.p75)}`} />
-            <p className="col-span-3 text-xs text-ink-400">Compared with {b.peers.count} {scopeLabel(b)}.</p>
+            <p className="col-span-3 text-xs text-ink-400">{b.peers.count} {scopeLabel(b)}</p>
           </div>
           <RangeBar b={b} />
         </div>
@@ -127,11 +126,11 @@ function Section({ b }: { b: Benchmark }) {
   );
 }
 
-function Figure({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function Figure({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="text-xs text-ink-400">{label}</div>
-      <div className={`font-display text-xl font-semibold tabular mt-1 ${accent ? "text-accent" : "text-ink-100"}`}>{value}</div>
+      <div className={`font-display text-xl font-semibold tabular mt-1 text-ink-100`}>{value}</div>
     </div>
   );
 }

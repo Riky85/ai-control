@@ -28,7 +28,7 @@ export default async function EvidencePackPage() {
         <PageHeader
           crumbs={[{ label: "AI Act", href: "/compliance" }, { label: "Evidence pack" }]}
           title="AI Act evidence pack"
-          subtitle="AI Act and NIS2 evidence in one document: AI inventory, readiness, training, policies, controls, suppliers, incidents and a tamper-evident audit log."
+          subtitle="AI Act and NIS2, one document."
           action={
             <>
               {(await featureEnabled(s.orgId, "evidencePack")) ? <><a href="/api/compliance/evidence" className="btn btn-secondary">Download JSON</a><PrintButton label="Print / PDF" /></> : <LockedFeature feature="evidencePack" label="Download evidence pack" />}

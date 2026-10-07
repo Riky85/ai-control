@@ -59,7 +59,6 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Data exposure"
-        subtitle="Which data your AI touches, and which AI reaches each one."
         action={<ExportMenu />}
       />
 

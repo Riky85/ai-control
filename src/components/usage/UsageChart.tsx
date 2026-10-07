@@ -24,9 +24,9 @@ export default function UsageChart({ values, labels, unit = "visits", weekChange
   const summary = `${fmtN(total)} ${unit} in the last ${n} days${weekChange != null ? `, ${weekChange >= 0 ? "+" : ""}${weekChange}% vs the week before` : ""}.`;
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="usage-chart-title">
+    <section className="relative overflow-hidden rounded-xl border border-line bg-panel animate-rise" aria-labelledby="usage-chart-title">
       {/* Barra grigia in alto con il titolo. */}
-      <div className="bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
+      <div className="bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm bar-head">
         <h2 id="usage-chart-title" className="font-bold text-ink-100">
           Last {n} days
         </h2>
@@ -45,13 +45,13 @@ export default function UsageChart({ values, labels, unit = "visits", weekChange
               {weekChange > 0 ? "+" : ""}
               {weekChange}%
             </div>
-            <div className="text-xs text-ink-400 mt-1">last 7 days vs the week before</div>
+            <div className="text-xs text-ink-400 mt-1">vs last week</div>
           </div>
         )}
       </div>
 
       <figure className="px-5 pt-3 pb-4">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto text-accent" role="img" aria-label={summary}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto text-ink-100" role="img" aria-label={summary}>
           <line x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b} className="stroke-line" strokeWidth={1} />
           {avg > 0 && <line x1={PAD.l} x2={W - PAD.r} y1={y(avg)} y2={y(avg)} className="stroke-line" strokeDasharray="2 4" strokeWidth={1} />}
           {area && <path d={area} fill="currentColor" opacity={0.1} />}
@@ -88,7 +88,7 @@ export default function UsageChart({ values, labels, unit = "visits", weekChange
         </svg>
         <figcaption className="flex items-center gap-4 text-[11px] text-ink-400 mt-1">
           <span className="flex items-center gap-1.5" aria-hidden>
-            <svg width="16" height="4" className="text-accent">
+            <svg width="16" height="4" className="text-ink-100">
               <path d="M0 2h16" stroke="currentColor" strokeWidth="2" />
             </svg>
             {unit[0].toUpperCase() + unit.slice(1)} each day

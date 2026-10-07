@@ -20,7 +20,7 @@ export const CLOUD_AI: { provider: ConnectorProvider; label: string; vendor: str
     provider: "AZURE_OPENAI",
     label: "Azure OpenAI / AI Foundry",
     vendor: "Azure",
-    text: "Daily cost of OpenAI and Foundry models from Azure Cost Management. Read-only.",
+    text: "Daily OpenAI and Foundry cost.",
     fields: [
       { name: "tenantId", placeholder: "Tenant ID" },
       { name: "clientId", placeholder: "Client ID (application ID)" },
@@ -35,7 +35,7 @@ export const CLOUD_AI: { provider: ConnectorProvider; label: string; vendor: str
     label: "AWS Bedrock",
     vendor: "AWS",
     badgeName: "Bedrock",
-    text: "Daily cost of every Bedrock model, Claude and Llama included, from Cost Explorer. Read-only.",
+    text: "Daily Bedrock cost.",
     fields: [
       { name: "accessKeyId", placeholder: "Access key ID (AKIA…)" },
       { name: "secretAccessKey", placeholder: "Secret access key", secret: true },
@@ -47,7 +47,7 @@ export const CLOUD_AI: { provider: ConnectorProvider; label: string; vendor: str
     provider: "GOOGLE_VERTEX",
     label: "Google Vertex AI / Gemini API",
     vendor: "Google",
-    text: "Daily cost of Vertex AI and the Gemini API from your BigQuery billing export. Read-only.",
+    text: "Daily Vertex AI and Gemini cost.",
     fields: [
       { name: "table", placeholder: "project.dataset.gcp_billing_export_v1_…" },
       { name: "location", placeholder: "Dataset location, e.g. EU (optional)", optional: true },

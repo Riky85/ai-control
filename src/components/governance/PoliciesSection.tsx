@@ -34,10 +34,8 @@ export default function PoliciesSection({ policies, templates, canEdit, libraryT
   const rows = [...policies].sort((a, b) => ORDER.indexOf(a.category) - ORDER.indexOf(b.category) || Number(b.enabled) - Number(a.enabled));
   const next =
     active === 0
-      ? { label: canEdit ? "Add a policy from the library below" : "No policy active yet" }
-      : active === 1
-        ? { label: canEdit && templates.length ? "Add a second policy — one alone covers little" : "One policy active" }
-        : null;
+      ? { label: canEdit ? "Add a policy from the library" : "No policy active" }
+      : null;
 
   return (
     <Section
@@ -47,13 +45,12 @@ export default function PoliciesSection({ policies, templates, canEdit, libraryT
         policies.length ? (
           <>
             <b className="font-medium text-ink-100 tabular">{active}</b> active{policies.length > active ? ` · ${policies.length - active} off` : ""}
-            {libraryTotal ? ` · ${libraryTotal - templates.length} of ${libraryTotal} from the library` : ""}
           </>
         ) : (
           "No policies yet"
         )
       }
-      footer={next ? <NextStep label={next.label} /> : <NextStep done label="Policies are sent to employees with the AI policy" />}
+      footer={next ? <NextStep label={next.label} /> : undefined}
     >
       {rows.length > 0 && (
         <ul className="divide-y divide-line">

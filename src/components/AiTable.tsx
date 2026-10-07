@@ -46,7 +46,7 @@ export default function AiTable({
   return (
     <Table
       {...head}
-      columns={["AI", "Plan", "People", { label: "Cost / month", className: "text-right" }, { label: "Could save", className: "text-right" }, ""]}
+      columns={["AI", "Plan", "People", { label: "Monthly", className: "text-right" }, { label: "Save", className: "text-right" }, ""]}
       empty={rows.length === 0 && (empty ?? "Nothing here yet.")}
     >
       {rows.map(({ a, m }) => {
@@ -55,11 +55,9 @@ export default function AiTable({
         const seats = a.cost?.seats ?? null;
         const active = a.usages.filter((u) => u.lastSeenAt && now - u.lastSeenAt.getTime() < 30 * DAY).length;
         const people =
-          seats && a.usages.length ? `${active} of ${seats} active` : seats ? `${seats} paid · usage unknown` : a.usages.length ? `${a.usages.length}` : "—";
+          seats && a.usages.length ? `${active} of ${seats} active` : seats ? `${seats} seats` : a.usages.length ? `${a.usages.length}` : "—";
         const s = save.get(a.id);
         const couldSave = s === FULL ? m?.eur ?? 0 : Math.min(s ?? 0, m?.eur ?? Infinity);
-        // "New" = trovata da angar e non ancora decisa: sparisce appena la approvi o la segni come non consentita.
-        const isNew = a.status === "UNKNOWN" || a.status === "UNREVIEWED";
         const needsDecision = a.status === "UNKNOWN" || a.status === "UNREVIEWED";
         return (
           <tr key={a.id} className="hover:bg-ink-100/[0.02] transition-colors">
@@ -69,11 +67,6 @@ export default function AiTable({
                 <span className="min-w-0">
                   <span className="flex items-center gap-2">
                     <span className="font-medium text-ink-100 group-hover:underline truncate">{a.name}</span>
-                    {isNew && (
-                      <span title="Found automatically — not reviewed yet. Approve it or mark it not allowed in Review." className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-accent bg-accent/10 rounded px-1.5 py-0.5 leading-none">
-                        New
-                      </span>
-                    )}
                   </span>
                   <span className="block text-xs text-ink-400 truncate">{[a.vendor, cat ? CATEGORY_LABEL[cat] : null].filter(Boolean).join(" · ") || "—"}</span>
                 </span>
@@ -94,7 +87,7 @@ export default function AiTable({
               )}
             </td>
             <td className="px-5 py-3 text-right tabular">
-              {couldSave >= 1 ? <Link href="/savings" className="font-medium text-accent hover:underline">{fmtEur(Math.round(couldSave))}</Link> : <span className="text-ink-400">—</span>}
+              {couldSave >= 1 ? <Link href="/savings" className="font-medium text-steady hover:underline">{fmtEur(Math.round(couldSave))}</Link> : <span className="text-ink-400">—</span>}
             </td>
             <td className="px-5 py-3 text-right">
               {needsDecision ? (

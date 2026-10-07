@@ -113,7 +113,7 @@ export function scoreSentence(d: Pick<ScoreCardData, "verdict" | "savingsMonthly
 export default function ScoreCard({ data }: { data: ScoreCardData }) {
   const { score, level, levelLabel, confidence, confidenceLabel, dims, delta, potential, actions } = data;
   return (
-    <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="score-card-title">
+    <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="score-card-title">
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 lg:gap-10 p-5 sm:p-6">
         <div className="flex flex-col min-w-0">
           <div className="flex items-baseline justify-between gap-3">
@@ -126,7 +126,7 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
             <LevelPill level={level} label={levelLabel} className="mb-1.5" />
           </div>
           <ScoreBar value={score} className="mt-4 max-w-sm" />
-          <p className="text-sm text-ink-100 mt-4 leading-snug max-w-md">{scoreSentence(data)}</p>
+          <p className="text-sm text-ink-100 mt-4 leading-snug max-w-md">{data.verdict}</p>
           <div className="flex flex-wrap items-center gap-2 mt-5">
             <Link href="/score/improve" className="btn btn-primary">
               Improve my score

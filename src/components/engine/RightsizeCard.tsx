@@ -60,9 +60,8 @@ export default function RightsizeCard({ assets, saveMonthlyEur, upgradeMonthlyEu
   return (
     <Section
       id="right-plan"
-      title="Right plan for each person"
-      meta="From each person's use in the last 30 days"
-      action={saveMonthlyEur >= 1 ? <Pill tone="accent">{eur(saveMonthlyEur)} a month</Pill> : undefined}
+      title="Right plan"
+      action={saveMonthlyEur >= 1 ? <span className="text-sm font-semibold tabular text-ink-100">{eur(saveMonthlyEur)} a month</span> : undefined}
       footer={
         total > 0 ? (
           <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-400">
@@ -72,15 +71,15 @@ export default function RightsizeCard({ assets, saveMonthlyEur, upgradeMonthlyEu
                 {s.label} <b className="font-medium text-ink-100">{n(counts[s.key])}</b>
               </span>
             ))}
-            {upgradeMonthlyEur >= 1 && <span className="ml-auto tabular">Upgrades would add {eur(upgradeMonthlyEur)} a month</span>}
+            {upgradeMonthlyEur >= 1 && <span className="ml-auto tabular">Upgrades +{eur(upgradeMonthlyEur)} a month</span>}
           </span>
         ) : undefined
       }
     >
       {total === 0 ? (
-        <p className="p-5 text-sm text-ink-400">No paid seats with known users yet.</p>
+        <p className="p-5 text-sm text-ink-400">No seat data yet.</p>
       ) : shown.length === 0 ? (
-        <p className="p-5 text-sm text-ink-400">Every seat is on the right plan.</p>
+        <p className="p-5 text-sm text-ink-400">All on the right plan.</p>
       ) : (
         <ul className="divide-y divide-line">
           {shown.map((a) => {
@@ -94,7 +93,7 @@ export default function RightsizeCard({ assets, saveMonthlyEur, upgradeMonthlyEu
                     <span className="min-w-0">
                       <span className="block text-sm font-medium text-ink-100 truncate group-hover:underline">{a.name}</span>
                       <span className="block text-xs text-ink-400 truncate tabular">
-                        {a.planName ?? "Seats"} · {fmtEur(a.seatEur, { decimals: a.seatEur < 100 })} each a month
+                        {a.planName ?? "Seats"} · {fmtEur(a.seatEur, { decimals: a.seatEur < 100 })} a seat
                       </span>
                     </span>
                   </Link>

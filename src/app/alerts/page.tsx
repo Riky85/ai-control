@@ -40,7 +40,6 @@ export default async function AlertsPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Alerts"
-        subtitle="Renewals coming up, budgets running out, AI that isn't allowed, seats to free — checked every day."
         action={
           unread > 0 ? (
             <form action={markAllAlertsReadAction}>

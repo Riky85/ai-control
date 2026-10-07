@@ -69,13 +69,13 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
             <Row title="Organization" hint={org?.country ? `Country: ${org.country}` : undefined}>
               <span className="text-sm text-ink-100">{org?.name ?? "—"}</span>
             </Row>
-            <Row title="Employees" hint="To show AI spend for each employee." id="employees">
+            <Row title="Employees" id="employees">
               <form action={setEmployeesAction} className="flex gap-2">
                 <input name="employees" type="number" min="1" defaultValue={org?.employees ?? ""} placeholder="e.g. 120" aria-label="Employees" className="field w-32" />
                 <button className="btn btn-secondary btn-sm">Save</button>
               </form>
             </Row>
-            <Row title="Industry" hint="Compares you with similar companies.">
+            <Row title="Industry">
               <form action={setIndustryAction} className="flex gap-2 w-full max-w-xs md:w-auto">
                 <select name="industry" defaultValue={org?.industry ?? ""} aria-label="Industry" className="field flex-1 min-w-0 md:w-56">
                   <option value="">Not set</option>
@@ -86,7 +86,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
                 <button className="btn btn-secondary btn-sm">Save</button>
               </form>
             </Row>
-            <Row title="People" hint="Added from company accounts and provider keys.">
+            <Row title="People">
               <Link href="/people" className="btn btn-secondary btn-sm">{userCount} {userCount === 1 ? "person" : "people"} →</Link>
               <details className="relative">
                 <summary className="btn btn-secondary btn-sm list-none cursor-pointer">Add by hand</summary>
@@ -94,7 +94,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
                   <input name="email" type="email" required placeholder="Email" className="field" />
                   <input name="name" placeholder="Name" className="field" />
                   <input name="department" placeholder="Department" className="field" />
-                  <button className="btn btn-primary btn-sm">Add</button>
+                  <button className="btn btn-secondary btn-sm">Add</button>
                 </form>
               </details>
             </Row>
@@ -105,7 +105,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
             </Row>
             {/* Comandi vocali: la riga sparisce solo con NEXT_PUBLIC_ANGAR_VOICE=0. */}
             {process.env.NEXT_PUBLIC_ANGAR_VOICE !== "0" && (
-              <Row title="Voice" hint="Speak to angar anywhere in the platform.">
+              <Row title="Voice">
                 <VoiceSetting initial={parseVoiceMode(cookies().get(VOICE_COOKIE)?.value)} />
               </Row>
             )}
@@ -115,12 +115,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
 
       {tab === "privacy" && (
         <>
-          {searchParams.privacy === "ok" && <Notice tone="success">Privacy mode changed — pages, exports and reports follow it from now on.</Notice>}
-          {searchParams.privacy === "erased" && <Notice tone="success">Names and emails were removed from past data.</Notice>}
-          {searchParams.euonly === "on" && <Notice tone="success">AI answers now stay inside the EU: the assistant answers from the documentation and contracts are read by rules only.</Notice>}
-          {searchParams.euonly === "off" && <Notice tone="success">AI answers are back on where the platform offers them.</Notice>}
+          {searchParams.privacy === "ok" && <Notice tone="success">Privacy mode changed.</Notice>}
+          {searchParams.privacy === "erased" && <Notice tone="success">Names removed from past data.</Notice>}
+          {searchParams.euonly === "on" && <Notice tone="success">AI answers now stay inside the EU.</Notice>}
+          {searchParams.euonly === "off" && <Notice tone="success">AI answers are back on.</Notice>}
           <Section title="Privacy" action={!isAdmin ? "Admins only" : undefined}>
-            <Row title="Employee privacy" hint="What angar shows about people. Never what they type." id="privacy">
+            <Row title="Employee privacy" hint="Never what they type." id="privacy">
               <form action={setPrivacyModeAction} className="flex flex-col gap-2 w-full max-w-md">
                 <fieldset disabled={!isAdmin} className="flex flex-col gap-1.5">
                   {PRIVACY_MODES.map((m) => (
@@ -133,18 +133,15 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
                     </label>
                   ))}
                 </fieldset>
-                <p className="text-xs text-ink-400 leading-relaxed">
-                  New workspaces start <span className="text-ink-100">By department</span>. Before switching to <span className="text-ink-100">By person</span>, give staff the employee notice — and in Italy, Germany, France and Spain, agree it with the works council or unions first (templates in the{" "}
-                  <Link href="/trust#documents" className="underline hover:text-ink-100">Trust Center</Link>).
-                </p>
-                <div className="flex items-center justify-end gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <Link href="/trust#documents" className="text-xs text-ink-400 underline hover:text-ink-100" title="Before switching to By person, give staff the employee notice. In Italy, Germany, France and Spain, agree it with the works council or unions first.">Before By person</Link>
                   <button className="btn btn-secondary btn-sm" disabled={!isAdmin}>Save</button>
                 </div>
               </form>
             </Row>
             <Row
               title="Keep AI answers inside the EU"
-              hint={euForced ? "On for this whole deployment (EU-only mode)." : "No workspace data goes to Anthropic. The assistant answers from the documentation; contracts are read by rules."}
+              hint={euForced ? "On for this deployment." : "No data goes to Anthropic."}
               id="eu-only"
             >
               <form action={setEuOnlyAction}>
@@ -162,14 +159,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
                 </button>
               </form>
             </Row>
-            <Row title="Employee notice" hint="Hand it out before you start (EN · IT · DE · FR · ES).">
+            <Row title="Employee notice" hint="EN · IT · DE · FR · ES">
               <Link href="/compliance/employee-notice" className="btn btn-secondary btn-sm">Open →</Link>
             </Row>
-            <Row title="Trust Center" hint="Where data lives, sub-processors, DPA and agreement templates.">
-              <Link href="/trust" className="btn btn-secondary btn-sm">How we protect your data →</Link>
+            <Row title="Trust Center">
+              <Link href="/trust" className="btn btn-secondary btn-sm">Open →</Link>
             </Row>
             {!showsPeople(privacy) && role === "OWNER" && (
-              <Row title="Past data" hint="Swap names already collected for pseudonyms. Can't be undone.">
+              <Row title="Past data" hint="Can't be undone.">
                 <form action={erasePastNamesAction}>
                   <button className="btn btn-danger btn-sm">Erase names</button>
                 </form>
@@ -200,12 +197,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
         <>
           {searchParams.chat === "ok" && <Notice tone="success">Connected — a test message was sent.</Notice>}
           {searchParams.chat === "off" && <Notice tone="success">Slack or Teams disconnected.</Notice>}
-          {searchParams.ticket === "jira-connected" && <Notice tone="success">Jira connected — send a test ticket to check where it lands.</Notice>}
-          {searchParams.ticket === "servicenow-connected" && <Notice tone="success">ServiceNow connected — send a test ticket to check where it lands.</Notice>}
+          {searchParams.ticket === "jira-connected" && <Notice tone="success">Jira connected.</Notice>}
+          {searchParams.ticket === "servicenow-connected" && <Notice tone="success">ServiceNow connected.</Notice>}
           {searchParams.ticket === "test" && <Notice tone="success">Test ticket {searchParams.key ? <b className="font-medium">{searchParams.key}</b> : null} created.</Notice>}
           {searchParams.ticket === "off" && <Notice tone="success">Ticketing disconnected.</Notice>}
           <Section title="Connections">
-            <Row title="Sources" hint={connectors.length ? `${connectors.length} connected` : "Nothing connected yet"}>
+            <Row title="Sources" hint={connectors.length ? `${connectors.length} connected` : undefined}>
               {connectors.slice(0, 6).map((c) => (
                 <span key={c.id} title={c.provider} className="rounded-lg border border-line p-1">
                   <VendorBadge vendor={c.provider} size={22} />
@@ -244,14 +241,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
 
       {tab === "data" && (
         <>
-          {searchParams.reset && <Notice tone="success">Workspace data reset — drop a bank statement on Overview to start again.</Notice>}
+          {searchParams.reset && <Notice tone="success">Workspace data reset.</Notice>}
           <Section title="Workspace data" id="test-data">
-            <Row title="Demo data" hint="Fills every page with an example company. Owners only.">
+            <Row title="Demo data" hint="Owners only.">
               <form action={loadDemoDataAction}>
                 <button className="btn btn-secondary btn-sm">Load demo data</button>
               </form>
             </Row>
-            <Row title="Reset workspace" hint="Keeps only members, plan and audit log. Owners only.">
+            <Row title="Reset workspace" hint="Owners only. Keeps members, plan, audit log.">
               <form action={resetWorkspaceDataAction} className="flex gap-2 w-full max-w-md">
                 <input name="confirm" required autoComplete="off" aria-label="Organization name" placeholder={`Type "${org?.name ?? ""}"`} className="field flex-1 min-w-0 focus:border-alarm" />
                 <button className="btn btn-danger btn-sm">Reset</button>
@@ -288,7 +285,7 @@ function TicketsSection({ isAdmin, jira, snow }: { isAdmin: boolean; jira: Ticke
   const panel = "absolute left-0 md:left-auto md:right-0 z-20 mt-2 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-line bg-panel p-3 shadow-card flex flex-col gap-2";
   return (
     <Section title="Tickets" id="tickets" action={!isAdmin ? "Admins only" : undefined}>
-      <Row title="What opens a ticket" hint="One ticket for each alert, never twice.">
+      <Row title="What opens a ticket">
         <span className="text-xs text-ink-400 md:text-right">AI not allowed but in use · spend anomalies · leaked AI keys — warning or critical</span>
       </Row>
       <Row title={<span className="inline-flex items-center gap-2">Jira {pill(!!jira)}</span>} hint={jira?.cfg ? <>{status(jira, `project ${jira.cfg.projectKey}`)}</> : "Jira Cloud · REST API"}>
@@ -303,8 +300,8 @@ function TicketsSection({ isAdmin, jira, snow }: { isAdmin: boolean; jira: Ticke
                 <input name="projectKey" required defaultValue={jira?.cfg?.projectKey ?? ""} placeholder="Project key, e.g. IT" aria-label="Jira project key" className="field flex-1 min-w-0 uppercase" />
                 <input name="issueType" defaultValue={jira?.cfg?.issueType ?? "Task"} placeholder="Task" aria-label="Issue type" className="field w-24" />
               </div>
-              <button className="btn btn-primary btn-sm">{jira ? "Save" : "Connect"}</button>
-              <p className="text-[11px] text-ink-400">Token from id.atlassian.com → Security → API tokens. angar checks it before saving and stores it encrypted.</p>
+              <button className="btn btn-secondary btn-sm">{jira ? "Save" : "Connect"}</button>
+              <p className="text-[11px] text-ink-400">Token: id.atlassian.com → Security → API tokens.</p>
             </fieldset>
           </form>
         </details>
@@ -320,8 +317,8 @@ function TicketsSection({ isAdmin, jira, snow }: { isAdmin: boolean; jira: Ticke
               <input name="user" defaultValue={snow?.cfg?.user ?? ""} placeholder="Integration user (empty for a token)" aria-label="ServiceNow user" className="field" />
               <input name="secret" type="password" autoComplete="off" required={!snow} placeholder={snow ? "Password or token — leave empty to keep" : "Password or token"} aria-label="ServiceNow password or token" className="field" />
               <input name="assignmentGroup" defaultValue={snow?.cfg?.assignmentGroup ?? ""} placeholder="Assignment group (optional)" aria-label="Assignment group" className="field" />
-              <button className="btn btn-primary btn-sm">{snow ? "Save" : "Connect"}</button>
-              <p className="text-[11px] text-ink-400">The user needs the itil role to create incidents. angar checks access before saving and stores it encrypted.</p>
+              <button className="btn btn-secondary btn-sm">{snow ? "Save" : "Connect"}</button>
+              <p className="text-[11px] text-ink-400">Needs the itil role.</p>
             </fieldset>
           </form>
         </details>

@@ -36,7 +36,7 @@ export default async function BankPage({ searchParams }: { searchParams: { count
       <PageHeader
         crumbs={[{ label: "Sources", href: "/sources" }]}
         title="Connect your bank"
-        subtitle="Read-only access for 90 days, approved on your bank's own site. angar keeps only AI charges — every other movement is ignored."
+        subtitle="Read-only, 90 days. AI charges only."
       />
       {!bankConfigured() && (
         <Notice>

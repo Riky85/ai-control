@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { teamValue, type TeamValue as Team, type TeamVerdict } from "@/lib/budgets";
-import { orgPrivacyMode, showsDepartments, MIN_GROUP } from "@/lib/privacy";
+import { orgPrivacyMode, showsDepartments } from "@/lib/privacy";
 import { fmtEur } from "@/lib/format";
 
 const MAX_ROWS = 8;
@@ -28,8 +28,8 @@ function SpendBar({ t, max }: { t: Team; max: number }) {
     <div className="relative h-3" role="img" aria-label={label} title={label}>
       <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line" />
       <div className="absolute left-0 top-1/2 flex h-1.5 -translate-y-1/2 overflow-hidden rounded-full" style={{ width: `${Math.max(w, t.monthlyEur > 0 ? 2 : 0)}%` }}>
-        <div className="h-full bg-accent/70" style={{ width: `${(1 - idle) * 100}%` }} />
-        <div className="h-full bg-accent/20" style={{ width: `${idle * 100}%` }} />
+        <div className="h-full bg-ink-100/60" style={{ width: `${(1 - idle) * 100}%` }} />
+        <div className="h-full bg-ink-100/15" style={{ width: `${idle * 100}%` }} />
       </div>
     </div>
   );
@@ -44,8 +44,8 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
   const mode = await orgPrivacyMode(orgId);
   if (!showsDepartments(mode)) {
     return (
-      <section className="rounded-2xl border border-line bg-panel px-5 py-4 text-sm text-ink-400">
-        <span className="font-medium text-ink-100">Value by team</span> is off: employee privacy is set to totals only.{" "}
+      <section className="rounded-xl border border-line bg-panel px-5 py-4 text-sm text-ink-400">
+        <span className="font-medium text-ink-100">Value by team</span> is off.{" "}
         <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">Change it</Link>
       </section>
     );
@@ -55,25 +55,27 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
   const max = Math.max(0, ...teams.map((t) => t.monthlyEur));
   const idleTotal = teams.reduce((s, t) => s + t.idleEur, 0);
   return (
-    <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="team-value-title">
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3 bar-head">
+    <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="team-value-title">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
         <div className="min-w-0">
           <h2 id="team-value-title" className="text-sm font-bold text-ink-100">Value by team</h2>
-          <p className="text-xs text-ink-400 mt-0.5">
-            AI spend a month and how much of it is used{idleTotal >= 1 ? <> · <b className="font-medium text-ink-100">{fmtEur(idleTotal)}</b> a month on idle seats</> : null}
-          </p>
+          {idleTotal >= 1 && (
+            <p className="text-xs text-ink-400 mt-0.5 tabular">
+              <b className="font-medium text-ink-100">{fmtEur(idleTotal)}</b> a month idle
+            </p>
+          )}
         </div>
         <span className="flex items-center gap-3 text-[11px] text-ink-400 shrink-0" aria-hidden>
-          <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-accent/70" />Used</span>
-          <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-accent/20" />Idle</span>
+          <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-ink-100/60" />Used</span>
+          <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-ink-100/15" />Idle</span>
         </span>
       </div>
 
       {suppressed ? (
-        <p className="p-5 text-sm text-ink-400">Fewer than {MIN_GROUP} people use paid AI — teams appear once groups are large enough to stay anonymous.</p>
+        <p className="p-5 text-sm text-ink-400">Too few people to show.</p>
       ) : shown.length === 0 ? (
         <p className="p-5 text-sm text-ink-400">
-          No paid AI with known users yet. <Link href="/sources" className="underline hover:text-ink-100">Add costs</Link> and <Link href="/people" className="underline hover:text-ink-100">set departments</Link> to see value by team.
+          No data yet. <Link href="/people" className="underline hover:text-ink-100">Set departments</Link>
         </p>
       ) : (
         <ul className="divide-y divide-line">
@@ -94,7 +96,7 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
                     </span>
                   )}
                   {t.utilisation != null && <span>{pct(t.utilisation)} use</span>}
-                  {t.eurEachActive != null && <span>{fmtEur(t.eurEachActive)} each active user</span>}
+                  {t.eurEachActive != null && <span>{fmtEur(t.eurEachActive)} each user</span>}
                 </div>
               </div>
               <div className="hidden sm:block"><SpendBar t={t} max={max} /></div>
@@ -104,13 +106,12 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
         </ul>
       )}
 
-      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-xs text-ink-400 bar-foot">
-        <span>
-          Active = used in the last 30 days · teams under {MIN_GROUP} people are grouped, no names
-          {unassignedSeatsEur >= 1 ? ` · ${fmtEur(unassignedSeatsEur)} a month on seats with nobody assigned` : ""}
-        </span>
+      {(unassignedSeatsEur >= 1 || teams.length > MAX_ROWS) && (
+      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-xl px-5 py-3 text-xs text-ink-400 bar-foot">
+        <span className="tabular">{unassignedSeatsEur >= 1 ? `${fmtEur(unassignedSeatsEur)} a month unassigned` : ""}</span>
         {teams.length > MAX_ROWS && <span className="tabular shrink-0">+{teams.length - MAX_ROWS} more</span>}
       </div>
+      )}
     </section>
   );
 }

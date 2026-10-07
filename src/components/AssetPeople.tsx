@@ -59,7 +59,7 @@ export default async function AssetPeople({
           <div className="rounded-xl border border-line bg-panel px-5 py-4 flex items-center gap-4">
             <div className="flex-1">
               <div className="text-sm font-medium text-ink-100">{inactive.length} {inactive.length === 1 ? "person hasn't" : "people haven't"} used {asset.name} in 30 days</div>
-              <div className="text-sm text-ink-400">Ask if they still need the seat — the ones who don't reply can be removed.</div>
+              <div className="text-sm text-ink-400">Ask if they still need it.</div>
             </div>
             <a
               href={`mailto:?bcc=${encodeURIComponent(inactive.join(","))}&subject=${encodeURIComponent(`Do you still need your ${asset.name} seat?`)}&body=${encodeURIComponent(`Hi,\n\nyou have a company ${asset.name} seat but haven't used it in the last 30 days. If you still need it, just reply. Otherwise we'll free it up.\n\nThanks!`)}`}
@@ -97,7 +97,7 @@ export default async function AssetPeople({
             </form>
           </div>
         )}
-        <Table columns={["Person", "Department", "Last active", ""]} empty={usages.length === 0 ? "Nobody known yet — connect Microsoft 365, Google Workspace or an Admin key to see who uses it." : false}>
+        <Table columns={["Person", "Department", "Last active", ""]} empty={usages.length === 0 ? "Nobody known yet." : false}>
           {usages.map((u) => {
             const gone = u.user?.email ? removedAt.get(u.user.email.toLowerCase()) : undefined;
             return (
@@ -132,7 +132,7 @@ export default async function AssetPeople({
       <div className="grid grid-cols-3 gap-4">
         <Total label="People using it" value={maskCount(usages.length)} />
         <Total label="Active in 30 days" value={maskCount(active)} />
-        <Total label="Not active in 30 days" value={maskCount(idle)} hint={idle ? "Seat reminders need the “By person” privacy mode" : undefined} />
+        <Total label="Not active in 30 days" value={maskCount(idle)} hint={idle ? "Needs “By person” mode" : undefined} />
       </div>
       {mode === "department" && (
         <Table columns={["Department", { label: "People", className: "text-right" }, { label: "Active in 30 days", className: "text-right" }]} empty={usages.length === 0 ? "Nobody known yet." : false}>

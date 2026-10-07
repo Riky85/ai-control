@@ -11,7 +11,7 @@ const LEVEL_LABEL: Record<string, string> = {
   RESTRICTED: "Restricted",
   BLOCKED: "Blocked",
 };
-const LEVEL_TONE: Record<string, Tone> = { ASSURED: "steady", NEEDS_REVIEW: "signal", RESTRICTED: "accent", BLOCKED: "alarm" };
+const LEVEL_TONE: Record<string, Tone> = { ASSURED: "steady", NEEDS_REVIEW: "signal", RESTRICTED: "alarm", BLOCKED: "alarm" };
 
 interface CheckRow {
   key: string;
@@ -33,7 +33,7 @@ export default async function AssuranceView({ orgId }: { orgId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Section id="assurance" title="Assurance checks" meta={`${passed + warning + failed} checks across ${withReport.length} AI`}>
+      <Section id="assurance" title="Assurance checks" meta={`${passed + warning + failed} checks · ${withReport.length} AI`}>
         <div className="p-5">
           <StackBar
             label="Assurance checks"
@@ -79,7 +79,7 @@ export default async function AssuranceView({ orgId }: { orgId: string }) {
         ) : null,
       )}
 
-      {withReport.length === 0 && <div className="rounded-2xl border border-dashed border-line bg-panel p-8 text-center text-sm text-ink-400">No assurance reports yet.</div>}
+      {withReport.length === 0 && <div className="rounded-xl border border-dashed border-line bg-panel p-8 text-center text-sm text-ink-400">No assurance reports yet.</div>}
     </div>
   );
 }

@@ -69,7 +69,7 @@ export default async function SystemPage({ searchParams }: { searchParams: { lea
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="System" subtitle="Health of the whole platform: configuration, backups and recorded errors. Platform administrator only." />
+      <PageHeader title="System" subtitle="Platform admins only." />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Checks passing" value={`${okCount}/${checks.length}`} hint={okCount === checks.length ? "Everything set up" : `${checks.length - okCount} need setup`} tone={critical ? "alarm" : okCount < checks.length ? "signal" : "accent"} />

@@ -26,7 +26,7 @@ export function ProviderDependenciesTable({ est }: { est: EstateData }) {
   });
   if (!rows.length) return null;
   return (
-    <Table columns={["Provider dependency", "AI that depend on it", { label: "Share of spend", className: "text-right" }, "Exit readiness", "Main blockers"]}>
+    <Table title="Dependencies" columns={["Provider", "AI", { label: "Share", className: "text-right" }, "Exit readiness"]}>
       {rows.map(({ c, deps, exit }) => (
         <tr key={c.providerKey}>
           <td className={`${td} font-medium text-ink-100`}>
@@ -44,12 +44,11 @@ export function ProviderDependenciesTable({ est }: { est: EstateData }) {
           </td>
           <td className={`${td} text-right tabular text-ink-100`}>{est.concentration.total > 0 ? `${Math.round(c.share * 100)}%` : "—"}</td>
           <td className={`${td} whitespace-nowrap`}>
-            <span className="flex items-center gap-2 text-sm text-ink-100 tabular">
+            <span className="flex items-center gap-2 text-sm text-ink-100 tabular" title={exit.blockers.slice(0, 2).join(" · ") || undefined}>
               <span className={`h-2 w-2 rounded-full ${TONE[exit.status]}`} />
               {exit.score} · {exit.status}
             </span>
           </td>
-          <td className={`${td} text-xs text-ink-400`}>{exit.blockers.slice(0, 2).join(" · ") || "None"}</td>
         </tr>
       ))}
     </Table>

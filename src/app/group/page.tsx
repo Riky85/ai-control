@@ -21,7 +21,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
   if (!group)
     return (
       <div className="flex flex-col gap-4">
-        <PageHeader title="Group view" subtitle="All the companies in your group in one place — consolidated AI spend, savings and budgets." />
+        <PageHeader title="Group view" subtitle="All your companies." />
         <div className="rounded-xl border border-dashed border-line bg-panel p-8 flex flex-col gap-3 animate-rise">
           <h2 className="text-base font-bold text-ink-100">Create a group for your companies</h2>
           <p className="text-sm text-ink-400 max-w-2xl">

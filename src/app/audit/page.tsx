@@ -58,7 +58,7 @@ export default async function AuditPage({ searchParams }: { searchParams: { q?: 
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Audit log" subtitle="Who did what, when and from where in this workspace. Entries can't be edited or deleted." />
+      <PageHeader title="Audit log" subtitle="Entries can't be edited." />
       {recent.length > 0 && (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

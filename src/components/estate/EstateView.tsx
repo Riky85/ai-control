@@ -19,15 +19,15 @@ export function EstateViewBody({ est, admin }: { est: EstateData; admin: boolean
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label="Provider concentration" value={m.providerConcentration ? `${Math.round(m.providerConcentration.share * 100)}%` : "—"} hint={m.providerConcentration ? `Largest: ${m.providerConcentration.label}` : "No spend linked to a provider yet"} tone={m.providerConcentration && m.providerConcentration.share >= 0.6 ? "signal" : undefined} href="/providers" />
-        <StatCard label="Unowned AI systems" value={String(m.unowned)} hint={m.unowned ? "No owner or team set" : "Every AI has an owner"} />
-        <StatCard label="High dependencies" value={String(m.highDependencies)} hint={m.highDependencies ? "Not ready to exit" : "None"} tone={m.highDependencies ? "signal" : undefined} />
+        <StatCard label="Provider concentration" value={m.providerConcentration ? `${Math.round(m.providerConcentration.share * 100)}%` : "—"} hint={m.providerConcentration ? m.providerConcentration.label : undefined} tone={m.providerConcentration && m.providerConcentration.share >= 0.6 ? "signal" : undefined} href="/providers" />
+        <StatCard label="No owner" value={String(m.unowned)} />
+        <StatCard label="High dependencies" value={String(m.highDependencies)} hint={m.highDependencies ? "Not ready to exit" : undefined} tone={m.highDependencies ? "signal" : undefined} />
       </div>
 
       <EstateGraphView parts={toParts(est.graph)} concentration={m.providerConcentration} />
 
       {admin && est.pending.length > 0 && (
-        <Panel flush title="Inferred links to check" subtitle={`${est.pending.length} waiting`}>
+        <Panel flush title="Links to check" subtitle={`${est.pending.length}`}>
           <ul className="divide-y divide-line">
             {est.pending.slice(0, 20).map((p) => (
               <li key={p.table + p.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5 text-sm">
@@ -52,7 +52,7 @@ export function EstateViewBody({ est, admin }: { est: EstateData; admin: boolean
 
       {admin && (
         <details className="rounded-xl border border-line bg-panel px-5 py-4">
-          <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none">Declare a business process or application</summary>
+          <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none">Add a process or application</summary>
           <div className="grid sm:grid-cols-2 gap-4 mt-3">
             <form action={createProcessAction} className="flex flex-col gap-2">
               <input type="hidden" name="back" value={back} />

@@ -60,7 +60,6 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
         <PageHeader
           crumbs={[{ label: "AI Act", href: "/compliance" }, { label: "Employee notice" }]}
           title="Employee notice"
-          subtitle="A ready-to-use privacy notice for your staff, built from what angar actually collects in your company."
           action={
             (await featureEnabled(orgId, "employeeNotice")) ? (
               <>

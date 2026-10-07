@@ -42,7 +42,7 @@ export default async function ConnectPage() {
     {
       key: "bank",
       title: "Bank & invoices",
-      text: "Upload a statement or invoices to see every AI you pay for.",
+      text: "Every AI you pay for.",
       status: spendCount ? `${spendCount} AI charge${spendCount === 1 ? "" : "s"}` : null,
       href: "/sources",
       cta: spendCount ? "Add more" : "Upload",
@@ -51,7 +51,7 @@ export default async function ConnectPage() {
     {
       key: "accounts",
       title: "Company accounts",
-      text: "Microsoft 365, Google Workspace or Okta — who uses which AI.",
+      text: "Who uses which AI.",
       status: accounts ? workplace.connected.map((l) => l.split(" /")[0]).join(" · ") : null,
       href: "/sources#accounts",
       cta: accounts ? "Manage" : "Connect",
@@ -60,7 +60,7 @@ export default async function ConnectPage() {
     {
       key: "desktop",
       title: "Desktop app",
-      text: "See which AI is used on each computer, and for how long.",
+      text: "AI used on each computer.",
       status: devices.total ? `${devices.online} of ${devices.total} computer${devices.total === 1 ? "" : "s"} online` : null,
       href: "/download",
       cta: devices.total ? "Open" : "Get the app",
@@ -69,7 +69,7 @@ export default async function ConnectPage() {
     {
       key: "edge",
       title: "angar Edge",
-      text: "A small box that sees every AI on your whole network.",
+      text: "Every AI on your network.",
       status: sensors ? `${sensors} sensor${sensors === 1 ? "" : "s"}` : null,
       href: "/edge/sensors",
       cta: sensors ? "Open" : "Set up",
@@ -78,8 +78,8 @@ export default async function ConnectPage() {
     {
       key: "gateway",
       title: "Gateway",
-      text: "Your apps call AI through angar: cost measured, sensitive data removed.",
-      status: gatewayKeys ? `${gatewayKeys} key${gatewayKeys === 1 ? "" : "s"} · ${gatewayToday.toLocaleString("en-GB")} request${gatewayToday === 1 ? "" : "s"} in 24h` : null,
+      text: "Your apps call AI through angar.",
+      status: gatewayKeys ? `${gatewayKeys} key${gatewayKeys === 1 ? "" : "s"} · ${gatewayToday.toLocaleString("en-GB")} today` : null,
       href: "/gateway",
       cta: gatewayKeys ? "Open" : "Set up",
       art: <GatewayPreview />,
@@ -88,22 +88,22 @@ export default async function ConnectPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Connect" subtitle={next ? "Connect once — angar keeps everything up to date." : undefined} />
+      <PageHeader title="Connect" />
 
       {/* Il prossimo passo è segnato sulla sua scheda ("Start here" + pulsante primario): niente doppione sopra. */}
       {!next && (
         <section className="rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink-100">
-          <span className="text-steady">✓</span> All connected — angar keeps everything up to date.
+          <span className="text-steady">✓</span> All connected.
         </section>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {cards.map((c) => (
-          <section key={c.key} className="overflow-hidden rounded-2xl border border-line bg-panel flex flex-col">
+          <section key={c.key} className="overflow-hidden rounded-xl border border-line bg-panel flex flex-col">
             <div className="p-5 flex flex-col gap-1">
-              <h2 className="text-base font-bold text-ink-100 flex items-center gap-2">
+              <h2 className="text-sm font-bold text-ink-100 flex items-center gap-2">
                 {c.title}
-                {c.key === next && <span className="rounded-full border border-accent/40 px-2 py-0.5 text-[11px] font-medium text-accent">Start here</span>}
+                {c.key === next && <span className="rounded-full border border-line px-2 py-0.5 text-[11px] font-medium text-ink-400">Start here</span>}
               </h2>
               <p className="text-sm text-ink-400">{c.text}</p>
             </div>

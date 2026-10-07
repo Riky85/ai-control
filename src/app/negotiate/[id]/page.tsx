@@ -35,7 +35,6 @@ export default async function NegotiatePage({ params }: { params: { id: string }
       <PageHeader
         crumbs={[{ label: "Savings", href: "/savings" }, { label: "Contracts", href: "/savings?view=contracts" }, { label: d.asset.name }]}
         title={`Negotiate ${d.asset.name}`}
-        subtitle="Everything you need for the next renewal."
         action={
           <Link href={`/assets/${d.asset.id}`} className="btn btn-ghost btn-sm">
             Open AI
@@ -44,9 +43,9 @@ export default async function NegotiatePage({ params }: { params: { id: string }
       />
 
       {/* La richiesta */}
-      <section className="relative overflow-hidden rounded-2xl border border-line bg-panel animate-rise">
+      <section className="relative overflow-hidden rounded-xl border border-line bg-panel animate-rise">
         {/* Barra grigia in alto: la richiesta, piano e categoria. */}
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-2xl px-5 py-3 text-sm bar-head">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm bar-head">
           <span className="font-semibold text-ink-100">The ask</span>
           {(d.asset.planName || d.asset.categoryLabel) && (
             <span className="text-xs text-ink-400">{[d.asset.planName, d.asset.categoryLabel].filter(Boolean).join(" · ")}</span>
@@ -70,7 +69,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
       </section>
 
       {/* Date, costo, posti */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-2xl border border-line bg-line animate-rise" aria-label="Renewal summary">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-xl border border-line bg-line animate-rise" aria-label="Renewal summary">
         <div className={cell}>
           <span className="text-xs text-ink-400">{r.autoRenew === false ? "Contract ends" : "Renews"}</span>
           <span className={big}>{r.date ? fmtDate(r.date) : "—"}</span>

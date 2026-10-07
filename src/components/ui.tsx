@@ -14,7 +14,8 @@ export function StatCard({
   href?: string;
   tone?: "signal" | "alarm" | "accent";
 }) {
-  const color = tone === "accent" ? "text-accent" : "text-ink-100";
+  // L'arancio è riservato al pulsante principale: il valore resta neutro, il colore solo per lo stato.
+  const color = "text-ink-100";
   const dot = tone === "signal" ? "bg-signal" : tone === "alarm" ? "bg-alarm" : null;
   const inner = (
     <>
@@ -229,6 +230,16 @@ export function Table({
 
 export const td = "px-5 py-3";
 
+/** Stato vuoto standard: una riga breve e (al massimo) un pulsante. */
+export function EmptyState({ text, action, className = "" }: { text: React.ReactNode; action?: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-xl border border-line bg-panel px-5 py-8 flex flex-col items-center gap-3 text-center ${className}`}>
+      <p className="text-sm text-ink-400">{text}</p>
+      {action}
+    </div>
+  );
+}
+
 /**
  * Schede standard della piattaforma — stesso stile ovunque (Passaporto,
  * Governance, Activity, Workspace): pillola neutra, attiva bianca con ombra.
@@ -286,7 +297,7 @@ export function InfoStrip({
 }) {
   const inner = (
     <>
-      <span className={`h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] flex items-center justify-center ${tone === "steady" ? "text-steady" : "text-accent"}`}>{icon}</span>
+      <span className={`h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] flex items-center justify-center ${tone === "steady" ? "text-steady" : "text-ink-100"}`}>{icon}</span>
       <span className="flex-1 min-w-0 flex items-baseline gap-2 text-sm">
         <span className="font-bold text-ink-100 shrink-0">{title}</span>
         {value && <span className="font-display font-semibold tabular text-ink-100 shrink-0">{value}</span>}

@@ -11,11 +11,11 @@ import { currentSession } from "@/lib/auth";
 import { askAllInactiveAction, markSeatRemovedAction } from "@/lib/seat-actions";
 import PrivacyNotice from "@/components/PrivacyNotice";
 import SeatRemoveButton from "@/components/SeatRemoveButton";
-import { Insight, dailySeries, pctChange } from "@/components/insight";
-import { groupByDepartment, maskCount, orgPrivacyMode, showsPeople, MIN_GROUP } from "@/lib/privacy";
+import { dailySeries, pctChange } from "@/components/insight";
+import { groupByDepartment, maskCount, orgPrivacyMode, showsPeople } from "@/lib/privacy";
 import UsageChart from "@/components/usage/UsageChart";
 import { UsageSummary, ByAiList, RankList, ViewNav, type AiUsageRow, type RankRow } from "@/components/usage/cards";
-import { Pill, Section, NextStep, StackBar, type Tone } from "@/components/governance/parts";
+import { Pill, Section, StackBar, type Tone } from "@/components/governance/parts";
 import type { CleanupRow } from "@/lib/seats";
 import RightsizeCard, { loadRightsizeCard } from "@/components/engine/RightsizeCard";
 
@@ -125,8 +125,6 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const lastWeek = trend.values.slice(-7).reduce((t, v) => t + v, 0);
   const weekBefore = trend.values.slice(-14, -7).reduce((t, v) => t + v, 0);
   const weekChange = pctChange(lastWeek, weekBefore);
-  const mostUsed = [...byAi].sort((x, y) => y.active - x.active)[0];
-  const biggestSave = byAi[0] && byAi[0].save >= 1 ? byAi[0] : null;
   const count = (n: number) => (individual ? String(n) : maskCount(n));
   const cleanupHref = (assetId: string) => (individual ? "/usage?view=cleanup" : `/assets/${assetId}?tab=people`);
 
@@ -205,7 +203,6 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
     { key: "cleanup", label: "Seat clean-up", href: "/usage?view=cleanup", count: toRemove.length || undefined },
   ];
 
-  const removable = toRemove.reduce((t, c) => t + (c.perSeatEur ?? 0), 0);
   const stateCount = (s: CleanupRow["state"]) => cleanup.filter((c) => c.state === s).length;
 
   return (
@@ -225,9 +222,9 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       {!hasData && (
         <div className="rounded-xl border border-line bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-4">
           <p className="flex-1 text-sm text-ink-400">
-            <b className="text-ink-100">No usage data yet.</b> Install the desktop app to see who uses which AI.
+            No usage data yet.
           </p>
-          <Link href="/download" className="btn btn-primary">
+          <Link href="/download" className={`btn ${view === "cleanup" ? "btn-secondary" : "btn-primary"}`}>
             Get the desktop app
           </Link>
         </div>
@@ -251,36 +248,18 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       {view === "ai" && (
         <>
           {hasData && <UsageChart values={trend.values} labels={trend.labels} unit="visits" weekChange={weekChange} />}
-          {toRemove.length > 0 ? (
-            <Insight tone="signal" href="/usage?view=cleanup" cta="Clean up">
-              <b className="font-medium">
-                {toRemove.length} seat{toRemove.length === 1 ? " is" : "s are"} ready to remove
-              </b>
-              {removable >= 1 ? ` — ${fmtEur(Math.round(removable))} a month back.` : "."}
-            </Insight>
-          ) : biggestSave ? (
-            <Insight tone="signal" href={cleanupHref(biggestSave.a.id)} cta="Clean up">
-              <b className="font-medium">{biggestSave.a.name}</b> has {biggestSave.idle} paid seat{biggestSave.idle === 1 ? "" : "s"} nobody used in 30 days — {fmtEur(Math.round(biggestSave.save))} a month back.
-            </Insight>
-          ) : hasData && mostUsed && mostUsed.active > 0 ? (
-            <Insight href={`/assets/${mostUsed.a.id}?tab=people`} cta={`Open ${mostUsed.a.name}`}>
-              <b className="font-medium">{mostUsed.a.name}</b> is the most used AI — {count(mostUsed.active)} {mostUsed.active === 1 && individual ? "person" : "people"} in the last 30 days.
-            </Insight>
-          ) : null}
-
           <ByAiList rows={aiRows} />
           {rightsize && <RightsizeCard {...rightsize} />}
 
-          {individual && hasData && <RankList id="by-person" title="By person" meta="Most active in the last 30 days" rows={personRows} href="/usage?view=people" cta="Everyone" empty="No usage yet." />}
+          {individual && hasData && <RankList id="by-person" title="By person" rows={personRows} href="/usage?view=people" cta="Everyone" empty="No usage yet." />}
           {mode === "department" && hasData && (
             <RankList
               id="by-department"
               title="By department"
-              meta={`Visits and time · groups of at least ${MIN_GROUP} people`}
               rows={deptRows}
               href="/usage?view=departments"
               cta="All departments"
-              empty={`Fewer than ${MIN_GROUP} people used AI — nothing can be shown by department.`}
+              empty="Too few people to show."
             />
           )}
         </>
@@ -288,30 +267,24 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
 
       {view === "cleanup" && !individual && (
         <Notice>
-          Seat clean-up needs per-person data — an admin can enable it in{" "}
+          Needs person-level data.{" "}
           <Link href="/settings?tab=privacy" className="underline">
-            Settings → Employee privacy
-          </Link>{" "}
-          (see the{" "}
-          <Link href="/compliance/employee-notice" className="underline">
-            employee notice
+            Enable it
           </Link>
-          ).
         </Notice>
       )}
 
       {view === "departments" && (
         <>
           <Table
-            columns={["Department", { label: "People using AI", className: "text-right" }, { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, "Most used AI"]}
+            columns={["Department", { label: "People", className: "text-right" }, { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, "Most used AI"]}
             empty={departments.length === 0 && "No usage yet."}
-            footer={<span className="text-xs text-ink-400">Groups under {MIN_GROUP} people are merged.</span>}
           >
             {departments.map((d) =>
               d.suppressed ? (
                 <tr key="suppressed">
                   <td className={`${td} text-ink-400`} colSpan={5}>
-                    Fewer than {MIN_GROUP} people used AI — nothing can be shown by department.
+                    Too few people to show.
                   </td>
                 </tr>
               ) : (
@@ -332,30 +305,18 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         <div className="flex flex-col gap-4">
           {searchParams.asked && (
             <Notice tone="success">
-              Asked {searchParams.asked} {searchParams.asked === "1" ? "person" : "people"} by email. Their answers appear here.
+              Asked {searchParams.asked} {searchParams.asked === "1" ? "person" : "people"}.
             </Notice>
           )}
           {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
           <Section
             id="cleanup"
             title="Free unused seats"
-            meta="angar asks inactive people by email if they still need it."
             action={
               currentSession()?.role !== "VIEWER" && (
                 <form action={askAllInactiveAction}>
-                  <button className="btn btn-primary btn-sm">Ask inactive people now</button>
+                  <button className="btn btn-primary btn-sm" title="angar emails inactive people to ask if they still need it">Ask inactive people</button>
                 </form>
-              )
-            }
-            footer={
-              toRemove.length > 0 ? (
-                <NextStep label={`Remove ${toRemove.length} seat${toRemove.length === 1 ? "" : "s"} below${removable >= 1 ? ` — ${fmtEur(Math.round(removable))} a month` : ""}`} />
-              ) : cleanup.length ? (
-                <NextStep done label="Nothing to remove right now" />
-              ) : idleSeats > 0 ? (
-                <NextStep label={`${idleSeats} paid seat${idleSeats === 1 ? "" : "s"} unused — ask who still needs them`} />
-              ) : (
-                <NextStep done label="Every paid seat is used" />
               )
             }
           >
@@ -367,13 +328,13 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                     { key: "rm", label: "Ready to remove", value: toRemove.length, bar: "bg-signal/60", dot: "bg-signal" },
                     { key: "wait", label: "Waiting", value: stateCount("waiting"), bar: "bg-ink-400/40", dot: "bg-ink-400" },
                     { key: "keep", label: "Still needed", value: stateCount("keep"), bar: "bg-steady/60", dot: "bg-steady" },
-                    { key: "done", label: "Removed", value: stateCount("removed"), bar: "bg-accent/50", dot: "bg-accent" },
+                    { key: "done", label: "Removed", value: stateCount("removed"), bar: "bg-ink-100/30", dot: "bg-ink-100/60" },
                   ]}
                 />
               </div>
             )}
           </Section>
-          <Table columns={["AI", "Person", "Asked", "Answer", { label: "Saves", className: "text-right" }, ""]} empty={cleanup.length === 0 && "Nobody has been asked yet."}>
+          <Table columns={["AI", "Person", "Asked", "Answer", { label: "Saves", className: "text-right" }, ""]} empty={cleanup.length === 0 && "Nobody asked yet."}>
             {cleanup.map((c) => (
               <tr key={c.id}>
                 <td className={td}>
@@ -409,7 +370,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         <>
           <FilterBar search={{ placeholder: "Search a person or AI" }} filters={aiOptions.length > 1 ? [{ param: "ai", label: "AI", options: aiOptions }] : []} />
           <Table
-            columns={["Person", "AI", { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, { label: "Active days", className: "text-right" }, "Last used", "Seen by"]}
+            columns={["Person", "AI", { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, { label: "Active days", className: "text-right" }, "Last used"]}
             empty={pairs.length === 0 && "No usage yet."}
           >
             {pairs
@@ -432,13 +393,12 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                   <td className={`${td} text-right tabular text-ink-400`}>
                     <span className="inline-flex items-center gap-2 justify-end">
                       <span className="relative h-1.5 w-12 rounded-full bg-ink-100/[0.06] overflow-hidden" aria-hidden>
-                        <span className="absolute inset-y-0 left-0 rounded-full bg-accent/50" style={{ width: `${Math.min(100, (p.days.size / SEAT_WINDOW_DAYS) * 100)}%` }} />
+                        <span className="absolute inset-y-0 left-0 rounded-full bg-ink-100/30" style={{ width: `${Math.min(100, (p.days.size / SEAT_WINDOW_DAYS) * 100)}%` }} />
                       </span>
                       {p.days.size} / 30
                     </span>
                   </td>
                   <td className={`${td} text-ink-400 tabular`}>{fmtDate(p.last)}</td>
-                  <td className={`${td} text-xs text-ink-400`}>{[...p.sources].join(", ")}</td>
                 </tr>
               ))}
           </Table>
@@ -448,7 +408,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       {view === "log" && (
         <>
           <FilterBar search={{ placeholder: "Search a person or AI" }} filters={aiOptions.length > 1 ? [{ param: "ai", label: "AI", options: aiOptions }] : []} />
-          <Table columns={["When", "Person", "AI", { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, "Source"]} empty={events.length === 0 && "No connections recorded yet."}>
+          <Table columns={["When", "Person", "AI", { label: "Visits", className: "text-right" }, { label: "Time", className: "text-right" }, "Source"]} empty={events.length === 0 && "Nothing yet."}>
             {events
               .filter((e) => ((e.actorRef ?? "").includes("@") || isPseudonym(e.actorRef)) && match((e.actorRef ?? "").toLowerCase(), e.aiAsset.name))
               .slice(0, 300)

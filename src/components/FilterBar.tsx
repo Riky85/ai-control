@@ -114,7 +114,7 @@ function FilterMenu({ def, value, onChange }: { def: FilterDef; value: string | 
     <div ref={ref} className="relative">
       <div
         className={`h-9 inline-flex items-center rounded-lg border text-sm transition-colors ${
-          current ? "border-accent/50 bg-accent-soft text-ink-100" : "border-line bg-panel text-ink-100 hover:border-ink-400"
+          current ? "border-ink-400 bg-ink-100/[0.06] text-ink-100" : "border-line bg-panel text-ink-100 hover:border-ink-400"
         }`}
       >
         <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="h-full inline-flex items-center gap-1.5 pl-3 pr-2.5">
@@ -149,7 +149,7 @@ function FilterMenu({ def, value, onChange }: { def: FilterDef; value: string | 
                 <span className="flex-1">{o.label}</span>
                 {"count" in o && typeof o.count === "number" && <span className="text-xs text-ink-400 tabular">{o.count}</span>}
                 {on && (
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-accent" aria-hidden>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-ink-100" aria-hidden>
                     <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}

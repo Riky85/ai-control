@@ -110,7 +110,6 @@ export default async function ActivityPage({ searchParams }: { searchParams: { q
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Activity"
-        subtitle={"What every connector observed, what changed between syncs, and the evidence trail behind every control."}
         action={<ExportMenu dataset={tab === "changes" ? "changes" : "activity"} />}
       />
 

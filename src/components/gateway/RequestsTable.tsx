@@ -19,7 +19,7 @@ export default function RequestsTable({
   note,
   footer,
   showDay = false,
-  empty = "No requests yet. Create a key and point an app at the gateway.",
+  empty = "No requests yet.",
   initialId,
 }: {
   rows: GwRequestRow[];
@@ -182,7 +182,7 @@ function RequestDrawer({ row, onClose }: { row: GwRequestRow; onClose: () => voi
             ) : (
               <p className="text-sm text-ink-400">None.</p>
             )}
-            <p className="text-xs text-ink-400 mt-2">Only the type and the count are kept, never the values.</p>
+            <p className="text-xs text-ink-400 mt-2">Values are never kept.</p>
           </section>
 
           <section>

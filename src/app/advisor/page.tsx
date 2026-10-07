@@ -24,7 +24,7 @@ export default async function AdvisorPage() {
   if (stack.length === 0) {
     return (
       <div className="flex flex-col gap-4">
-        <PageHeader crumbs={CRUMBS} title="AI Advisor" subtitle="Your ideal AI stack, from how your people really use AI." />
+        <PageHeader crumbs={CRUMBS} title="AI Advisor" />
         <EmptyState
           title="No paid AI tools yet"
           text="angar recommends a standard stack once it knows which AI subscriptions you pay for and who uses them. Add a bank statement or connect your AI providers."
@@ -37,7 +37,7 @@ export default async function AdvisorPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader crumbs={CRUMBS} title="AI Advisor" subtitle="Your ideal AI stack, from how your people really use AI." />
+      <PageHeader crumbs={CRUMBS} title="AI Advisor" />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Current AI spend" value={`${fmtEur(currentEur)}/mo`} hint={apiEur > 0 ? `Seat-based tools · APIs (${fmtEur(apiEur)}/mo) not included` : "Seat-based AI tools"} />

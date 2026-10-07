@@ -25,7 +25,7 @@ export default function OktaConnectCard({ row, error }: { row?: Connector; error
             <div className="text-xs text-ink-400 truncate">
               {connected
                 ? `${domain ?? "Okta"}${row?.lastSyncedAt ? ` · synced ${fmtDateTime(row.lastSyncedAt)}` : ""}`
-                : "AI apps assigned in Okta, who signs in to them, and OAuth consents. Read-only."}
+                : "AI apps and sign-ins. Read-only."}
             </div>
           </div>
           {connected && (

@@ -32,13 +32,12 @@ const RESULTS = ["allowed", "redacted", "blocked", "error"];
 export default function GatewayView(p: GatewayViewProps) {
   const editable = p.canEdit && p.planOk;
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Gateway"
-        subtitle="Every AI call from your apps, measured and checked."
         action={
           <>
-            <Link href="/gateway?tab=policies#connect" className="btn btn-secondary">
+            <Link href="/gateway?tab=policies#connect" className="btn btn-ghost">
               Connection guide
             </Link>
             {editable && (
@@ -52,7 +51,7 @@ export default function GatewayView(p: GatewayViewProps) {
       {!p.planOk && (
         <Notice>
           <span className="inline-flex flex-wrap items-center gap-x-2">
-            angar Gateway is part of the Govern plan. You can look around; keys and rules can be changed after upgrading. <LockedNote feature="gateway" />
+            Part of the Govern plan. <LockedNote feature="gateway" />
           </span>
         </Notice>
       )}

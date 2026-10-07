@@ -182,7 +182,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 </div>
               </div>
               <p className="text-sm text-ink-400 mt-0.5">
-                {[asset.vendor ?? "Vendor unknown", cat ? CATEGORY_LABEL[cat] : asset.type.replace(/_/g, " ").toLowerCase(), sources.length ? `found via ${sources.join(", ")}` : null].filter(Boolean).join(" · ")}
+                <span title={sources.length ? `Found via ${sources.join(", ")}` : undefined}>{[asset.vendor ?? "Vendor unknown", cat ? CATEGORY_LABEL[cat] : asset.type.replace(/_/g, " ").toLowerCase()].filter(Boolean).join(" · ")}</span>
               </p>
             </div>
           </div>
@@ -200,18 +200,18 @@ export default async function AssetDetailPage({ params, searchParams }: { params
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           href={`/assets/${asset.id}?tab=spend`}
-          label="Cost / month"
+          label="Monthly cost"
           value={m ? `${m.estimated ? "≈ " : ""}${fmtEur(m.eur)}` : "Not paid"}
-          hint={asset.cost?.monthlyCostEstimate != null ? costSource(asset.cost) : m ? "Estimated · seats × list price" : "Free, or paid personally"}
+          hint={asset.cost?.monthlyCostEstimate != null ? costSource(asset.cost) : m ? "Estimated" : "Free or personal"}
         />
-        <StatCard href={`/assets/${asset.id}?tab=spend`} label="Plan" value={plan ? (seats && seats > 1 ? `${seats} seats` : "1 seat") : m && !m.estimated ? "Usage" : "—"} hint={plan?.name ?? (m ? "Pay as you go" : "Unknown")} />
+        <StatCard href={`/assets/${asset.id}?tab=spend`} label="Plan" value={plan ? (seats && seats > 1 ? `${seats} seats` : "1 seat") : m && !m.estimated ? "Usage" : "—"} hint={plan?.name ?? (m ? "Pay as you go" : undefined)} />
         <StatCard
           href={asset.usages.length ? `/assets/${asset.id}?tab=people` : "/sources"}
           label="People"
           value={asset.usages.length ? (seats ? `${active} / ${seats}` : String(asset.usages.length)) : seats ? `? / ${seats}` : "—"}
-          hint={asset.usages.length ? (seats ? "active in 30 days / paid seats" : "people using it") : "Connect Microsoft 365 or Google to see who uses it"}
+          hint={asset.usages.length ? (seats ? "Active / seats" : undefined) : "Not connected"}
         />
-        <StatCard href="/savings" label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : "Nothing found"} tone={canSave >= 1 ? "accent" : undefined} />
+        <StatCard href="/savings" label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : undefined} />
       </div>
       <AssetLimitNotice orgId={orgId} assetId={asset.id} />
 
@@ -224,13 +224,13 @@ export default async function AssetDetailPage({ params, searchParams }: { params
               {market && market.verdict !== "unknown" && <MarketPriceStrip row={pickRow(market)} />}
               <EconomicsBlock e={economics} assetId={asset.id} canEdit={canEditSubscription} />
               {vendorRisk && <VendorTermsCard risk={vendorRisk} tier={tier} detailsHref={`/assets/${asset.id}?tab=risk`} />}
-              <Panel flush title="How to save" subtitle="Calculated automatically from your bills, seats and list prices">
+              <Panel flush title="How to save">
                 <div className="divide-y divide-line">
                   {mine.map((i) => (
                     <div key={i.key} className="flex items-start gap-4 px-5 py-3.5">
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-ink-100">{i.title} <span className="ml-1 text-[11px] font-normal text-ink-400">{CONF[i.confidence]}</span></div>
-                        <div className="text-sm text-ink-400 mt-0.5">{i.detail}</div>
+                        <div className="text-sm text-ink-400 mt-0.5 truncate" title={i.detail}>{i.detail}</div>
                       </div>
                       <div className="text-sm font-semibold text-ink-100 tabular shrink-0">{fmtEur(i.monthlyEur)}/mo</div>
                       <form action={dismissSavingAction}>
@@ -239,15 +239,13 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                       </form>
                     </div>
                   ))}
-                  {mine.length === 0 && <p className="px-5 py-4 text-sm text-ink-400">Nothing to save on {asset.name} right now. angar checks again whenever new data arrives.</p>}
+                  {mine.length === 0 && <p className="px-5 py-4 text-sm text-ink-400">Nothing to save.</p>}
                 </div>
               </Panel>
               <Panel title="Details">
-                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-5">
-                  <Field label="Provider" value={asset.vendor} />
+                <dl className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-5">
                   <Field label="Model" value={asset.model} />
                   <Field label="Owner" value={asset.owner ? (people ? asset.owner.name ?? asset.owner.email : "Assigned") : null} empty="No owner" />
-                  <Field label="EU AI Act" value={AI_ACT_TIER_LABEL[aiAct.tier]} />
                   <Field label="In use since" value={fmtDate(asset.firstSeenAt)} />
                   <Field label="Last seen" value={asset.lastSeenAt ? fmtDate(asset.lastSeenAt) : null} />
                 </dl>
@@ -273,7 +271,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
 
           {tab === "spend" && <EconomicsBlock e={economics} assetId={asset.id} canEdit={canEditSubscription} />}
           {tab === "spend" && (
-            <Table columns={["Date", "Charge", "Source", { label: "Amount", className: "text-right" }]} empty={spend.length === 0 ? "No charges yet — add a bank statement or invoices in Sources." : false}>
+            <Table columns={["Date", "Charge", "Source", { label: "Amount", className: "text-right" }]} empty={spend.length === 0 ? "No charges yet." : false}>
               {spend.map((r) => (
                 <tr key={r.id}>
                   <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDate(r.date)}</td>
@@ -299,7 +297,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-ink-100 mb-2">What your company must do</h3>
+                  <h3 className="text-sm font-medium text-ink-100 mb-2">To do</h3>
                   <ul className="flex flex-col gap-2 text-sm text-ink-400">
                     {aiAct.obligations.map((o, i) => (
                       <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-steady shrink-0" />{o}</li>
@@ -312,7 +310,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           {tab === "risk" && <VendorRiskCard asset={asset} />}
           {tab === "risk" && (
             <>
-              <Panel title="Risk" subtitle="Computed by rules from what angar knows about this AI">
+              <Panel title="Risk">
                 {risk ? (
                   <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start">
                     <div className="shrink-0">
@@ -329,7 +327,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                         </ul>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-ink-100 mb-2">What would lower it</h3>
+                        <h3 className="text-sm font-medium text-ink-100 mb-2">To lower it</h3>
                         <ul className="flex flex-col gap-2 text-sm text-ink-400">
                           {((risk.mitigations as string[] | null) ?? []).map((m, i) => (
                             <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-steady shrink-0" />{m}</li>
@@ -340,17 +338,17 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-ink-400">Not assessed yet — it's computed after the next sync.</p>
+                  <p className="text-sm text-ink-400">Not assessed yet.</p>
                 )}
               </Panel>
               <Panel
                 flush
                 title="Assurance checks"
-                subtitle={assurance ? `${assurance.passedCount} passed · ${assurance.warningCount} need attention · ${assurance.failedCount} failed` : "Not assessed yet"}
+                subtitle={assurance ? `${assurance.passedCount} passed · ${assurance.warningCount} warn · ${assurance.failedCount} failed` : undefined}
                 action={<Link href="/activity?tab=evidence" className="btn btn-secondary btn-sm">Full evidence</Link>}
               >
                 {!assurance ? (
-                  <p className="px-5 py-4 text-sm text-ink-400">No assurance report yet — it&apos;s generated after the next sync.</p>
+                  <p className="px-5 py-4 text-sm text-ink-400">Not assessed yet.</p>
                 ) : (
                 <div className="divide-y divide-line">
                   {((assurance?.checks as unknown as { key: string; label: string; status: "PASSED" | "WARNING" | "FAILED"; detail: string }[] | undefined) ?? []).map((ch) => (
@@ -414,11 +412,11 @@ export default async function AssetDetailPage({ params, searchParams }: { params
               </select>
               <button type="submit" className="btn btn-secondary">Save</button>
             </div>
-            <input name="aiActNote" maxLength={300} defaultValue={asset.aiActNote ?? ""} placeholder="Why (for a tier set by hand)" className={`${INPUT} w-full`} aria-label="Why" />
+            <input name="aiActNote" maxLength={300} defaultValue={asset.aiActNote ?? ""} placeholder="Why (optional)" className={`${INPUT} w-full`} aria-label="Why" />
           </form>
 
           <details className="pt-5 border-t border-line group">
-          <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none">Cost looks wrong? Correct it</summary>
+          <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none">Correct the cost</summary>
           <form action={setAssetCostAction} className="flex flex-col gap-2 mt-3">
             <input type="hidden" name="assetId" value={asset.id} />
             <label className="text-sm text-ink-400" htmlFor="cost">Monthly cost</label>
@@ -483,7 +481,7 @@ async function NetworkBlock({ asset, orgId }: { asset: { id: string; blockOnNetw
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-ink-400">Block on the company network <span className="text-xs">(angar Edge)</span></span>
+        <span className="text-sm text-ink-400" title="Uses angar Edge">Block on network</span>
         <form action={setNetworkBlockAction}>
           <input type="hidden" name="assetId" value={asset.id} />
           <input type="hidden" name="block" value={asset.blockOnNetwork ? "off" : "on"} />
@@ -500,7 +498,7 @@ async function NetworkBlock({ asset, orgId }: { asset: { id: string; blockOnNetw
       </div>
       {asset.blockOnNetwork && blockingSensors === 0 && (
         <p className="text-xs text-signal">
-          No sensor has blocking turned on yet — <Link href="/edge/sensors" className="underline">turn on Block</Link>.
+          No sensor blocks yet. <Link href="/edge/sensors" className="underline">Turn on</Link>
         </p>
       )}
       {(asset.blockOnNetwork || asset.status === "UNAPPROVED" || asset.insteadAssetId) && (
@@ -532,6 +530,6 @@ function Field({ label, value, empty = "—" }: { label: string; value?: string 
 function costSource(c: { basis: string; seats: number | null; planId: string | null; notes: string | null }) {
   const plan = c.notes?.match(/looks like (.+)$/)?.[1];
   const from =
-    c.basis === "bank" ? "From your bank statement" : c.basis === "invoice" ? "From your invoices" : c.basis === "billing_connector" ? "From provider billing" : c.basis === "estimate" ? "Estimated from list prices" : "Entered by hand";
-  return plan ? `${from} · ${plan}` : `${from} · a month`;
+    c.basis === "bank" ? "Bank statement" : c.basis === "invoice" ? "Invoices" : c.basis === "billing_connector" ? "Provider billing" : c.basis === "estimate" ? "Estimated" : "Entered by hand";
+  return plan ? `${from} · ${plan}` : from;
 }

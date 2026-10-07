@@ -20,14 +20,14 @@ export default function GatewayOverview({ data, endpointHost }: { data: GwOvervi
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Requests today" value={fmtInt(data.requestsToday)} hint={delta === null ? "Since midnight" : `${delta >= 0 ? "+" : ""}${delta}% on yesterday`} />
+        <StatCard label="Requests today" value={fmtInt(data.requestsToday)} hint={delta === null ? undefined : `${delta >= 0 ? "+" : ""}${delta}% vs yesterday`} />
         <StatCard
           label="Spend this month"
           value={fmtEur(data.spendMonthEur)}
-          hint={data.capsTotalEur > 0 ? `${pct(capped, data.capsTotalEur)}% of the ${fmtEur(data.capsTotalEur)} team caps used` : "At list price, in EUR"}
+          hint={data.capsTotalEur > 0 ? `${pct(capped, data.capsTotalEur)}% of caps` : undefined}
         />
-        <StatCard label="Sensitive data redacted" tone="signal" value={fmtInt(data.redactedMonth)} hint={kinds.length ? kinds.join(", ") : "This month"} />
-        <StatCard label="Blocked" tone="alarm" value={fmtInt(data.blockedMonth)} hint={reasons.length ? reasons.join(" and ") : "This month"} />
+        <StatCard label="Redacted" tone={data.redactedMonth ? "signal" : undefined} value={fmtInt(data.redactedMonth)} hint={kinds.length ? kinds.join(", ") : "This month"} />
+        <StatCard label="Blocked" tone={data.blockedMonth ? "alarm" : undefined} value={fmtInt(data.blockedMonth)} hint={reasons.length ? reasons.join(", ") : "This month"} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] gap-4 items-start">
@@ -35,16 +35,10 @@ export default function GatewayOverview({ data, endpointHost }: { data: GwOvervi
         <RequestsTable
           rows={data.live}
           title="Live requests"
-          note={
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-steady" />
-              Metadata only · prompts not stored
-            </span>
-          }
           footer={
             <>
               <span>
-                Showing the last {fmtInt(data.live.length)} of {fmtInt(data.requestsToday)} requests today ·{" "}
+                {fmtInt(data.live.length)} of {fmtInt(data.requestsToday)} today ·{" "}
                 <Link href="/gateway?tab=logs" className="font-medium text-ink-100 hover:underline">
                   Open logs →
                 </Link>
@@ -66,7 +60,7 @@ function TeamSpendPanel({ teams, endpointHost }: { teams: TeamSpend[]; endpointH
         <span className="text-xs text-ink-400">This month</span>
       </div>
       <div className="px-5 py-4 flex flex-col gap-4">
-        {teams.length === 0 && <p className="text-sm text-ink-400 py-4 text-center">No spend yet. Give each key a team to see it here.</p>}
+        {teams.length === 0 && <p className="text-sm text-ink-400 py-4 text-center">No spend yet.</p>}
         {teams.map((t) => {
           const used = t.capEur ? pct(t.eur, t.capEur) : null;
           const over = used !== null && used >= 100;

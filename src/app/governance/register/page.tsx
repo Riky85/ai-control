@@ -31,7 +31,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: { e
         <PageHeader
           crumbs={[{ label: "Governance", href: "/governance" }, { label: "Register" }]}
           title="AI Act & GDPR register"
-          subtitle="GDPR Art. 30 record for each AI that processes personal data."
+          subtitle="GDPR Art. 30 record"
           action={
             <>
               {!csvOk && <LockedNote feature="registerExport" />}

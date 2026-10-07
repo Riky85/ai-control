@@ -21,14 +21,14 @@ export default function ContractReader({ assets, plans }: { assets: { id: string
 
   return (
     <>
-      <section className="rounded-2xl border border-line bg-panel animate-rise">
+      <section className="rounded-xl border border-line bg-panel animate-rise">
         <form action={read} className="flex flex-col">
           <div className="p-5 flex flex-col gap-3">
             <CsvDropzone accept=".pdf,application/pdf" label="Drop a contract, order form or invoice (PDF)" />
             {state && !state.ok && <p className="text-sm text-alarm">{state.error}</p>}
           </div>
           {/* Barra grigia in basso: azione e nota sulla privacy. */}
-          <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-2xl px-5 py-3 bar-foot">
+          <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-xl px-5 py-3 bar-foot">
             <SubmitButton label="Read it" pending="Reading…" />
             <span className="text-xs text-ink-400">The PDF is read once and never stored.</span>
           </div>
@@ -48,8 +48,8 @@ function Review({ state, assets, plans }: { state: Extract<NonNullable<ReadState
   const cls = (v: unknown) => `field w-full ${empty(v) ? "border-dashed" : ""}`;
 
   return (
-    <section className="rounded-2xl border border-line bg-panel animate-rise" aria-labelledby="review-title">
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-2xl px-5 py-3 bar-head">
+    <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="review-title">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
         <div className="min-w-0">
           <h2 id="review-title" className="text-sm font-bold text-ink-100">Check what angar found</h2>
           <p className="text-xs text-ink-400 mt-0.5 truncate">
@@ -154,7 +154,7 @@ function Review({ state, assets, plans }: { state: Extract<NonNullable<ReadState
           )}
         </div>
 
-        <div className="col-span-2 sm:col-span-3 -mx-5 mt-1 flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-2xl px-5 py-3 bar-foot">
+        <div className="col-span-2 sm:col-span-3 -mx-5 mt-1 flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-xl px-5 py-3 bar-foot">
           <span className="text-xs text-ink-400">Empty fields keep what the AI already has.</span>
           <SubmitButton label="Apply" pending="Saving…" />
         </div>
