@@ -43,17 +43,17 @@ export default async function ProvidersPage() {
 
   if (assets.length === 0)
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <PageHeader title="Providers" />
         <EmptyState title="No providers yet" text="Drop a bank statement or invoices — angar finds every AI provider you pay." href="/sources" cta="Add costs" />
       </div>
     );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Providers" action={<ExportMenu dataset="providers" />} />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard href="/#your-ai" label="Providers" value={String(rows.length)} hint={`${assets.length} AI`} />
         <StatCard href="/?paid=yes#your-ai" label="Monthly spend" value={total ? fmtEur(total) : "—"} hint={total ? `${fmtEur(total * 12)} a year` : undefined} />
         <StatCard

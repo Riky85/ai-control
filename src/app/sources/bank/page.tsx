@@ -32,7 +32,7 @@ export default async function BankPage({ searchParams }: { searchParams: { count
   const shown = banks.filter((b) => !q || b.name.toLowerCase().includes(q));
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         crumbs={[{ label: "Sources", href: "/sources" }]}
         title="Connect your bank"

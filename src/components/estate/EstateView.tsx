@@ -17,8 +17,8 @@ export function EstateViewBody({ est, admin }: { est: EstateData; admin: boolean
   const systems = est.rows.map((r) => ({ id: r.id, name: r.name }));
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard label="Provider concentration" value={m.providerConcentration ? `${Math.round(m.providerConcentration.share * 100)}%` : "—"} hint={m.providerConcentration ? m.providerConcentration.label : undefined} tone={m.providerConcentration && m.providerConcentration.share >= 0.6 ? "signal" : undefined} href="/providers" />
         <StatCard label="No owner" value={String(m.unowned)} />
         <StatCard label="High dependencies" value={String(m.highDependencies)} hint={m.highDependencies ? "Not ready to exit" : undefined} tone={m.highDependencies ? "signal" : undefined} />

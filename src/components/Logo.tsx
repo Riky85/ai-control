@@ -28,7 +28,7 @@ export function Wordmark({ size = 20, className = "" }: { size?: number; classNa
   return (
     <span className={`inline-flex items-center align-middle ${className}`} style={{ gap: Math.round(size * 0.4) }}>
       <Logo size={size} />
-      <span className="font-brand leading-none tracking-tight" style={{ fontSize: Math.round(size * 0.9) }}>angar</span>
+      <span className="font-brand font-semibold leading-none tracking-tight" style={{ fontSize: Math.round(size * 0.9) }}>angar</span>
     </span>
   );
 }

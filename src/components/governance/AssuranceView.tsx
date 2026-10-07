@@ -32,7 +32,7 @@ export default async function AssuranceView({ orgId }: { orgId: string }) {
   const groups = (["BLOCKED", "RESTRICTED", "NEEDS_REVIEW", "ASSURED"] as const).map((level) => ({ level, items: withReport.filter((x) => x.report.level === level) }));
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <Section id="assurance" title="Assurance checks" meta={`${passed + warning + failed} checks · ${withReport.length} AI`}>
         <div className="p-5">
           <StackBar

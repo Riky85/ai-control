@@ -16,7 +16,7 @@ export default function EdgePage() {
   const fromPlan = planById(EDGE.softwareFromPlan).displayName;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }]}
         title="angar Edge"
@@ -68,7 +68,7 @@ export default function EdgePage() {
       </section>
 
       {/* Tre modi di installarlo */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
           {
             t: "Software",
@@ -126,7 +126,7 @@ export default function EdgePage() {
       </section>
 
       {/* Cosa mai + Edge vs app desktop */}
-      <section className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-4">
+      <section className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-6">
         <div className="rounded-xl border border-line bg-panel p-4">
           <h3 className="-mx-4 -mt-4 mb-3 bg-ink border-b border-line rounded-t-xl px-4 py-3 text-sm font-bold text-ink-100 bar-head">What it never does</h3>
           <ul className="flex flex-col gap-1.5 text-sm text-ink-400">

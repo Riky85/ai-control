@@ -28,7 +28,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
   const topCost = r.costed[0];
   const topShare = topCost && r.spend ? Math.round((topCost.m!.eur / r.spend) * 100) : 0;
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title={`AI report — ${r.month}`}
         subtitle={r.org?.name ?? undefined}
@@ -50,7 +50,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard href="/#your-ai" label="AI in use" value={String(r.assets.length)} />
         <StatCard href="/?paid=yes#your-ai" label="Monthly spend" value={r.spend ? fmtEur(r.spend) : "—"} hint={r.spend ? `${fmtEur(r.spend * 12)} a year` : undefined} />
         <StatCard href="/savings" label="You could save" value={r.canSave ? `${fmtEur(r.canSave)}/mo` : "—"} hint={r.canSave ? `${fmtEur(r.canSave * 12)} a year` : undefined} />
@@ -69,7 +69,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
 
       {forecast && <ForecastCard {...forecast} />}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <Panel flush title="Biggest costs">
           <div className="divide-y divide-line">
             {r.costed.slice(0, 8).map((x) => (

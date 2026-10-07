@@ -68,10 +68,10 @@ export default async function SystemPage({ searchParams }: { searchParams: { lea
   const leadCount = (k: string) => leadCounts.find((c) => c.kind === k)?._count._all ?? 0;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="System" subtitle="Platform admins only." />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Checks passing" value={`${okCount}/${checks.length}`} hint={okCount === checks.length ? "Everything set up" : `${checks.length - okCount} need setup`} tone={critical ? "alarm" : okCount < checks.length ? "signal" : "accent"} />
         <StatCard label="Errors, 24 h" value={String(errors24h)} hint={errors[0] ? `Last ${fmtAgo(errors[0].createdAt)}` : "None recorded"} tone={errors24h >= 10 ? "alarm" : errors24h ? "signal" : undefined} />
         <StatCard label="Last good backup" value={lastOkBackup ? fmtAgo(lastOkBackup.startedAt) : "—"} hint={lastOkBackup ? `${lastOkBackup.rows.toLocaleString()} rows` : "No successful backup yet"} tone={backupFresh ? undefined : "alarm"} />

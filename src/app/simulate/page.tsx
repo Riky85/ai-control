@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function SimulatePage() {
   const model = await loadSimModel(currentOrgId());
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         crumbs={[{ label: "Savings", href: "/savings" }, { label: "Simulator" }]}
         title="What if…"

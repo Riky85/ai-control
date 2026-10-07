@@ -49,7 +49,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
   const ro = !canEdit;
   const euOn = p.euOnly || view.forcedEuOnly !== null;
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,430px)] gap-4 items-start">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,430px)] gap-6 items-start">
       <section className={card}>
         <div className={head}>
           <h2 className="text-sm font-bold text-ink-100">Rules</h2>
@@ -156,7 +156,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
         </div>
       </section>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <section id="connect" className={`${card} scroll-mt-6`}>
           <div className={head}>
             <h2 className="text-sm font-bold text-ink-100">How to connect</h2>

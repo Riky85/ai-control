@@ -18,8 +18,8 @@ export default function GatewayOverview({ data, endpointHost }: { data: GwOvervi
   const reasons = data.blockedReasons.slice(0, 2).map((r) => REASON_SHORT[r] ?? r.replace(/_/g, " "));
   const capped = data.teams.filter((t) => t.capEur).reduce((s, t) => s + t.eur, 0);
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         <StatCard label="Requests today" value={fmtInt(data.requestsToday)} hint={delta === null ? undefined : `${delta >= 0 ? "+" : ""}${delta}% vs yesterday`} />
         <StatCard
           label="Spend this month"
@@ -30,7 +30,7 @@ export default function GatewayOverview({ data, endpointHost }: { data: GwOvervi
         <StatCard label="Blocked" tone={data.blockedMonth ? "alarm" : undefined} value={fmtInt(data.blockedMonth)} hint={reasons.length ? reasons.join(", ") : "This month"} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] gap-6 items-start">
         <TeamSpendPanel teams={data.teams} endpointHost={endpointHost} />
         <RequestsTable
           rows={data.live}

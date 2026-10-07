@@ -52,7 +52,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
   const decided = reviewedCount + queue.length ? Math.round((reviewedCount / (reviewedCount + queue.length)) * 100) : 100;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="To review"
         action={
@@ -72,7 +72,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
 
       {queue.length > 0 && (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard label="To decide" value={String(queue.length)} hint={candidates ? `${candidates} possible AI` : undefined} />
             <StatCard label="High risk" value={String(risky.length)} hint={risky.length ? "Decide first" : undefined} tone={risky.length ? "alarm" : undefined} />
             <StatCard label="New this week" value={String(newThisWeek)} />

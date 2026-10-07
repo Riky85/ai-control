@@ -71,7 +71,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   const shown = filterAssets(all, searchParams);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title={greeting(session?.name)} subtitle={org?.name ?? undefined} action={
           assets.length ? (
             <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         <>
           {scoreCard && <ScoreCard data={scoreCard} />}
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} to review` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} href={toReview ? "/review" : "/providers"} />
             <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (estimated ? `${fmtEur(estimatedEur)} estimated` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
             <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"}` : undefined} href="/savings" />

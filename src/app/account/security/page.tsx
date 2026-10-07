@@ -20,7 +20,7 @@ export default async function AccountSecurityPage({ searchParams }: { searchPara
   const required = await db.workspaceMember.findFirst({ where: { email: account.email, status: "active", organization: { mfaRequired: true } }, include: { organization: { select: { name: true } } } });
 
   return (
-    <div className="flex flex-col gap-4 max-w-3xl">
+    <div className="flex flex-col gap-6 [&>*:not(.page-bar)]:max-w-3xl">
       <PageHeader title="Security" crumbs={[{ label: "Account", href: "/account" }, { label: "Security" }]} />
       {searchParams.required && !enabled && <Notice tone="error">{required?.organization.name ?? "Your workspace"} requires two-step verification. Set it up to continue.</Notice>}
       {searchParams.off && <Notice tone="success">Two-step verification is off.</Notice>}

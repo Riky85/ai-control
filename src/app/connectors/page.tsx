@@ -61,7 +61,7 @@ export default async function ConnectorsPage({
   const connectedCount = AI_PROVIDERS.filter((p) => providerConnected(byProvider.get(p.provider))).length + (githubConnected ? 1 : 0) + (oktaConnected(byProvider.get("OKTA")) ? 1 : 0) + CLOUD_AI.filter((p) => cloudAiConnected(byProvider.get(p.provider))).length;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }]}
         title="AI provider keys"
@@ -234,7 +234,7 @@ function Section({ title, subtitle, children }: { title: string; subtitle: strin
   return (
     <section>
       <h2 className="text-sm font-bold text-ink-100 mb-3" title={subtitle || undefined}>{title}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">{children}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">{children}</div>
     </section>
   );
 }

@@ -10,7 +10,7 @@ const tri = (v: boolean | null) => (v === null ? "" : v ? "on" : "off");
 /** Keys: crea (si vede una volta), team, tetto, modelli, override; revoca. */
 export default function KeysTab({ keys, teams, canEdit }: { keys: GwKeyRow[]; teams: string[]; canEdit: boolean }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {canEdit && (
         <section id="new-key" className="rounded-xl border border-line bg-panel animate-rise scroll-mt-6">
           <div className="bar-head rounded-t-xl border-b border-line px-5 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">

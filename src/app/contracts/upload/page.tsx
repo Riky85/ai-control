@@ -17,7 +17,7 @@ export default async function ContractUploadPage({ searchParams }: { searchParam
     take: 1000,
   });
   return (
-    <div className="flex flex-col gap-4 max-w-3xl">
+    <div className="flex flex-col gap-6 [&>*:not(.page-bar)]:max-w-3xl">
       <PageHeader
         crumbs={[{ label: "Savings", href: "/savings" }, { label: "Contracts", href: "/savings?view=contracts" }]}
         title="Read a contract"

@@ -58,7 +58,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
   const dormant = person.usages.filter((u) => u.lastSeenAt && u.lastSeenAt.getTime() < since && !u.aiAsset.deletedAt);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         crumbs={[{ label: "People", href: "/people" }]}
         title={person.name ?? person.email}
@@ -83,7 +83,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
         }
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="AI used" value={String(person.usages.length)} hint={`${active.length} in the last 30 days`} tone="accent" />
         <StatCard label="Last active" value={lastSeen ? fmtAgo(lastSeen) : "—"} hint={lastSeen ? fmtDateTime(lastSeen) : "No usage seen yet"} />
         <StatCard label="AI assets owned" value={String(person.ownedAssets.length)} hint={person.ownedAssets.length ? "Accountable for them" : "Owns none"} />

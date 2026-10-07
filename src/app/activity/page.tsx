@@ -76,7 +76,7 @@ async function EventsSummary({ orgId }: { orgId: string }) {
 
   return (
     <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Events, 30 days" value={in30.length.toLocaleString("en-GB")} hint={change30 != null ? `${trendWord(change30)} vs the 30 days before` : "First month of data"} tone="accent" />
         <StatCard label="AI with activity" value={String(aiActive)} hint={`of ${assetCount} AI on record`} href="/#your-ai" />
         <StatCard label="Sources reporting" value={String(sources.length)} hint={sources.join(", ") || "None in 30 days"} href="/sources" />
@@ -107,7 +107,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: { q
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "events";
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Activity"
         action={<ExportMenu dataset={tab === "changes" ? "changes" : "activity"} />}
@@ -146,7 +146,7 @@ async function EventsTab({ q }: { q?: string }) {
     return <EmptyState title="No activity yet" text="Events appear here after the first sync of Microsoft 365, Google Workspace, GitHub or an AI provider key." href="/connect" cta="Connect a source" />;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <EventsSummary orgId={currentOrgId()} />
       <FilterBar search={{ placeholder: people ? "Search events, people, AI…" : "Search events, AI…" }} right={`${activities.length} events`} />
 
@@ -199,7 +199,7 @@ async function EvidenceTab() {
   const worst = [...failing.values()].sort((x, y) => y.n - x.n)[0];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <p className="text-xs text-ink-400 max-w-lg">
         Every control, its status, and where that status comes from — this is the record you'd hand to an auditor.
       </p>
@@ -211,7 +211,7 @@ async function EvidenceTab() {
         <Insight tone="steady" href="/compliance/evidence" cta="Evidence pack">No control is failing on any AI.</Insight>
       ) : null}
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         {withReport.map((asset) => {
           const checks = (asset.assuranceReports[0].checks as unknown as CheckRow[] | null) ?? [];
           return (

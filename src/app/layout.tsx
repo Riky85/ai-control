@@ -1,7 +1,7 @@
 import { currentSession, isPlatformAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { Metadata, Viewport } from "next";
-import { Hanken_Grotesk, Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Sidebar, { type SidebarWorkspaceProps } from "@/components/Sidebar";
 import AskDocs from "@/components/AskDocs";
@@ -11,7 +11,6 @@ import AlertsBell from "@/components/AlertsBell";
 import ScrollReset from "@/components/ScrollReset";
 import { desktopDeviceCounts } from "@/lib/discovery/devices";
 import UrlNotice from "@/components/UrlNotice";
-import AreaTabs from "@/components/AreaTabs";
 import { TRIAL_DAYS } from "@/lib/plans";
 import { fmtDate } from "@/lib/format";
 import { getPlanState } from "@/lib/plan-gate";
@@ -27,10 +26,9 @@ import { isOnPrem } from "@/lib/edition";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, THEME_SCRIPT, parseTheme } from "@/lib/theme";
 
-// Testo in Hanken Grotesk; il nome "angar" in Space Grotesk, distinto dal
-// serif della Claude Console.
-const sans = Hanken_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans" });
-const brand = Space_Grotesk({ subsets: ["latin"], weight: ["600"], variable: "--font-brand" });
+// Un solo sans pulito (stile Exa): Inter per testo, titoli e marchio.
+// --font-brand resta come alias: punta alla stessa variabile.
+const sans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "angar",
@@ -58,7 +56,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = currentSession();
   const theme = parseTheme(cookies().get(THEME_COOKIE)?.value);
-  const htmlClass = `${sans.variable} ${brand.variable}${theme === "dark" ? " dark" : ""}`;
+  const htmlClass = `${sans.variable}${theme === "dark" ? " dark" : ""}`;
   const head = (
     <head>
       <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
@@ -90,12 +88,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     db.spendRecord.count({ where: { organizationId: session.orgId } }),
     db.workspaceMember.count({ where: { organizationId: session.orgId } }),
   ]);
-  const setupTodo = [
-    { done: spendCount > 0, href: "/sources" },
-    { done: devicesTotal > 0, href: "/download" },
-    { done: memberCount > 1, href: "/workspace" },
-  ].filter((s) => !s.done);
-  const setup = setupTodo.length ? { left: setupTodo.length, href: setupTodo[0].href } : null;
+  // Lista di controllo della sidebar: si spunta da sola dai dati; sparisce quando è tutto fatto.
+  const setupSteps = [
+    { key: "spend", title: "See what you pay for AI", href: "/sources", done: spendCount > 0 },
+    { key: "usage", title: "See who really uses each AI", href: "/download", done: devicesTotal > 0 },
+    { key: "team", title: "Invite your team", href: "/workspace", done: memberCount > 1 },
+  ];
+  const setup = setupSteps.some((s) => !s.done) ? { steps: setupSteps } : null;
   if (!member || member.status !== "active") redirect("/api/auth/signout?reason=" + encodeURIComponent("You no longer have access to that workspace."));
 
   const planState = await getPlanState(session.orgId);
@@ -116,22 +115,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`flex h-screen overflow-hidden bg-sidebar text-ink-100 font-body`}>
         <SearchPalette />
         <Sidebar initialCollapsed={false} setup={setup} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={platformAdmin} connectedComputers={connectedComputers} reviewCount={reviewCount} trial={trial} onprem={isOnPrem()} />
-        <div id="app-scroll" className="flex-1 flex flex-col min-w-0 bg-canvas overflow-y-auto [scrollbar-gutter:stable]">
+        <div id="app-scroll" className="flex-1 flex flex-col min-w-0 bg-canvas overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable]">
           <ScrollReset targetId="app-scroll" />
-          <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-12 pb-24">
-            {/* Sempre nello stesso punto, in ogni pagina. */}
-            <div className="relative lg:absolute lg:top-12 lg:right-10 z-30 print:hidden flex items-center justify-end gap-2 mb-4 lg:mb-0">
-              <AlertsBell organizationId={session.orgId} />
-              <ConnectedIndicator organizationId={session.orgId} />
-              <VoiceControl initialMode={parseVoiceMode(cookies().get(VOICE_COOKIE)?.value)} />
-              <DocsButton />
+          {/* Senza padding in alto: la barra del titolo (PageHeader) è la prima cosa della pagina.
+              Le pagine senza barra mostrano una barra vuota con i pulsanti fissi (globals.css). */}
+          <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pb-24">
+            {/* Pulsanti fissi (avvisi, computer, voce, documentazione): dentro la barra del titolo,
+                allineati a destra e centrati sulla sua altezza (56px), anche durante lo scroll (da tablet in su). */}
+            <div className="hdr-tools-row relative sm:sticky top-0 z-40 h-0 print:hidden">
+              {/* Barra vuota per le pagine senza PageHeader (errori, documenti): stessa cornice ovunque. */}
+              <div aria-hidden className="page-bar-fallback absolute top-0 h-14 -left-[100vw] -right-[100vw] bg-panel border-b border-line" />
+              <div className="absolute right-0 top-0 h-14 flex items-center gap-2 [&_.btn]:h-8 [&_.btn-icon]:w-8">
+                <AlertsBell organizationId={session.orgId} />
+                <ConnectedIndicator organizationId={session.orgId} />
+                <VoiceControl initialMode={parseVoiceMode(cookies().get(VOICE_COOKIE)?.value)} />
+                <DocsButton />
+              </div>
             </div>
-            <VerifyEmailBanner />
             <Suspense fallback={null}>
               <UrlNotice />
             </Suspense>
-            <AreaTabs />
             {children}
+            <VerifyEmailBanner />
           </main>
           <AskDocs docs={DOCS.map(({ slug, title, section, summary }) => ({ slug, title, section, summary }))} />
         </div>

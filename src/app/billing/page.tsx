@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 export default async function BillingPage({ searchParams }: { searchParams: { checkout?: string; billing?: string } }) {
   if (isOnPrem()) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <PageHeader title="Plan & billing" subtitle="angar on-premises" />
         <Section title="Plan">
           <Row title="Everything included" hint="All features on, data stays on your server.">
@@ -66,7 +66,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Plan & billing" />
 
       {searchParams.checkout === "success" && (

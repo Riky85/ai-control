@@ -34,7 +34,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
   const onlyOwn = clients.length <= 1;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Partner console"
         subtitle="All your client workspaces in one place"
@@ -47,7 +47,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
       />
       {!(await featureEnabled(s.orgId, "partnerConsole")) && <Notice><span className="inline-flex flex-wrap items-center gap-x-2">The partner console is read-only on your plan. <LockedNote feature="partnerConsole" /></span></Notice>}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Clients" value={String(clients.length)} hint={onlyOwn ? "Add your first client workspace" : "Workspaces you're a member of"} tone="accent" />
         <StatCard
           label="Total AI spend"
@@ -208,7 +208,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                 Mark client workspaces as <span className="text-ink-100">managed by me</span> to see your monthly recurring revenue from angar plans and Edge devices.
               </p>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-4 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-start">
                 <div className="grid grid-cols-3 gap-4 lg:w-[26rem]">
                   <Figure label="Clients pay" value={`${fmtEur(econ.total.list)}/mo`} />
                   <Figure label="Your cost" value={`${fmtEur(econ.total.cost)}/mo`} />

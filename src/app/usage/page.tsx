@@ -206,7 +206,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const stateCount = (s: CleanupRow["state"]) => cleanup.filter((c) => c.state === s).length;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Usage"
         subtitle="Last 30 days."
@@ -302,7 +302,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       )}
 
       {view === "cleanup" && individual && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           {searchParams.asked && (
             <Notice tone="success">
               Asked {searchParams.asked} {searchParams.asked === "1" ? "person" : "people"}.

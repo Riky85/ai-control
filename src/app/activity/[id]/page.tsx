@@ -50,7 +50,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
   const others = siblings.filter((e) => e.id !== activity.id).slice(0, 5);
 
   return (
-    <div className="flex flex-col gap-4 max-w-2xl">
+    <div className="flex flex-col gap-6 [&>*:not(.page-bar)]:max-w-2xl">
       <PageHeader
         crumbs={[{ label: "Activity", href: "/activity" }]}
         title={activity.eventType}

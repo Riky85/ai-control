@@ -7,7 +7,7 @@ export default function DocsIndex({ searchParams }: { searchParams: { q?: string
   const match = (d: (typeof DOCS)[number]) => !q || `${d.title} ${d.summary} ${d.body} ${(d.keywords ?? []).join(" ")}`.toLowerCase().includes(q);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Documentation" />
       <form className="w-full max-w-xl">
         <label className="flex items-center gap-2 border border-line rounded-lg bg-panel px-3 py-2.5 focus-within:border-ink-400">
@@ -25,7 +25,7 @@ export default function DocsIndex({ searchParams }: { searchParams: { q?: string
         return (
           <section key={section}>
             <h2 className="text-base font-bold text-ink-100 mb-2">{section}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {docs.map((d) => (
                 <Link key={d.slug} href={`/docs/${d.slug}`} className="rounded-xl border border-line bg-panel p-4 hover:border-ink-400 transition-colors">
                   <div className="text-sm font-semibold text-ink-100">{d.title}</div>

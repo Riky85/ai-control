@@ -29,7 +29,7 @@ export default function ScoreView({ result, plan, current, changedOn, changed, c
   const first = current[0];
   const delta = current.length >= 2 ? result.score - first.score : null;
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Angar Score"
         action={
@@ -95,7 +95,7 @@ export default function ScoreView({ result, plan, current, changedOn, changed, c
       </section>
 
       {/* Le 5 dimensioni */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {result.dimensions.map((d) => (
           <DimensionCard key={d.axis} d={d} />
         ))}

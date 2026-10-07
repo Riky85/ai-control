@@ -31,7 +31,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
   const source = d.price.referenceLabel === "market median" ? "peers" : d.price.referenceLabel ? "list" : "none";
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         crumbs={[{ label: "Savings", href: "/savings" }, { label: "Contracts", href: "/savings?view=contracts" }, { label: d.asset.name }]}
         title={`Negotiate ${d.asset.name}`}
@@ -115,7 +115,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
         </div>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Prezzo di un posto */}
         <Section title="What you pay vs the market" meta="One seat, a month" action={<VerdictPill verdict={d.price.verdict} source={source} deltaPct={d.price.deltaPct} />}>
           <div className="p-5 flex flex-col gap-3">

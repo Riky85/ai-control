@@ -39,7 +39,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
   const activeLinks = links.filter((l) => !l.revokedAt && (!l.expiresAt || l.expiresAt > new Date()));
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Workspace" subtitle={org.name} />
 
       <Tabs

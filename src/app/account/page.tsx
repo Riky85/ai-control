@@ -23,7 +23,7 @@ export default async function AccountPage({ searchParams }: { searchParams: { sa
   const via = session?.m === "sso" ? "Microsoft or Google" : "email and password";
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Account" subtitle={account.email} />
       {searchParams.saved && SAVED[searchParams.saved] && <Notice tone="success">{SAVED[searchParams.saved]}</Notice>}
       {searchParams.verified && <Notice tone="success">Email confirmed.</Notice>}

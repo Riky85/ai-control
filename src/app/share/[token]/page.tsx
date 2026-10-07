@@ -55,12 +55,12 @@ export default async function SharedDashboardPage({ params }: { params: { token:
     { label: STATUS_LABEL.UNAPPROVED, value: assets.filter((a) => a.status === "UNAPPROVED").length },
   ];
 
-  // Dentro l'app (utente loggato) il layout dà già padding e ha i due pulsanti fissi in alto a destra.
+  // Dentro l'app (utente loggato) il layout dà già padding e mette i pulsanti fissi in una barra sopra la pagina.
   const inApp = Boolean(currentSession());
 
   return (
     <div className={`flex flex-col gap-4 ${inApp ? "" : "px-4 sm:px-10 py-8 max-w-[1400px] mx-auto"}`}>
-      <div className={`flex items-end justify-between gap-4 ${inApp ? "lg:pr-[8.25rem]" : ""}`}>
+      <div className="flex items-end justify-between gap-4">
         <div className="min-w-0">
           <div className="text-xs text-ink-400 mb-1">
             Shared by {link.organization.name} · read-only · {fmtDate(new Date())}

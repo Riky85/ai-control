@@ -56,7 +56,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Data exposure"
         action={<ExportMenu />}
@@ -66,7 +66,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
         <EmptyState title="No data categories yet" text="They appear when a connected AI declares which company data it can reach." href="/connect" cta="Connect a source" />
       ) : (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard label="Data categories" value={String(everything.length)} hint={`${sensitive.length} sensitive`} tone="accent" />
             <StatCard label="Sensitive data reached" value={`${reached.length}/${sensitive.length}`} hint={reached.length ? "Reached by at least one AI" : "No AI reaches it"} tone={reached.length ? "signal" : undefined} />
             <StatCard label="AI on sensitive data" value={String(aiOnSensitive.size)} hint="Personal, financial, code, confidential" />

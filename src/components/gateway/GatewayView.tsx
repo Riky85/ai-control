@@ -32,7 +32,7 @@ const RESULTS = ["allowed", "redacted", "blocked", "error"];
 export default function GatewayView(p: GatewayViewProps) {
   const editable = p.canEdit && p.planOk;
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Gateway"
         action={

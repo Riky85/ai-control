@@ -29,7 +29,7 @@ export default function ImproveView({ result, plan }: { result: FullScore; plan:
   const big = "font-display text-[30px] leading-none font-semibold tabular text-ink-100";
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Improve your score" crumbs={[{ label: "Angar Score", href: "/score" }, { label: "Improve" }]} />
 
       {/* Riepilogo: punteggio attuale, potenziale, risparmi */}

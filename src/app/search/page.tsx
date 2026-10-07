@@ -43,7 +43,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
   const quick = q ? [] : QUICK.map((h) => NAV_PAGES.find((p) => p.href === h)).filter((p): p is (typeof NAV_PAGES)[number] => !!p);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Search" subtitle={q ? `Results for "${q}"` : "Press Ctrl-K anywhere for instant search."} />
 
       <form action="/search" method="get" className="flex items-center gap-2">

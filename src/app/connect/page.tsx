@@ -87,7 +87,7 @@ export default async function ConnectPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Connect" />
 
       {/* Il prossimo passo è segnato sulla sua scheda ("Start here" + pulsante primario): niente doppione sopra. */}
@@ -97,7 +97,7 @@ export default async function ConnectPage() {
         </section>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {cards.map((c) => (
           <section key={c.key} className="overflow-hidden rounded-xl border border-line bg-panel flex flex-col">
             <div className="p-5 flex flex-col gap-1">

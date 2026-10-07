@@ -23,8 +23,8 @@ export default async function EvidencePackPage() {
   const c = pack.auditLog.chain;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="print:hidden">
+    <div className="flex flex-col gap-6">
+      <div className="contents print:hidden">
         <PageHeader
           crumbs={[{ label: "AI Act", href: "/compliance" }, { label: "Evidence pack" }]}
           title="AI Act evidence pack"

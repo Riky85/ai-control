@@ -20,7 +20,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
   const orgId = currentOrgId();
   if (searchParams.view === "chargeback")
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <PageHeader title="Budgets" />
         <Tabs items={VIEW_TABS} active="chargeback" />
         {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
@@ -62,13 +62,13 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
   const month = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", month: "long" }).format(new Date());
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Budgets" />
       <Tabs items={VIEW_TABS} active="budgets" />
 
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard label="Total budget" value={`${fmtEur(totalBudget)}/mo`} hint={budgets.length ? `${budgets.length} team${budgets.length === 1 ? "" : "s"}` : undefined} />
         <StatCard label={`Spend in ${month}`} value={`${fmtEur(totalSpend)}/mo`} hint={totalBudget ? `${Math.round((totalSpend / totalBudget) * 100)}% of budget` : undefined} />
         <StatCard label="Teams over budget" value={String(over)} hint={over ? "Alert sent" : undefined} tone={over ? "alarm" : undefined} />
@@ -77,7 +77,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
       <TeamValue orgId={orgId} />
 
       {named.length === 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="rounded-xl border border-line bg-panel p-5">
             <h2 className="text-sm font-bold text-ink-100">No teams yet</h2>
             <div className="flex flex-wrap items-center gap-2 mt-4">

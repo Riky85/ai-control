@@ -37,7 +37,7 @@ export default async function AlertsPage() {
   const topKind = [...kinds.entries()].filter(([k]) => KIND_HREF[k]).sort((a, b) => b[1] - a[1])[0];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Alerts"
         action={
@@ -50,7 +50,7 @@ export default async function AlertsPage() {
       />
       {alerts.length > 0 && (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard label="Unread" value={String(unread)} hint={unread ? `of ${alerts.length} alerts` : "You're up to date"} tone={unread ? "accent" : undefined} />
             <StatCard label="Critical, unread" value={String(critical)} hint={critical ? "Decide these first" : "Nothing critical"} tone={critical ? "alarm" : undefined} />
             <StatCard label="This week" value={String(thisWeek)} hint={lastWeek ? `${lastWeek} the week before` : "New in the last 7 days"} />

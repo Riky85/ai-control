@@ -105,51 +105,130 @@ export function scoreSentence(d: Pick<ScoreCardData, "verdict" | "savingsMonthly
   return d.savingsMonthlyEur >= 1 ? `${d.verdict} ${eur(d.savingsMonthlyEur)} a month could be saved.` : d.verdict;
 }
 
+/** Calibro segmentato: 50 tacche sottili, piene fino al punteggio (neutre: il colore sta solo nel punto del livello). */
+function SegmentGauge({ value }: { value: number }) {
+  const n = 50;
+  const filled = Math.round((Math.max(0, Math.min(100, value)) / 100) * n);
+  return (
+    <div aria-hidden>
+      <div className="flex gap-[3px] h-4">
+        {Array.from({ length: n }, (_, i) => (
+          <span key={i} className={`flex-1 rounded-[1px] ${i < filled ? "bg-ink-100/85" : "bg-ink-100/[0.08]"}`} />
+        ))}
+      </div>
+      {/* Soglie dei livelli: 40 · 60 · 80. */}
+      <div className="relative mt-2 h-4 text-[11px] text-ink-400 tabular">
+        <span className="absolute left-0">0</span>
+        {[40, 60, 80].map((t) => (
+          <span key={t} className="absolute -translate-x-1/2" style={{ left: `${t}%` }}>
+            {t}
+          </span>
+        ))}
+        <span className="absolute right-0">100</span>
+      </div>
+    </div>
+  );
+}
+
 /**
- * Card dell'angar Score per la Overview: numero grande, livello, una frase,
- * le 5 dimensioni in righe compatte e "Improve my score" come pulsante
- * PRINCIPALE della pagina (l'unico arancio). Solo presentazione.
+ * Card dell'Angar Score per la Overview, in stile analisi finanziaria: numero
+ * grande e sottile, calibro segmentato, una frase, le 5 dimensioni come righe
+ * minime con barre sottili. "Improve my score" è il pulsante PRINCIPALE della
+ * pagina (l'unico arancio). Solo presentazione.
  */
 export default function ScoreCard({ data }: { data: ScoreCardData }) {
   const { score, level, levelLabel, confidence, confidenceLabel, dims, delta, potential, actions } = data;
+  const gain = potential != null ? Math.round(potential - score) : 0;
   return (
     <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="score-card-title">
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 lg:gap-10 p-5 sm:p-6">
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 id="score-card-title" className="font-display text-2xl font-bold tracking-tight text-ink-100">Angar Score</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        {/* Sinistra: punteggio */}
+        <div className="flex flex-col min-w-0 p-6 sm:p-8">
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="score-card-title" className="text-[15px] font-bold tracking-[-0.01em] text-ink-100">
+              Angar Score
+            </h2>
             {confidence !== "measured" && confidence !== "high" && <span className="text-xs text-ink-400 shrink-0">{confidenceLabel}</span>}
           </div>
-          <div className="flex items-end gap-3 mt-3">
-            <span className="font-display text-[56px] leading-[0.9] font-bold tracking-tight tabular text-ink-100">{score}</span>
-            <span className="text-sm text-ink-400 pb-1">/ 100</span>
-            <LevelPill level={level} label={levelLabel} className="mb-1.5" />
+
+          <div className="flex items-end gap-4 mt-6">
+            <span className="text-[80px] leading-[0.8] font-medium tracking-[-0.05em] tabular text-ink-100">{score}</span>
+            <div className="flex flex-col gap-1.5 pb-1">
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-100">
+                <span className={`h-1.5 w-1.5 rounded-full ${LEVEL_STYLE[level].dot}`} aria-hidden />
+                {levelLabel}
+              </span>
+              <span className="text-xs text-ink-400 tabular">
+                out of 100
+                {delta && (
+                  <>
+                    {" · "}
+                    <span className={delta.points > 0 ? "text-steady" : delta.points < 0 ? "text-alarm" : ""}>
+                      {delta.points > 0 ? "+" : ""}
+                      {formatPts(delta.points)}
+                    </span>{" "}
+                    since {fmtDay(delta.since)}
+                  </>
+                )}
+              </span>
+            </div>
           </div>
-          <ScoreBar value={score} className="mt-4 max-w-sm" />
-          <p className="text-sm text-ink-100 mt-4 leading-snug max-w-md">{data.verdict}</p>
-          <div className="flex flex-wrap items-center gap-2 mt-5">
+
+          <div className="mt-7">
+            <SegmentGauge value={score} />
+          </div>
+
+          <p className="text-sm leading-relaxed text-ink-400 mt-5 max-w-md">{data.verdict}</p>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-auto pt-7">
             <Link href="/score/improve" className="btn btn-primary">
               Improve my score
             </Link>
-            <Link href="/score" className="btn btn-ghost">
-              See details
-            </Link>
+            {gain > 0 && actions > 0 ? (
+              <span className="text-xs text-ink-400 tabular">
+                Up to <span className="text-ink-100 font-medium">{Math.round(potential!)}</span> with {actions} action{actions === 1 ? "" : "s"}
+              </span>
+            ) : (
+              <Link href="/score" className="text-sm text-ink-400 hover:text-ink-100 transition-colors">
+                See details →
+              </Link>
+            )}
           </div>
         </div>
 
-        <ul className="flex flex-col divide-y divide-line self-center min-w-0" aria-label="Dimensions">
-          {dims.map((d) => (
-            <li key={d.axis}>
-              <Link href={`/score#axis-${d.axis}`} className="flex items-center justify-between gap-3 py-2.5 group">
-                <span className="text-sm text-ink-100 min-w-0 truncate group-hover:underline">{d.label}</span>
-                <span className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs tabular text-ink-400 w-6 text-right">{d.value ?? "—"}</span>
-                  <LevelPill level={d.level} label={d.levelLabel} />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {/* Destra: le 5 dimensioni */}
+        <div className="min-w-0 border-t lg:border-t-0 lg:border-l border-line p-6 sm:p-8 flex flex-col">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-[15px] font-bold tracking-[-0.01em] text-ink-100">Breakdown</h3>
+            <Link href="/score" className="text-xs text-ink-400 hover:text-ink-100 transition-colors">
+              See details →
+            </Link>
+          </div>
+          <ul className="flex flex-col mt-4 flex-1 justify-center" aria-label="Dimensions">
+            {dims.map((d) => {
+              const v = d.value == null ? null : Math.max(0, Math.min(100, Math.round(d.value)));
+              return (
+                <li key={d.axis} className="border-b border-line last:border-0">
+                  <Link
+                    href={`/score#axis-${d.axis}`}
+                    className="group grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2rem_8.75rem] items-center gap-x-5 gap-y-2 py-3.5"
+                    aria-label={`${d.label}: ${v ?? "not measured"}${v != null ? " out of 100" : ""}, ${d.levelLabel}`}
+                  >
+                    <span className="text-sm text-ink-100 truncate group-hover:underline underline-offset-4 decoration-ink-100/30">{d.label}</span>
+                    <span className="order-last sm:order-none col-span-2 sm:col-span-1 h-1 rounded-full bg-ink-100/[0.08] overflow-hidden" aria-hidden>
+                      {v != null && <span className="block h-full rounded-full bg-ink-100/75 animate-grow" style={{ width: `${Math.max(2, v)}%` }} />}
+                    </span>
+                    <span className="text-sm font-medium tabular text-ink-100 text-right">{v ?? "—"}</span>
+                    <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-ink-400 min-w-0">
+                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${LEVEL_STYLE[d.level ?? "none"].dot}`} aria-hidden />
+                      <span className="truncate">{d.levelLabel}</span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
     </section>
   );

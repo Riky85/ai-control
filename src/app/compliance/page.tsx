@@ -39,7 +39,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
   const steps = timeline();
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="AI Act"
         action={
@@ -53,7 +53,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
 
       {searchParams.applied && <Notice tone="success">{Number(searchParams.applied) ? `Classified ${searchParams.applied} AI with the suggested risk class.` : "Every AI already had a risk class — nothing changed."}</Notice>}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-4 animate-rise">
           <div className="text-sm text-ink-400">Readiness</div>
           <div>
@@ -71,7 +71,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
         <StatCard label="Missing owners" value={String(r.missingOwners)} hint="Allowed or high-risk AI without an owner" tone={r.missingOwners ? "signal" : undefined} href={r.missingOwners ? "#your-ai" : undefined} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link href="/compliance/evidence" className="rounded-xl border border-line bg-panel p-5 flex items-start gap-4 hover:border-ink-400 transition-colors">
           <div className="flex-1">
             <div className="text-sm font-semibold text-ink-100">Evidence pack (AI Act / NIS2)</div>
@@ -88,7 +88,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section className="rounded-xl border border-line bg-panel p-5">
           <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">What counts towards the score</h2>
           <ul className="flex flex-col divide-y divide-line">

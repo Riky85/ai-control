@@ -106,7 +106,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }, { label: "angar Edge", href: "/edge" }]}
         title="Sensors"
@@ -116,7 +116,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
       {searchParams.notice && <Notice tone="success">{searchParams.notice}</Notice>}
       {!(await featureEnabled(orgId, "edgeSensors")) && <Notice><span className="inline-flex flex-wrap items-center gap-x-2">New software and cloud-log sensors need the Save plan; angar devices work on any plan. <LockedNote feature="edgeSensors" /></span></Notice>}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Sensors online" value={`${online}/${sensors.length}`} hint={sensors.length ? "Reporting in the last 15 min" : "Add your first sensor below"} tone={sensors.length && online < sensors.length ? "signal" : undefined} />
         <StatCard label="AI seen · 30 days" value={String(byService.length)} hint={cands.length ? `+ ${cands.length} new to review` : "From the catalog"} href="/edge/sensors?view=ai" />
         <StatCard label="Devices using AI" value={anonymous ? "—" : String(clientsAll.size)} hint={anonymous ? "Hidden in anonymous mode" : "Distinct IPs, 30 days"} />
@@ -241,7 +241,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
             })}
           </Table>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
             <AddSensor appUrl={base} edgeImage={EDGE_IMAGE} canEdit={canEdit} />
             <section className="rounded-xl border border-line bg-panel p-5">
               <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">Upload alert</h2>

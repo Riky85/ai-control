@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AreaTabs from "./AreaTabs";
 
 /** Card statistica condivisa da tutte le pagine — nessun hover, solo link se serve. */
 export function StatCard({
@@ -24,7 +25,7 @@ export function StatCard({
         {label}
       </div>
       <div>
-        <div className={`font-display text-[30px] leading-none font-semibold tracking-tight tabular ${color}`}>{value}</div>
+        <div className={`font-display text-[28px] leading-none font-medium tracking-[-0.025em] tabular ${color}`}>{value}</div>
         {hint && <div className="text-xs text-ink-400 mt-1.5 truncate">{hint}</div>}
       </div>
     </>
@@ -114,40 +115,67 @@ export function Panel({
 }
 
 /**
- * Intestazione standard di ogni pagina: percorso opzionale, titolo,
- * sottotitolo, azioni a destra — e sempre il pulsante documentazione.
+ * Intestazione standard di ogni pagina, in stile Exa: una barra in alto a tutta
+ * larghezza (bordo sotto, appiccicosa durante lo scroll da tablet in su) con titolo piccolo,
+ * sottotitolo tenue sulla stessa riga e azioni a destra. I pulsanti fissi del
+ * layout (avvisi, voce, documentazione) stanno nella stessa barra, all'estrema
+ * destra: qui si lascia loro lo spazio (--hdr-tools). Sotto la barra, le schede
+ * dell'area corrente. Il contenuto parte sotto.
  */
 export function PageHeader({
   title,
   subtitle,
   action,
   crumbs,
+  icon,
+  meta,
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   action?: React.ReactNode;
   crumbs?: { label: string; href?: string }[];
+  /** Piccolo elemento prima del titolo (es. logo del fornitore). */
+  icon?: React.ReactNode;
+  /** Controllo accanto al titolo (es. stato dell'AI). */
+  meta?: React.ReactNode;
 }) {
+  // Nel percorso solo i livelli superiori (con link): l'ultimo è già il titolo.
+  const parents = (crumbs ?? []).filter((c) => c.href);
   return (
-    <div className="flex flex-wrap lg:flex-nowrap items-start justify-between gap-x-4 gap-y-3">
-      <div className="min-w-0">
-        {crumbs && crumbs.length > 0 && (
-          <nav className="text-sm text-ink-400 mb-2 flex items-center gap-1.5">
-            {crumbs.map((c, i) => (
-              <span key={i} className="flex items-center gap-1.5">
-                {i > 0 && <span aria-hidden>/</span>}
-                {c.href ? <Link href={c.href} className="hover:text-ink-100 hover:underline">{c.label}</Link> : <span>{c.label}</span>}
-              </span>
-            ))}
-          </nav>
-        )}
-        <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 break-words lg:truncate">{title}</h1>
-        {subtitle && <p className="text-sm text-ink-400 mt-1">{subtitle}</p>}
-      </div>
-      {/* Su schermi grandi le azioni stanno a sinistra dei pulsanti fissi del layout (avvisi, computer,
-          documentazione); su schermi piccoli quei pulsanti hanno una riga loro sopra la pagina. */}
-      <div className="flex flex-wrap items-center gap-2 shrink-0 lg:pr-[var(--hdr-tools,8.25rem)] min-h-9">{action}</div>
-    </div>
+    <>
+      <header
+        className={`page-bar relative sm:sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-10 px-4 sm:px-6 lg:px-10 print:static print:mx-0 print:px-0
+          before:content-[''] before:absolute before:inset-y-0 before:-left-[100vw] before:-right-[100vw] before:-z-10 before:bg-panel before:border-b before:border-line print:before:hidden`}
+      >
+        {/* Spazio a destra per i pulsanti fissi del layout (--hdr-tools) più un piccolo respiro. */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:gap-6 lg:pr-[calc(var(--hdr-tools,7rem)+0.75rem)]">
+          <div className="h-14 flex items-center gap-2.5 min-w-0 lg:flex-1 pr-[calc(var(--hdr-tools,7rem)+0.75rem)] lg:pr-0">
+            {icon && <span className="shrink-0 flex items-center">{icon}</span>}
+            {parents.length > 0 && (
+              <nav className="hidden sm:flex items-center gap-2 text-[15px] text-ink-400 shrink-0">
+                {parents.map((c, i) => (
+                  <span key={i} className="flex items-center gap-2">
+                    <Link href={c.href!} className="hover:text-ink-100 transition-colors">{c.label}</Link>
+                    <span aria-hidden className="text-ink-400/60">/</span>
+                  </span>
+                ))}
+              </nav>
+            )}
+            <h1 className="text-base sm:text-[17px] leading-tight font-semibold tracking-[-0.01em] text-ink-100 truncate min-w-0 shrink">{title}</h1>
+            {meta && <span className="shrink-0 hidden sm:flex items-center">{meta}</span>}
+            {subtitle && <p className="hidden sm:block ml-1 pl-3.5 border-l border-line text-sm leading-5 text-ink-400 truncate min-w-0">{subtitle}</p>}
+          </div>
+          {(subtitle || meta) && (
+            <div className="sm:hidden -mt-2 pb-3 flex flex-col items-start gap-2 text-sm text-ink-400 min-w-0">
+              {subtitle && <p className="truncate max-w-full">{subtitle}</p>}
+              {meta}
+            </div>
+          )}
+          {action && <div className="flex flex-wrap items-center gap-2 shrink-0 pb-3 lg:pb-0 lg:h-14 [&_.btn]:h-8 [&_.btn-icon]:w-8">{action}</div>}
+        </div>
+      </header>
+      <AreaTabs />
+    </>
   );
 }
 

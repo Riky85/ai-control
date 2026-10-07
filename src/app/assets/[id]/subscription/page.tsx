@@ -86,7 +86,7 @@ export default async function SubscriptionEditorPage({ params }: { params: { id:
   for (const c of SUBSCRIPTION_CURRENCIES) eurPerUnit[c] = toEur(1, c).eur;
 
   return (
-    <div className="flex flex-col gap-4 max-w-4xl">
+    <div className="flex flex-col gap-6 [&>*:not(.page-bar)]:max-w-4xl">
       <PageHeader
         crumbs={[{ label: "Overview", href: "/" }, { label: asset.name, href: `/assets/${asset.id}` }]}
         title={manual ? "Edit subscription" : "Add subscription"}

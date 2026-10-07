@@ -79,7 +79,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: { vi
   const selected = searchParams.model ? modelById(searchParams.model) : null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         crumbs={[{ label: "Savings", href: "/savings" }, { label: "AI price list" }]}
         title="AI price list"

@@ -60,21 +60,21 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
   );
   if (view === "computers")
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         {header}
         <ComputersView orgId={s.orgId} />
       </div>
     );
   if (view === "other")
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         {header}
         <OtherWaysView orgId={s.orgId} base={base} token={token} joinUrl={joinUrl} canEdit={s.role !== "VIEWER"} canAdmin={s.role === "ADMIN" || s.role === "OWNER"} />
       </div>
     );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {header}
 
       {/* Download principale + anteprima dell'app */}

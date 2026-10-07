@@ -20,7 +20,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
 
   if (!group)
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <PageHeader title="Group view" subtitle="All your companies." />
         <div className="rounded-xl border border-dashed border-line bg-panel p-8 flex flex-col gap-3 animate-rise">
           <h2 className="text-base font-bold text-ink-100">Create a group for your companies</h2>
@@ -55,7 +55,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
   const months = recentMonths(12);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title={group.name}
         subtitle={`Group view · ${rows.length} compan${rows.length === 1 ? "y" : "ies"} you administer`}
@@ -73,7 +73,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
       />
       {groups.length > 1 && <Tabs items={groups.map((g) => ({ key: g.id, label: g.name, href: `/group?id=${g.id}` }))} active={group.id} />}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Group AI spend" value={t.spend ? `${fmtEur(t.spend)}/mo` : "—"} hint={t.spend ? `${fmtEur(t.spend * 12)} a year` : "No costs yet"} tone="accent" />
         <StatCard label="Saved" value={t.saved ? `${fmtEur(t.saved)}/mo` : "—"} hint={t.saved ? `${fmtEur(t.saved * 12)} a year` : "Nothing done yet"} />
         <StatCard label="Could still save" value={t.save ? `${fmtEur(t.save)}/mo` : "—"} hint={t.save ? `${fmtEur(t.save * 12)} a year` : "Nothing found"} />

@@ -26,8 +26,8 @@ export default async function RegisterPage({ searchParams }: { searchParams: { e
   const tiers = Object.fromEntries(AI_ACT_TIERS.map((t) => [t, reg.rows.filter((r) => r.aiAct.tier === t).length])) as Record<AiActTier, number>;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="print:hidden">
+    <div className="flex flex-col gap-6">
+      <div className="contents print:hidden">
         <PageHeader
           crumbs={[{ label: "Governance", href: "/governance" }, { label: "Register" }]}
           title="AI Act & GDPR register"

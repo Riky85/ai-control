@@ -44,7 +44,7 @@ export function UsageSummary({ d }: { d: UsageSummaryData }) {
   const big = "font-display text-[30px] leading-none font-semibold tracking-tight tabular";
   const lab = "text-sm font-semibold text-ink-100";
   return (
-    <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-rise" aria-label="Usage summary">
+    <section className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-rise" aria-label="Usage summary">
       <Link href={d.peopleHref} className={link}>
         <span className={lab}>Active people</span>
         <span className={`${big} text-ink-100`}>{d.people}</span>

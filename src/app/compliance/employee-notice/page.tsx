@@ -55,8 +55,8 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
   const hasPlaceholders = /\[\[/.test(JSON.stringify(notice.blocks));
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="print:hidden flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
+      <div className="contents print:hidden">
         <PageHeader
           crumbs={[{ label: "AI Act", href: "/compliance" }, { label: "Employee notice" }]}
           title="Employee notice"

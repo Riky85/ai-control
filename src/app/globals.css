@@ -6,13 +6,16 @@
    (bg-ink-100/[0.04] ecc.). Scuro come Exa: contenuto #151515. */
 :root {
   color-scheme: light;
-  --c-subtle: 240 241 244;
+  /* Un solo carattere (Inter): il marchio usa lo stesso del testo. */
+  --font-brand: var(--font-sans);
+  /* Grigio neutro (niente blu) in linea con i bordi #E8E8E8: riga delle colonne delle tabelle. */
+  --c-subtle: 246 246 246;
   /* Sfondo dell'area contenuti: grigio chiarissimo nel chiaro, le card restano bianche. */
   --c-canvas: 250 250 250; /* #FAFAFA */
   --c-text: 20 20 24;
   --c-muted: 95 95 105;
   --c-panel: 255 255 255;
-  --c-line: 228 228 233;
+  --c-line: 232 232 232; /* #E8E8E8 */
   --c-accent-soft: 255 241 232;
   /* Chiaro: segnale e verde un filo più scuri, leggibili come testo sul bianco (WCAG AA). */
   --c-signal: 160 108 0;
@@ -24,7 +27,7 @@
   /* Sidebar chiara: bianca, bordo grigio, logo e icone quasi neri.
      "sb-ink" è anche la base delle velature di hover/attivo (nero leggero). */
   --c-sidebar: 255 255 255;
-  --c-sidebar-line: 229 231 235;
+  --c-sidebar-line: 232 232 232; /* #E8E8E8 */
   --c-sb-ink: 17 17 17;
   --c-sb-soft: 38 38 42;
   --c-sb-text: 52 52 58;
@@ -71,6 +74,9 @@ html.dark body,
 body {
   background-color: rgb(var(--c-panel));
   color: rgb(var(--c-text));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 ::selection {
@@ -170,3 +176,8 @@ html.dark .bar-thead,
 html:not(.dark) :where(.rounded-xl, .rounded-2xl).bg-panel.border-line:not(.force-dark *):not([class*="shadow"]) {
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
+
+/* Barra del titolo: se la pagina ha la sua (PageHeader), la cornice vuota del layout si nasconde. */
+main:has(.page-bar) .page-bar-fallback { display: none; }
+/* Pagine senza PageHeader: la riga dei pulsanti occupa l'altezza della barra (+ lo spazio tra i blocchi). */
+main:not(:has(.page-bar)) > .hdr-tools-row { height: 3.5rem; margin-bottom: 1.5rem; }

@@ -18,7 +18,7 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
   const next = DOCS[idx + 1];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {/* Intestazione a tutta larghezza: Export in alto a destra come nelle altre pagine. */}
       <PageHeader crumbs={[{ label: "Documentation", href: "/docs" }, { label: doc.section }]} title={doc.title} action={<ExportMenu />} />
     <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 lg:gap-10">

@@ -57,11 +57,11 @@ export default async function AuditPage({ searchParams }: { searchParams: { q?: 
   const latest = rows[0] && !q ? rows[0] : null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Audit log" subtitle="Entries can't be edited." />
       {recent.length > 0 && (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard label="Entries, 30 days" value={recent.length.toLocaleString("en-GB")} hint={latest ? `Latest ${fmtAgo(latest.createdAt)}` : "Everything recorded"} tone="accent" />
             <StatCard label="People active" value={String(actors)} hint="Signed in or changed something" />
             <StatCard label="Access changes" value={String(changes)} hint="Members, connections, shared links" />

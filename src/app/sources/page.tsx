@@ -40,7 +40,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
   const networkLogs = connectors.filter((c) => c.provider === "CLOUDFLARE_GATEWAY" || c.provider === "CISCO_UMBRELLA");
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader crumbs={[{ label: "Connect", href: "/connect" }]} title="Sources" />
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 

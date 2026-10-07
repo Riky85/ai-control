@@ -4,14 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { locate } from "@/lib/areas";
 
-// Schede dell'area corrente, sopra il titolo della pagina: una voce in sidebar,
-// qui si passa da una pagina all'altra dell'area.
+// Schede dell'area corrente, subito sotto la barra del titolo (PageHeader):
+// una voce in sidebar, qui si passa da una pagina all'altra dell'area.
 export default function AreaTabs() {
   const pathname = usePathname();
   const here = locate(pathname);
   if (!here || here.area.tabs.length < 2) return null;
   return (
-    <nav className="print:hidden mb-5 flex flex-wrap items-center gap-1 text-sm lg:pr-[var(--hdr-tools,8.25rem)]" aria-label={here.area.label}>
+    <nav className="print:hidden -mb-1 flex flex-wrap items-center gap-1 text-sm" aria-label={here.area.label}>
       {here.area.tabs.map((t) => {
         const active = t === here.tab;
         return (

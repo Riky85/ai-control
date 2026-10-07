@@ -14,7 +14,7 @@ import { noticeDeadline, daysUntil } from "@/lib/contracts";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
-import { StatCard, Tabs, Panel, Table, td } from "@/components/ui";
+import { StatCard, Tabs, Panel, Table, td, PageHeader } from "@/components/ui";
 import StatusDot from "@/components/StatusDot";
 import VendorRiskCard from "@/components/VendorRiskCard";
 import ExportMenu from "@/components/ExportMenu";
@@ -146,58 +146,48 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   ].filter(Boolean) as string[];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap lg:flex-nowrap items-start justify-between gap-x-4 gap-y-3">
-        <div className="min-w-0">
-          <nav className="text-sm text-ink-400 mb-2 flex items-center gap-1.5">
-            <Link href="/" className="hover:text-ink-100 hover:underline">Your AI</Link>
-            <span aria-hidden>/</span>
-            <span className="truncate">{asset.name}</span>
-          </nav>
-          <div className="flex items-center gap-3 sm:gap-4">
-            <VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={56} />
-            <div className="min-w-0">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="font-display text-[28px] leading-tight font-semibold tracking-tight text-ink-100 break-words lg:truncate min-w-0">{asset.name}</h1>
-                {/* Stato accanto al nome: si cambia con un clic. */}
-                <div className="inline-flex items-center gap-0.5 rounded-lg bg-ink p-0.5">
-                  {(["APPROVED", "UNREVIEWED", "UNAPPROVED"] as const).map((st) => {
-                    const on = asset.status === st || (st === "UNREVIEWED" && asset.status === "UNKNOWN");
-                    const dot = st === "APPROVED" ? "bg-steady" : st === "UNAPPROVED" ? "bg-alarm" : "bg-signal";
-                    return (
-                      <form key={st} action={setAssetStatusAction}>
-                        <input type="hidden" name="assetId" value={asset.id} />
-                        <input type="hidden" name="status" value={st} />
-                        <button
-                          type="submit"
-                          disabled={on}
-                          className={`flex items-center gap-1.5 text-xs px-2.5 h-7 rounded-md transition-colors ${on ? "bg-panel text-ink-100 font-medium shadow-card cursor-default" : "text-ink-400 hover:text-ink-100"}`}
-                        >
-                          {on && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />}
-                          {st === "APPROVED" ? "Approved" : st === "UNAPPROVED" ? "Not allowed" : "Needs review"}
-                        </button>
-                      </form>
-                    );
-                  })}
-                </div>
-              </div>
-              <p className="text-sm text-ink-400 mt-0.5">
-                <span title={sources.length ? `Found via ${sources.join(", ")}` : undefined}>{[asset.vendor ?? "Vendor unknown", cat ? CATEGORY_LABEL[cat] : asset.type.replace(/_/g, " ").toLowerCase()].filter(Boolean).join(" · ")}</span>
-              </p>
-            </div>
+    <div className="flex flex-col gap-6">
+      {/* Barra del titolo come nelle altre pagine: logo piccolo, nome, stato (si cambia con un clic). */}
+      <PageHeader
+        crumbs={[{ label: "Your AI", href: "/" }, { label: asset.name }]}
+        icon={<VendorBadge vendor={asset.vendor ?? asset.connector?.provider ?? ""} name={asset.name} size={26} />}
+        title={asset.name}
+        meta={
+          <div className="inline-flex items-center gap-0.5 rounded-lg bg-ink p-0.5">
+            {(["APPROVED", "UNREVIEWED", "UNAPPROVED"] as const).map((st) => {
+              const on = asset.status === st || (st === "UNREVIEWED" && asset.status === "UNKNOWN");
+              const dot = st === "APPROVED" ? "bg-steady" : st === "UNAPPROVED" ? "bg-alarm" : "bg-signal";
+              return (
+                <form key={st} action={setAssetStatusAction}>
+                  <input type="hidden" name="assetId" value={asset.id} />
+                  <input type="hidden" name="status" value={st} />
+                  <button
+                    type="submit"
+                    disabled={on}
+                    className={`flex items-center gap-1.5 text-xs px-2.5 h-6 rounded-md transition-colors ${on ? "bg-panel text-ink-100 font-medium shadow-card cursor-default" : "text-ink-400 hover:text-ink-100"}`}
+                  >
+                    {on && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />}
+                    {st === "APPROVED" ? "Approved" : st === "UNAPPROVED" ? "Not allowed" : "Needs review"}
+                  </button>
+                </form>
+              );
+            })}
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 shrink-0 lg:pr-[var(--hdr-tools,8.25rem)] min-h-9">
-          {manage && (
-            <a href={manage} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" title="Change seats, plan or cancel on the provider's site">
-              Manage plan ↗
-            </a>
-          )}
-          <ExportMenu dataset={`passport-${asset.id}`} />
-        </div>
-      </div>
+        }
+        subtitle={<span title={sources.length ? `Found via ${sources.join(", ")}` : undefined}>{[asset.vendor ?? "Vendor unknown", cat ? CATEGORY_LABEL[cat] : asset.type.replace(/_/g, " ").toLowerCase()].filter(Boolean).join(" · ")}</span>}
+        action={
+          <>
+            {manage && (
+              <a href={manage} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" title="Change seats, plan or cancel on the provider's site">
+                Manage plan ↗
+              </a>
+            )}
+            <ExportMenu dataset={`passport-${asset.id}`} />
+          </>
+        }
+      />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           href={`/assets/${asset.id}?tab=spend`}
           label="Monthly cost"
@@ -217,7 +207,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
 
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/assets/${asset.id}?tab=${t.key}` }))} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2 flex flex-col gap-4">
           {tab === "overview" && (
             <>

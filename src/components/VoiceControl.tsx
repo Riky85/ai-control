@@ -233,11 +233,11 @@ function VoiceControlActive({ initialMode }: { initialMode: VoiceMode }) {
     startRec(false);
   }
 
-  // Un pulsante in più tra quelli fissi in alto a destra: le azioni della pagina si spostano a sinistra.
+  // Un pulsante in più nella barra in alto (32px + 8px di spazio): le azioni della pagina si spostano a sinistra.
   const visible = mode !== "off" && supported;
   useEffect(() => {
     if (!visible) return;
-    document.documentElement.style.setProperty("--hdr-tools", "11rem");
+    document.documentElement.style.setProperty("--hdr-tools", "9.5rem");
     return () => {
       document.documentElement.style.removeProperty("--hdr-tools");
     };

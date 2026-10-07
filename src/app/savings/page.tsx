@@ -57,7 +57,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
   const soonDeadlines = contracts.filter((c) => c.daysLeft != null && c.daysLeft >= 0 && c.daysLeft <= NOTICE_ALERT_DAYS).length;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Savings"
         action={
@@ -71,7 +71,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <StatCard label="You could save" value={`${fmtEur(totalMonthly)}/mo`} hint={spend ? `${Math.round((totalMonthly / spend) * 100)}% of ${fmtEur(spend)}/mo` : `${fmtEur(totalMonthly * 12)} a year`} />
         <StatCard
           label="Saved so far"

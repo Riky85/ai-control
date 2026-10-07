@@ -73,6 +73,9 @@ function Icon({ name }: { name: string }) {
       return <svg {...common}><rect {...stroke} x="3.5" y="2" width="11" height="14" rx="1.2" /><path {...stroke} d="M6.5 6h5M6.5 9h5M6.5 12h3" /></svg>;
     case "connectors":
       return <svg {...common}><circle {...stroke} cx="4.5" cy="9" r="2" /><circle {...stroke} cx="13.5" cy="9" r="2" /><path {...stroke} d="M6.5 9h5" /></svg>;
+    case "rocket":
+      // Razzo: primi passi / avvio.
+      return <svg {...common}><path {...stroke} d="M10.6 3.2c1.6-.8 3.3-.9 4.2-.7.2.9.1 2.6-.7 4.2-.9 1.8-2.7 3.4-4.6 4.5L6.8 8.5c1.1-1.9 2.7-3.7 3.8-5.3z" /><circle {...stroke} cx="11.6" cy="6.4" r="1.2" /><path {...stroke} d="M6.8 8.5L4.2 8.2 2.8 9.6l3 .9M9.5 11.2l.3 2.6-1.4 1.4-.9-3" /><path {...stroke} d="M4.6 12.4c-.8.3-1.4 1.2-1.6 2.6 1.4-.2 2.3-.8 2.6-1.6" /></svg>;
     case "settings":
       return <svg {...common}><circle {...stroke} cx="9" cy="9" r="2.6" /><path {...stroke} d="M9 2.8v2M9 13.2v2M14.2 9h2M1.8 9h2M12.7 5.3l1.4-1.4M3.9 14.1l1.4-1.4M12.7 12.7l1.4 1.4M3.9 3.9l1.4 1.4" /></svg>;
     default:
@@ -113,21 +116,40 @@ export interface SidebarWorkspaceProps {
   limit: number | null;
 }
 
-export default function Sidebar({ initialCollapsed = false, orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0, connectedComputers = 0, trial = null, onprem = false, setup = null }: { initialCollapsed?: boolean; orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number; connectedComputers?: number; trial?: SidebarTrial | null; onprem?: boolean; setup?: { left: number; href: string } | null }) {
+/** Lista di controllo dei primi passi (costi → uso → team), si spunta dai dati. */
+export interface SidebarSetupStep {
+  key: string;
+  title: string;
+  href: string;
+  done: boolean;
+}
+export interface SidebarSetup {
+  steps: SidebarSetupStep[];
+}
+
+export default function Sidebar({ initialCollapsed = false, orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0, connectedComputers = 0, trial = null, onprem = false, setup = null }: { initialCollapsed?: boolean; orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number; connectedComputers?: number; trial?: SidebarTrial | null; onprem?: boolean; setup?: SidebarSetup | null }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [setupOpen, setSetupOpen] = useState(false);
+  const setupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Sul telefono (o nell'app installata) la sidebar parte chiusa: resta spazio per i contenuti.
     if (window.matchMedia("(max-width: 767px)").matches) setCollapsed(true);
     const onClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+      if (setupRef.current && !setupRef.current.contains(e.target as Node)) setSetupOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSetupOpen(false);
     };
     window.addEventListener("mousedown", onClick);
+    window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("mousedown", onClick);
+      window.removeEventListener("keydown", onKey);
     };
   }, []);
 
@@ -158,7 +180,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
 
   return (
     <aside
-      className={`shrink-0 bg-sidebar border-r h-full py-3 flex flex-col transition-[width,padding,border-color] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
+      className={`shrink-0 bg-sidebar border-r h-full pt-2 pb-3 flex flex-col transition-[width,padding,border-color] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
         collapsed ? "w-[64px] px-2 border-sidebar-line" : "w-64 px-3 border-line"
       }`}
     >
@@ -239,17 +261,8 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
         })}
       </nav>
 
-      {/* Primi passi rimasti (prima erano un riquadro nella home). */}
-      {setup && (
-        <Link href={setup.href} title={collapsed ? `${setup.left} setup step${setup.left === 1 ? "" : "s"} left` : undefined} className={`${itemClass(false)} mt-2`}>
-          <span className="relative shrink-0">
-            <Icon name="approvals" />
-            {collapsed && <span className="absolute -top-2 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-sb-ink/[0.15] text-sb-ink text-[9px] font-semibold leading-4 text-center tabular">{setup.left}</span>}
-          </span>
-          {!collapsed && <span className="flex-1 sb-fade">Setup</span>}
-          {!collapsed && <span className="text-[11px] text-sb-muted tabular sb-fade">{setup.left} left</span>}
-        </Link>
-      )}
+      {/* Primi passi (prima erano un riquadro nella home): lista di controllo in un piccolo popover. */}
+      {setup && <SetupChecklist setup={setup} collapsed={collapsed} open={setupOpen} setOpen={setSetupOpen} boxRef={setupRef} itemClass={itemClass(setupOpen)} />}
       {trial && <TrialCard trial={trial} collapsed={collapsed} />}
       <div className="mt-3 pt-3 border-t border-sb-ink/[0.08] flex flex-col gap-0.5">
         <div ref={menuRef} className="relative">
@@ -294,6 +307,106 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
         </div>
       </div>
     </aside>
+  );
+}
+
+/**
+ * Voce "Setup" della sidebar: icona razzo e numero dei passi mancanti in un
+ * cerchio pieno neutro. Al clic si apre la lista di controllo accanto alla
+ * voce, fuori dalla sidebar (aperta o chiusa). Ogni passo ha il suo
+ * cerchio (fatto / da fare); quelli da fare portano alla loro pagina.
+ */
+function SetupChecklist({
+  setup,
+  collapsed,
+  open,
+  setOpen,
+  boxRef,
+  itemClass,
+}: {
+  setup: SidebarSetup;
+  collapsed: boolean;
+  open: boolean;
+  setOpen: (v: boolean | ((p: boolean) => boolean)) => void;
+  boxRef: React.RefObject<HTMLDivElement>;
+  itemClass: string;
+}) {
+  const total = setup.steps.length;
+  const done = setup.steps.filter((s) => s.done).length;
+  const left = total - done;
+  if (left === 0) return null;
+  const count = (
+    <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-sb-ink text-sidebar text-[10px] font-semibold leading-[18px] text-center tabular">{left}</span>
+  );
+  return (
+    <div ref={boxRef} className="relative mt-2">
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Setup checklist"
+          className={`absolute z-50 left-full bottom-0 w-72 rounded-xl border border-sb-ink/[0.12] bg-pop p-1.5 shadow-xl animate-fade ${collapsed ? "ml-3" : "ml-5"}`}
+        >
+          <div className="px-3 pt-2 pb-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-sm font-bold text-sb-ink">Get started</span>
+              <span className="text-xs text-sb-muted tabular">
+                {done} of {total} done
+              </span>
+            </div>
+            <div className="mt-2.5 flex gap-1" aria-hidden>
+              {setup.steps.map((s) => (
+                <span key={s.key} className={`h-1 flex-1 rounded-full ${s.done ? "bg-sb-ink/70" : "bg-sb-ink/[0.1]"}`} />
+              ))}
+            </div>
+          </div>
+          <ol className="flex flex-col">
+            {setup.steps.map((s) => {
+              const mark = (
+                <span className={`h-[18px] w-[18px] shrink-0 rounded-full flex items-center justify-center ${s.done ? "bg-sb-ink text-sidebar" : "border border-sb-ink/25"}`} aria-hidden>
+                  {s.done && (
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2.2 5.2l1.9 1.9 3.7-4.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </span>
+              );
+              return (
+                <li key={s.key}>
+                  {s.done ? (
+                    <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sb-muted">
+                      {mark}
+                      <span className="flex-1 min-w-0 truncate line-through decoration-sb-ink/25">{s.title}</span>
+                      <span className="sr-only">Done</span>
+                    </div>
+                  ) : (
+                    <Link href={s.href} onClick={() => setOpen(false)} className="group flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sb-ink hover:bg-sb-ink/[0.05] transition-colors">
+                      {mark}
+                      <span className="flex-1 min-w-0 truncate">{s.title}</span>
+                      <span aria-hidden className="text-sb-muted group-hover:text-sb-ink transition-colors">→</span>
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={collapsed ? `Setup: ${left} step${left === 1 ? "" : "s"} left` : undefined}
+        title={collapsed ? `Setup · ${left} left` : undefined}
+        className={`${itemClass} ${collapsed ? "" : "w-full"}`}
+      >
+        <span className="relative shrink-0">
+          <Icon name="rocket" />
+          {collapsed && <span className="absolute -top-2 -right-2.5 ring-2 ring-sidebar rounded-full flex">{count}</span>}
+        </span>
+        {!collapsed && <span className="flex-1 text-left sb-fade">Setup</span>}
+        {!collapsed && <span className="sb-fade flex">{count}</span>}
+      </button>
+    </div>
   );
 }
 

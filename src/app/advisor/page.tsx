@@ -23,7 +23,7 @@ export default async function AdvisorPage() {
 
   if (stack.length === 0) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <PageHeader crumbs={CRUMBS} title="AI Advisor" />
         <EmptyState
           title="No paid AI tools yet"
@@ -36,10 +36,10 @@ export default async function AdvisorPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PageHeader crumbs={CRUMBS} title="AI Advisor" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard label="Current AI spend" value={`${fmtEur(currentEur)}/mo`} hint={apiEur > 0 ? `Seat-based tools · APIs (${fmtEur(apiEur)}/mo) not included` : "Seat-based AI tools"} />
         <StatCard label="Recommended stack" value={`${fmtEur(recommendedEur)}/mo`} hint={`${stack.length} tool${stack.length === 1 ? "" : "s"}, seats for active users`} />
         <StatCard
@@ -55,7 +55,7 @@ export default async function AdvisorPage() {
           <h2 className="text-base font-bold text-ink-100">Recommended stack</h2>
           <p className="text-sm text-ink-400">One tool for each job — the one most of your people already use.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {stack.map((s) => (
             <Link key={s.category + s.tool.assetId} href={`/assets/${s.tool.assetId}`} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4 hover:border-ink-400 transition-colors animate-rise">
               <div className="flex items-center gap-3">

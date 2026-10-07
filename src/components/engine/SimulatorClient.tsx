@@ -61,7 +61,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
   const big = "font-display text-[26px] leading-tight font-semibold tracking-tight tabular";
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {/* Risultato */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-xl border border-line bg-line animate-rise" aria-live="polite" aria-label="Result">
         <div className={cell}>
@@ -92,7 +92,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 items-start">
         {/* Scenari */}
         <section className="rounded-xl border border-line bg-panel animate-rise">
           <div className="flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm bar-head">
@@ -164,7 +164,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
           </div>
         </section>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           {/* Effetto sugli assi */}
           <section className="rounded-xl border border-line bg-panel animate-rise">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm bar-head">
