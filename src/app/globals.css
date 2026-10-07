@@ -37,28 +37,36 @@
 html.dark,
 .force-dark {
   color-scheme: dark;
-  --c-subtle: 40 43 48;
-  --c-text: 237 237 239;
-  --c-muted: 156 160 168;
-  --c-panel: 32 35 39;
-  --c-canvas: 32 35 39;
-  --c-line: 52 56 61;
+  /* Tema scuro stile Exa: fondo e sidebar #000000, card appena più chiare,
+     bordi sottili grigio neutro, niente toni bluastri. */
+  --c-subtle: 20 20 20; /* #141414 */
+  --c-text: 237 237 237;
+  --c-muted: 150 150 150;
+  --c-panel: 10 10 10; /* #0A0A0A card */
+  --c-canvas: 0 0 0; /* #000000 */
+  --c-line: 38 38 38; /* #262626 */
   --c-accent-soft: 46 30 20;
   --c-signal: 250 204 21;
   --c-steady: 63 182 122;
   --c-alarm: 229 98 90;
-  --c-edge: 70 70 76;
-  --c-node-strong: 90 90 96;
+  --c-edge: 64 64 64;
+  --c-node-strong: 82 82 82;
   --c-alarm-soft: 52 26 24;
-  /* Sidebar scura: #212327, stesso colore per il bordo. */
-  --c-sidebar: 33 35 39; /* #212327 */
-  --c-sidebar-line: 33 35 39;
+  /* Sidebar #000000 con bordo grigio, aperta o chiusa. */
+  --c-sidebar: 0 0 0;
+  --c-sidebar-line: 38 38 38;
   --c-sb-ink: 255 255 255;
-  --c-sb-soft: 232 230 225;
-  --c-sb-text: 200 198 193;
-  --c-sb-muted: 163 161 156;
-  --c-sb-faint: 138 136 132;
-  --c-pop: 47 50 56;
+  --c-sb-soft: 232 232 232;
+  --c-sb-text: 200 200 200;
+  --c-sb-muted: 160 160 160;
+  --c-sb-faint: 135 135 135;
+  --c-pop: 20 20 20;
+}
+
+/* Nel tema scuro anche le pagine fuori dall'app hanno fondo nero. */
+html.dark body,
+.force-dark {
+  background-color: rgb(var(--c-canvas));
 }
 
 body {
