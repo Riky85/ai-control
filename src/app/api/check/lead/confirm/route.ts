@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 const page = (title: string, text: string) =>
   new Response(
     `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title} — angar</title>
-<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#000000;color:#EDEDEC;font:15px/1.5 system-ui,sans-serif;padding:16px}main{max-width:440px}h1{font-size:20px;margin:0 0 8px}p{color:#A1A09C;margin:0 0 16px}a{color:#FF7323}</style></head>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#151515;color:#EDEDEC;font:15px/1.5 system-ui,sans-serif;padding:16px}main{max-width:440px}h1{font-size:20px;margin:0 0 8px}p{color:#A1A09C;margin:0 0 16px}a{color:#FF7323}</style></head>
 <body><main><h1>${title}</h1><p>${text}</p><a href="/check">Back to the AI Spend Check</a></main></body></html>`,
     { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } },
   );
