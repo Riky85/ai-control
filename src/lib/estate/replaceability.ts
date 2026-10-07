@@ -217,7 +217,7 @@ export function euDeployment(modelId: string): string | null {
 }
 
 /** Prezzo medio "3 input + 1 output" per 1M token in EUR (solo per i rapporti tra modelli). */
-function blendedEur(modelId: string, deploymentId: string | null, at: Date): number | null {
+export function blendedEur(modelId: string, deploymentId: string | null, at: Date): number | null {
   const i = getPrice(modelId, deploymentId, null, "input", at, { earliestIfBefore: true }) ?? (deploymentId ? getPrice(modelId, null, null, "input", at, { earliestIfBefore: true }) : null);
   if (!i) return null;
   const o = getPrice(modelId, i.deploymentId, null, "output", at, { earliestIfBefore: true });

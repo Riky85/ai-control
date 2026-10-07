@@ -53,7 +53,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeader subtitle="New AI to decide on"
         title="To review"
         action={
           <>

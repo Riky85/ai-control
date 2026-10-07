@@ -20,7 +20,7 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
   return (
     <div className="flex flex-col gap-6">
       {/* Intestazione a tutta larghezza: Export in alto a destra come nelle altre pagine. */}
-      <PageHeader crumbs={[{ label: "Documentation", href: "/docs" }, { label: doc.section }]} title={doc.title} action={<ExportMenu />} />
+      <PageHeader subtitle="Documentation" crumbs={[{ label: "Documentation", href: "/docs" }, { label: doc.section }]} title={doc.title} action={<ExportMenu />} />
     <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 lg:gap-10">
       <nav className="hidden lg:flex print:hidden sticky top-0 self-start flex-col gap-5 text-sm">
         <Link href="/docs" className="text-ink-400 hover:text-ink-100">← All docs</Link>

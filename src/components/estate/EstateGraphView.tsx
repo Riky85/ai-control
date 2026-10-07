@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { fromParts, impactOf, dependenciesOf, type GraphParts, type GNode, type NodeType } from "@/lib/estate/graph-core";
+import { impactHrefForNode } from "@/lib/impact/params";
 
 /**
  * Vista "Graph" dell'AI estate: layout a colonne (chi dipende a sinistra, fornitori a
@@ -67,6 +68,8 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
   };
 
   const focused = focus ? g.nodes.get(focus) ?? null : null;
+  // Link all'Impact Simulator per il nodo a fuoco (sistema, modello, fornitore, deployment).
+  const simulate = focused ? impactHrefForNode(focused.type, focused.id) : null;
 
   if (!parts.nodes.length) return <p className="text-sm text-ink-400">No AI yet.</p>;
 
@@ -102,6 +105,7 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
             <span className="font-bold text-ink-100">{focused.label}</span>
             <span className="text-ink-400"> · {TYPE_LABEL[focused.type]}</span>
             {focused.href && <Link href={focused.href} className="ml-3 text-xs text-ink-400 hover:text-ink-100 underline">Open</Link>}
+            {simulate && <Link href={simulate} className="ml-3 text-xs text-ink-400 hover:text-ink-100 underline">Simulate</Link>}
           </div>
           <div className="text-sm text-ink-400">
             {[

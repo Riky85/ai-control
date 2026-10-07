@@ -41,7 +41,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader crumbs={[{ label: "Connect", href: "/connect" }]} title="Sources" />
+      <PageHeader subtitle="Bank, invoices and accounts" crumbs={[{ label: "Connect", href: "/connect" }]} title="Sources" />
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
 
       <Card title="Bank & invoices" status={spendCount ? `${spendCount} AI charge${spendCount === 1 ? "" : "s"}${lastSpend ? ` · last ${fmtDate(lastSpend.createdAt)}` : ""}` : null}>

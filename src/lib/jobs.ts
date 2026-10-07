@@ -234,6 +234,18 @@ export async function runDueJobs(now = new Date()) {
       }
     }
   }
+  // Cambiamenti del mercato AI (globale): una volta al giorno, dopo la sincronizzazione del catalogo.
+  // Idempotente (chiave unica di ogni cambiamento); la sincronizzazione stessa li rileva già a ogni versione.
+  if (await claim("market-changes", day)) {
+    try {
+      const r = await (await import("@/lib/market/record")).detectMarketChanges(undefined, now);
+      const stale = (await (await import("@/lib/market/freshness")).freshnessReport(now)).filter((s) => s.stale).length;
+      console.log(`[jobs] market changes: ${r.created} new of ${r.derived}, ${r.superseded} superseded · ${stale} catalog sources to re-verify (/system/catalog)`);
+      await finish("market-changes", day);
+    } catch (err) {
+      console.error("[jobs] market change detection failed", err);
+    }
+  }
   // Giornalieri: dalle 7 in poi (ora di Roma), una volta al giorno. Prima i costi, poi gli avvisi.
   if (hour >= 7 && (await claim("daily", day))) {
     summary.synced = await syncCosts().catch(() => 0);
@@ -251,6 +263,12 @@ export async function runDueJobs(now = new Date()) {
         await (await import("@/lib/pricing/subscriptions")).normaliseSubscriptions(o.id, undefined, now).catch((err) => console.error("[jobs] subscription normalisation failed", o.id, err));
         // AI Estate: archi del grafo delle dipendenze dai dati reali (idempotente).
         await (await import("@/lib/estate/populate")).populateEstate(o.id, now).catch((err) => console.error("[jobs] estate graph failed", o.id, err));
+        // Mercato AI: impatto di ogni cambiamento sull'estate (dopo il grafo) e avvisi per quelli materiali nuovi.
+        await (async () => {
+          const m = await import("@/lib/market/service");
+          await m.refreshOrgImpacts(o.id, now);
+          await m.marketAlerts(o.id, now);
+        })().catch((err) => console.error("[jobs] market impact failed", o.id, err));
         // angar Engine: autopilot dei risparmi, anomalie e fotografia dell'angar Score.
         await (await import("@/lib/engine/autopilot")).runAutopilot(o.id).catch((err) => console.error("[jobs] autopilot failed", o.id, err));
         await (await import("@/lib/engine/forecast")).anomalyAlerts(o.id).catch((err) => console.error("[jobs] anomalies failed", o.id, err));

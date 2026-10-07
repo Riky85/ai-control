@@ -40,7 +40,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeader subtitle="EU AI Act and GDPR"
         title="AI Act"
         action={
           (await featureEnabled(currentOrgId(), "registerExport")) ? (

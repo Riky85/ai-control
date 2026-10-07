@@ -5,7 +5,8 @@
  *  - una AI nuova da approvare / non consentire (costo e persone che la usano),
  *  - il risparmio più grande da accettare (pesato per confidenza),
  *  - un'anomalia (prezzo, posti, spesa) o un'AI non consentita ancora in uso,
- *  - il calo dell'angar Score con la correzione che fa guadagnare di più.
+ *  - il calo dell'angar Score con la correzione che fa guadagnare di più,
+ *  - un cambiamento del mercato AI che tocca l'estate (prezzo, deprecazione, ritiro: market/).
  * Il "valore" è un numero deterministico in € equivalenti (vedi VALUE): nessun
  * LLM. Prima passata una decisione per tipo (varietà), poi le migliori rimaste.
  *
@@ -17,7 +18,7 @@ import { monthlyOf, type Saving } from "@/lib/savings";
 import type { Anomaly } from "@/lib/engine/forecast";
 
 
-export type DecisionKind = "review" | "saving" | "anomaly" | "policy" | "score";
+export type DecisionKind = "review" | "saving" | "anomaly" | "policy" | "score" | "market";
 
 export interface DecisionCandidate {
   kind: DecisionKind;
@@ -56,9 +57,12 @@ export const VALUE = {
   scoreDropEachPoint: 25,
   scoreDropMin: 2,
   scoreFixEachPoint: 12,
+  /** Mercato AI: ritiro entro 60 giorni, altro ritiro / deprecazione; i prezzi valgono la variazione mensile. */
+  marketRetireSoon: 600,
+  marketLifecycle: 250,
 } as const;
 
-const KIND_ORDER: Record<DecisionKind, number> = { anomaly: 0, policy: 1, saving: 2, review: 3, score: 4 };
+const KIND_ORDER: Record<DecisionKind, number> = { anomaly: 0, policy: 1, market: 2, saving: 3, review: 4, score: 5 };
 const eur = (n: number) => "€" + Math.round(n).toLocaleString("en-GB");
 const plural = (n: number, one: string, many = one + "s") => `${n} ${n === 1 ? one : many}`;
 
@@ -117,6 +121,23 @@ export function policyCandidates(assets: { id: string; name: string }[]): Decisi
     value: VALUE.policy,
     href: `/assets/${a.id}`,
   }));
+}
+
+export interface MarketInput {
+  id: string;
+  changeId: string;
+  type: string;
+  title: string;
+  detail: string;
+  daysUntil: number | null;
+  annualDeltaEur: number | null;
+}
+export function marketCandidates(items: MarketInput[]): DecisionCandidate[] {
+  return items.map((m) => {
+    const lifecycle = m.type === "retirement" || m.type === "deprecation";
+    const value = lifecycle ? (m.type === "retirement" && m.daysUntil != null && m.daysUntil <= 60 ? VALUE.marketRetireSoon : VALUE.marketLifecycle) : Math.abs(m.annualDeltaEur ?? 0) / 12;
+    return { kind: "market" as const, id: m.id, title: m.title, detail: m.detail, value, href: `/market/${m.changeId}` };
+  });
 }
 
 export interface ScoreInput {
@@ -338,6 +359,7 @@ export async function loadBrief(orgId: string, now = new Date()) {
     score.computeScore(orgId).catch(() => null),
     score.scoreHistory(orgId, 14, now).catch(() => []),
   ]);
+  const market = await import("@/lib/market/service").then((m) => m.briefMarketItems(orgId, now)).catch(() => [] as MarketInput[]);
   // Punteggio di riferimento: l'istantanea più vicina a 7 giorni fa (non più recente di 5 giorni).
   const target = score.romeDay(weekAgo);
   const limit = score.romeDay(new Date(now.getTime() - 5 * DAY));
@@ -349,6 +371,7 @@ export async function loadBrief(orgId: string, now = new Date()) {
     ...savingCandidates(savings.items),
     ...anomalyCandidates(anomalies),
     ...policyCandidates(blocked),
+    ...marketCandidates(market),
     ...(result
       ? (() => {
           const best = score.scoreActions(result.facts, result).best;

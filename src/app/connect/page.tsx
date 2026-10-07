@@ -88,7 +88,7 @@ export default async function ConnectPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Connect" />
+      <PageHeader subtitle="Where angar gets its data" title="Connect" />
 
       {/* Il prossimo passo è segnato sulla sua scheda ("Start here" + pulsante primario): niente doppione sopra. */}
       {!next && (

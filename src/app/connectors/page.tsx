@@ -62,7 +62,7 @@ export default async function ConnectorsPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeader subtitle="Keys, logs and cloud accounts"
         crumbs={[{ label: "Connect", href: "/connect" }]}
         title="AI provider keys"
         action={<span className="text-sm text-ink-400">{connectedCount} connected</span>}

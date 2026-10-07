@@ -58,7 +58,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeader subtitle="Where to spend less"
         title="Savings"
         action={
           <>

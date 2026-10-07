@@ -69,7 +69,7 @@ export default async function SystemPage({ searchParams }: { searchParams: { lea
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="System" subtitle="Platform admins only." />
+      <PageHeader title="System" subtitle="Platform admins only." action={<a href="/system/catalog" className="btn btn-ghost btn-sm">Catalog freshness →</a>} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Checks passing" value={`${okCount}/${checks.length}`} hint={okCount === checks.length ? "Everything set up" : `${checks.length - okCount} need setup`} tone={critical ? "alarm" : okCount < checks.length ? "signal" : "accent"} />

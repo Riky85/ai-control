@@ -152,7 +152,7 @@ export function PageHeader({
           <div className="h-14 flex items-center gap-2.5 min-w-0 lg:flex-1 pr-[calc(var(--hdr-tools,7rem)+0.75rem)] lg:pr-0">
             {icon && <span className="shrink-0 flex items-center">{icon}</span>}
             {parents.length > 0 && (
-              <nav className="hidden sm:flex items-center gap-2 text-[15px] text-ink-400 shrink-0">
+              <nav className="hidden sm:flex items-center gap-2 text-[14px] text-ink-400 shrink-0">
                 {parents.map((c, i) => (
                   <span key={i} className="flex items-center gap-2">
                     <Link href={c.href!} className="hover:text-ink-100 transition-colors">{c.label}</Link>
@@ -161,9 +161,9 @@ export function PageHeader({
                 ))}
               </nav>
             )}
-            <h1 className="text-base sm:text-[17px] leading-tight font-semibold tracking-[-0.01em] text-ink-100 truncate min-w-0 shrink">{title}</h1>
+            <h1 className="text-[15px] leading-tight font-semibold tracking-[-0.01em] text-ink-100 truncate min-w-0 shrink">{title}</h1>
             {meta && <span className="shrink-0 hidden sm:flex items-center">{meta}</span>}
-            {subtitle && <p className="hidden sm:block ml-1 pl-3.5 border-l border-line text-sm leading-5 text-ink-400 truncate min-w-0">{subtitle}</p>}
+            {subtitle && <p className="hidden sm:block ml-1 pl-3.5 border-l border-line text-[13px] leading-5 text-ink-400 truncate min-w-0">{subtitle}</p>}
           </div>
           {(subtitle || meta) && (
             <div className="sm:hidden -mt-2 pb-3 flex flex-col items-start gap-2 text-sm text-ink-400 min-w-0">

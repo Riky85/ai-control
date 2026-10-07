@@ -30,7 +30,7 @@ export default function ImproveView({ result, plan }: { result: FullScore; plan:
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Improve your score" crumbs={[{ label: "Angar Score", href: "/score" }, { label: "Improve" }]} />
+      <PageHeader subtitle="Actions that raise your score" title="Improve your score" crumbs={[{ label: "Angar Score", href: "/score" }, { label: "Improve" }]} />
 
       {/* Riepilogo: punteggio attuale, potenziale, risparmi */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line animate-rise">

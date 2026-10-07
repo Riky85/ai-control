@@ -30,7 +30,7 @@ export default function ScoreView({ result, plan, current, changedOn, changed, c
   const delta = current.length >= 2 ? result.score - first.score : null;
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeader subtitle="How well your AI spend is used"
         title="Angar Score"
         action={
           <Link href="/simulate" className="btn btn-ghost btn-sm">

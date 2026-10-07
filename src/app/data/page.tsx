@@ -57,7 +57,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeader subtitle="Data AI can reach"
         title="Data exposure"
         action={<ExportMenu />}
       />

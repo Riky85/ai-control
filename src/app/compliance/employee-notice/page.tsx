@@ -57,7 +57,7 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
   return (
     <div className="flex flex-col gap-6">
       <div className="contents print:hidden">
-        <PageHeader
+        <PageHeader subtitle="What staff need to know"
           crumbs={[{ label: "AI Act", href: "/compliance" }, { label: "Employee notice" }]}
           title="Employee notice"
           action={

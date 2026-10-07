@@ -21,7 +21,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
   if (searchParams.view === "chargeback")
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="Budgets" />
+        <PageHeader subtitle="Limits by team" title="Budgets" />
         <Tabs items={VIEW_TABS} active="chargeback" />
         {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
         {searchParams.saved && <Notice tone="success">Accounts saved.</Notice>}
@@ -63,7 +63,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Budgets" />
+      <PageHeader subtitle="Limits by team" title="Budgets" />
       <Tabs items={VIEW_TABS} active="budgets" />
 
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}

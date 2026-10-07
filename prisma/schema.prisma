@@ -215,6 +215,8 @@ model Organization {
   aiModelUses       AiAssetModelUse[]
   dependencies      Dependency[]
   aiEvaluations     AiEvaluation[]
+  // Impatto dei cambiamenti del mercato AI sull'estate (market/).
+  aiMarketChangeImpacts AiMarketChangeImpact[]
 }
 
 // Avvisi della piattaforma (campanella in alto a destra): rinnovi in arrivo,
@@ -1325,27 +1327,84 @@ model AiPricingComponent {
   @@index([ruleId, kind])
 }
 
-// Cambiamenti del mercato AI (prezzi, nuovi modelli, deprecazioni…). Vuota per ora:
-// la popolerà la pipeline di verifica (fase 4) e il feed dei cambiamenti (fase 7).
+// Cambiamenti del mercato AI (prezzi, nuovi modelli, deprecazioni…), ricavati SOLO dai dati
+// versionati del catalogo con una fonte (market/detect.ts): mai inventati. Idempotenti per `key`.
 model AiMarketChange {
-  id          String    @id @default(cuid())
-  providerId  String?
-  modelId     String?
-  productId   String?
-  planId      String?
-  changeType  String    // "price" | "new_model" | "deprecation" | "retirement" | "capability" | "deployment" | "region" | "tier" | "service" | "provider"
-  oldState    Json?
-  newState    Json?
-  announcedAt DateTime?
-  effectiveAt DateTime?
-  sourceUrl   String?
-  sourceType  String    // "official" | "secondary" | "customer" | "angar_estimate"
-  confidence  String    // "HIGH" | "MEDIUM" | "LOW"
-  detectedAt  DateTime  @default(now())
-  summary     String?
+  id           String    @id @default(cuid())
+  providerId   String?
+  modelId      String?
+  productId    String?
+  planId       String?
+  changeType   String    // "price_change" | "new_model" | "deprecation" | "retirement" | "capability_change" | "new_deployment" | "new_region" | "pricing_tier"
+  oldState     Json?
+  newState     Json?
+  announcedAt  DateTime?
+  effectiveAt  DateTime?
+  sourceUrl    String?
+  sourceType   String    // "official" | "secondary" | "customer" | "angar_estimate"
+  confidence   String    // "HIGH" | "MEDIUM" | "LOW"
+  detectedAt   DateTime  @default(now())
+  summary      String?
+  // Chiave deterministica (es. "price:model:openai:gpt-5.6-sol@openai-direct:2026-08-21"): una riga sola per cambiamento.
+  key          String?   @unique
+  // Regola di prezzo e deployment coinvolti (cambi di prezzo, nuovi deployment / regioni / livelli).
+  ruleId       String?
+  deploymentId String?
+  // "active" | "superseded" (es. una data di ritiro poi cambiata: resta nello storico, non nel feed).
+  status       String    @default("active")
+  // Da dove è stato ricavato: "catalog" (versioni del catalogo), "sync" (differenza vista alla sincronizzazione), "admin".
+  origin       String?
+
+  impacts AiMarketChangeImpact[]
 
   @@index([changeType, effectiveAt])
   @@index([modelId])
+  @@index([status, effectiveAt])
+}
+
+// Impatto di un cambiamento del mercato sull'AI estate di un'azienda (market/impact.ts),
+// ricalcolato dal job giornaliero (e su richiesta se vecchio): il feed legge da qui.
+model AiMarketChangeImpact {
+  id                 String         @id @default(cuid())
+  organizationId     String
+  organization       Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  changeId           String
+  change             AiMarketChange @relation(fields: [changeId], references: [id], onDelete: Cascade)
+  systems            Int
+  applications       Int
+  teams              Int
+  systemIds          String[]       @default([])
+  // Spesa mensile esposta (quota delle AI coinvolte): reale e stimata separate.
+  exposedActualEur   Float          @default(0)
+  exposedEstimatedEur Float         @default(0)
+  // Variazione annua stimata (prezzo nuovo − vecchio × uso osservato); null = non calcolabile.
+  annualDeltaEur     Float?
+  deltaBasis         String?
+  alternatives       Int            @default(0)
+  daysUntil          Int?
+  material           Boolean        @default(false)
+  detail             Json?
+  computedAt         DateTime       @default(now())
+  alertedAt          DateTime?
+
+  @@unique([organizationId, changeId])
+  @@index([organizationId, material])
+}
+
+// Freschezza del catalogo: ultima verifica umana di ogni fonte (pagina ufficiale) per area.
+// id = "<area>|<url>". La data in codice (catalog-data) resta; vale la più recente delle due.
+model AiCatalogSource {
+  id             String   @id
+  area           String   // "pricing" | "lifecycle" | "capabilities"
+  url            String
+  providerId     String?
+  lastVerifiedAt DateTime
+  verifiedBy     String?
+  note           String?
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+
+  @@index([area])
 }
 
 // ───────────────────────── Economia AI: livello del cliente ─────────────────────────
@@ -1565,4 +1624,17 @@ model AiEvaluation {
 
   @@index([organizationId])
   @@index([aiAssetId])
+}
+
+// Impact Simulator: scenari salvati ("cosa succede se…") per rivederli. Solo la query dell'URL
+// (?s=replace-model&from=…&to=…): il risultato si ricalcola sempre, mai salvato.
+model ImpactScenario {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  query          String
+  createdBy      String?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt])
 }

@@ -33,7 +33,7 @@ export default function GatewayView(p: GatewayViewProps) {
   const editable = p.canEdit && p.planOk;
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeader subtitle="Every AI call from your apps"
         title="Gateway"
         action={
           <>

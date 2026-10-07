@@ -60,7 +60,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Settings" />
+      <PageHeader subtitle="Workspace preferences" title="Settings" />
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/settings?tab=${t.key}` }))} />
 
       {tab === "general" && (

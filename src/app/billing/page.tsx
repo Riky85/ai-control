@@ -67,7 +67,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Plan & billing" />
+      <PageHeader subtitle="Your plan and invoices" title="Plan & billing" />
 
       {searchParams.checkout === "success" && (
         <Notice tone="success">Payment received — your plan updates as soon as Stripe confirms it (usually a few seconds).</Notice>

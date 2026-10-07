@@ -31,6 +31,7 @@ import { vendorRiskFor, planTier } from "@/lib/vendor-risk";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 import { displayableRef } from "@/lib/discovery/pseudonym";
 import { AssetDependencies, AssetReplaceability } from "@/components/estate/AssetEstate";
+import ModelLifecycleNotice from "@/components/market/ModelLifecycleNotice";
 
 export const dynamic = "force-dynamic";
 
@@ -204,6 +205,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         <StatCard href="/savings" label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : undefined} />
       </div>
       <AssetLimitNotice orgId={orgId} assetId={asset.id} />
+      <ModelLifecycleNotice orgId={orgId} assetId={asset.id} />
 
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/assets/${asset.id}?tab=${t.key}` }))} />
 

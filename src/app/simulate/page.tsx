@@ -16,9 +16,14 @@ export default async function SimulatePage() {
         title="What if…"
         subtitle="Nothing is applied."
         action={
-          <Link href="/score" className="btn btn-ghost btn-sm">
-            angar Score
-          </Link>
+          <>
+            <Link href="/impact" className="btn btn-ghost btn-sm">
+              Impact
+            </Link>
+            <Link href="/score" className="btn btn-ghost btn-sm">
+              angar Score
+            </Link>
+          </>
         }
       />
       <SimulatorClient model={model} />

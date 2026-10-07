@@ -31,6 +31,9 @@ export async function syncPricingCatalog(client?: PrismaClient, now = new Date()
   const db = client ?? (await import("@/lib/db")).db;
   const cat = buildCatalog();
 
+  // Stato dei modelli e dei deployment PRIMA della sincronizzazione: le differenze diventano cambiamenti del mercato (market/).
+  const [modelsBefore, deploymentsBefore] = await Promise.all([db.aiModel.findMany(), db.aiDeployment.findMany({ select: { id: true, regions: true, hostProviderId: true } })]);
+
   // Anagrafiche: upsert semplice (non sono prezzi).
   for (const p of cat.providers) {
     const data = { name: p.name, kind: p.kind, website: p.website, pricingUrl: p.pricingUrl, hqRegion: p.hqRegion, euDataResidency: p.euDataResidency };
@@ -84,11 +87,16 @@ export async function syncPricingCatalog(client?: PrismaClient, now = new Date()
   // Voci di prezzo versionate.
   const existing = await db.aiPricingComponent.findMany();
   const byKey = new Map(existing.map((e) => [keyOf(e), e]));
+  // Inizi di versione salvati per serie: una versione chiusa da una più recente inserita da un admin
+  // della piattaforma (non ancora nel catalogo in codice) non si riapre.
+  const seriesOf = (c: { ruleId: string; kind: string; region: string; serviceTier: string; contextAbove: number }) => [c.ruleId, c.kind, c.region, c.serviceTier, c.contextAbove].join("|");
+  const starts = new Set(existing.map((e) => `${seriesOf(e)}|${e.effectiveFrom.toISOString()}`));
+  const closedByNewer = (e: { effectiveUntil: Date | null } & Parameters<typeof seriesOf>[0]) => !!e.effectiveUntil && starts.has(`${seriesOf(e)}|${e.effectiveUntil.toISOString()}`);
   const toCreate: CatComponent[] = [];
   let updated = 0;
   let corrections = 0;
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  for (const c of cat.components) {
+  for (let c of cat.components) {
     const e = byKey.get(keyOf(c));
     if (!e) {
       toCreate.push(c);
@@ -104,6 +112,7 @@ export async function syncPricingCatalog(client?: PrismaClient, now = new Date()
       continue;
     }
     const prov = { sourceUrl: c.sourceUrl, sourceType: c.sourceType, lastVerifiedAt: c.lastVerifiedAt, confidence: c.confidence, note: c.note, unit: c.unit };
+    if (!c.effectiveUntil && closedByNewer(e)) c = { ...c, effectiveUntil: e.effectiveUntil };
     const changed =
       e.sourceUrl !== prov.sourceUrl || e.sourceType !== prov.sourceType || !sameDate(e.lastVerifiedAt, prov.lastVerifiedAt) || e.confidence !== prov.confidence || e.note !== prov.note || e.unit !== prov.unit || !sameDate(e.effectiveUntil, c.effectiveUntil);
     if (changed) {
@@ -134,6 +143,16 @@ export async function syncPricingCatalog(client?: PrismaClient, now = new Date()
       })),
       skipDuplicates: true,
     });
+  }
+  // Cambiamenti del mercato: coppie di versioni (anche le correzioni appena aperte), ciclo di vita,
+  // capacità e regioni cambiate. Mai bloccante per la sincronizzazione dei prezzi.
+  try {
+    const [{ diffModels }, { detectMarketChanges }] = await Promise.all([import("@/lib/market/detect"), import("@/lib/market/record")]);
+    const providerUrl = new Map(cat.providers.map((p) => [p.id, p.pricingUrl ?? p.website]));
+    const diffs = diffModels(modelsBefore, cat.models, now, { before: deploymentsBefore, after: cat.deployments.map((d) => ({ ...d, sourceUrl: providerUrl.get(d.hostProviderId) ?? null })) });
+    await detectMarketChanges(db, now, diffs);
+  } catch (err) {
+    console.error("[pricing] market change detection failed", err);
   }
   if (corrections) console.warn(`[pricing] ${corrections} catalog price correction(s): previous versions closed, new versions opened from today`);
   return { version: cat.version, models: cat.models.length, seatTypes: cat.seatTypes.length, componentsCreated: toCreate.length, componentsUpdated: updated, corrections };

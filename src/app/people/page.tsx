@@ -67,14 +67,14 @@ export default async function PeoplePage({ searchParams }: { searchParams: { q?:
   if (everyone.length === 0)
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="People" />
+        <PageHeader subtitle="Who uses AI" title="People" />
         <EmptyState title="Nobody here yet" text="People appear when Microsoft 365, Google Workspace, an AI provider key or the desktop app is connected." href="/connect" cta="Connect a source" />
       </div>
     );
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeader subtitle="Who uses AI"
         title="People"
        
         action={<ExportMenu dataset="people" />}

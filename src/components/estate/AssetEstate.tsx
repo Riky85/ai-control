@@ -6,6 +6,17 @@ import { loadEstateCached, chainOf, impactOf, nodeKey, type GEdge, type GNode, t
 import { capLabel, type Alternative } from "@/lib/estate/replaceability";
 import { createProcessAction, createApplicationAction, linkDependencyAction, reviewEdgeAction, saveProfileAction, recordEvaluationAction } from "@/lib/estate-actions";
 import { SURFACE_LABEL } from "@/lib/estate/portability";
+import type { SystemRow } from "@/lib/estate/assess";
+import type { Replaceability } from "@/lib/estate/replaceability";
+
+/** Link all'Impact Simulator per questo AI system. */
+function impactLinkFor(row: SystemRow, repl: Replaceability): string {
+  const primary = [...row.uses].sort((a, b) => (b.share ?? 0) - (a.share ?? 0))[0];
+  const from = primary?.modelId ?? null;
+  if (from && repl.best?.type === "model") return `/impact?s=replace-model&from=${encodeURIComponent(from)}&to=${encodeURIComponent(repl.best.id)}&system=${encodeURIComponent(row.id)}`;
+  if (from) return `/impact?s=replace-model&from=${encodeURIComponent(from)}&system=${encodeURIComponent(row.id)}`;
+  return `/impact?s=remove-system&system=${encodeURIComponent(row.id)}`;
+}
 
 /**
  * AI system: Dependencies (catena a monte e a valle), Replaceability ed Exit readiness.
@@ -296,6 +307,10 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
           {exit.score}/100 · {exit.status}
         </span>
         {fallback.configured && <span className="text-xs text-ink-400">Fallback: {fallback.configured}</span>}
+        {/* Impact Simulator: modello principale → alternativa più compatibile (mai la più economica); senza modelli, togliere l'AI. */}
+        <Link href={impactLinkFor(row, repl)} className="btn btn-secondary btn-sm sm:ml-auto">
+          What happens if I change this?
+        </Link>
       </div>
     </>
   );

@@ -8,7 +8,7 @@ import { markAllAlertsReadAction, openAlertAction } from "@/lib/alert-actions";
 
 export const dynamic = "force-dynamic";
 
-const KIND: Record<string, string> = { renewal: "Renewal", budget: "Budget", policy: "Policy", seats: "Seats", new_ai: "New AI", anomaly: "Anomaly", autopilot: "Autopilot", info: "Info", secret: "Exposed key" };
+const KIND: Record<string, string> = { renewal: "Renewal", budget: "Budget", policy: "Policy", seats: "Seats", new_ai: "New AI", anomaly: "Anomaly", autopilot: "Autopilot", info: "Info", secret: "Exposed key", market: "AI market" };
 // Dove si risolve ogni tipo di avviso.
 const KIND_HREF: Record<string, { href: string; cta: string; noun: string }> = {
   renewal: { href: "/savings?view=contracts", cta: "See contracts", noun: "renewals" },
@@ -18,6 +18,7 @@ const KIND_HREF: Record<string, { href: string; cta: string; noun: string }> = {
   new_ai: { href: "/review", cta: "Review new AI", noun: "new AI" },
   anomaly: { href: "/savings", cta: "Open savings", noun: "anomalies" },
   secret: { href: "/governance#exposed-keys", cta: "See exposed keys", noun: "exposed AI keys" },
+  market: { href: "/market", cta: "See market changes", noun: "AI market changes" },
 };
 const DAY = 86400000;
 const SEV: Record<string, string> = { critical: "bg-alarm", warning: "bg-signal", info: "bg-ink-400/60" };
@@ -38,7 +39,7 @@ export default async function AlertsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeader subtitle="What needs attention"
         title="Alerts"
         action={
           unread > 0 ? (

@@ -15,6 +15,7 @@ import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
 import ScoreCard, { type ScoreCardData } from "@/components/engine/ScoreCard";
 import { computeScoreCached, scoreHistory, scoreActions } from "@/lib/engine/score";
+import MarketChangesBlock from "@/components/market/MarketChangesBlock";
 
 export const dynamic = "force-dynamic";
 
@@ -125,6 +126,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"}` : undefined} href="/savings" />
             <StatCard label="Not company-paid" value={String(unpaid)} hint={unpaid ? "Free or personal" : undefined} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : undefined} />
           </div>
+          <MarketChangesBlock orgId={orgId} />
 
           <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">
             <div className="flex items-end justify-between gap-3">
