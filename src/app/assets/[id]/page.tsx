@@ -22,6 +22,7 @@ import { computeSavingsCached, categoryOf, monthlyOf, serviceOf as serviceOfAsse
 import { CATEGORY_LABEL, MANAGE_URL } from "@/lib/pricing/catalog";
 import { legacyPlanById } from "@/lib/pricing/service";
 import { buildEconomics } from "@/lib/pricing/economics";
+import { currentSession } from "@/lib/auth";
 import EconomicsBlock, { EstimatedTag } from "@/components/EconomicsBlock";
 import { priceForAsset } from "@/lib/engine/price-index";
 import { MarketPriceStrip, pickRow } from "@/components/engine/PriceIndexCard";
@@ -29,6 +30,7 @@ import VendorTermsCard from "@/components/engine/VendorRiskCard";
 import { vendorRiskFor, planTier } from "@/lib/vendor-risk";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 import { displayableRef } from "@/lib/discovery/pseudonym";
+import { AssetDependencies, AssetReplaceability } from "@/components/estate/AssetEstate";
 
 export const dynamic = "force-dynamic";
 
@@ -95,6 +97,8 @@ export default async function AssetDetailPage({ params, searchParams }: { params
   const canSave = mine.reduce((t, i) => t + (i.kind === "duplicate" ? (i.assets[0]?.id === asset.id ? 0 : m?.eur ?? 0) : i.monthlyEur), 0);
   // Economia: reale vs stimato, posti per tipo, provenienza dei prezzi (catalogo prezzi AI).
   const sub = asset.subscriptions[0] ?? null;
+  // Solo gli amministratori aggiungono o modificano l'abbonamento (l'azione lo ricontrolla).
+  const canEditSubscription = ["ADMIN", "OWNER"].includes(currentSession()?.role ?? "");
   const economics = buildEconomics({
     id: asset.id,
     name: asset.name,
@@ -114,7 +118,18 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           currency: sub.currency,
           source: sub.source,
           confidence: sub.confidence,
-          seatLines: sub.seatLines.map((l) => ({ seatTypeId: l.seatTypeId, label: l.label, paidSeats: l.paidSeats, activeSeats: l.activeSeats })),
+          seatLines: sub.seatLines.map((l) => ({ seatTypeId: l.seatTypeId, label: l.label, paidSeats: l.paidSeats, activeSeats: l.activeSeats, unitContractPrice: l.unitContractPrice })),
+          // Abbonamento inserito a mano: vince su quello ricavato (l'ordine della query mette "manual" prima).
+          origin: sub.origin,
+          productName: sub.productName,
+          planName: sub.planName,
+          note: sub.note,
+          billedAmount: sub.billedAmount,
+          billedPeriod: sub.billedPeriod,
+          contractStart: sub.contractStart,
+          enteredByName: sub.enteredByName,
+          enteredByEmail: sub.enteredByEmail,
+          enteredAt: sub.enteredAt,
         }
       : null,
     spend,
@@ -207,7 +222,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           {tab === "overview" && (
             <>
               {market && market.verdict !== "unknown" && <MarketPriceStrip row={pickRow(market)} />}
-              <EconomicsBlock e={economics} assetId={asset.id} />
+              <EconomicsBlock e={economics} assetId={asset.id} canEdit={canEditSubscription} />
               {vendorRisk && <VendorTermsCard risk={vendorRisk} tier={tier} detailsHref={`/assets/${asset.id}?tab=risk`} />}
               <Panel flush title="How to save" subtitle="Calculated automatically from your bills, seats and list prices">
                 <div className="divide-y divide-line">
@@ -250,10 +265,13 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                   </div>
                 )}
               </Panel>
+              {/* AI Estate: dipendenze, Replaceability ed Exit readiness (components/estate). */}
+              <AssetDependencies assetId={asset.id} orgId={orgId} />
+              <AssetReplaceability assetId={asset.id} orgId={orgId} />
             </>
           )}
 
-          {tab === "spend" && <EconomicsBlock e={economics} assetId={asset.id} />}
+          {tab === "spend" && <EconomicsBlock e={economics} assetId={asset.id} canEdit={canEditSubscription} />}
           {tab === "spend" && (
             <Table columns={["Date", "Charge", "Source", { label: "Amount", className: "text-right" }]} empty={spend.length === 0 ? "No charges yet — add a bank statement or invoices in Sources." : false}>
               {spend.map((r) => (

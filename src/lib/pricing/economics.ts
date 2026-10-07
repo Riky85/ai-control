@@ -11,6 +11,8 @@ import { deriveSubscription, type SubscriptionSourceAsset } from "./subscription
 import { countActive } from "@/lib/seats";
 import type { BillingModel } from "./catalog-data";
 import { planByIdOf } from "./service";
+import { manualSourceLabel, seatListPrice, convert, type SeatListPrice } from "./manual";
+import { discountPct } from "./discount";
 
 const DAY = 86_400_000;
 
@@ -30,7 +32,18 @@ export interface EconomicsInput extends SubscriptionSourceAsset {
     currency: string;
     source: string;
     confidence: string;
-    seatLines: { seatTypeId: string | null; label: string; paidSeats: number; activeSeats: number | null }[];
+    seatLines: { seatTypeId: string | null; label: string; paidSeats: number; activeSeats: number | null; unitContractPrice?: number | null }[];
+    /** "manual" = inserito a mano (vince sempre su quello ricavato). */
+    origin?: string;
+    productName?: string | null;
+    planName?: string | null;
+    note?: string | null;
+    billedAmount?: number | null;
+    billedPeriod?: string | null;
+    contractStart?: Date | null;
+    enteredByName?: string | null;
+    enteredByEmail?: string | null;
+    enteredAt?: Date | null;
   } | null;
   /** Addebiti dell'AI (più recenti prima). */
   spend: { source: string; date: Date; amountEur: number }[];
@@ -41,7 +54,32 @@ export interface Economics {
   billingModelLabel: string | null;
   planName: string | null;
   cycle: string | null;
-  seatLines: { label: string; paid: number; active: number | null }[];
+  seatLines: {
+    label: string;
+    paid: number;
+    active: number | null;
+    /** true se "active" viene dagli utilizzi osservati (non inserito a mano). */
+    observed: boolean;
+    /** Listino del tipo di posto (catalogo), con provenienza; null = non in catalogo. */
+    list: SeatListPrice | null;
+    /** Prezzo di contratto di un posto al mese, nella valuta dell'abbonamento (solo abbonamenti manuali). */
+    contractUnit: number | null;
+    /** Sconto sul listino; null = UNKNOWN (manca il listino o il prezzo di contratto). */
+    discountPct: number | null;
+  }[];
+  /** Persone attive negli ultimi 30 giorni (utilizzi osservati); null = nessun dato. */
+  observedActive: number | null;
+  /** Abbonamento inserito a mano: chi, quando, contratto, fatturato, sconto. */
+  manual: {
+    sourceLabel: string;
+    currency: string;
+    contractMonthly: number | null;
+    listMonthly: number | null;
+    discountPct: number | null;
+    billed: { amount: number; period: string } | null;
+    contractStart: Date | null;
+    note: string | null;
+  } | null;
   /** Parte a posti (al mese, EUR) e da dove viene. */
   subscriptionCost: { eur: number; estimated: boolean; note: string } | null;
   /** Parte a consumo (al mese, EUR) e da dove viene. */
@@ -70,12 +108,31 @@ export function buildEconomics(a: EconomicsInput, now = Date.now()): Economics {
   const sub = a.subscription ?? null;
   const planId = sub?.planId ?? derived?.planId ?? null;
   const plan = planByIdOf(planId);
+  const isManual = sub?.origin === "manual";
+  const sourceLabel = isManual ? manualSourceLabel(sub!.enteredByName ?? sub!.enteredByEmail, sub!.enteredAt) : null;
   const billingModel = (sub?.billingModel ?? derived?.billingModel ?? (a.type === "AI_API" ? "TOKEN_BASED" : null)) as BillingModel | null;
   const cycle = sub?.billingCycle ?? derived?.billingCycle ?? null;
   const active = a.usages.length ? countActive(a.usages, undefined, now) : null;
-  const seatLines = sub?.seatLines.length
-    ? sub.seatLines.map((l) => ({ label: l.label, paid: l.paidSeats, active: l.activeSeats }))
-    : (derived?.seatLines ?? []).map((l) => ({ label: l.label, paid: l.paidSeats, active: l.activeSeats ?? active }));
+  // Righe di posti: quelle salvate (manuali prima di tutto) vincono su quelle ricavate da AiSystemCost.
+  // Posti attivi non inseriti: dagli utilizzi osservati, ma solo se la riga è una (non si sa come dividerli).
+  const listOf = (id: string | null) => (id ? seatListPrice(id, cycle, new Date(now)) : null);
+  const seatLines: Economics["seatLines"] = sub?.seatLines.length
+    ? sub.seatLines.map((l, _i, all) => {
+        const list = listOf(l.seatTypeId);
+        const contractUnit = l.unitContractPrice ?? null;
+        const listInCur = list ? convert(list.price, list.currency, sub.currency) : null;
+        const fromUsage = l.activeSeats == null && all.length === 1 ? active : null;
+        return { label: l.label, paid: l.paidSeats, active: l.activeSeats ?? fromUsage, observed: l.activeSeats == null && fromUsage != null, list, contractUnit, discountPct: discountPct(listInCur, contractUnit) };
+      })
+    : (derived?.seatLines ?? []).map((l) => ({ label: l.label, paid: l.paidSeats, active: l.activeSeats ?? active, observed: true, list: listOf(l.seatTypeId), contractUnit: null, discountPct: null }));
+  // Listino totale nella valuta dell'abbonamento: solo se TUTTE le righe hanno un listino.
+  const listMonthly =
+    isManual && seatLines.length && seatLines.every((l) => l.list)
+      ? seatLines.reduce((t, l) => {
+          const v = convert(l.list!.price, l.list!.currency, sub!.currency);
+          return t == null || v == null ? null : t + v * l.paid;
+        }, 0 as number | null)
+      : null;
 
   // Spesa a consumo degli ultimi 30 giorni: reale (billing cloud) e stimata (Gateway, token × listino).
   const since = now - 30 * DAY;
@@ -92,13 +149,16 @@ export function buildEconomics(a: EconomicsInput, now = Date.now()): Economics {
       model: a.model,
       cost: a.cost,
       users: a.usages.length,
-      subscription: sub ? { actualMonthly: sub.actualMonthly, currency: sub.currency, source: sub.source, billingCycle: sub.billingCycle, seatLines: sub.seatLines } : null,
+      subscription: sub
+        ? { actualMonthly: sub.actualMonthly, currency: sub.currency, source: sub.source, billingCycle: sub.billingCycle, seatLines: sub.seatLines, origin: sub.origin, contractMonthly: sub.contractMonthly, sourceLabel }
+        : null,
       gatewayEstimateEur: gateway > 0 ? gateway : null,
     },
     new Date(now),
   );
 
-  const seatBased = billingModel === "SEAT_BASED" || billingModel === "HYBRID" || billingModel === "CREDIT_BASED";
+  // Un abbonamento manuale con righe di posti è a posti anche se il piano è "CUSTOM" (es. Enterprise).
+  const seatBased = billingModel === "SEAT_BASED" || billingModel === "HYBRID" || billingModel === "CREDIT_BASED" || (isManual && seatLines.length > 0);
   const usageBased = billingModel === "TOKEN_BASED" || billingModel === "USAGE_BASED" || a.type === "AI_API";
   const subscriptionCost = seatBased
     ? ave.actual && billingModel !== "HYBRID"
@@ -119,6 +179,19 @@ export function buildEconomics(a: EconomicsInput, now = Date.now()): Economics {
 
   const paid = seatLines.reduce((t, l) => t + l.paid, 0);
   const unitCost = paid > 0 && (ave.actual || ave.estimated) ? { eur: (ave.actual ?? ave.estimated)!.eur / paid, unit: "seat", estimated: !ave.actual } : null;
+
+  const manual: Economics["manual"] = isManual
+    ? {
+        sourceLabel: sourceLabel!,
+        currency: sub!.currency,
+        contractMonthly: sub!.contractMonthly,
+        listMonthly,
+        discountPct: discountPct(listMonthly, sub!.contractMonthly),
+        billed: sub!.billedAmount != null ? { amount: sub!.billedAmount, period: sub!.billedPeriod ?? "month" } : null,
+        contractStart: sub!.contractStart ?? null,
+        note: sub!.note ?? null,
+      }
+    : null;
 
   // Rinnovo: dal contratto registrato, altrimenti dall'ultimo addebito (+1 mese / +12 mesi).
   let renewal: Economics["renewal"] = null;
@@ -162,9 +235,11 @@ export function buildEconomics(a: EconomicsInput, now = Date.now()): Economics {
   return {
     billingModel,
     billingModelLabel: billingModel ? BILLING_MODEL_LABEL[billingModel] ?? billingModel : null,
-    planName: plan?.name ?? null,
+    planName: plan?.name ?? (isManual ? [sub!.productName, sub!.planName].filter(Boolean).join(" · ") || null : null),
     cycle,
     seatLines,
+    observedActive: active,
+    manual,
     subscriptionCost,
     usageCost,
     ave,

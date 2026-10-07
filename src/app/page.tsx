@@ -4,7 +4,8 @@ import { AssetLimitNotice } from "@/components/PlanBanner";
 import { db } from "@/lib/db";
 import CsvDropzone from "@/components/CsvDropzone";
 import AiTable from "@/components/AiTable";
-import { StatCard, PageHeader } from "@/components/ui";
+import { StatCard, PageHeader, Tabs } from "@/components/ui";
+import EstateView from "@/components/estate/EstateView";
 import ExportMenu from "@/components/ExportMenu";
 import { computeSavingsCached, monthlyOf, loadAssets } from "@/lib/savings";
 import { desktopDeviceCounts } from "@/lib/discovery/devices";
@@ -30,7 +31,7 @@ function greeting(name?: string | null) {
 }
 
 // Home = i numeri (cliccabili) e la tabella delle AI. Andamento e benchmark stanno nel report mensile.
-export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string; spend?: string } & AiFilterParams }) {
+export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string; spend?: string; view?: string } & AiFilterParams }) {
   const orgId = currentOrgId();
   const session = currentSession();
   // Tutto in parallelo; risparmi e computer collegati sono condivisi con il layout (React cache).
@@ -142,12 +143,22 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
           </div>
 
           <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">
-            <div className="flex items-end justify-between">
-              <h2 className="text-base font-bold text-ink-100">Your AI</h2>
+            <div className="flex items-end justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <h2 className="text-base font-bold text-ink-100">Your AI</h2>
+                {/* Elenco o grafo delle dipendenze (AI Estate). */}
+                <Tabs active={searchParams.view === "graph" ? "graph" : "list"} items={[{ key: "list", label: "List", href: "/#your-ai" }, { key: "graph", label: "Graph", href: "/?view=graph#your-ai" }]} />
+              </div>
               <Link href="/connect" className="btn btn-ghost btn-sm">+ Add sources</Link>
             </div>
-            <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />
-            <AiTable assets={shown} savings={savings} empty="Nothing matches these filters." />
+            {searchParams.view === "graph" ? (
+              <EstateView orgId={orgId} />
+            ) : (
+              <>
+                <FilterBar search={{ placeholder: "Find an AI by name or provider" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />
+                <AiTable assets={shown} savings={savings} empty="Nothing matches these filters." />
+              </>
+            )}
           </div>
         </>
       )}

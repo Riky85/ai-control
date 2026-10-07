@@ -117,6 +117,34 @@ export const anthropicConnector: Connector = {
       warnings.push(`Cost report not available: ${(err as Error).message.slice(0, 160)}`);
     }
 
+    // Uso per modello (Usage report dei messaggi raggruppato per modello): per il grafo
+    // dell'AI estate (estate/populate.ts). Solo conteggi di token.
+    try {
+      const end = new Date();
+      const start = new Date(end.getTime() - 30 * 86400000);
+      const byModel = new Map<string, { inputTokens: number; outputTokens: number }>();
+      let page: string | undefined;
+      let guard = 0;
+      do {
+        const q = `?starting_at=${encodeURIComponent(start.toISOString())}&ending_at=${encodeURIComponent(end.toISOString())}&bucket_width=1d&group_by[]=model&limit=31${page ? `&page=${encodeURIComponent(page)}` : ""}`;
+        const report = await adminGet(`/organizations/usage_report/messages${q}`, apiKey);
+        for (const bucket of report.data ?? [])
+          for (const r of bucket.results ?? []) {
+            if (!r.model) continue;
+            const cur = byModel.get(r.model) ?? { inputTokens: 0, outputTokens: 0 };
+            const cc = r.cache_creation ?? {};
+            cur.inputTokens += (Number(r.uncached_input_tokens ?? 0) || 0) + (Number(r.cache_read_input_tokens ?? 0) || 0) + (Number(cc.ephemeral_5m_input_tokens ?? 0) || 0) + (Number(cc.ephemeral_1h_input_tokens ?? 0) || 0);
+            cur.outputTokens += Number(r.output_tokens ?? 0) || 0;
+            byModel.set(r.model, cur);
+          }
+        page = report.has_more ? report.next_page : undefined;
+      } while (page && ++guard < 5);
+      if (byModel.size)
+        asset.activities!.push({ eventType: "provider.usage", occurredAt: new Date(), payload: { provider: "anthropic", days: 30, models: [...byModel].map(([model, v]) => ({ model, ...v })) } });
+    } catch (err) {
+      warnings.push(`Usage by model not available: ${(err as Error).message.slice(0, 160)}`);
+    }
+
     // No documented public endpoint equivalent to a "conversation access
     // audit log" exists: we deliberately don't invent one. If and when
     // Anthropic exposes an audit/access log for the Admin API, it goes

@@ -249,6 +249,8 @@ export async function runDueJobs(now = new Date()) {
         await (await import("@/lib/savings-ledger")).verifySavingActions(o.id, now).catch((err) => console.error("[jobs] saving verification failed", o.id, err));
         // Economia AI: abbonamenti normalizzati (piano, posti per tipo, listino vs fatturato).
         await (await import("@/lib/pricing/subscriptions")).normaliseSubscriptions(o.id, undefined, now).catch((err) => console.error("[jobs] subscription normalisation failed", o.id, err));
+        // AI Estate: archi del grafo delle dipendenze dai dati reali (idempotente).
+        await (await import("@/lib/estate/populate")).populateEstate(o.id, now).catch((err) => console.error("[jobs] estate graph failed", o.id, err));
         // angar Engine: autopilot dei risparmi, anomalie e fotografia dell'angar Score.
         await (await import("@/lib/engine/autopilot")).runAutopilot(o.id).catch((err) => console.error("[jobs] autopilot failed", o.id, err));
         await (await import("@/lib/engine/forecast")).anomalyAlerts(o.id).catch((err) => console.error("[jobs] anomalies failed", o.id, err));

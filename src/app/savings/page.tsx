@@ -16,6 +16,8 @@ import { db } from "@/lib/db";
 import { GUARANTEE, planById } from "@/lib/plans";
 import FilterBar from "@/components/FilterBar";
 import AutopilotPanel, { loadAutopilotPanel } from "@/components/engine/AutopilotPanel";
+import { subscriptionRows, type SubscriptionRow } from "@/lib/pricing/subscriptions";
+import { fmtMoney } from "@/lib/pricing/service";
 
 export const dynamic = "force-dynamic";
 
@@ -38,12 +40,12 @@ const KIND_LABEL: Record<string, string> = {
   alternative: "Cheaper provider",
 };
 const KIND_ORDER = ["seats", "annual", "idle", "duplicate", "premium", "model", "alternative"];
-type View = "suggestions" | "progress" | "contracts";
+type View = "suggestions" | "progress" | "contracts" | "subscriptions";
 
 // Risparmi calcolati da soli (Suggestions), quelli realizzati (In progress) e i contratti.
 export default async function SavingsPage({ searchParams }: { searchParams: { confidence?: string; kind?: string; view?: string; error?: string } }) {
   const orgId = currentOrgId();
-  const view: View = searchParams.view === "progress" || searchParams.view === "contracts" ? searchParams.view : "suggestions";
+  const view: View = searchParams.view === "progress" || searchParams.view === "contracts" || searchParams.view === "subscriptions" ? searchParams.view : "suggestions";
   const [{ items: all, totalMonthly, assets }, saved, contracts, org] = await Promise.all([
     computeSavingsCached(orgId),
     savedSoFar(orgId),
@@ -90,6 +92,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
           { key: "suggestions", label: "Suggestions", href: "/savings", count: all.length || undefined },
           { key: "progress", label: "In progress", href: "/savings?view=progress", count: inProgress || undefined },
           { key: "contracts", label: "Contracts", href: "/savings?view=contracts", count: soonDeadlines || undefined },
+          { key: "subscriptions", label: "Subscriptions", href: "/savings?view=subscriptions" },
         ]}
       />
 
@@ -98,6 +101,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: { co
       {view === "suggestions" && <Suggestions all={all} spend={spend} searchParams={searchParams} orgId={orgId} />}
       {view === "progress" && <Progress saved={saved} canSave={totalMonthly} org={org} />}
       {view === "contracts" && <Contracts rows={contracts} />}
+      {view === "subscriptions" && <Subscriptions rows={await subscriptionRows(orgId)} />}
     </div>
   );
 }
@@ -373,6 +377,47 @@ function Contracts({ rows }: { rows: Awaited<ReturnType<typeof contractRows>> })
             <td className={`${td} text-right tabular text-ink-100`}>{r.monthlyEur != null ? `${fmtEur(r.monthlyEur)}/mo` : "—"}</td>
             <td className={`${td} text-right whitespace-nowrap`}>
               <Link href={`/negotiate/${r.assetId}`} className="btn btn-secondary btn-sm">Prepare negotiation</Link>
+            </td>
+          </tr>
+        ))}
+      </Table>
+    </>
+  );
+}
+
+// ── Abbonamenti ────────────────────────────────────────────────────────────
+// Uno per AI (quello inserito a mano vince), dal rinnovo più vicino.
+const BASIS_LABEL: Record<string, string> = { billed: "Billed", contract: "Contract price", list: "List price" };
+function Subscriptions({ rows }: { rows: SubscriptionRow[] }) {
+  return (
+    <>
+      <p className="text-sm text-ink-400">By renewal date. Add or edit a subscription from an AI&apos;s page.</p>
+      <Table
+        columns={["AI", "Plan", "Seats", "Source", "Billing", "Renewal", { label: "Cost", className: "text-right" }]}
+        empty={rows.length === 0 ? "No subscriptions yet — add one from an AI's page." : false}
+      >
+        {rows.map((r) => (
+          <tr key={r.assetId}>
+            <td className={td}>
+              <Link href={`/assets/${r.assetId}`} className="flex items-center gap-2 text-ink-100 hover:underline">
+                <VendorBadge vendor={r.vendor ?? ""} name={r.name} size={24} />
+                {r.name}
+              </Link>
+            </td>
+            <td className={`${td} text-ink-400`}>{r.plan}</td>
+            <td className={`${td} text-ink-400 tabular`}>{r.seats}</td>
+            <td className={`${td} text-xs ${r.manual ? "text-ink-100" : "text-ink-400"}`}>{r.source}</td>
+            <td className={`${td} text-ink-400`}>{r.cycle === "annual" ? "Yearly" : r.cycle === "monthly" ? "Monthly" : r.cycle === "usage" ? "On usage" : "—"}</td>
+            <td className={`${td} text-ink-400 tabular whitespace-nowrap`}>{r.renewalDate ? fmtDate(r.renewalDate) : "—"}</td>
+            <td className={`${td} text-right tabular whitespace-nowrap`}>
+              {r.monthly ? (
+                <>
+                  <span className="text-ink-100">{fmtMoney(Math.round(r.monthly.amount * 100) / 100, r.monthly.currency)} a month</span>
+                  <span className="block text-xs text-ink-400">{BASIS_LABEL[r.monthly.basis]}</span>
+                </>
+              ) : (
+                <span className="text-ink-400">UNKNOWN</span>
+              )}
             </td>
           </tr>
         ))}

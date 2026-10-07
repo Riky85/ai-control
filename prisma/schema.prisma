@@ -209,6 +209,12 @@ model Organization {
   gatewayRequests  GatewayRequest[]
   // Economia AI: abbonamenti normalizzati (piano, tipi di posto, listino vs fatturato).
   customerSubscriptions CustomerSubscription[]
+  // AI Estate: processi, applicazioni, uso dei modelli, archi del grafo, prove delle alternative.
+  businessProcesses BusinessProcess[]
+  applications      Application[]
+  aiModelUses       AiAssetModelUse[]
+  dependencies      Dependency[]
+  aiEvaluations     AiEvaluation[]
 }
 
 // Avvisi della piattaforma (campanella in alto a destra): rinnovi in arrivo,
@@ -445,6 +451,10 @@ model AiAsset {
   relationsFrom    AiAssetRelationship[]    @relation("RelationSource")
   relationsTo      AiAssetRelationship[]    @relation("RelationTarget")
   spendRecords     SpendRecord[]
+  // AI Estate: modelli usati, requisiti dichiarati, prove delle alternative.
+  modelUses        AiAssetModelUse[]
+  profile          AiSystemProfile?
+  evaluations      AiEvaluation[]
 
   @@unique([organizationId, connectorId, externalId])
   @@index([organizationId, type])
@@ -1373,6 +1383,18 @@ model CustomerSubscription {
   effectiveUntil    DateTime?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
+  // Abbonamento inserito a mano (origin "manual"): prodotto/piano fuori catalogo ("Other"),
+  // periodo in cui è espresso il prezzo di contratto, importo fatturato col suo periodo,
+  // nota e chi l'ha inserito. I prezzi di contratto delle righe sono nella valuta `currency`.
+  productName       String?
+  planName          String?
+  contractPeriod    String?      // "month" | "year": come è stato inserito il prezzo di contratto
+  billedAmount      Float?       // importo fatturato così come inserito
+  billedPeriod      String?      // "month" | "quarter" | "year"
+  note              String?
+  enteredByName     String?
+  enteredByEmail    String?
+  enteredAt         DateTime?
 
   seatLines CustomerSeatLine[]
 
@@ -1395,4 +1417,152 @@ model CustomerSeatLine {
   currency          String   @default("USD")
 
   @@index([subscriptionId])
+}
+
+// ───────────────────────── AI Estate: grafo delle dipendenze ─────────────────────────
+// Catena: Processo → Applicazione → AI system (AiAsset) → Modello (AiModel) → Fornitore
+// (AiProvider) / Deployment → Dati (DataAsset) → Owner/Team → Costo.
+// Regola: MAI inventare un arco. Ogni arco ha provenienza: "observed" (dai dati: log del
+// Gateway, SKU della fatturazione cloud, connettori), "declared" (scritto da una persona)
+// o "inferred" (dedotto: etichettato, da confermare o rifiutare). Modello→fornitore e
+// deployment→fornitore vengono dal catalogo globale (non salvati qui).
+
+// Un processo aziendale (es. "Customer support"): dichiarato da un admin.
+model BusinessProcess {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  criticality    String       @default("medium") // "low" | "medium" | "high" | "critical"
+  description    String?
+  createdBy      String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, name])
+}
+
+// Un'applicazione che usa l'AI: SaaS (Zendesk) o interna. Dichiarata da un admin, oppure
+// osservata (una chiave del Gateway = un'app che chiama i modelli; externalRef "gateway-key:<id>").
+model Application {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  vendor         String?
+  kind           String       @default("internal") // "saas" | "internal"
+  source         String       @default("declared") // "observed" | "declared"
+  externalRef    String?
+  createdBy      String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, externalRef])
+  @@index([organizationId])
+}
+
+// Un AI system usa questo modello (su questo deployment), con quota di traffico o di spesa.
+// key = origine|modello normalizzato|deployment: upsert idempotente dal job giornaliero.
+model AiAssetModelUse {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiAssetId       String
+  aiAsset         AiAsset      @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  key             String
+  rawModel        String       // come compare nei dati: "gpt-4o-2024-08-06", "Claude Sonnet 4.5"
+  modelId         String?      // AiModel.id del catalogo, se riconosciuto
+  match           String?      // "exact" | "prefix" | "family" (family = modello più vicino del catalogo)
+  providerId      String?      // AiProvider.id del modello
+  deploymentId    String?      // AiDeployment.id: "openai-direct", "azure-openai", "aws-bedrock"…
+  region          String?
+  share           Float?       // 0..1 del traffico (token) o della spesa dell'AI system; null = non noto
+  shareBasis      String?      // "tokens" | "spend"
+  inputTokens30d  Int?
+  outputTokens30d Int?
+  requests30d     Int?
+  spendEur30d     Float?
+  endpoints       String[]     @default([]) // endpoint del Gateway visti: "chat/completions", "embeddings", "messages"
+  maxPromptTokens Int?         // prompt più lungo visto (Gateway): requisito minimo di contesto
+  source          String       // "observed" | "declared" | "inferred"
+  origin          String       // "gateway" | "cloud_billing" | "provider_usage" | "asset_record" | "user"
+  confidence      String       @default("MEDIUM")
+  evidence        Json?
+  status          String       @default("active") // "active" | "confirmed" | "rejected" | "stale"
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  firstSeenAt     DateTime     @default(now())
+  lastSeenAt      DateTime     @default(now())
+
+  @@unique([aiAssetId, key])
+  @@index([organizationId])
+  @@index([modelId])
+}
+
+// Arco generico e tipizzato del grafo: "from" usa / dipende da / appartiene a "to".
+// Entità: "process" | "application" | "system" | "data" | "team" | "person" | "product" | "provider".
+// observedKey: chiave stabile per l'upsert idempotente; gli archi dichiarati hanno origin "user".
+// Un arco rifiutato resta (status "rejected") così il job non lo ricrea.
+model Dependency {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  fromType       String
+  fromId         String
+  toType         String
+  toId           String
+  relation       String       // "uses" | "calls" | "reads" | "owned_by" | "subscribes" | "provided_by"
+  source         String       // "observed" | "declared" | "inferred"
+  origin         String       // "gateway" | "data_link" | "owner" | "department" | "subscription" | "service_product" | "asset_vendor" | "user"
+  confidence     String       @default("MEDIUM")
+  evidence       Json?
+  observedKey    String
+  status         String       @default("active") // "active" | "confirmed" | "rejected" | "stale"
+  createdBy      String?
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  firstSeenAt    DateTime     @default(now())
+  lastSeenAt     DateTime     @default(now())
+
+  @@unique([organizationId, observedKey])
+  @@index([organizationId, fromType, fromId])
+  @@index([organizationId, toType, toId])
+}
+
+// Requisiti dichiarati di un AI system (Replaceability ed Exit readiness). Senza
+// dichiarazione angar è prudente: richiede tutto ciò che il modello attuale sa fare.
+model AiSystemProfile {
+  id                   String   @id @default(cuid())
+  aiAssetId            String   @unique
+  aiAsset              AiAsset  @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  requiredCapabilities String[] @default([]) // chiavi di Capabilities: "toolCalling", "vision"…
+  notRequired          String[] @default([])
+  minContextTokens     Int?
+  providerSpecific     String[] @default([]) // funzioni proprie del fornitore usate (testo breve)
+  euResidencyRequired  Boolean?
+  dataExport           Boolean? // posti: export dei dati disponibile (dichiarato)
+  updatedBy            String?
+  updatedAt            DateTime @updatedAt
+}
+
+// Una prova di comportamento dell'alternativa sul carico reale (o un pilota, per i posti).
+// Registrata da una persona con i numeri della prova; mai generata da angar.
+model AiEvaluation {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiAssetId      String
+  aiAsset        AiAsset      @relation(fields: [aiAssetId], references: [id], onDelete: Cascade)
+  candidateType  String       // "model" | "product"
+  candidateId    String       // AiModel.id o AiProduct.id
+  tasks          Int          // casi provati
+  passRate       Float        // 0..1
+  passed         Boolean
+  method         String?      // "eval suite" | "pilot" | "shadow traffic"
+  notes          String?
+  evaluatedAt    DateTime     @default(now())
+  createdBy      String?
+
+  @@index([organizationId])
+  @@index([aiAssetId])
 }

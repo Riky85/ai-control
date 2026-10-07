@@ -124,6 +124,32 @@ export const openaiConnector: Connector = {
       warnings.push(`Costs not available: ${(err as Error).message.slice(0, 160)}`);
     }
 
+    // Uso per modello (Usage API, completions raggruppate per modello): per il grafo
+    // dell'AI estate (estate/populate.ts). Solo conteggi di token e richieste.
+    try {
+      const start = Math.floor(Date.now() / 1000) - 30 * 86400;
+      const byModel = new Map<string, { inputTokens: number; outputTokens: number; requests: number }>();
+      let page: string | undefined;
+      let guard = 0;
+      do {
+        const usage = await adminGet(`/organization/usage/completions?start_time=${start}&bucket_width=1d&group_by=model&limit=31${page ? `&page=${encodeURIComponent(page)}` : ""}`, apiKey);
+        for (const bucket of usage.data ?? [])
+          for (const r of bucket.results ?? []) {
+            if (!r.model) continue;
+            const cur = byModel.get(r.model) ?? { inputTokens: 0, outputTokens: 0, requests: 0 };
+            cur.inputTokens += Number(r.input_tokens ?? 0) || 0;
+            cur.outputTokens += Number(r.output_tokens ?? 0) || 0;
+            cur.requests += Number(r.num_model_requests ?? 0) || 0;
+            byModel.set(r.model, cur);
+          }
+        page = usage.has_more ? usage.next_page : undefined;
+      } while (page && ++guard < 5);
+      if (byModel.size)
+        asset.activities!.push({ eventType: "provider.usage", occurredAt: new Date(), payload: { provider: "openai", days: 30, models: [...byModel].map(([model, v]) => ({ model, ...v })) } });
+    } catch (err) {
+      warnings.push(`Usage by model not available: ${(err as Error).message.slice(0, 160)}`);
+    }
+
     // Metriche di utilizzo (utenti attivi, volume messaggi) esposte tramite
     // "Workspace Analytics" lato UI Enterprise/Edu — non implementate qui:
     // l'endpoint pubblico corrispondente va verificato contro la

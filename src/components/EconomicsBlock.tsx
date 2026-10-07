@@ -3,7 +3,8 @@ import { Panel } from "@/components/ui";
 import { fmtDate, fmtEur } from "@/lib/format";
 import type { Economics } from "@/lib/pricing/economics";
 import { tokenPriceText } from "@/lib/pricing/economics";
-import { fmtDay } from "@/lib/pricing/service";
+import { fmtDay, fmtMoney } from "@/lib/pricing/service";
+import { discountText } from "@/lib/pricing/discount";
 
 // Blocco Economics del passaporto: reale (con fonte) vs stimato (con base), scarto,
 // posti per tipo, costo unitario, rinnovo, confidenza e provenienza dei prezzi.
@@ -35,14 +36,27 @@ function None() {
   return <span className="text-ink-400">None</span>;
 }
 
-export default function EconomicsBlock({ e, assetId }: { e: Economics; assetId: string }) {
+export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Economics; assetId: string; canEdit?: boolean }) {
   const { actual, estimated, variance } = e.ave;
   // Voce che il modello di fatturazione esclude: "None", non UNKNOWN.
   const noSeats = e.billingModel === "TOKEN_BASED" || e.billingModel === "USAGE_BASED";
   const noUsage = e.billingModel === "SEAT_BASED";
+  const m = e.manual;
+  const cur = (n: number) => fmtMoney(Math.round(n * 100) / 100, m?.currency ?? "EUR");
+  const PERIOD: Record<string, string> = { month: "a month", quarter: "a quarter", year: "a year" };
   const pct = variance ? `${variance.pct >= 0 ? "+" : "−"}${Math.abs(variance.pct * 100).toFixed(1)}%` : null;
   return (
-    <Panel title="Economics" subtitle={e.billingModelLabel ? `Billing: ${e.billingModelLabel}` : "Billing model unknown"}>
+    <Panel
+      title="Economics"
+      subtitle={[e.billingModelLabel ? `Billing: ${e.billingModelLabel}` : "Billing model unknown", m?.sourceLabel].filter(Boolean).join(" · ")}
+      action={
+        canEdit ? (
+          <Link href={`/assets/${assetId}/subscription`} className="btn btn-secondary btn-sm">
+            {m ? "Edit subscription" : "Add subscription"}
+          </Link>
+        ) : undefined
+      }
+    >
       {/* Reale, stimato, scarto: i tre numeri da non confondere mai. */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pb-5 border-b border-line">
         <div className="min-w-0">
@@ -66,19 +80,6 @@ export default function EconomicsBlock({ e, assetId }: { e: Economics; assetId: 
         <Item label="Billing model">{e.billingModelLabel ?? <Unknown />}</Item>
         <Item label="Plan" hint={e.cycle ? (e.cycle === "annual" ? "Billed yearly" : e.cycle === "monthly" ? "Billed monthly" : "Billed on usage") : undefined}>
           {e.planName ?? <Unknown />}
-        </Item>
-        <Item label="Seats (paid / active)">
-          {e.seatLines.length ? (
-            <span className="flex flex-col gap-0.5">
-              {e.seatLines.map((l, i) => (
-                <span key={i} className="tabular">
-                  {l.paid} / {l.active ?? "?"} <span className="text-ink-400">{l.label}</span>
-                </span>
-              ))}
-            </span>
-          ) : (
-            <Unknown />
-          )}
         </Item>
         <Item label="Cost confidence">{e.confidence ? CONF_LABEL[e.confidence] : <Unknown />}</Item>
         <Item label="Subscription" hint={e.subscriptionCost?.note}>
@@ -105,7 +106,7 @@ export default function EconomicsBlock({ e, assetId }: { e: Economics; assetId: 
             <Unknown />
           )}
         </Item>
-        <Item label="Effective unit cost" hint={e.contractMonthly != null ? `Contract price ${money(e.contractMonthly)}` : undefined}>
+        <Item label="Effective unit cost" hint={e.contractMonthly != null && !m ? `Contract price ${money(e.contractMonthly)}` : undefined}>
           {e.unitCost ? (
             <span className="tabular">
               {fmtEur(e.unitCost.eur, { decimals: true })} a {e.unitCost.unit} a month
@@ -118,6 +119,58 @@ export default function EconomicsBlock({ e, assetId }: { e: Economics; assetId: 
         <Item label="Renewal" hint={e.renewal?.inferred ? "From the last charge" : e.renewal ? "From the contract" : undefined}>
           {e.renewal ? fmtDate(e.renewal.date) : <Link href={`/assets/${assetId}?edit=contract#contract`} className="text-ink-400 hover:text-ink-100 underline">UNKNOWN · add the contract</Link>}
         </Item>
+        {m && (
+          <Item label="Contract price" hint={m.contractMonthly != null ? (m.discountPct != null ? discountText(m.discountPct) : "Discount UNKNOWN · no list price to compare") : undefined}>
+            {m.contractMonthly != null ? <span className="tabular">{cur(m.contractMonthly)} a month</span> : <Unknown />}
+          </Item>
+        )}
+        {m && (
+          <Item label="Billed" hint={m.billed && m.billed.period !== "month" ? `${cur(m.billed.amount)} ${PERIOD[m.billed.period] ?? ""}` : undefined}>
+            {m.billed ? <span className="tabular">{cur(m.billed.period === "year" ? m.billed.amount / 12 : m.billed.period === "quarter" ? m.billed.amount / 3 : m.billed.amount)} a month</span> : <Unknown />}
+          </Item>
+        )}
+        {/* Righe di posti: pagati / attivi, listino del catalogo con provenienza, contratto e sconto. */}
+        <div className="col-span-2 sm:col-span-4 min-w-0">
+          <dt className="text-xs text-ink-400">Seats (paid / active)</dt>
+          {e.seatLines.length ? (
+            e.seatLines.map((l, i) => (
+              <dd key={i} className="mt-1.5 min-w-0">
+                <span className="text-sm text-ink-100 tabular">
+                  {l.paid} / {l.active ?? "?"} <span className="text-ink-400">{l.label}</span>
+                  {l.contractUnit != null && m && <span className="text-ink-100"> · contract {cur(l.contractUnit)} a month each</span>}
+                </span>
+                <span className="block text-xs text-ink-400 break-words">
+                  {l.list ? (
+                    l.list.url ? (
+                      <a href={l.list.url} target="_blank" rel="noopener noreferrer" className="hover:text-ink-100 hover:underline">
+                        {l.list.text} ↗
+                      </a>
+                    ) : (
+                      l.list.text
+                    )
+                  ) : (
+                    "List price UNKNOWN"
+                  )}
+                  {l.contractUnit != null && ` · ${l.discountPct != null ? discountText(l.discountPct) : "Discount UNKNOWN"}`}
+                  {l.observed && l.active != null && " · active seen in the last 30 days"}
+                </span>
+              </dd>
+            ))
+          ) : (
+            <dd className="text-sm mt-1">
+              <Unknown />
+            </dd>
+          )}
+          {e.seatLines.length > 1 && e.seatLines.some((l) => l.active == null) && e.observedActive != null && (
+            <dd className="text-xs text-ink-400 mt-1.5">{e.observedActive} people active in the last 30 days across all seat types</dd>
+          )}
+        </div>
+        {m?.note && (
+          <div className="col-span-2 sm:col-span-4 min-w-0">
+            <dt className="text-xs text-ink-400">Note</dt>
+            <dd className="text-sm mt-1 text-ink-100 break-words whitespace-pre-line">{m.note}</dd>
+          </div>
+        )}
         {e.modelPrice && (
           <div className="col-span-2 sm:col-span-4 min-w-0">
             <dt className="text-xs text-ink-400">Model list price</dt>

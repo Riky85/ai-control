@@ -475,8 +475,40 @@ After the upload you see how many lines were read, the AI services found and how
 - 429: monthly cap reached or rate limit.
 - 503: no provider key set for the gateway.`,
   },
+  {
+    slug: "ai-estate",
+    section: "Using angar",
+    title: "Dependencies, Replaceability and Exit readiness",
+    summary: "A map of what each AI depends on and what depends on it, how replaceable it is, and how ready you are to leave a provider.",
+    keywords: ["dependencies", "dependency", "graph", "estate", "map", "replaceability", "replace", "exit", "readiness", "lock-in", "concentration", "provider", "alternative", "process", "application", "migration", "fallback"],
+    body: `The Graph view next to Your AI on Overview shows the chain: business process → application → AI system → model → deployment → provider, plus the data each AI reads and the team that owns it. Click a node, or type a name in "What depends on…", to see every AI system, application, process, team and data source that depends on it, and the monthly and yearly spend at stake.
+## Where the links come from
+- Observed: angar Gateway logs (models, keys, teams), cloud billing lines (Azure, Bedrock, Vertex), the OpenAI and Anthropic usage reports, data links and subscriptions.
+- Declared: written by an admin, such as an owner, a business process or an application.
+- Inferred: deduced, for example a model named by a connector without measured usage. They show as dashed lines and wait for an admin to confirm or reject them. A rejected link is never re-created.
+- Catalog: which provider makes a model or hosts a deployment, from the angar AI catalog.
+angar never invents a link. Links not seen in the last daily run are set aside, not deleted.
+## Spend at stake
+Actual spend (bills, cloud billing, contract prices) and estimated spend (tokens × list price, seats × list price) are always shown separately. When an AI uses several models, only the share of traffic that goes through the provider counts. "71% of AI spend depends on OpenAI" is that share of your monthly AI spend.
+## Replaceability (0–100)
+Calculated by fixed rules, never by an AI model. For AI that calls models, each alternative from the catalog is scored on:
+- API portability (20): same API format, a documented compatibility layer, or client code to rewrite; provider-specific features (Responses, Assistants, batch, files) lower it.
+- Capability compatibility (20): the capabilities the AI needs, from the catalog flags; a lighter tier counts less until tested.
+- Tool compatibility (15): tool calling, structured output, MCP.
+- Context (10): the longest prompt seen in the Gateway, or what you declare.
+- Modalities (10): image or audio input where the current model takes them.
+- Data portability (10): an EU region in the catalog when EU residency is required.
+- Contract / lock-in (15): annual commitment and months to renewal.
+- Behavioural validation: "Not tested" until an admin records a test on real tasks. Without a passed test the score is capped at 60. With one, it weighs 20 and the rest is scaled to 80.
+Requirements are assumed from the current model until you declare them under Requirements and tests. The top three alternatives show compatibility, confidence, migration effort and an estimated monthly cost against your current cost. They are ranked by compatibility, never by price.
+## Seat products
+For ChatGPT, Claude, Copilot and similar, alternatives are products of the same category from another provider, scored on feature overlap (35), people to move (20), data export (15) and contract (30), with the same cap until a pilot is recorded. The estimated cost is your paid seats × the list price.
+## Exit readiness (0–100)
+How ready you are to leave the provider. Checks: a tested alternative (25), loose coupling to the API (20), an evaluation suite (15), a fallback deployment (20), contract (10) and data residency (10). Each failed check is a blocker. Status: Not ready under 35, Partially ready from 35, Ready from 65 with a passed test, Production-ready from 85 with a passed test and a configured fallback. On Providers, each provider shows the spend-weighted readiness of the AI that depend on it, and is never more ready than its least ready AI.
+## What admins can do
+On the AI page under Dependencies, or in the Graph view: add a business process or an application and link it to an AI, confirm or reject inferred links, declare requirements and record a test. Every change is in the audit log.`,
+  },
 ];
-
 /** Vecchi indirizzi degli articoli → articolo attuale. */
 export const DOC_ALIASES: Record<string, string> = {
   scan: "desktop-app",
@@ -486,7 +518,7 @@ export const DOC_ALIASES: Record<string, string> = {
   github: "connect-a-provider",
   "ai-passports": "overview-and-review",
   "risk-and-assurance": "overview-and-review",
-  "estate-map": "overview-and-review",
+  "estate-map": "ai-estate",
   changes: "overview-and-review",
   "monthly-report": "alerts",
   "share-dashboards": "export",

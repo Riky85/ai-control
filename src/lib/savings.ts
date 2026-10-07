@@ -9,6 +9,8 @@ import { countActive, SEAT_WINDOW_DAYS } from "@/lib/seats";
 import { AI_SERVICES } from "@/lib/discovery/catalog";
 import { matchMerchant } from "@/lib/pricing/merchants";
 import { SERVICE_CATEGORY, categoryPlural, type Category } from "@/lib/pricing/catalog";
+import { seatSavings } from "@/lib/pricing/manual";
+import { toEur } from "@/lib/spend/fx";
 import { legacyPlans, legacyPlanById, legacyApiModelFor, cheaperApiModel, blendedPrice, defaultBusinessSeat, estimateSeatCost, seatsEur } from "@/lib/pricing/service";
 
 export type Confidence = "HIGH" | "MEDIUM" | "LOW";
@@ -37,6 +39,8 @@ export async function loadAssets(organizationId: string, opts: { includeRejected
       usages: { select: { lastSeenAt: true } },
       activities: { where: { eventType: { in: ["discovery.seen", "edge.seen"] } }, orderBy: { occurredAt: "desc" }, take: 1, select: { occurredAt: true } },
       connector: { select: { provider: true, credentialsEncrypted: true } },
+      // Abbonamento inserito a mano: vince su AiSystemCost per posti e prezzi.
+      subscriptions: { where: { origin: "manual", effectiveUntil: null }, orderBy: { updatedAt: "desc" }, take: 1, include: { seatLines: true } },
     },
     orderBy: { name: "asc" },
   });
@@ -56,10 +60,17 @@ export const categoryOf = (a: { serviceId: string | null; name: string; vendor: 
   return (s && SERVICE_CATEGORY[s]) || (a.type === "AI_API" ? "api" : a.type === "AI_DEV_TOOL" ? "coding" : null);
 };
 
-/** Costo mensile: reale se c'è, altrimenti stima da utenti × listino (servizio prezzi). */
+/** Abbonamento manuale (se caricato) di un'AI. */
+type ManualSubLike = { origin: string; currency: string; actualMonthly: number | null; contractMonthly: number | null };
+const manualOf = <T extends ManualSubLike>(a: { subscriptions?: readonly T[] }) => a.subscriptions?.find((x) => x.origin === "manual") ?? null;
+
+/** Costo mensile: abbonamento inserito a mano (fatturato, poi contratto), poi reale, altrimenti stima da utenti × listino. */
 export function monthlyOf(
-  a: Pick<AssetForSavings, "cost" | "serviceId" | "name" | "vendor"> & { usages: readonly unknown[]; type?: string }
+  a: Pick<AssetForSavings, "cost" | "serviceId" | "name" | "vendor"> & { usages: readonly unknown[]; type?: string; subscriptions?: readonly ManualSubLike[] }
 ): { eur: number; estimated: boolean } | null {
+  const ms = manualOf(a);
+  const manualEur = ms ? ms.actualMonthly ?? ms.contractMonthly : null;
+  if (ms && manualEur != null) return { eur: Math.round(toEur(manualEur, ms.currency).eur * 100) / 100, estimated: false };
   if (a.cost?.monthlyCostEstimate != null) return { eur: a.cost.monthlyCostEstimate, estimated: a.cost.basis === "estimate" };
   const s = serviceOf(a);
   const users = a.usages.length;
@@ -107,14 +118,30 @@ export async function computeSavings(organizationId: string) {
 
     // 2. Posti pagati ma non usati (serve sapere chi è attivo).
     const active = countActive(a.usages, SEAT_WINDOW_DAYS, now);
-    if (seats && a.usages.length > 0 && active < seats) {
+    const ms = manualOf(a);
+    if (ms && ms.seatLines.length) {
+      // Abbonamento inserito a mano: posti per tipo, valorizzati al prezzo effettivo
+      // (contratto → fatturato → listino), con la base di calcolo nel dettaglio.
+      const sv = seatSavings({ ...ms, seatLines: ms.seatLines }, a.usages.length > 0 ? active : null, new Date(now));
+      if (sv && sv.monthlyEur > 0)
+        out.push({
+          key: `seats:${a.id}`,
+          kind: "seats",
+          title: `${sv.idle} unused ${a.name} seat${sv.idle === 1 ? "" : "s"}`,
+          detail: `You pay for ${sv.paid} seats; ${sv.active} in use. Remove the seats nobody uses. Basis: ${sv.basis}.`,
+          monthlyEur: sv.monthlyEur,
+          confidence: "HIGH",
+          assets: [ref(a)],
+          href: `/assets/${a.id}`,
+        });
+    } else if (seats && a.usages.length > 0 && active < seats) {
       const perSeat = m.eur / seats;
       const idle = seats - active;
       out.push({
         key: `seats:${a.id}`,
         kind: "seats",
         title: `${idle} unused ${a.name} seat${idle === 1 ? "" : "s"}`,
-        detail: `You pay for ${seats} seats; ${active} ${active === 1 ? "person has" : "people have"} used it in the last 30 days. Remove the seats nobody uses.`,
+        detail: `You pay for ${seats} seats; ${active} ${active === 1 ? "person has" : "people have"} used it in the last 30 days. Remove the seats nobody uses. Basis: ${idle} idle × €${perSeat.toFixed(2)} a month each (${m.estimated ? "list price" : "monthly cost ÷ paid seats"}).`,
         monthlyEur: idle * perSeat,
         confidence: "HIGH",
         assets: [ref(a)],

@@ -454,6 +454,11 @@ export interface EconomicsAssetInput {
     source: string;
     billingCycle: string | null;
     seatLines: { seatTypeId: string | null; label: string; paidSeats: number }[];
+    /** "manual" = inserito a mano: anche il prezzo di contratto conta come costo reale. */
+    origin?: string;
+    contractMonthly?: number | null;
+    /** Etichetta della fonte già pronta ("Manual · entered by … on …"). */
+    sourceLabel?: string | null;
   } | null;
   /** Spesa a consumo stimata dal Gateway angar negli ultimi 30 giorni (token × listino), in EUR. */
   gatewayEstimateEur?: number | null;
@@ -480,7 +485,11 @@ export function actualVsEstimated(a: EconomicsAssetInput, at: Date = new Date())
   const c = a.cost;
   const sub = a.subscription ?? null;
   let actual: ActualVsEstimated["actual"] = null;
-  if (sub?.actualMonthly != null) actual = { eur: toEur(sub.actualMonthly, sub.currency).eur, source: ACTUAL_LABEL[sub.source] ?? sub.source, confidence: "HIGH" };
+  const manual = sub?.origin === "manual";
+  const subLabel = sub ? sub.sourceLabel ?? ACTUAL_LABEL[sub.source] ?? sub.source : "";
+  if (sub?.actualMonthly != null) actual = { eur: toEur(sub.actualMonthly, sub.currency).eur, source: manual ? `${subLabel} · billed amount` : subLabel, confidence: "HIGH" };
+  // Abbonamento inserito a mano senza importo fatturato: il prezzo di contratto è il costo reale.
+  else if (manual && sub?.contractMonthly != null) actual = { eur: toEur(sub.contractMonthly, sub.currency).eur, source: `${subLabel} · contract price`, confidence: "HIGH" };
   else if (c?.monthlyCostEstimate != null && ACTUAL_BASIS.has(c.basis)) actual = { eur: c.monthlyCostEstimate, source: ACTUAL_LABEL[c.basis] ?? c.basis, confidence: c.confidence };
 
   let estimated: ActualVsEstimated["estimated"] = null;

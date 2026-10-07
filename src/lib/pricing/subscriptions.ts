@@ -10,7 +10,8 @@
  * Listino, prezzo di contratto e importo fatturato restano campi distinti: mai uno al posto dell'altro.
  */
 import type { PrismaClient } from "@prisma/client";
-import { ACTUAL_BASIS, estimateSeatCost, getPrice, planOf, productOf, resolveSeatType, seatTypeLabel } from "./service";
+import { ACTUAL_BASIS, estimateSeatCost, getPrice, planByIdOf, planOf, productByIdOf, productOf, resolveSeatType, seatTypeLabel } from "./service";
+import { manualSourceLabel } from "./manual";
 import { countActive } from "@/lib/seats";
 import { currentTermEnd } from "@/lib/contracts";
 
@@ -137,4 +138,52 @@ export async function normaliseSubscriptions(orgId: string, client?: PrismaClien
     n++;
   }
   return n;
+}
+
+export interface SubscriptionRow {
+  assetId: string;
+  name: string;
+  vendor: string | null;
+  plan: string;
+  seats: string;
+  manual: boolean;
+  source: string;
+  cycle: string | null;
+  renewalDate: Date | null;
+  /** Costo mensile nella valuta dell'abbonamento e da dove viene; null = non noto. */
+  monthly: { amount: number; currency: string; basis: "billed" | "contract" | "list" } | null;
+}
+
+/** Abbonamenti in vigore di un'azienda, uno per AI (il manuale vince), per data di rinnovo. */
+export async function subscriptionRows(orgId: string, client?: PrismaClient): Promise<SubscriptionRow[]> {
+  const db = client ?? (await import("@/lib/db")).db;
+  const subs = await db.customerSubscription.findMany({
+    where: { organizationId: orgId, effectiveUntil: null, aiAsset: { deletedAt: null } },
+    include: { seatLines: true, aiAsset: { select: { id: true, name: true, vendor: true } } },
+    orderBy: [{ origin: "desc" }, { updatedAt: "desc" }],
+  });
+  const seen = new Set<string>();
+  const rows: SubscriptionRow[] = [];
+  for (const s of subs) {
+    if (!s.aiAsset || seen.has(s.aiAsset.id)) continue;
+    seen.add(s.aiAsset.id);
+    const manual = s.origin === "manual";
+    const plan = planByIdOf(s.planId);
+    const product = productByIdOf(plan?.productId ?? s.productId);
+    const amount = s.actualMonthly ?? s.contractMonthly ?? s.listMonthly;
+    rows.push({
+      assetId: s.aiAsset.id,
+      name: s.aiAsset.name,
+      vendor: s.aiAsset.vendor,
+      plan: [product?.name ?? s.productName, plan?.name ?? s.planName].filter(Boolean).join(" · ") || "—",
+      seats: s.seatLines.map((l) => `${l.paidSeats} ${l.label}`).join(" + ") || "—",
+      manual,
+      source: manual ? manualSourceLabel(s.enteredByName ?? s.enteredByEmail, s.enteredAt) : "Worked out from bills and seats",
+      cycle: s.billingCycle,
+      renewalDate: s.renewalDate,
+      monthly: amount != null ? { amount, currency: s.currency, basis: s.actualMonthly != null ? "billed" : s.contractMonthly != null ? "contract" : "list" } : null,
+    });
+  }
+  // Rinnovo più vicino prima; senza data in fondo.
+  return rows.sort((a, b) => (a.renewalDate?.getTime() ?? Infinity) - (b.renewalDate?.getTime() ?? Infinity) || a.name.localeCompare(b.name));
 }

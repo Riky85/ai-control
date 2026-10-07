@@ -8,6 +8,7 @@ import { computeSavingsCached, monthlyOf } from "@/lib/savings";
 import { savingsByAsset } from "@/components/AiTable";
 import PriceIndexCard, { loadPriceIndexCard } from "@/components/engine/PriceIndexCard";
 import { EmptyState, Insight } from "@/components/insight";
+import ProviderDependencies from "@/components/estate/ProviderDependencies";
 
 export const dynamic = "force-dynamic";
 
@@ -147,6 +148,9 @@ export default async function ProvidersPage() {
           );
         })}
       </Table>
+
+      {/* AI Estate: dipendenza da ciascun fornitore (anche via modello o deployment) ed Exit readiness. */}
+      <ProviderDependencies orgId={orgId} />
 
       {priceIndex.rows.length > 0 && <PriceIndexCard {...priceIndex} />}
     </div>
