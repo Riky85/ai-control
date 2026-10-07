@@ -117,9 +117,7 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 lg:gap-10 p-5 sm:p-6">
         <div className="flex flex-col min-w-0">
           <div className="flex items-baseline justify-between gap-3">
-            <h2 id="score-card-title" className="text-sm font-bold text-ink-100">
-              angar Score <span className="font-normal text-ink-400">· AI spend efficiency</span>
-            </h2>
+            <h2 id="score-card-title" className="font-display text-2xl font-bold tracking-tight text-ink-100">Angar Score</h2>
             {confidence !== "measured" && confidence !== "high" && <span className="text-xs text-ink-400 shrink-0">{confidenceLabel}</span>}
           </div>
           <div className="flex items-end gap-3 mt-3">
@@ -129,12 +127,6 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
           </div>
           <ScoreBar value={score} className="mt-4 max-w-sm" />
           <p className="text-sm text-ink-100 mt-4 leading-snug max-w-md">{scoreSentence(data)}</p>
-          {(delta || (potential != null && potential > score)) && (
-            <p className="text-xs text-ink-400 mt-1.5 tabular">
-              {potential != null && potential > score && `${actions} ${actions === 1 ? "action" : "actions"} could take it to ${potential}.`}
-              {delta && delta.points !== 0 && ` ${delta.points > 0 ? "▲" : "▼"} ${Math.abs(delta.points)} since ${fmtDay(delta.since)}.`}
-            </p>
-          )}
           <div className="flex flex-wrap items-center gap-2 mt-5">
             <Link href="/score/improve" className="btn btn-primary">
               Improve my score

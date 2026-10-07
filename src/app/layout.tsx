@@ -4,7 +4,6 @@ import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Sidebar, { type SidebarWorkspaceProps } from "@/components/Sidebar";
-import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 import AskDocs from "@/components/AskDocs";
 import SearchPalette from "@/components/SearchPalette";
 import ConnectedIndicator from "@/components/ConnectedIndicator";
@@ -80,14 +79,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   // Tutto in parallelo. Il ruolo nel token potrebbe essere vecchio: l'appartenenza
   // al workspace si verifica sempre nel database (il redirect arriva subito dopo).
-  const [member, org, { online: connectedComputers }, memberships, platformAdmin, reviewCount] = await Promise.all([
+  const [member, org, { online: connectedComputers, total: devicesTotal }, memberships, platformAdmin, reviewCount, spendCount, memberCount] = await Promise.all([
     db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: session.orgId, email: session.email } } }),
     db.organization.findUnique({ where: { id: session.orgId } }),
     desktopDeviceCounts(session.orgId),
     db.workspaceMember.findMany({ where: { email: session.email, status: "active" }, include: { organization: { select: { id: true, name: true } } }, orderBy: { invitedAt: "asc" } }),
     isPlatformAdmin(session.email),
     db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } }),
+    // Primi passi (prima erano nel riquadro della home): costi, uso, team.
+    db.spendRecord.count({ where: { organizationId: session.orgId } }),
+    db.workspaceMember.count({ where: { organizationId: session.orgId } }),
   ]);
+  const setupTodo = [
+    { done: spendCount > 0, href: "/sources" },
+    { done: devicesTotal > 0, href: "/download" },
+    { done: memberCount > 1, href: "/workspace" },
+  ].filter((s) => !s.done);
+  const setup = setupTodo.length ? { left: setupTodo.length, href: setupTodo[0].href } : null;
   if (!member || member.status !== "active") redirect("/api/auth/signout?reason=" + encodeURIComponent("You no longer have access to that workspace."));
 
   const planState = await getPlanState(session.orgId);
@@ -107,7 +115,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {head}
       <body className={`flex h-screen overflow-hidden bg-sidebar text-ink-100 font-body`}>
         <SearchPalette />
-        <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value === "1"} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={platformAdmin} connectedComputers={connectedComputers} reviewCount={reviewCount} trial={trial} onprem={isOnPrem()} />
+        <Sidebar initialCollapsed={false} setup={setup} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={platformAdmin} connectedComputers={connectedComputers} reviewCount={reviewCount} trial={trial} onprem={isOnPrem()} />
         <div id="app-scroll" className="flex-1 flex flex-col min-w-0 bg-canvas overflow-y-auto [scrollbar-gutter:stable]">
           <ScrollReset targetId="app-scroll" />
           <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-12 pb-24">

@@ -31,8 +31,8 @@ export default function ScoreView({ result, plan, current, changedOn, changed, c
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="angar Score"
-        subtitle="AI spend efficiency — how well your company turns AI spend into AI use."
+        title="Angar Score"
+        subtitle="How well your AI spend turns into AI use."
         action={
           <Link href="/simulate" className="btn btn-ghost btn-sm">
             What if…

@@ -8,15 +8,11 @@ import { StatCard, PageHeader, Tabs } from "@/components/ui";
 import EstateView from "@/components/estate/EstateView";
 import ExportMenu from "@/components/ExportMenu";
 import { computeSavingsCached, monthlyOf, loadAssets } from "@/lib/savings";
-import { desktopDeviceCounts } from "@/lib/discovery/devices";
 import { aiFilters, filterAssets, type AiFilterParams } from "@/lib/ai-filters";
 import FilterBar from "@/components/FilterBar";
 import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
-import { cookies } from "next/headers";
-import SetupWizard from "@/components/SetupWizard";
-import { WIZARD_COOKIE } from "@/lib/wizard";
 import ScoreCard, { type ScoreCardData } from "@/components/engine/ScoreCard";
 import { computeScoreCached, scoreHistory, scoreActions } from "@/lib/engine/score";
 
@@ -35,22 +31,14 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   const orgId = currentOrgId();
   const session = currentSession();
   // Tutto in parallelo; risparmi e computer collegati sono condivisi con il layout (React cache).
-  const [org, { items: savings, totalMonthly: canSave, assets }, all, broken, toReview, spendCount, { total: devicesCount }, memberCount] = await Promise.all([
+  const [org, { items: savings, totalMonthly: canSave, assets }, all, broken, toReview, spendCount] = await Promise.all([
     db.organization.findUnique({ where: { id: orgId } }),
     computeSavingsCached(orgId),
     loadAssets(orgId, { includeRejected: true }),
     db.connector.count({ where: { organizationId: orgId, status: "ERROR", credentialsEncrypted: { not: null }, provider: { notIn: ["NETWORK"] } } }),
     db.aiAsset.count({ where: { organizationId: orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } }),
-    // Stato del wizard di avvio: costi collegati, uso rilevato, team invitato.
     db.spendRecord.count({ where: { organizationId: orgId } }),
-    desktopDeviceCounts(orgId),
-    db.workspaceMember.count({ where: { organizationId: orgId } }),
   ]);
-  const wizardSteps = [
-    { key: "costs", title: "See what you pay for AI", desc: "Drop a bank statement or invoices.", href: "/sources", cta: "Add costs", done: spendCount > 0 },
-    { key: "usage", title: "See who really uses each AI", desc: "Install the desktop app on your computers.", href: "/download", cta: "Get the app", done: devicesCount > 0 },
-    { key: "team", title: "Invite your team", desc: "Add your colleagues.", href: "/workspace", cta: "Invite", done: memberCount > 1 },
-  ];
 
   // angar Score: solo se c'è almeno un'AI (altrimenti non c'è niente da valutare).
   let scoreCard: ScoreCardData | null = null;
@@ -132,7 +120,6 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         </div>
       ) : (
         <>
-          <SetupWizard steps={wizardSteps} initialHidden={cookies().get(WIZARD_COOKIE)?.value === "1"} primary={!scoreCard} />
           {scoreCard && <ScoreCard data={scoreCard} />}
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

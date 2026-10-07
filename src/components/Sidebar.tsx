@@ -113,7 +113,7 @@ export interface SidebarWorkspaceProps {
   limit: number | null;
 }
 
-export default function Sidebar({ initialCollapsed = false, orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0, connectedComputers = 0, trial = null, onprem = false }: { initialCollapsed?: boolean; orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number; connectedComputers?: number; trial?: SidebarTrial | null; onprem?: boolean }) {
+export default function Sidebar({ initialCollapsed = false, orgName, workspace, userName, userEmail, platformAdmin = false, reviewCount = 0, connectedComputers = 0, trial = null, onprem = false, setup = null }: { initialCollapsed?: boolean; orgName?: string; workspace?: SidebarWorkspaceProps; userName?: string; userEmail?: string; platformAdmin?: boolean; reviewCount?: number; connectedComputers?: number; trial?: SidebarTrial | null; onprem?: boolean; setup?: { left: number; href: string } | null }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -205,7 +205,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
         </div>
       )}
 
-      <nav className={`flex flex-col gap-0.5 overflow-x-hidden flex-1 min-h-0 whitespace-nowrap ${collapsed ? "[&>*:first-child]:mt-auto [&>*:last-child]:mb-auto" : ""} ${animating ? "overflow-y-hidden" : "overflow-y-auto"} ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "[scrollbar-width:thin]"}`}>
+      <nav className={`flex flex-col gap-0.5 overflow-x-hidden flex-1 min-h-0 whitespace-nowrap ${animating ? "overflow-y-hidden" : "overflow-y-auto"} ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "[scrollbar-width:thin]"}`}>
         {AREAS.map((item) => {
           const badge = item.key === "review" && reviewCount > 0 ? reviewCount : 0;
           const online = item.key === "connect" && connectedComputers > 0;
@@ -239,6 +239,17 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
         })}
       </nav>
 
+      {/* Primi passi rimasti (prima erano un riquadro nella home). */}
+      {setup && (
+        <Link href={setup.href} title={collapsed ? `${setup.left} setup step${setup.left === 1 ? "" : "s"} left` : undefined} className={`${itemClass(false)} mt-2`}>
+          <span className="relative shrink-0">
+            <Icon name="approvals" />
+            {collapsed && <span className="absolute -top-2 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-sb-ink/[0.15] text-sb-ink text-[9px] font-semibold leading-4 text-center tabular">{setup.left}</span>}
+          </span>
+          {!collapsed && <span className="flex-1 sb-fade">Setup</span>}
+          {!collapsed && <span className="text-[11px] text-sb-muted tabular sb-fade">{setup.left} left</span>}
+        </Link>
+      )}
       {trial && <TrialCard trial={trial} collapsed={collapsed} />}
       <div className="mt-3 pt-3 border-t border-sb-ink/[0.08] flex flex-col gap-0.5">
         <div ref={menuRef} className="relative">

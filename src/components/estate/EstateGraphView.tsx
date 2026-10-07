@@ -10,7 +10,7 @@ import { fromParts, impactOf, dependenciesOf, type GraphParts, type GNode, type 
  * SVG semplice, nessuna libreria: i nodi sono poche centinaia al massimo.
  */
 
-const COLS: NodeType[][] = [["process", "team"], ["application"], ["system"], ["model", "product", "data", "person"], ["deployment"], ["provider"]];
+const COLS: NodeType[][] = [["process", "team"], ["application"], ["system"], ["model", "product", "data"], ["deployment"], ["provider"]];
 const TYPE_LABEL: Record<NodeType, string> = { process: "Process", team: "Team", application: "Application", system: "AI system", model: "Model", product: "Product", data: "Data", person: "Owner", deployment: "Deployment", provider: "Provider" };
 // Toni neutri per tipo (opacità del testo sul fondo): nessun colore d'accento.
 const TONE: Record<NodeType, number> = { process: 0.95, team: 0.55, application: 0.8, system: 1, model: 0.7, product: 0.7, data: 0.45, person: 0.45, deployment: 0.6, provider: 0.9 };
@@ -36,7 +36,7 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
       const ordered = [...col].sort((a, b) => {
         const bary = (n: GNode) => {
           const ys = [...(g.in.get(n.key) ?? []).map((e) => pos.get(e.from)?.y), ...(g.out.get(n.key) ?? []).map((e) => pos.get(e.to)?.y)].filter((y): y is number => y != null);
-          return ys.length ? ys.reduce((t, y) => t + y, 0) / ys.length : Infinity;
+          return ys.length ? ys.reduce((t, y) => t + y, 0) / ys.length : 1e9;
         };
         return bary(a) - bary(b) || a.type.localeCompare(b.type) || a.label.localeCompare(b.label);
       });
@@ -130,7 +130,7 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
       )}
 
       <div className="rounded-xl border border-line bg-panel p-4 overflow-x-auto">
-        <svg width="100%" viewBox={`0 -24 ${layout.width} ${layout.height + 24}`} style={{ minWidth: Math.min(layout.width, 760) }} role="img" aria-label="AI estate graph" className="block">
+        <svg width={layout.width} height={layout.height + 24} viewBox={`0 -24 ${layout.width} ${layout.height + 24}`} role="img" aria-label="AI estate graph" className="block mx-auto max-w-none">
           {layout.cols.map((c, ci) => (
             <text key={ci} x={ci * (NW + GAP_X)} y={-10} fontSize="11" fill="rgb(var(--c-muted))">
               {[...new Set(c.map((n) => TYPE_LABEL[n.type]))].join(" · ")}
