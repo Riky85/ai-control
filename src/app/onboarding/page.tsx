@@ -11,7 +11,7 @@ export default function Onboarding({ searchParams }: { searchParams: { error?: s
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-6 py-6">
       <div className="text-center">
-        <h1 className="font-display text-[30px] leading-tight font-semibold tracking-tight text-ink-100">Let angar find your AI</h1>
+        <h1 className="font-display text-[26px] leading-tight font-semibold tracking-tight text-ink-100">Let angar find your AI</h1>
         <p className="text-sm text-ink-400 mt-2">One file is enough. angar finds every AI subscription, what it really costs and where you can save — nothing to type, nothing to remember.</p>
       </div>
 

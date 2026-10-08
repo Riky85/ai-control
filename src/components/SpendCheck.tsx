@@ -157,7 +157,7 @@ function Big({ label, value, hint, accent }: { label: string; value: string; hin
   return (
     <div className="rounded-xl border border-line bg-panel p-5">
       <div className="text-sm text-ink-400">{label}</div>
-      <div className={`font-display text-[30px] font-semibold tracking-tight tabular mt-3 ${accent ? "text-accent" : "text-ink-100"}`}>{value}</div>
+      <div className={`font-display text-[26px] font-semibold tracking-tight tabular mt-3 ${accent ? "text-accent" : "text-ink-100"}`}>{value}</div>
       {hint && <div className="text-xs text-ink-400 mt-1">{hint}</div>}
     </div>
   );

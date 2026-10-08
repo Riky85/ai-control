@@ -57,7 +57,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
         <div className="rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-4 animate-rise">
           <div className="text-sm text-ink-400">Readiness</div>
           <div>
-            <div className="font-display text-[30px] leading-none font-semibold tracking-tight tabular text-ink-100">
+            <div className="font-display text-[26px] leading-none font-semibold tracking-tight tabular text-ink-100">
               {r.score}
               <span className="text-base text-ink-400 font-normal">/100</span>
             </div>

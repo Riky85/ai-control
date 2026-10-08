@@ -152,7 +152,7 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
           </div>
 
           <div className="flex items-end gap-4 mt-6">
-            <span className="text-[80px] leading-[0.8] font-medium tracking-[-0.05em] tabular text-ink-100">{score}</span>
+            <span className="text-[64px] leading-[0.8] font-medium tracking-[-0.05em] tabular text-ink-100">{score}</span>
             <div className="flex flex-col gap-1.5 pb-1">
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-100">
                 <span className={`h-1.5 w-1.5 rounded-full ${LEVEL_STYLE[level].dot}`} aria-hidden />

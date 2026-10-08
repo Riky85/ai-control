@@ -41,7 +41,7 @@ export function UsageSummary({ d }: { d: UsageSummaryData }) {
   // Stessa grafica di StatCard: etichetta in grassetto, numero grande, nota breve.
   const cell = "rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-3 min-w-0";
   const link = `${cell} hover:border-ink-400 transition-colors`;
-  const big = "font-display text-[30px] leading-none font-semibold tracking-tight tabular";
+  const big = "font-display text-[26px] leading-none font-semibold tracking-tight tabular";
   const lab = "text-sm font-semibold text-ink-100";
   return (
     <section className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-rise" aria-label="Usage summary">

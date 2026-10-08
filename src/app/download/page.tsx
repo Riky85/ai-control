@@ -85,7 +85,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
             <span>Linked to {company} automatically</span>
           </div>
           <div>
-            <h2 className="font-display text-[30px] leading-tight font-semibold tracking-tight text-ink-100">angar for {DESKTOP_OS_LABEL[detected]}</h2>
+            <h2 className="font-display text-[26px] leading-tight font-semibold tracking-tight text-ink-100">angar for {DESKTOP_OS_LABEL[detected]}</h2>
             <p className="text-sm text-ink-400 mt-1.5 max-w-md">Install once, type your work email, done.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -178,7 +178,7 @@ function AppPreview({ company, email }: { company: string; email: string }) {
           <div className="text-[17px] font-semibold">You&apos;re all set</div>
           <div className="text-[11px] text-[#9CA0A8] mt-1 leading-snug">angar is on and runs quietly in the background. It starts by itself — there&apos;s nothing else to do.</div>
         </div>
-        <div className="rounded-lg border border-[#23232A] bg-[#0B0B10] px-3 py-2 flex flex-col gap-1.5 text-[11px]">
+        <div className="rounded-lg border border-[#262626] bg-[#000000] px-3 py-2 flex flex-col gap-1.5 text-[11px]">
           {[
             ["Company", company],
             ["Email", email],

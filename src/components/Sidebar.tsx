@@ -181,13 +181,13 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
   return (
     <aside
       className={`shrink-0 bg-sidebar border-r h-full pt-2 pb-3 flex flex-col transition-[width,padding,border-color] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
-        collapsed ? "w-[64px] px-2 border-sidebar-line" : "w-64 px-3 border-line"
+        collapsed ? "w-[56px] px-1.5 border-sidebar-line" : "w-64 px-3 border-line"
       }`}
     >
       {collapsed ? (
         <button onClick={toggle} aria-label="Expand sidebar" className="group relative h-10 w-10 mx-auto mb-4 flex items-center justify-center rounded-lg hover:bg-sb-ink/[0.08] transition-colors">
           <span className="text-sb-ink transition-opacity group-hover:opacity-0">
-            <Logo size={20} />
+            <Logo size={17} />
           </span>
           <span className="absolute inset-0 flex items-center justify-center text-sb-muted opacity-0 group-hover:opacity-100 group-hover:text-sb-ink transition-opacity">
             <PanelToggleIcon />
@@ -196,7 +196,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
       ) : (
         <div className="flex items-center h-10 mb-4 px-2 sb-fade">
           <Link href="/" className="text-sb-ink" aria-label="angar home">
-            <Wordmark size={20} />
+            <Wordmark size={17} />
           </Link>
           <button
             onClick={toggle}

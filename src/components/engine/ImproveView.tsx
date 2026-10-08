@@ -26,7 +26,7 @@ export default function ImproveView({ result, plan }: { result: FullScore; plan:
   const together = plan.potential - result.score;
   const investigate = plan.actions.filter((a) => a.certainty === "investigate").reduce((t, a) => t + (a.monthlyEur ?? 0), 0);
   const cell = "bg-panel px-5 py-4 flex flex-col gap-1.5 min-w-0";
-  const big = "font-display text-[30px] leading-none font-semibold tabular text-ink-100";
+  const big = "font-display text-[26px] leading-none font-semibold tabular text-ink-100";
 
   return (
     <div className="flex flex-col gap-6">

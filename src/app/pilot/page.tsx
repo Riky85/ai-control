@@ -46,7 +46,7 @@ export default function PilotPage({ searchParams }: Props) {
           <div className="relative rounded-2xl border border-line bg-panel shadow-card divide-y divide-line min-w-0">
             {t.facts.map((f) => (
               <div key={f.l} className="flex items-baseline gap-4 px-6 py-5">
-                <span className="font-display text-[30px] sm:text-[38px] leading-none font-semibold tracking-tight tabular text-ink-100 whitespace-nowrap min-w-[5.5rem] sm:min-w-[7.5rem] shrink-0">{f.v}</span>
+                <span className="font-display text-[26px] sm:text-[38px] leading-none font-semibold tracking-tight tabular text-ink-100 whitespace-nowrap min-w-[5.5rem] sm:min-w-[7.5rem] shrink-0">{f.v}</span>
                 <span className="text-sm text-ink-400 min-w-0">{f.l}</span>
               </div>
             ))}

@@ -1,7 +1,7 @@
 import { currentSession, isPlatformAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 import Sidebar, { type SidebarWorkspaceProps } from "@/components/Sidebar";
 import AskDocs from "@/components/AskDocs";
@@ -26,9 +26,9 @@ import { isOnPrem } from "@/lib/edition";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, THEME_SCRIPT, parseTheme } from "@/lib/theme";
 
-// Un solo sans pulito (stile Exa): Inter per testo, titoli e marchio.
-// --font-brand resta come alias: punta alla stessa variabile.
-const sans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-sans" });
+// Un solo sans pulito (stile Exa): Geist (licenza OFL, file locali nel pacchetto
+// "geist", niente download da Google) per testo, titoli e marchio.
+const sans = GeistSans;
 
 export const metadata: Metadata = {
   title: "angar",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B0B10",
+  themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

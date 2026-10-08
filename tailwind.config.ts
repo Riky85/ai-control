@@ -40,10 +40,10 @@ const config: Config = {
       },
       // Un solo sans (Inter) per testo, titoli e marchio.
       fontFamily: {
-        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
-        brand: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
-        body: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        brand: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        body: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       // Testo piccolo un filo più grande e con più interlinea: è il più
       // usato (etichette, descrizioni, tabelle) e il più faticoso da leggere.

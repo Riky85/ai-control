@@ -5,9 +5,12 @@
 /* Tema: valori RGB separati così Tailwind può applicare l'opacità
    (bg-ink-100/[0.04] ecc.). Scuro come Exa: contenuto #151515. */
 :root {
+  /* Testi e numeri un filo più piccoli in tutta l'app (le misure in rem scalano). */
+  font-size: 15px;
   color-scheme: light;
-  /* Un solo carattere (Inter): il marchio usa lo stesso del testo. */
-  --font-brand: var(--font-sans);
+  /* Un solo carattere (Geist): il marchio usa lo stesso del testo. */
+  --font-sans: var(--font-geist-sans);
+  --font-brand: var(--font-geist-sans);
   /* Grigio neutro (niente blu) in linea con i bordi #E8E8E8: riga delle colonne delle tabelle. */
   --c-subtle: 246 246 246;
   /* Sfondo dell'area contenuti: grigio chiarissimo nel chiaro, le card restano bianche. */
@@ -40,13 +43,13 @@
 html.dark,
 .force-dark {
   color-scheme: dark;
-  /* Tema scuro: fondo, sidebar e card #0B0B10, bordi sottili. */
-  --c-subtle: 22 22 28; /* #16161C */
+  /* Tema scuro: fondo, sidebar e card #000000, bordi sottili. */
+  --c-subtle: 20 20 20; /* #141414 */
   --c-text: 237 237 237;
   --c-muted: 150 150 150;
-  --c-panel: 11 11 16; /* #0B0B10 */
-  --c-canvas: 11 11 16; /* #0B0B10 */
-  --c-line: 35 35 42; /* #23232A */
+  --c-panel: 0 0 0; /* #000000 */
+  --c-canvas: 0 0 0; /* #000000 */
+  --c-line: 38 38 38; /* #262626 */
   --c-accent-soft: 46 30 20;
   --c-signal: 250 204 21;
   --c-steady: 63 182 122;
@@ -54,18 +57,18 @@ html.dark,
   --c-edge: 64 64 64;
   --c-node-strong: 82 82 82;
   --c-alarm-soft: 52 26 24;
-  /* Sidebar #0B0B10 con bordo, aperta o chiusa. */
-  --c-sidebar: 11 11 16;
-  --c-sidebar-line: 35 35 42;
+  /* Sidebar #000000 con bordo, aperta o chiusa. */
+  --c-sidebar: 0 0 0;
+  --c-sidebar-line: 38 38 38;
   --c-sb-ink: 255 255 255;
   --c-sb-soft: 232 232 232;
   --c-sb-text: 200 200 200;
   --c-sb-muted: 160 160 160;
   --c-sb-faint: 135 135 135;
-  --c-pop: 22 22 28;
+  --c-pop: 20 20 20;
 }
 
-/* Nel tema scuro anche le pagine fuori dall'app hanno lo stesso fondo #0B0B10. */
+/* Nel tema scuro anche le pagine fuori dall'app hanno lo stesso fondo #000000. */
 html.dark body,
 .force-dark {
   background-color: rgb(var(--c-canvas));

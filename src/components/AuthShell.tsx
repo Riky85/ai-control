@@ -53,7 +53,7 @@ function Showcase() {
       <div className="pointer-events-none absolute -bottom-48 -left-32 h-[420px] w-[420px] rounded-full bg-accent/10 blur-[110px]" />
 
       <div className="relative max-w-md">
-        <p className="font-display text-[30px] leading-[1.15] font-semibold tracking-tight text-ink-100">
+        <p className="font-display text-[26px] leading-[1.15] font-semibold tracking-tight text-ink-100">
           Drop your e-invoices and bank statement — in 10 minutes see what you spend on AI and <span className="text-accent">where to save</span>.
         </p>
         <p className="text-sm text-ink-400 mt-3">Nothing to type. Savings verified on your next bills.</p>

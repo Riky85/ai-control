@@ -69,7 +69,7 @@ export default function ForecastCard({ history, projection, next12Eur, growthPct
       </div>
       <div className="relative flex flex-wrap items-end justify-between gap-4 px-5 pt-4">
         <div>
-          <div className="font-display text-[30px] leading-none font-semibold tracking-tight tabular text-ink-100">{empty ? "—" : fmtEur(next12Eur)}</div>
+          <div className="font-display text-[26px] leading-none font-semibold tracking-tight tabular text-ink-100">{empty ? "—" : fmtEur(next12Eur)}</div>
         </div>
         {!empty && (
           <div className="text-right">

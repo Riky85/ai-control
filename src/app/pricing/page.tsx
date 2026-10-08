@@ -28,7 +28,7 @@ export default function PricingPage({ searchParams }: { searchParams: { billing?
       <PublicHeader active="pricing" />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-14 flex flex-col gap-10">
         <div className="text-center max-w-2xl mx-auto">
-          <h1 className="font-display text-[30px] sm:text-[38px] leading-tight font-semibold tracking-tight text-ink-100">Pay less for AI. angar pays for itself.</h1>
+          <h1 className="font-display text-[26px] sm:text-[38px] leading-tight font-semibold tracking-tight text-ink-100">Pay less for AI. angar pays for itself.</h1>
           <p className="text-base text-ink-400 mt-3">Every AI your company uses, what it really costs, who uses it and where to save — automatically. Start free, upgrade when you want the full picture.</p>
         </div>
         <div className="flex justify-center -mt-4">

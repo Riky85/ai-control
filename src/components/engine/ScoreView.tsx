@@ -55,7 +55,7 @@ export default function ScoreView({ result, plan, current, changedOn, changed, c
               )}
             </div>
             <div className="flex items-end gap-3 mt-4">
-              <span className="font-display text-[72px] leading-[0.85] font-bold tracking-tight tabular text-ink-100">{result.score}</span>
+              <span className="font-display text-[60px] leading-[0.85] font-bold tracking-tight tabular text-ink-100">{result.score}</span>
               <span className="text-sm text-ink-400 pb-1.5">/ 100</span>
               <LevelPill level={result.level} label={result.levelLabel} className="mb-2" />
             </div>
