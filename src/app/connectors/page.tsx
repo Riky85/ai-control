@@ -221,7 +221,7 @@ export default async function ConnectorsPage({
             <div key={i.label} className="rounded-xl border border-dashed border-line bg-panel p-4 flex items-center gap-3">
               <VendorBadge vendor={i.vendor} name={i.label} size={32} />
               <span className="text-sm text-ink-400 flex-1">{i.label}</span>
-              <span className="text-[11px] text-ink-400 border border-line rounded-full px-2 py-0.5">Soon</span>
+              <span className="text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em]">Soon</span>
             </div>
           ))}
         </Section>

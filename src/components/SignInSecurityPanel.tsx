@@ -42,7 +42,7 @@ export default async function SignInSecurityPanel({ message }: { message?: strin
               <input type="checkbox" name="mfaRequired" aria-label="Require two-step verification" defaultChecked={org.mfaRequired} className={check} />
             </Row>
             <Row title="Your two-step" hint="Your own authenticator app.">
-              <Link href="/account/security" className="btn btn-secondary btn-sm">Open →</Link>
+              <Link href="/account/security" className="btn btn-secondary btn-sm btn-go">Open</Link>
             </Row>
           </Section>
         </fieldset>

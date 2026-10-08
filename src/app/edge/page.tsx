@@ -36,7 +36,7 @@ export default function EdgePage() {
       {/* Hero */}
       <section className="rounded-xl border border-line bg-panel p-5 md:p-6 grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-6 overflow-hidden">
         <div className="flex flex-col gap-3 max-w-xl">
-          <span className="self-start text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Software · cloud logs · device</span>
+          <span className="self-start text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em]">Software · cloud logs · device</span>
           <p className="text-[16px] text-ink-100 leading-relaxed">
             One sensor on your network — as a DNS resolver or reading your firewall logs — sees every AI in use on <span className="font-medium">every device</span>:
             laptops, phones, servers, and the scripts and agents nobody told you about.
@@ -92,7 +92,7 @@ export default function EdgePage() {
           <div key={x.t} className="rounded-xl border border-line bg-panel flex flex-col">
             <div className="flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3 bar-head">
               <span className="text-sm font-semibold text-ink-100">{x.t}</span>
-              <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5 whitespace-nowrap">{x.tag}</span>
+              <span className="text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] whitespace-nowrap">{x.tag}</span>
             </div>
             <p className="flex-1 px-4 py-3 text-sm text-ink-400">{x.d}</p>
             <p className="bg-ink border-t border-line rounded-b-xl px-4 py-2.5 text-xs text-ink-400 bar-foot">{x.foot}</p>
@@ -168,7 +168,7 @@ export default function EdgePage() {
         <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
           <div className="-mx-5 -mt-5 mb-1 flex items-center gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
             <h2 className="text-sm font-bold text-ink-100">Keep every piece of data in your company</h2>
-            <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Enterprise</span>
+            <span className="text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em]">Enterprise</span>
           </div>
           <p className="text-sm text-ink-400 max-w-3xl">
             Run the whole of angar on your own server or on the angar device. Computers, sensors, people and costs all stay on your network — nothing is sent to
@@ -197,7 +197,7 @@ export default function EdgePage() {
           .
         </div>
         <div className="flex items-baseline gap-1 shrink-0">
-          <span className="text-[28px] font-semibold tracking-tight tabular text-ink-100">€{EDGE.pricePerDevice}</span>
+          <span className="text-[28px] font-light tracking-[-0.03em] tabular text-ink-100">€{EDGE.pricePerDevice}</span>
           <span className="text-sm text-ink-400">/device·mo</span>
         </div>
         <div className="flex gap-2 shrink-0">

@@ -26,7 +26,7 @@ const STATUS_LABEL: Record<AiAssetStatus, string> = {
 };
 
 function TierPill({ tier }: { tier: EuAiActTier }) {
-  return <span className={`text-[11px] font-medium rounded-full px-2 py-0.5 whitespace-nowrap ${TIER_CLS[tier]}`}>{TIER_LABEL[tier]}</span>;
+  return <span className={`text-[10px] rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] whitespace-nowrap ${TIER_CLS[tier]}`}>{TIER_LABEL[tier]}</span>;
 }
 
 export default async function CompliancePage({ searchParams }: { searchParams: { error?: string; applied?: string } }) {
@@ -57,7 +57,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
         <div className="rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-4 animate-rise">
           <div className="text-sm text-ink-400">Readiness</div>
           <div>
-            <div className="font-display text-[26px] leading-none font-semibold tracking-tight tabular text-ink-100">
+            <div className="font-display text-[26px] leading-none font-light tracking-[-0.03em] tabular text-ink-100">
               {r.score}
               <span className="text-base text-ink-400 font-normal">/100</span>
             </div>
@@ -124,9 +124,9 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="text-sm font-medium text-ink-100">{s.title}</span>
                     {s.inForce ? (
-                      <span className="text-[11px] font-medium rounded-full px-2 py-0.5 text-steady bg-steady/10">In force</span>
+                      <span className="text-[10px] rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] text-steady bg-steady/10">In force</span>
                     ) : (
-                      <span className="text-[11px] font-medium rounded-full px-2 py-0.5 text-ink-400 bg-ink-400/10">Upcoming</span>
+                      <span className="text-[10px] rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] text-ink-400 bg-ink-400/10">Upcoming</span>
                     )}
                   </div>
                   <div className="text-xs text-ink-400">

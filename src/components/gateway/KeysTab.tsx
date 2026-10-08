@@ -31,14 +31,14 @@ export default function KeysTab({ keys, teams, canEdit }: { keys: GwKeyRow[]; te
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bar-thead text-left text-xs text-ink-400 bg-ink border-b border-line">
-                <th className="px-5 py-2.5 font-semibold">App / key</th>
-                <th className="px-5 py-2.5 font-semibold">Team</th>
-                <th className="px-5 py-2.5 font-semibold hidden md:table-cell">Provider</th>
-                <th className="px-5 py-2.5 font-semibold text-right">This month</th>
-                <th className="px-5 py-2.5 font-semibold hidden lg:table-cell">Models</th>
-                <th className="px-5 py-2.5 font-semibold hidden md:table-cell">Last used</th>
-                <th className="px-5 py-2.5 font-semibold" />
+              <tr className="bar-thead text-left font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 bg-ink border-b border-line">
+                <th className="px-5 py-2.5 font-normal">App / key</th>
+                <th className="px-5 py-2.5 font-normal">Team</th>
+                <th className="px-5 py-2.5 font-normal hidden md:table-cell">Provider</th>
+                <th className="px-5 py-2.5 font-normal text-right">This month</th>
+                <th className="px-5 py-2.5 font-normal hidden lg:table-cell">Models</th>
+                <th className="px-5 py-2.5 font-normal hidden md:table-cell">Last used</th>
+                <th className="px-5 py-2.5 font-normal" />
               </tr>
             </thead>
             <tbody className="divide-y divide-line">

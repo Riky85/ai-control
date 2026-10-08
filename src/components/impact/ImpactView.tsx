@@ -319,7 +319,7 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
           <div>
             <div className="text-xs font-bold text-ink-100">{sp.exposedOnly ? "At risk" : "Difference"}</div>
             {sp.exposedOnly ? (
-              <div className="font-display text-[28px] leading-none font-medium tracking-[-0.025em] mt-2 tabular">{plural(r.systems.filter((s) => s.status?.startsWith("No fallback")).length, "AI", "AI")}</div>
+              <div className="font-display text-[28px] leading-none font-light tracking-[-0.03em] mt-2 tabular">{plural(r.systems.filter((s) => s.status?.startsWith("No fallback")).length, "AI", "AI")}</div>
             ) : (
               <div className={`font-display text-[28px] leading-none font-medium tracking-[-0.025em] mt-2 ${deltaTone}`}>
                 <Amount v={sp.delta} signed />

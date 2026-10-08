@@ -11,7 +11,7 @@ import { discountText } from "@/lib/pricing/discount";
 // Quello che non si sa è UNKNOWN: mai un numero inventato.
 
 export function EstimatedTag() {
-  return <span className="ml-1.5 inline-block align-middle rounded border border-line px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-ink-400">Estimated</span>;
+  return <span className="ml-1.5 inline-block align-middle rounded border border-line px-1.5 py-px text-[10px] font-mono uppercase tracking-wide text-ink-400">Estimated</span>;
 }
 
 function Unknown() {
@@ -59,17 +59,17 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pb-5 border-b border-line">
         <div className="min-w-0">
           <div className="text-sm font-bold text-ink-100">Actual</div>
-          <div className="font-display text-2xl font-semibold tracking-tight tabular text-ink-100 mt-1">{actual ? money(actual.eur) : <Unknown />}</div>
+          <div className="font-display text-2xl font-light tracking-[-0.03em] tabular text-ink-100 mt-1">{actual ? money(actual.eur) : <Unknown />}</div>
           <div className="text-xs text-ink-400 mt-1 truncate">{actual ? actual.source : "No bill linked"}</div>
         </div>
         <div className="min-w-0">
           <div className="text-sm font-bold text-ink-100 flex items-center">Estimated<EstimatedTag /></div>
-          <div className="font-display text-2xl font-semibold tracking-tight tabular text-ink-100 mt-1">{estimated && estimated.eur > 0 ? money(estimated.eur) : <Unknown />}</div>
+          <div className="font-display text-2xl font-light tracking-[-0.03em] tabular text-ink-100 mt-1">{estimated && estimated.eur > 0 ? money(estimated.eur) : <Unknown />}</div>
           <div className="text-xs text-ink-400 mt-1 truncate" title={estimated?.basis}>{estimated ? estimated.basis : "Nothing to price"}</div>
         </div>
         <div className="min-w-0">
           <div className="text-sm font-bold text-ink-100">Variance</div>
-          <div className="font-display text-2xl font-semibold tracking-tight tabular text-ink-100 mt-1">{variance ? pct : <Unknown />}</div>
+          <div className="font-display text-2xl font-light tracking-[-0.03em] tabular text-ink-100 mt-1">{variance ? pct : <Unknown />}</div>
           {variance && <div className="text-xs text-ink-400 mt-1 tabular">{`${variance.eur >= 0 ? "+" : "−"}${fmtEur(Math.abs(variance.eur))} vs estimate`}</div>}
         </div>
       </div>

@@ -17,7 +17,7 @@ export function CategoryPill({ category }: { category: Category }) {
 export function StatusPill({ status }: { status: Status }) {
   if (status === "new") return null;
   const cls = status === "done" ? "text-steady bg-steady/10" : status === "dismissed" ? "text-ink-400 bg-ink-100/[0.06]" : "text-ink-100 bg-ink-100/10";
-  return <span className={`text-[11px] font-medium rounded-full px-2 py-0.5 whitespace-nowrap ${cls}`}>{STATUS_LABEL[status]}</span>;
+  return <span className={`text-[10px] rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] whitespace-nowrap ${cls}`}>{STATUS_LABEL[status]}</span>;
 }
 
 /** "€350 a month" con "€4,200 a year" sotto. */

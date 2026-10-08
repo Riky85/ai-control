@@ -103,7 +103,7 @@ export default async function PolicyAckPanel({
               <span>Training recorded</span>
               {training ? <Pill tone="steady">Yes</Pill> : <Pill tone="signal">Missing</Pill>}
             </div>
-            <div className="font-display text-[22px] leading-tight font-semibold tabular text-ink-100 mt-1">{training ? fmtDate(training.date) : "—"}</div>
+            <div className="font-display text-[22px] leading-tight font-light tabular text-ink-100 mt-1">{training ? fmtDate(training.date) : "—"}</div>
             <div className="text-xs text-ink-400 mt-1 truncate" title={training?.summary}>
               {training ? training.summary : <Link href="/compliance" className="underline hover:text-ink-100">Record it</Link>}
             </div>
@@ -154,7 +154,7 @@ function Meter({ label, value, big, hint }: { label: string; value: number | nul
   return (
     <div className="min-w-0">
       <div className="text-xs text-ink-400">{label}</div>
-      <div className="font-display text-[22px] leading-tight font-semibold tabular text-ink-100 mt-1">{big}</div>
+      <div className="font-display text-[22px] leading-tight font-light tabular text-ink-100 mt-1">{big}</div>
       {value != null ? <AxisTrack value={value} className="mt-1.5" /> : <div className="relative h-3 mt-1.5" aria-hidden><div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line" /></div>}
       <div className="text-xs text-ink-400 mt-1 truncate" title={hint}>
         {hint}

@@ -122,7 +122,7 @@ function DimensionCard({ d }: { d: Dimension }) {
     <section id={`axis-${d.axis}`} title={`${AXIS_HINT[d.axis]} · ${weight}`} className="scroll-mt-6 rounded-xl border border-line bg-panel animate-rise flex flex-col min-w-0 p-4 gap-3 target:border-ink-400">
       <h3 className="text-sm font-bold text-ink-100 leading-snug truncate">{d.label}</h3>
       <div className="flex items-center justify-between gap-2">
-        <span className="font-display text-[28px] leading-none font-semibold tabular text-ink-100">{unmeasured ? "—" : d.value}</span>
+        <span className="font-display text-[28px] leading-none font-light tabular text-ink-100">{unmeasured ? "—" : d.value}</span>
         <LevelPill level={d.level} label={d.levelLabel} />
       </div>
       <ScoreBar value={unmeasured ? 0 : d.value ?? 0} />

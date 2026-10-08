@@ -159,7 +159,7 @@ function Total({ label, value, hint }: { label: string; value: string; hint?: st
   return (
     <div className="rounded-xl border border-line bg-panel p-4">
       <div className="text-sm text-ink-400">{label}</div>
-      <div className="font-display text-2xl font-semibold tabular text-ink-100 mt-1">{value}</div>
+      <div className="font-display text-2xl font-light tabular text-ink-100 mt-1">{value}</div>
       {hint && <div className="text-xs text-ink-400 mt-1">{hint}</div>}
     </div>
   );

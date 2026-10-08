@@ -70,7 +70,7 @@ export function FeatureCard({ t, d, badge, icon }: { t: string; d: string; badge
       {icon && <div className="h-8 w-8 rounded-lg bg-ink text-ink-100 flex items-center justify-center mb-1">{icon}</div>}
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-[15px] font-bold text-ink-100">{t}</h3>
-        {badge && <span className="shrink-0 text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5 whitespace-nowrap">{badge}</span>}
+        {badge && <span className="shrink-0 text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] whitespace-nowrap">{badge}</span>}
       </div>
       <p className="text-sm text-ink-400 leading-relaxed">{d}</p>
     </div>

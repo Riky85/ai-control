@@ -63,12 +63,12 @@ function Showcase() {
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-line bg-sidebar/80 backdrop-blur p-4">
             <div className="text-xs text-ink-400">AI in use</div>
-            <div className="font-display text-[28px] font-semibold tabular text-ink-100 mt-1">13</div>
+            <div className="font-display text-[28px] font-light tabular text-ink-100 mt-1">13</div>
             <div className="text-xs text-ink-400">7 found automatically</div>
           </div>
           <div className="rounded-2xl border border-accent/40 bg-sidebar/80 backdrop-blur p-4">
             <div className="text-xs text-ink-400">You could save</div>
-            <div className="font-display text-[28px] font-semibold tabular text-accent mt-1">€683<span className="text-sm text-ink-400 font-normal">/mo</span></div>
+            <div className="font-display text-[28px] font-light tabular text-accent mt-1">€683<span className="text-sm text-ink-400 font-normal">/mo</span></div>
             <div className="text-xs text-ink-400">€8,196 a year</div>
           </div>
         </div>

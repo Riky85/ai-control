@@ -190,7 +190,7 @@ export default function SearchPalette() {
             if (group.length === 0) return null;
             return (
               <div key={type} className="mb-1">
-                <div className="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-sb-faint">{GROUP_LABEL[type]}</div>
+                <div className="px-4 pt-2 pb-1 text-[11px] font-mono uppercase tracking-wide text-sb-faint">{GROUP_LABEL[type]}</div>
                 {group.map((h) => {
                   const idx = hits.indexOf(h) + (askFirst && query ? 1 : 0);
                   return (

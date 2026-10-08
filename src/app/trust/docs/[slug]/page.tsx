@@ -113,7 +113,7 @@ function Block({ b, lang }: { b: DocBlock; lang: string }) {
           <thead>
             <tr>
               {b.table.head.map((h) => (
-                <th key={h} className="text-left font-semibold px-3 py-2 border-b border-line print:border-black/30 align-bottom">{h}</th>
+                <th key={h} className="text-left font-normal px-3 py-2 border-b border-line print:border-black/30 align-bottom">{h}</th>
               ))}
             </tr>
           </thead>

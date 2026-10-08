@@ -33,7 +33,7 @@ export default function TrustPage() {
       <div className={signedIn ? "max-w-5xl" : "max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-10"}>
         {/* Apertura */}
         <div className="max-w-2xl">
-          <div className="text-xs uppercase tracking-wide text-ink-400">Trust Center</div>
+          <div className="text-xs font-mono uppercase tracking-wide text-ink-400">Trust Center</div>
           <h1 className="font-display text-[32px] sm:text-[40px] leading-[1.1] font-semibold tracking-tight text-ink-100 mt-2">How angar protects your data</h1>
           <p className="text-[15px] text-ink-400 mt-4 leading-relaxed">
             angar shows which AI your company uses and what it costs. To do that it needs very little: names of AI tools, minutes and charges. Never what anyone writes. This page sets out where the data lives, who processes it and what we do to protect it — written from what the software actually does.
@@ -248,7 +248,7 @@ function SubTable({ title, rows, className = "" }: { title: string; rows: typeof
       <div className="hidden md:block rounded-xl border border-line bg-panel overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-ink-400 border-b border-line">
+            <tr className="text-left font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 border-b border-line">
               <th className="font-medium px-4 py-2.5 w-[22%]">Company</th>
               <th className="font-medium px-4 py-2.5">What for</th>
               <th className="font-medium px-4 py-2.5 w-[26%]">Location</th>

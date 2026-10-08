@@ -214,9 +214,9 @@ function ModelHistory({ m, now }: { m: CatModel; now: Date }) {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bar-thead text-left text-xs text-ink-400 bg-ink border-b border-line">
+            <tr className="bar-thead text-left font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 bg-ink border-b border-line">
               {["Where", "Tier", "Region", "Item", "Price", "Valid", "Was", "Source"].map((h) => (
-                <th key={h} className="px-5 py-2.5 font-semibold">{h}</th>
+                <th key={h} className="px-5 py-2.5 font-normal">{h}</th>
               ))}
             </tr>
           </thead>

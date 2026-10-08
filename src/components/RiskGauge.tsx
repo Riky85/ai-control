@@ -39,7 +39,7 @@ export default function RiskGauge({ score, level }: { score: number; level: stri
           strokeDasharray={`${dash} ${circumference}`}
         />
       </svg>
-      <div className="tabular text-3xl font-display font-semibold -mt-6" style={{ color }}>
+      <div className="tabular text-3xl font-display font-light -mt-6" style={{ color }}>
         {score}
       </div>
       <div className="text-xs text-ink-400 mt-0.5">out of 100</div>

@@ -28,7 +28,7 @@ export function AxisGauge({ label, value, size = 64, href }: { label: string; va
     <>
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-w-0">
         <span className="text-xs font-semibold text-ink-100 min-w-0 max-w-full truncate">{label}</span>
-        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${lv.pill}`}>{lv.label}</span>
+        <span className={`inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] text-[10px] whitespace-nowrap ${lv.pill}`}>{lv.label}</span>
       </div>
       <div className={`font-display font-semibold tabular text-ink-100 leading-tight mt-1 ${big ? "text-[26px]" : "text-[22px]"}`}>
         {v}
@@ -55,7 +55,7 @@ export const AxisBar = AxisGauge;
 /** Pillola del livello (Excellent / Good / Fair / Needs attention / Not measured yet). */
 export function LevelPill({ level, label, className = "" }: { level: Level | null; label: string; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${LEVEL_STYLE[level ?? "none"].pill} ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] text-[10px] whitespace-nowrap ${LEVEL_STYLE[level ?? "none"].pill} ${className}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${LEVEL_STYLE[level ?? "none"].dot}`} aria-hidden />
       {label}
     </span>

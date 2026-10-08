@@ -50,7 +50,7 @@ export default function AnomalyList({ anomalies, limit = 5 }: AnomalyListProps &
                   <span className="block text-xs text-ink-400 mt-0.5">{a.body}</span>
                 </span>
                 <span className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-[11px] text-ink-400 border border-line rounded-full px-2 py-0.5">{KIND_LABEL[a.kind]}</span>
+                  <span className="text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em]">{KIND_LABEL[a.kind]}</span>
                   <span className="sr-only">{SEV[a.severity].label}</span>
                   {a.severity === "critical" && <span className="text-[11px] font-medium text-alarm" aria-hidden>Critical</span>}
                 </span>

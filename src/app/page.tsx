@@ -79,8 +79,8 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       <PageHeader title={greeting(session?.name)} subtitle={org?.name ?? "Your AI at a glance"} action={
           assets.length ? (
             <div className="flex items-center gap-2">
-              {spendCount > 0 && <Link href="/report" className="btn btn-ghost btn-sm">Monthly report →</Link>}
-              <Link href="/estate" className="btn btn-ghost btn-sm">See all AI →</Link>
+              {spendCount > 0 && <Link href="/report" className="btn btn-ghost btn-sm btn-go">Monthly report</Link>}
+              <Link href="/estate" className="btn btn-ghost btn-sm btn-go">See all AI</Link>
             </div>
           ) : undefined
         } />

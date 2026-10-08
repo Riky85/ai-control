@@ -160,10 +160,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
               </form>
             </Row>
             <Row title="Employee notice" hint="EN · IT · DE · FR · ES">
-              <Link href="/compliance/employee-notice" className="btn btn-secondary btn-sm">Open →</Link>
+              <Link href="/compliance/employee-notice" className="btn btn-secondary btn-sm btn-go">Open</Link>
             </Row>
             <Row title="Trust Center">
-              <Link href="/trust" className="btn btn-secondary btn-sm">Open →</Link>
+              <Link href="/trust" className="btn btn-secondary btn-sm btn-go">Open</Link>
             </Row>
             {!showsPeople(privacy) && role === "OWNER" && (
               <Row title="Past data" hint="Can't be undone.">
@@ -187,7 +187,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
               <Status on yes="Read-only" />
             </Row>
             <Row title="Audit log" hint="Every change, tamper-evident.">
-              <Link href="/audit" className="btn btn-secondary btn-sm">Open →</Link>
+              <Link href="/audit" className="btn btn-secondary btn-sm btn-go">Open</Link>
             </Row>
           </Section>
         </>
@@ -268,7 +268,7 @@ function TicketsSection({ isAdmin, jira, snow }: { isAdmin: boolean; jira: Ticke
   const status = (r: TicketRow<unknown>, where: string) =>
     r ? (r.lastSyncError ? <span className="text-alarm">Last ticket failed: {r.lastSyncError}</span> : r.lastSyncedAt ? `Connected · last ticket ${fmtAgo(r.lastSyncedAt)}` : `Connected · ${where}`) : "Not connected";
   const pill = (on: boolean) => (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${on ? "text-steady bg-steady/10" : "text-ink-400 bg-ink-100/[0.06]"}`}>{on ? "On" : "Off"}</span>
+    <span className={`inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] text-[10px] ${on ? "text-steady bg-steady/10" : "text-ink-400 bg-ink-100/[0.06]"}`}>{on ? "On" : "Off"}</span>
   );
   const actions = (provider: "JIRA" | "SERVICENOW") => (
     <>

@@ -136,7 +136,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
               </div>
               <p className="text-xs text-ink-400">{EDGE.tagline}</p>
               <div className="font-display text-ink-100">
-                <span className="text-[22px] font-semibold tracking-tight tabular">€{EDGE.pricePerDevice}</span>
+                <span className="text-[22px] font-light tracking-[-0.03em] tabular">€{EDGE.pricePerDevice}</span>
                 <span className="text-sm text-ink-400"> a month for each device</span>
               </div>
               <div className="text-xs text-ink-400">Any plan · {EDGE.minMonths}-month minimum · shipping included · {org.edgeDevices} active</div>

@@ -137,7 +137,7 @@ function Figure({ label, value, unit, hint, accent, good }: { label: string; val
     <div className="bg-panel px-5 py-3.5 min-w-0">
       <dt className="text-sm font-semibold text-ink-100">{label}</dt>
       <dd className="mt-1">
-        <span className={`font-display text-2xl font-semibold tracking-tight tabular ${accent ? "text-ink-100" : good ? "text-steady" : "text-ink-100"}`}>{value}</span>
+        <span className={`font-display text-2xl font-light tracking-[-0.03em] tabular ${accent ? "text-ink-100" : good ? "text-steady" : "text-ink-100"}`}>{value}</span>
         {unit && <span className="ml-1 text-xs text-ink-400">{unit}</span>}
       </dd>
       {hint && <dd className="text-[11px] text-ink-400 mt-0.5 truncate">{hint}</dd>}
@@ -154,7 +154,7 @@ function TaskRow({ t, canEdit }: { t: AutopilotTaskView; canEdit: boolean }) {
         <div className="flex-1 min-w-[12rem]">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-ink-100">{t.title}</span>
-            <span className={`text-[11px] font-medium rounded-full px-2 py-0.5 shrink-0 ${st.cls}`}>{st.label}</span>
+            <span className={`text-[10px] rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] shrink-0 ${st.cls}`}>{st.label}</span>
           </div>
           {t.result && <p className={`text-xs mt-0.5 ${t.status === "failed" ? "text-alarm" : "text-ink-400"}`}>{t.result}</p>}
         </div>

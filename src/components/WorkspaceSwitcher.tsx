@@ -54,7 +54,7 @@ export default function WorkspaceSwitcher({
 
       {open && (
         <div className="absolute z-30 left-0 right-0 mt-1.5 rounded-xl border border-sb-ink/[0.12] bg-pop shadow-2xl p-1.5 text-sm">
-          <div className="px-2.5 pt-1.5 pb-1 text-[11px] uppercase tracking-wide text-sb-faint">Workspaces</div>
+          <div className="px-2.5 pt-1.5 pb-1 text-[11px] font-mono uppercase tracking-wide text-sb-faint">Workspaces</div>
           {workspaces.map((w) => (
             <form key={w.id} action={switchWorkspaceAction}>
               <input type="hidden" name="orgId" value={w.id} />

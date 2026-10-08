@@ -34,7 +34,7 @@ export default function UsageChart({ values, labels, unit = "visits", weekChange
       <div className="flex flex-wrap items-end justify-between gap-4 px-5 pt-4">
         <div>
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-[26px] leading-none font-semibold tracking-tight tabular text-ink-100">{fmtN(total)}</span>
+            <span className="font-display text-[26px] leading-none font-light tracking-[-0.03em] tabular text-ink-100">{fmtN(total)}</span>
             <span className="text-sm text-ink-400">{unit}</span>
           </div>
         </div>

@@ -44,13 +44,13 @@ export default function RequestsTable({
       <div className={`overflow-x-auto ${title ? "" : "rounded-t-xl"}`}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="bar-thead text-left text-xs text-ink-400 bg-ink border-b border-line">
-              <th className="px-5 py-2.5 font-semibold hidden md:table-cell">Time</th>
-              <th className="px-5 py-2.5 font-semibold">App / key</th>
-              <th className="px-5 py-2.5 font-semibold hidden md:table-cell">Model</th>
-              <th className="px-5 py-2.5 font-semibold text-right hidden md:table-cell">Tokens</th>
-              <th className="px-5 py-2.5 font-semibold text-right hidden md:table-cell">Cost</th>
-              <th className="px-5 py-2.5 font-semibold">Policy result</th>
+            <tr className="bar-thead text-left font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 bg-ink border-b border-line">
+              <th className="px-5 py-2.5 font-normal hidden md:table-cell">Time</th>
+              <th className="px-5 py-2.5 font-normal">App / key</th>
+              <th className="px-5 py-2.5 font-normal hidden md:table-cell">Model</th>
+              <th className="px-5 py-2.5 font-normal text-right hidden md:table-cell">Tokens</th>
+              <th className="px-5 py-2.5 font-normal text-right hidden md:table-cell">Cost</th>
+              <th className="px-5 py-2.5 font-normal">Policy result</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">

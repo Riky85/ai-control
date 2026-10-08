@@ -65,7 +65,7 @@ export function Progress({ saved, org, extra }: { saved: SavedSoFar; canSave?: n
                 <span className="block text-xs text-ink-400">{LEDGER_KIND_LABEL[r.kind as LedgerKind] ?? r.kind} · {r.createdBy}</span>
               </td>
               <td className={td}>
-                <span className={`text-xs font-medium rounded-full px-2 py-0.5 whitespace-nowrap ${st.cls}`} title={st.label === "Not confirmed yet" ? `No lower charge ${VERIFY_AFTER_DAYS} days after it was done — check the provider's billing.` : undefined}>
+                <span className={`text-[10px] rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] whitespace-nowrap ${st.cls}`} title={st.label === "Not confirmed yet" ? `No lower charge ${VERIFY_AFTER_DAYS} days after it was done — check the provider's billing.` : undefined}>
                   {st.label}
                 </span>
               </td>

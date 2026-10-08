@@ -261,7 +261,7 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
           <div className="flex flex-col">
             <div className="grid sm:grid-cols-[180px_1fr] gap-x-6 gap-y-4 px-5 py-4">
               <div>
-                <div className="font-display text-[40px] leading-none font-semibold tracking-tight tabular text-ink-100">
+                <div className="font-display text-[40px] leading-none font-light tracking-[-0.03em] tabular text-ink-100">
                   {repl.score}
                   <span className="text-base text-ink-400 font-normal">/100</span>
                 </div>
@@ -284,7 +284,7 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
             <div className="overflow-x-auto border-t border-line">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-ink-400 text-left">
+                  <tr className="font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 text-left">
                     <th className="px-5 py-2 font-medium">Alternatives</th>
                     <th className="px-3 py-2 font-medium text-right">Fit</th>
                     <th className="px-3 py-2 font-medium">Effort</th>

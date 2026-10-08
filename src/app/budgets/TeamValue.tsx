@@ -16,7 +16,7 @@ function VerdictPill({ t }: { t: Team }) {
     none: { label: "No paid AI", cls: "text-ink-400 bg-ink-100/[0.06]" },
   };
   const v = map[t.verdict];
-  return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium tabular whitespace-nowrap ${v.cls}`}>{v.label}</span>;
+  return <span className={`inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] text-[10px] tabular whitespace-nowrap ${v.cls}`}>{v.label}</span>;
 }
 
 /** Barretta orizzontale: lunghezza = spesa (rispetto al team più caro), parte chiara = posti non usati. */

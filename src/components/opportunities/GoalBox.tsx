@@ -86,7 +86,7 @@ export default function GoalBox({
               <div className="rounded-lg border border-line overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-xs text-ink-400 bg-ink">
+                    <tr className="font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 bg-ink">
                       <th className="text-left font-medium px-4 py-2 w-8">#</th>
                       <th className="text-left font-medium px-4 py-2">Step</th>
                       <th className="text-right font-medium px-4 py-2 whitespace-nowrap">Change a month</th>

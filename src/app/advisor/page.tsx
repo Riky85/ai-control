@@ -124,7 +124,7 @@ function RecRow({ r, n }: { r: Recommendation; n: number }) {
       <div className="flex-1 min-w-[12rem]">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <h3 className="text-[15px] font-bold text-ink-100">{r.title}</h3>
-          <span className={`text-[11px] font-medium rounded-full px-2 py-0.5 ${c.cls}`}>{c.label}</span>
+          <span className={`text-[10px] rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] ${c.cls}`}>{c.label}</span>
         </div>
         <p className="text-sm text-ink-400 mt-0.5">{r.why}</p>
       </div>

@@ -85,7 +85,7 @@ export default async function AlertsPage() {
                 <span className="flex-1 min-w-0">
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className={`text-sm ${a.readAt ? "text-ink-100" : "text-ink-100 font-semibold"}`}>{a.title}</span>
-                    <span className="text-[11px] text-ink-400 border border-line rounded-full px-2 py-0.5 shrink-0">{KIND[a.kind] ?? a.kind}</span>
+                    <span className="text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] shrink-0">{KIND[a.kind] ?? a.kind}</span>
                   </span>
                   <span className="block text-sm text-ink-400 mt-0.5">{a.body}</span>
                 </span>

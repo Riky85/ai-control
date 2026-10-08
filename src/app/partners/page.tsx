@@ -74,7 +74,7 @@ export default function PartnersPage({ searchParams }: Props) {
             </div>
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-ink-400">
+                <tr className="text-left font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400">
                   <th className="px-5 pt-3 pb-2 font-medium">{t.mock.client}</th>
                   <th className="px-3 pt-3 pb-2 font-medium text-right">{t.mock.spend}</th>
                   <th className="px-5 pt-3 pb-2 font-medium text-right">{t.mock.save}</th>

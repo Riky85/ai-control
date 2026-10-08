@@ -29,7 +29,7 @@ export default function Onboarding({ searchParams }: { searchParams: { error?: s
       </form>
 
       <div>
-        <div className="text-xs text-ink-400 uppercase tracking-wide mb-3">Or start from</div>
+        <div className="text-xs text-ink-400 font-mono uppercase tracking-wide mb-3">Or start from</div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Option href="/sources#accounts" title="Company accounts" text="Microsoft 365 or Google Workspace — who uses which AI." />
           <Option href="/connectors" title="An AI provider key" text="Claude, OpenAI, Gemini, Mistral… exact API costs." />

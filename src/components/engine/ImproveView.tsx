@@ -108,7 +108,7 @@ function Facts({ a }: { a: ScoreAction }) {
           {eur(a.monthlyEur)} <span className="text-ink-400">a month</span>
         </span>
       )}
-      {a.certainty !== "high" && <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${CERTAINTY_STYLE[a.certainty]}`}>{CERTAINTY_LABEL[a.certainty]}</span>}
+      {a.certainty !== "high" && <span className={`inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] text-[10px] ${CERTAINTY_STYLE[a.certainty]}`}>{CERTAINTY_LABEL[a.certainty]}</span>}
     </div>
   );
 }

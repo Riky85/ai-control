@@ -115,7 +115,7 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
           <div className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-ink-100">angar Edge</h2>
-              <span className="text-[11px] font-medium text-ink-400 border border-line rounded-full px-2 py-0.5">Early access</span>
+              <span className="text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em]">Early access</span>
             </div>
             <p className="text-xs text-ink-400 mt-0.5">A small device you plug into your network. It watches traffic all the time and reports any new AI the moment someone starts using it — nothing to install on computers.</p>
           </div>

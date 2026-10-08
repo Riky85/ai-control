@@ -18,7 +18,7 @@ export type Tone = keyof typeof PILL;
 /** Pillola tinta: sempre testo + colore, mai solo colore. */
 export function Pill({ tone = "muted", children, title }: { tone?: Tone; children: React.ReactNode; title?: string }) {
   return (
-    <span title={title} className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium tabular whitespace-nowrap ${PILL[tone]}`}>
+    <span title={title} className={`inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] text-[10px] tabular whitespace-nowrap ${PILL[tone]}`}>
       {children}
     </span>
   );
