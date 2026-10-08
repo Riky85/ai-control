@@ -49,7 +49,7 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
       subtitle={e.billingModelLabel ?? undefined}
       action={
         canEdit ? (
-          <Link href={`/assets/${assetId}/subscription`} className="btn btn-secondary btn-sm">
+          <Link href={`/estate/${assetId}/subscription`} className="btn btn-secondary btn-sm">
             {m ? "Edit subscription" : "Add subscription"}
           </Link>
         ) : undefined
@@ -113,7 +113,7 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
           )}
         </Item>
         <Item label="Renewal" hint={e.renewal?.inferred ? "From the last charge" : e.renewal ? "From the contract" : undefined}>
-          {e.renewal ? fmtDate(e.renewal.date) : <Link href={`/assets/${assetId}?edit=contract#contract`} className="text-ink-400 hover:text-ink-100 underline">Add contract</Link>}
+          {e.renewal ? fmtDate(e.renewal.date) : <Link href={`/estate/${assetId}?edit=contract#contract`} className="text-ink-400 hover:text-ink-100 underline">Add contract</Link>}
         </Item>
         {m && (
           <Item label="Contract price" hint={m.contractMonthly != null ? (m.discountPct != null ? discountText(m.discountPct) : "Discount UNKNOWN · no list price to compare") : undefined}>

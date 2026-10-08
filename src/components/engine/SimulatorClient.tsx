@@ -83,7 +83,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
           <span className="text-xs text-ink-400 truncate">a year · {eur(Math.max(0, r.saveMonthly))} a month</span>
         </div>
         <div className={cell}>
-          <span className="eyebrow">angar Score</span>
+          <span className="eyebrow">Angar Score</span>
           <span className={`${big} text-ink-100`}>
             {r.score.after}
             {r.score.after !== r.score.before && <span className={`ml-2 text-sm tracking-normal ${r.score.after > r.score.before ? "text-steady" : "text-alarm"}`}>{signed(r.score.after - r.score.before)}</span>}
@@ -169,7 +169,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
           <section className="rounded-xl border border-line bg-panel animate-rise">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm bar-head">
               <h2 className="font-bold text-ink-100">Effect on the score</h2>
-              <p className="eyebrow">Same calculation as the angar Score</p>
+              <p className="eyebrow">Same calculation as the Angar Score</p>
             </div>
             <ul className="divide-y divide-line">
               {AXES.map((a) => {

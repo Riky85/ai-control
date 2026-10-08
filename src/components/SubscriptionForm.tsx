@@ -421,7 +421,7 @@ export default function SubscriptionForm({
         <button type="submit" className="btn btn-primary" disabled={pending}>
           {pending ? "Saving…" : "Save subscription"}
         </button>
-        <Link href={`/assets/${assetId}`} className="btn btn-ghost">
+        <Link href={`/estate/${assetId}`} className="btn btn-ghost">
           Cancel
         </Link>
         {editing && (

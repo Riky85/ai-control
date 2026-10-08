@@ -36,7 +36,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
         crumbs={[{ label: "Opportunities", href: "/opportunities" }, { label: "Contracts", href: "/opportunities?view=contracts" }, { label: d.asset.name }]}
         title={`Negotiate ${d.asset.name}`}
         action={
-          <Link href={`/assets/${d.asset.id}`} className="btn btn-ghost btn-sm">
+          <Link href={`/estate/${d.asset.id}`} className="btn btn-ghost btn-sm">
             Open AI
           </Link>
         }
@@ -175,7 +175,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
               {d.alternatives.map((a, n) => (
                 <span key={a.id}>
                   {n > 0 && ", "}
-                  <Link href={`/assets/${a.id}`} className="text-ink-100 hover:underline">
+                  <Link href={`/estate/${a.id}`} className="text-ink-100 hover:underline">
                     {a.name}
                   </Link>
                   <span className="tabular"> ({a.active} active)</span>

@@ -1,0 +1,157 @@
+import Link from "next/link";
+import { computeAdvice, type Recommendation } from "@/lib/advisor";
+import { StatCard } from "@/components/ui";
+import { VendorBadge } from "@/components/VendorIcon";
+import { fmtEur } from "@/lib/format";
+import { PRICES_AS_OF } from "@/lib/pricing/catalog";
+import { EmptyState } from "@/components/insight";
+
+/**
+ * Vista "Standard stack" di Opportunities (prima la pagina /advisor): lo stack consigliato
+ * (uno strumento per ogni lavoro) e i passi per arrivarci, da src/lib/advisor.ts.
+ */
+
+const CONF: Record<string, { label: string; cls: string }> = {
+  HIGH: { label: "Sure", cls: "text-steady bg-steady/10" },
+  MEDIUM: { label: "Likely", cls: "text-signal bg-signal/10" },
+  LOW: { label: "Worth checking", cls: "text-ink-400 bg-ink-400/10" },
+};
+
+export default async function StackAdvice({ orgId }: { orgId: string }) {
+  const { stack, recommendations, currentEur, recommendedEur, apiEur } = await computeAdvice(orgId);
+  const diff = currentEur - recommendedEur;
+
+  if (stack.length === 0) {
+    return (
+      <div className="flex flex-col gap-6">
+        <EmptyState
+          title="No paid AI systems yet"
+          text="angar recommends a standard stack once it knows which AI subscriptions you pay for and who uses them. Add a bank statement or connect your AI providers."
+          href="/sources"
+          cta="Add a source"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <StatCard label="Current AI spend" value={`${fmtEur(currentEur)}/mo`} hint={apiEur > 0 ? `Seat-based AI systems · APIs (${fmtEur(apiEur)}/mo) not included` : "Seat-based AI systems"} />
+        <StatCard label="Recommended stack" value={`${fmtEur(recommendedEur)}/mo`} hint={`${stack.length} AI system${stack.length === 1 ? "" : "s"}, seats for active users`} />
+        <StatCard
+          label={diff >= 0 ? "You would save" : "Extra cost"}
+          value={`${fmtEur(Math.abs(diff))}/mo`}
+          hint={diff >= 0 ? `${fmtEur(diff * 12)} a year` : "Business plans for everyone who uses AI"}
+          tone={diff >= 0 ? undefined : "signal"}
+        />
+      </div>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-base font-bold text-ink-100">Recommended stack</h2>
+          <p className="text-sm text-ink-400">One tool for each job — the one most of your people already use.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {stack.map((s) => (
+            <Link key={s.category + s.tool.assetId} href={`/estate/${s.tool.assetId}`} className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4 hover:border-ink-400 transition-colors animate-rise">
+              <div className="flex items-center gap-3">
+                <VendorBadge vendor={s.tool.vendor ?? ""} name={s.tool.name} size={36} />
+                <div className="min-w-0">
+                  <div className="eyebrow">{s.label}</div>
+                  <div className="text-[15px] font-bold text-ink-100 truncate">{s.tool.name}</div>
+                </div>
+              </div>
+              <div className="flex items-end justify-between gap-3">
+                <div className="text-sm text-ink-400">
+                  <div>
+                    {s.seats} seat{s.seats === 1 ? "" : "s"}
+                    {s.planName ? ` · ${s.planName}` : ""}
+                  </div>
+                  <div className="text-xs">{s.activeUsers} active in the last 30 days</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-display text-[22px] leading-tight font-light tracking-[-0.03em] text-ink-100 tabular">
+                    {fmtEur(s.estimatedEur)}
+                    <span className="text-xs tracking-normal text-ink-400">/mo</span>
+                  </div>
+                  <div className="text-xs text-ink-400 tabular">today {fmtEur(s.currentEur)}/mo</div>
+                </div>
+              </div>
+              {s.replaces.length > 0 && <div className="text-xs text-ink-400 border-t border-line pt-3">Replaces {s.replaces.join(", ")}</div>}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
+        {/* Barra grigia in alto: titolo e ordine dei passi. */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line px-5 py-3 bar-head">
+          <h2 className="text-sm font-bold text-ink-100">How to get there</h2>
+          <p className="eyebrow">In order: consolidate first, then fix plans, seats and billing.</p>
+        </div>
+        {recommendations.length === 0 ? (
+          <p className="text-sm text-ink-400 p-5">Your stack already matches how people use AI — nothing to change right now.</p>
+        ) : (
+          <ol className="flex flex-col divide-y divide-line">
+            {recommendations.map((r, i) => (
+              <RecRow key={r.key} r={r} n={i + 1} />
+            ))}
+          </ol>
+        )}
+        {/* Barra grigia in basso: da dove vengono le stime. */}
+        <p className="bg-ink border-t border-line px-5 py-3 text-xs text-ink-400 bar-foot">Based on usage seen in the last 30 days and today&apos;s list prices ({PRICES_AS_OF}). Estimates — check before changing a plan.</p>
+      </section>
+    </div>
+  );
+}
+
+function RecRow({ r, n }: { r: Recommendation; n: number }) {
+  const c = CONF[r.confidence];
+  return (
+    <li className="p-5 flex flex-wrap lg:flex-nowrap items-center gap-x-5 gap-y-3">
+      <span className="h-7 w-7 shrink-0 rounded-full bg-ink text-sm text-ink-400 flex items-center justify-center tabular">{n}</span>
+      <div className="flex -space-x-2 shrink-0">
+        {r.assets.slice(0, 3).map((a) => (
+          <span key={a.id} className="rounded-lg ring-2 ring-panel">
+            <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={32} />
+          </span>
+        ))}
+      </div>
+      <div className="flex-1 min-w-[12rem]">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <h3 className="text-[15px] font-bold text-ink-100">{r.title}</h3>
+          <span className={`text-[10px] rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] ${c.cls}`}>{c.label}</span>
+        </div>
+        <p className="text-sm text-ink-400 mt-0.5">{r.why}</p>
+      </div>
+      <div className="text-right shrink-0">
+        {r.monthlySaving >= 0 ? (
+          <>
+            <div className="font-display text-[22px] leading-tight font-light tracking-[-0.03em] text-ink-100 tabular">
+              {fmtEur(r.monthlySaving)}
+              <span className="text-xs tracking-normal text-ink-400">/mo</span>
+            </div>
+            <div className="text-xs text-ink-400 tabular">{fmtEur(r.monthlySaving * 12)} a year</div>
+          </>
+        ) : (
+          <>
+            <div className="font-display text-[22px] leading-tight font-light tracking-[-0.03em] text-accent tabular">
+              +{fmtEur(-r.monthlySaving)}
+              <span className="text-xs tracking-normal text-ink-400">/mo</span>
+            </div>
+            <div className="eyebrow">for control</div>
+          </>
+        )}
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        {r.manageUrl && (
+          <a href={r.manageUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" title="Open the provider's billing page">
+            Billing ↗
+          </a>
+        )}
+        <Link href={r.href} className="btn btn-secondary btn-sm">Open</Link>
+      </div>
+    </li>
+  );
+}

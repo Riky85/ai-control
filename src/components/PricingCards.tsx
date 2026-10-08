@@ -197,7 +197,7 @@ export default function PricingCards({
           <p className="text-sm text-ink-400">{GUARANTEE}</p>
           <p className="text-sm text-ink-400">
             <b className="text-ink-100">Partners: {PARTNER.discountPct}% off.</b> Accountants, MSPs and IT providers get {PARTNER.discountPct}% off every plan and angar Edge device.{" "}
-            <a href="/partners" className="text-ink-100 underline hover:no-underline">Become a partner</a>
+            {mode === "public" && <a href="/partners" className="text-ink-100 underline hover:no-underline">Become a partner</a>}
           </p>
         </div>
       </div>

@@ -58,7 +58,7 @@ export default function EstateGraph({ systems, linkNodes = true }: { systems: Es
             name={s.name}
             emphasis
             tone={s.risky ? "alarm" : "default"}
-            href={linkNodes ? `/assets/${s.id}` : undefined}
+            href={linkNodes ? `/estate/${s.id}` : undefined}
           />
         ))}
         {data.map(([name, sensitive], i) => (

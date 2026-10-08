@@ -30,7 +30,7 @@ export async function GET(_req: Request, { params }: { params: { token: string }
   return page(
     `${verb}: ${c.asset.name}?`,
     `Current status: ${c.asset.status.toLowerCase()}. You're signed in as ${c.email}.`,
-    `<form method="post"><button class="btn ${c.t.act === "approve" ? "primary" : "danger"}">${esc(verb)}</button></form><a class="link" href="/assets/${encodeURIComponent(c.asset.id)}">Open in angar</a>`
+    `<form method="post"><button class="btn ${c.t.act === "approve" ? "primary" : "danger"}">${esc(verb)}</button></form><a class="link" href="/estate/${encodeURIComponent(c.asset.id)}">Open in angar</a>`
   );
 }
 
@@ -50,7 +50,7 @@ export async function POST(req: Request, { params }: { params: { token: string }
   if (c.t.act !== "approve" && c.t.act !== "reject") return page("Can't do that", "Unknown action.");
   const r = await reviewAssetCore(c.t.org, c.t.asset, c.t.act, c.email, "chat-link");
   if (!r.ok) return page("Can't do that", r.error);
-  return NextResponse.redirect(new URL(`/assets/${encodeURIComponent(c.t.asset)}`, originOf(req)), 303);
+  return NextResponse.redirect(new URL(`/estate/${encodeURIComponent(c.t.asset)}`, originOf(req)), 303);
 }
 
 type Checked =

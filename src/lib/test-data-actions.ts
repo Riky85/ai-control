@@ -10,6 +10,7 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { seedDemoData } from "@/lib/demo-data";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 /**
  * Svuota i dati del workspace corrente per ripartire da zero nei test.
@@ -38,6 +39,7 @@ export async function resetWorkspaceDataAction(formData: FormData) {
     return { assets: assets.count, data: data.count, people: people.count, policies: policies.count, evidence: evidence.count, connectors: connectors.count };
   });
   await audit("workspace.reset_data", org.name, counts);
+  revalidateOrgSetup(s.orgId);
   revalidatePath("/", "layout");
   redirect("/settings?tab=data&reset=1");
 }
@@ -51,6 +53,7 @@ export async function loadDemoDataAction(formData?: FormData) {
   await ingestSpend(s.orgId, await parseSpendFile("demo.csv", new TextEncoder().encode(csv)));
   await db.organization.update({ where: { id: s.orgId }, data: { onboardingCompletedAt: new Date() } });
   await audit("workspace.load_demo_data");
+  revalidateOrgSetup(s.orgId);
   revalidatePath("/", "layout");
   redirect(formData?.get("next") === "review" ? "/review?from=demo" : "/?demo=1");
 }

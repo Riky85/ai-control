@@ -58,7 +58,7 @@ function UploadResult({ netlog, fmt, warn }: { netlog?: string; fmt?: string; wa
   return (
     <div className="mx-4 mb-3 rounded-[4px] border border-line px-3 py-2 text-xs text-ink-400">
       <span className="text-steady">✓</span> <span className="text-ink-100">{n(lines)} lines read</span>
-      {fmt ? ` (${fmt})` : ""} · <span className="text-ink-100">{services} AI service{services === 1 ? "" : "s"} found</span> ·{" "}
+      {fmt ? ` (${fmt})` : ""} · <span className="text-ink-100">{services} AI system{services === 1 ? "" : "s"} found</span> ·{" "}
       {people < 0 ? "people hidden (company totals only)" : `${n(people)} ${people === 1 ? "person or device" : "people or devices"}`}
       {services > 0 && (
         <>

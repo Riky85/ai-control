@@ -18,7 +18,7 @@ export default async function MarketChangesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="AI market changes" subtitle="Only what affects your AI" />
+      <PageHeader title="Price changes" subtitle="Market changes that affect your AI" />
       <Table
         columns={["Provider", "Model", "Change", "Impact on your AI", { label: "", className: "w-[1%]" }]}
         empty={rows.length === 0 ? "No market change affects your AI right now." : false}

@@ -100,7 +100,7 @@ export async function loadSimModel(orgId: string, now = Date.now()): Promise<Sim
     personDept,
     departments,
     categories,
-    // Fatti dell'angar Score (solo numeri e nomi delle AI): il simulatore ricalcola con la stessa funzione.
+    // Fatti dell'Angar Score (solo numeri e nomi delle AI): il simulatore ricalcola con la stessa funzione.
     score: { score: score.score, axes: score.axes, facts: score.facts },
   };
 }

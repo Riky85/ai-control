@@ -318,7 +318,7 @@ export function findAnomalies(input: AnomalyInput): Anomaly[] {
   const out: Anomaly[] = [];
 
   for (const a of assets) {
-    const href = `/assets/${a.id}`;
+    const href = `/estate/${a.id}`;
 
     // 1. Aumento di prezzo / posti aggiunti: ultimo addebito vs mediana dei 3 precedenti.
     const c = a.charges;

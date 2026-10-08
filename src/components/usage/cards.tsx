@@ -13,7 +13,7 @@ import { Pill, Section } from "@/components/governance/parts";
 const eur = (n: number) => fmtEur(Math.round(n));
 const pct = (used: number, paid: number) => (paid > 0 ? Math.round((used / paid) * 100) : 0);
 
-/** Barra dei posti: usati su pagati, stesso linguaggio degli assi dell'angar Score. */
+/** Barra dei posti: usati su pagati, stesso linguaggio degli assi dell'Angar Score. */
 export function SeatTrack({ used, paid, className = "" }: { used: number; paid: number; className?: string }) {
   const p = pct(used, paid);
   return (
@@ -110,7 +110,7 @@ export function ByAiList({ rows }: { rows: AiUsageRow[] }) {
             const used = r.seats != null ? r.seats - r.idle : null;
             return (
               <li key={r.id} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,13rem)_16.5rem] items-center gap-x-5 gap-y-2 px-5 py-3">
-                <Link href={`/assets/${r.id}?tab=people`} className="flex items-center gap-3 min-w-0 group">
+                <Link href={`/estate/${r.id}?tab=people`} className="flex items-center gap-3 min-w-0 group">
                   <VendorBadge vendor={r.vendor ?? ""} name={r.name} size={30} />
                   <span className="min-w-0">
                     <span className="block text-sm text-ink-100 truncate group-hover:underline">{r.name}</span>

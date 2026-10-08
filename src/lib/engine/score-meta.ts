@@ -1,5 +1,5 @@
 /**
- * angar Score — costanti, livelli ed etichette, senza database: si possono
+ * Angar Score — costanti, livelli ed etichette, senza database: si possono
  * importare anche dai componenti client (ScoreCard, simulatore).
  *
  * Metodo 2 (ottobre 2026): "AI spend efficiency", 5 dimensioni.

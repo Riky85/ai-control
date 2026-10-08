@@ -144,7 +144,7 @@ export async function computeSavings(organizationId: string) {
           monthlyEur: save,
           confidence: "HIGH",
           assets: [ref(a)],
-          href: `/assets/${a.id}`,
+          href: `/estate/${a.id}`,
         });
     }
 
@@ -164,7 +164,7 @@ export async function computeSavings(organizationId: string) {
           monthlyEur: sv.monthlyEur,
           confidence: "HIGH",
           assets: [ref(a)],
-          href: `/assets/${a.id}`,
+          href: `/estate/${a.id}`,
         });
     } else if (seats && a.usages.length > 0 && active < seats) {
       const perSeat = m.eur / seats;
@@ -177,7 +177,7 @@ export async function computeSavings(organizationId: string) {
         monthlyEur: idle * perSeat,
         confidence: "HIGH",
         assets: [ref(a)],
-        href: `/assets/${a.id}`,
+        href: `/estate/${a.id}`,
       });
     }
 
@@ -199,7 +199,7 @@ export async function computeSavings(organizationId: string) {
             monthlyEur: save,
             confidence: "LOW",
             assets: [ref(a)],
-            href: `/assets/${a.id}`,
+            href: `/estate/${a.id}`,
           });
       }
     }
@@ -219,7 +219,7 @@ export async function computeSavings(organizationId: string) {
           monthlyEur: save,
           confidence: "LOW",
           assets: [ref(a)],
-          href: `/assets/${a.id}`,
+          href: `/estate/${a.id}`,
         });
     }
 
@@ -235,7 +235,7 @@ export async function computeSavings(organizationId: string) {
         monthlyEur: m.eur,
         confidence: "LOW",
         assets: [ref(a)],
-        href: `/assets/${a.id}`,
+        href: `/estate/${a.id}`,
       });
     }
 
@@ -250,7 +250,7 @@ export async function computeSavings(organizationId: string) {
         monthlyEur: m.eur - best.estimatedMonthlyCost!,
         confidence: (best.qualityConfidence as Confidence) ?? "MEDIUM",
         assets: [ref(a)],
-        href: `/assets/${a.id}`,
+        href: `/estate/${a.id}`,
       });
     }
   }
@@ -278,13 +278,13 @@ export async function computeSavings(organizationId: string) {
       monthlyEur: save,
       confidence: "MEDIUM",
       assets: sorted.map(ref),
-      href: `/assets?category=${cat}`,
+      href: `/estate?category=${cat}`,
     });
   }
 
   // Le vecchie chiavi dei doppioni ("dup:<categoria>:<id,…>") valgono come la chiave nuova.
   const hidden = new Set([...dismissed.map((d) => d.key), ...ledger.map((a) => a.savingKey!)].map(canonicalSavingKey));
-  // Accettati ma non ancora fatti: fuori dall'elenco, ma l'angar Score li conta ancora (lo spreco c'è ancora).
+  // Accettati ma non ancora fatti: fuori dall'elenco, ma l'Angar Score li conta ancora (lo spreco c'è ancora).
   const accepted = new Set(ledger.filter((a) => a.status === "accepted").map((a) => canonicalSavingKey(a.savingKey!)));
   const inProgress = out.filter((s) => accepted.has(s.key) && s.monthlyEur >= 1);
   const visible = out.filter((s) => !hidden.has(s.key) && s.monthlyEur >= 1);

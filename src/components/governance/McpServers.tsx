@@ -59,7 +59,7 @@ export default function McpServers({ rows, canDecide, newAppComputers }: { rows:
             return (
               <li key={r.id} className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
                 <div className="flex-1 min-w-0">
-                  <Link href={`/assets/${r.id}`} className="text-sm text-ink-100 hover:underline truncate block">
+                  <Link href={`/estate/${r.id}`} className="text-sm text-ink-100 hover:underline truncate block">
                     {r.name}
                   </Link>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-400">
@@ -103,7 +103,7 @@ export default function McpServers({ rows, canDecide, newAppComputers }: { rows:
           {rows.length > MAX && (
             <li className="px-4 py-2 text-xs text-ink-400">
               +{rows.length - MAX} more in{" "}
-              <Link href="/assets" className="underline hover:text-ink-100">
+              <Link href="/estate" className="underline hover:text-ink-100">
                 the AI list
               </Link>
             </li>

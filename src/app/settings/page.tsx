@@ -183,7 +183,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
               <Status on yes="Read-only" />
             </Row>
             <Row title="Audit log" hint="Every change, tamper-evident.">
-              <Link href="/audit" className="btn btn-secondary btn-sm btn-go">Open</Link>
+              <Link href="/activity?tab=audit" className="btn btn-secondary btn-sm btn-go">Open</Link>
             </Row>
           </Section>
         </>

@@ -61,7 +61,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
         <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">Event details</h2>
         <dl className="flex flex-col gap-2.5">
           <Row label="Asset">
-            <Link href={`/assets/${activity.aiAssetId}`} className="text-ink-100 hover:underline font-medium">
+            <Link href={`/estate/${activity.aiAssetId}`} className="text-ink-100 hover:underline font-medium">
               {activity.aiAsset.name}
             </Link>
           </Row>

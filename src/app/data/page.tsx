@@ -40,7 +40,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
   const onPii = new Set(everything.filter((d) => d.sensitivity === "PII").flatMap((d) => d.accessedBy.map((a) => a.aiAsset.id)));
   const notApprovedPii = notApproved.filter((a) => onPii.has(a.id));
   const toReview = notApproved.some((a) => a.status === "UNKNOWN" || a.status === "UNREVIEWED");
-  const fixHref = notApproved.length === 1 || !toReview ? `/assets/${notApproved[0]?.id}` : "/review";
+  const fixHref = notApproved.length === 1 || !toReview ? `/estate/${notApproved[0]?.id}` : "/review";
 
   const dataAssets = await db.dataAsset.findMany({
     where: {
@@ -110,7 +110,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
                     {d.accessedBy.map((a) => (
                       <Link
                         key={a.id}
-                        href={`/assets/${a.aiAssetId}`}
+                        href={`/estate/${a.aiAssetId}`}
                         title={a.aiAsset.status === "APPROVED" ? "Approved" : "Not approved"}
                         className={`rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] hover:text-ink-100 transition-colors ${
                           a.aiAsset.status !== "APPROVED" && SENSITIVE_TIERS.includes(d.sensitivity) ? "text-alarm border-alarm/40" : "text-ink-400 border-line"

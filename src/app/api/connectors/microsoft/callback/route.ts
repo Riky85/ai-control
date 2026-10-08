@@ -6,6 +6,7 @@ import { encryptJson } from "@/lib/crypto";
 import { appOrigin } from "@/lib/mail";
 import { runConnectorSync } from "@/lib/connectors/sync";
 import { audit } from "@/lib/audit";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,8 @@ export async function GET(req: Request) {
   });
   await audit("connector.connect", "MICROSOFT_365");
   const r = await runConnectorSync(s.orgId, "MICROSOFT_365");
+  // I primi passi della sidebar cambiano subito, senza aspettare la cache di 60 s.
+  revalidateOrgSetup(s.orgId);
   if (!r.ok) return back(`Connected, but the first read failed: ${r.error.slice(0, 200)}`);
   return NextResponse.redirect(`${origin}/?connected=MICROSOFT_365`);
 }

@@ -38,7 +38,7 @@ const amount = (v: unknown): number | null | "bad" => {
 /** Salva (crea o aggiorna) l'abbonamento manuale di un'AI. Ritorna { error } se i dati non vanno. */
 export async function saveManualSubscriptionAction(p: ManualSubscriptionPayload): Promise<{ error: string } | void> {
   const assetId = typeof p?.assetId === "string" ? p.assetId : "";
-  const back = `/assets/${encodeURIComponent(assetId)}`;
+  const back = `/estate/${encodeURIComponent(assetId)}`;
   const s = await requireRole("ADMIN", back);
   const asset = await db.aiAsset.findFirst({ where: { id: assetId, organizationId: s.orgId, deletedAt: null }, select: { id: true, name: true } });
   if (!asset) return { error: "That AI isn't in this workspace." };
@@ -177,7 +177,7 @@ export async function saveManualSubscriptionAction(p: ManualSubscriptionPayload)
 /** Cancella l'abbonamento manuale: quello ricavato torna al prossimo giro del job. */
 export async function deleteManualSubscriptionAction(assetId: string): Promise<{ error: string } | void> {
   const id = typeof assetId === "string" ? assetId : "";
-  const back = `/assets/${encodeURIComponent(id)}`;
+  const back = `/estate/${encodeURIComponent(id)}`;
   const s = await requireRole("ADMIN", back);
   const asset = await db.aiAsset.findFirst({ where: { id, organizationId: s.orgId }, select: { id: true, name: true } });
   if (!asset) return { error: "That AI isn't in this workspace." };

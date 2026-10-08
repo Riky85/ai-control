@@ -16,7 +16,7 @@ import { rateLimit, retryAfter, clientIp } from "@/lib/rate-limit";
 import { costOf } from "./cost";
 import { totalRedactions, type RedactCounts } from "./detect";
 import { hashGatewayKey, keyFromHeaders } from "./keys";
-import { decide, effectivePolicy, modelAllowed, redactBody, requestTexts, type OrgPolicy } from "./policy";
+import { aiSystemDecision, decide, effectivePolicy, modelAllowed, redactBody, requestTexts, type OrgPolicy } from "./policy";
 import { DEFAULT_BASE, PASS_RESPONSE_HEADERS, testOverride, upstreamHeaders } from "./upstream";
 import { createJsonUsageTap, createUsageTap, type GatewayProvider, type UsageResult } from "./usage";
 
@@ -50,6 +50,8 @@ export interface OrgContext {
   forcedEuOnly: boolean;
   policy: OrgPolicy;
   upstreams: Partial<Record<GatewayProvider, UpstreamConfig>>;
+  /** Provider il cui sistema AI è "Not allowed" nell'estate → nome dell'AI (assente = nessun blocco). */
+  notAllowed?: Partial<Record<GatewayProvider, string>>;
 }
 
 export interface LogEntry {
@@ -222,6 +224,10 @@ export async function handleGateway(req: Request, providerRaw: string, path: str
   if (!rateLimit(`gw:${key.id}`, policy.rpmLimit, 60_000) || (await store.recentCount(key.id)) >= policy.rpmLimit) {
     return blocked(429, "rate_limited", `Rate limit: ${policy.rpmLimit} requests a minute for this key.`, { "retry-after": String(retryAfter(policy.rpmLimit, 60_000)) });
   }
+
+  // Sistema AI del provider segnato "Not allowed" nell'estate: la decisione vale anche qui.
+  const na = aiSystemDecision(provider, ctx.notAllowed?.[provider]);
+  if (!na.ok) return blocked(na.status, na.reason, na.message);
 
   // Provider a valle.
   const up = ctx.upstreams[provider];

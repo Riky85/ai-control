@@ -2,7 +2,8 @@
  * angar Gateway — regole e decisione (pure, niente database).
  *
  * Regole dell'azienda (GatewayPolicy) con override della singola chiave
- * (GatewayKey). Ordine dei controlli, uguale a quello mostrato in Policies:
+ * (GatewayKey). Prima di tutto: il sistema AI del provider (openai-api / anthropic-api)
+ * segnato "Not allowed" nell'estate → bloccato (aiSystemDecision). Poi, come in Policies:
  * 1. solo UE (endpoint a valle fuori UE → bloccato)
  * 2. modelli consentiti
  * 3. dati sanitari
@@ -104,13 +105,32 @@ export function modelAllowed(model: string | null | undefined, allowed: string[]
   });
 }
 
-export type BlockReason = "eu_only" | "model_not_allowed" | "health_data" | "cap_exceeded";
+export type BlockReason = "eu_only" | "model_not_allowed" | "health_data" | "cap_exceeded" | "ai_not_allowed";
+
+/** Servizio del catalogo (AiAsset.serviceId) che corrisponde a ogni provider del Gateway. */
+export const GATEWAY_SERVICE_ID: Record<GatewayProvider, string> = { openai: "openai-api", anthropic: "anthropic-api" };
+const PROVIDER_NAME: Record<GatewayProvider, string> = { openai: "OpenAI", anthropic: "Anthropic" };
+
+/**
+ * Il sistema AI del provider è "Not allowed" (UNAPPROVED) nell'estate? Allora il Gateway nega
+ * ogni richiesta verso quel provider. name = nome dell'AI non consentita, null se consentita.
+ */
+export function aiSystemDecision(provider: GatewayProvider, name: string | null | undefined): Decision {
+  if (!name) return { ok: true };
+  return {
+    ok: false,
+    reason: "ai_not_allowed",
+    status: 403,
+    message: `${name} is set to Not allowed in angar, so the Gateway blocks requests to ${PROVIDER_NAME[provider]}. An admin can change this in angar → AI Estate.`,
+  };
+}
 
 export const REASON_LABEL: Record<string, string> = {
   eu_only: "Outside the EU",
   model_not_allowed: "Model not allowed",
   health_data: "Health data",
   cap_exceeded: "Monthly cap reached",
+  ai_not_allowed: "AI system not allowed",
   rate_limited: "Rate limit",
   upstream_error: "Provider error",
   upstream_timeout: "Provider timeout",

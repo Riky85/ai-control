@@ -55,7 +55,7 @@ export default async function AssuranceView({ orgId }: { orgId: string }) {
                 return (
                   <li key={asset.id} className="px-5 py-3">
                     <div className="flex items-center justify-between gap-3">
-                      <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline truncate">
+                      <Link href={`/estate/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline truncate">
                         {asset.name}
                       </Link>
                       <span className="text-[15px] font-light tracking-[-0.02em] text-ink-100 tabular shrink-0">{report.score}<span className="text-xs tracking-normal text-ink-400">%</span></span>

@@ -1,4 +1,4 @@
-// Livelli dell'angar Score (e dei suoi assi): solo i colori di stato — rosso, ambra, verde (l'arancio è del pulsante principale).
+// Livelli dell'Angar Score (e dei suoi assi): solo i colori di stato — rosso, ambra, verde (l'arancio è del pulsante principale).
 // Classi scritte per intero perché Tailwind le trovi.
 export type Level = "weak" | "fair" | "good" | "strong";
 

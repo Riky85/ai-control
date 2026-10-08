@@ -18,7 +18,7 @@ export interface WizardStep {
 // Aperto: come il blocco Download (bagliore arancio, anteprima a destra).
 // Chiuso: una barra sottile con l'avanzamento e il prossimo passo.
 
-// primary = false: sulla Overview con l'angar Score il pulsante principale è "Improve my score", qui solo secondari.
+// primary = false: sulla Overview con l'Angar Score il pulsante principale è "Improve my score", qui solo secondari.
 export default function SetupWizard({ steps, initialHidden = false, primary = true }: { steps: WizardStep[]; initialHidden?: boolean; primary?: boolean }) {
   const main = primary ? "btn-primary" : "btn-secondary";
   // Aperto la prima volta; se lo chiudi resta chiuso (cookie), anche ricaricando la pagina.

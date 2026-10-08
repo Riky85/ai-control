@@ -32,12 +32,12 @@ export async function radar(organizationId: string, days = 45): Promise<RadarEve
       title: `New AI: ${a.name}`,
       detail: a.status === "UNKNOWN" || a.status === "UNREVIEWED" ? "Found automatically — decide if it's allowed." : "Added to your AI list.",
       at: a.firstSeenAt,
-      href: `/assets/${a.id}`,
+      href: `/estate/${a.id}`,
       tone: a.status === "UNKNOWN" || a.status === "UNREVIEWED" ? "signal" : "steady",
     });
   }
   for (const c of changes) {
-    out.push({ kind: "model_change", title: `${c.aiAsset.name} changed ${c.field}`, detail: `${c.oldValue ?? "—"} → ${c.newValue ?? "—"}. Check that quality and cost are still right.`, at: c.detectedAt, href: `/assets/${c.aiAssetId}`, tone: "signal" });
+    out.push({ kind: "model_change", title: `${c.aiAsset.name} changed ${c.field}`, detail: `${c.oldValue ?? "—"} → ${c.newValue ?? "—"}. Check that quality and cost are still right.`, at: c.detectedAt, href: `/estate/${c.aiAssetId}`, tone: "signal" });
   }
 
   // Spesa per AI: ultimo mese con addebiti rispetto al precedente.
@@ -60,7 +60,7 @@ export async function radar(organizationId: string, days = 45): Promise<RadarEve
         title: `${e.name} costs ${Math.round((cur / prev - 1) * 100)}% more`,
         detail: `${fmtEur(prev)} → ${fmtEur(cur)} a month. New seats, a plan change or more API usage.`,
         at: e.last,
-        href: `/assets/${id}`,
+        href: `/estate/${id}`,
         tone: "alarm",
       });
     }

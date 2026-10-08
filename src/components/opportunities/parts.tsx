@@ -3,6 +3,8 @@ import { VendorBadge } from "@/components/VendorIcon";
 import { fmtEur } from "@/lib/format";
 import { setOpportunityStatusAction } from "@/lib/opportunities/actions";
 import { CATEGORY_LABEL, STATUS_LABEL, type Category, type Figure, type Opportunity, type Status } from "@/lib/opportunities/types";
+import { aiHref } from "@/lib/links";
+import ActMenu from "./ActMenu";
 
 /** Pezzi condivisi di Opportunities (righe, cassetto dei dettagli). Componenti server. */
 
@@ -94,6 +96,7 @@ export function OpportunityRow({ o, base, canEdit }: { o: Opportunity; base: str
         </dl>
         <div className="flex items-center gap-1.5">
           <PrimaryAction o={o} />
+          {canEdit && open && <ActMenu o={o} back={base} />}
           {canEdit && open && <StatusButton o={o} to="done" label="Mark done" back={base} />}
           {canEdit && open && <StatusButton o={o} to="dismissed" label="Dismiss" back={base} icon />}
         </div>
@@ -124,7 +127,7 @@ function FigureBox({ label, f, years }: { label: string; f: Figure | null; years
   );
 }
 
-const ENGINE_LABEL: Record<string, string> = { savings: "Savings engine", score: "angar Score plan", estate: "AI estate", market: "AI market changes", impact: "Replaceability", pricing: "Pricing" };
+const ENGINE_LABEL: Record<string, string> = { savings: "Savings engine", score: "Angar Score plan", estate: "AI estate", market: "AI market changes", impact: "Replaceability", pricing: "Pricing" };
 
 /** Cassetto a destra con prove, motivo e calcolo. Si chiude tornando alla lista (link senza ?open). */
 export function OpportunityDrawer({ o, closeHref, back, canEdit }: { o: Opportunity; closeHref: string; back: string; canEdit: boolean }) {
@@ -183,7 +186,7 @@ export function OpportunityDrawer({ o, closeHref, back, canEdit }: { o: Opportun
             {o.systems.length ? (
               <div className="flex flex-wrap gap-1.5">
                 {o.systems.map((s) => (
-                  <Link key={s.id} href={`/assets/${s.id}`} className="inline-flex items-center gap-1.5 text-xs rounded-[2px] border border-line pl-1 pr-2 py-0.5 text-ink-100 hover:border-ink-400 transition-colors">
+                  <Link key={s.id} href={aiHref(s.id)} className="inline-flex items-center gap-1.5 text-xs rounded-[2px] border border-line pl-1 pr-2 py-0.5 text-ink-100 hover:border-ink-400 transition-colors">
                     <VendorBadge vendor={s.vendor ?? ""} name={s.name} size={18} />
                     {s.name}
                   </Link>
@@ -219,6 +222,7 @@ export function OpportunityDrawer({ o, closeHref, back, canEdit }: { o: Opportun
           <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-line pt-4">
             <Link href={o.href} className="btn btn-secondary btn-sm">Review</Link>
             {o.simulateHref && <Link href={o.simulateHref} className="btn btn-secondary btn-sm">Simulate</Link>}
+            {canEdit && <ActMenu o={o} back={back} align="left" />}
             <span className="flex-1" />
             {canEdit && moves.map((m) => <StatusButton key={m.to} o={o} to={m.to} label={m.label} back={back} ghost={m.to !== "accepted" && m.to !== "done"} />)}
           </div>

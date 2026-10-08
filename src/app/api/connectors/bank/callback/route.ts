@@ -4,6 +4,7 @@ import { verifyState } from "@/lib/oauth-state";
 import { appOrigin } from "@/lib/mail";
 import { audit } from "@/lib/audit";
 import { finishBankAuth, syncBank } from "@/lib/connectors/bank";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export async function GET(req: Request) {
     await finishBankAuth(s.orgId, q.get("code") ?? "", "Bank");
     await audit("connector.connect", "BANK");
     const r = await syncBank(s.orgId);
+    revalidateOrgSetup(s.orgId);
     return NextResponse.redirect(`${origin}/?spend=${r.services}`);
   } catch (err) {
     return back((err as Error).message);

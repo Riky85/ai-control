@@ -3,6 +3,7 @@ import { Panel, StatCard } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
 import type { Opportunity } from "@/lib/opportunities/types";
 import { CategoryPill } from "@/components/opportunities/parts";
+import ActMenu from "@/components/opportunities/ActMenu";
 
 /** Overview (spec §15) — le 6 metriche dell'estate. */
 export interface OverviewMetrics {
@@ -38,26 +39,30 @@ export function TopOpportunities({ list, max = 5 }: { list: Opportunity[]; max?:
     <Panel title="Top opportunities" flush action={<Link href="/opportunities" className="eyebrow hover:!text-ink-100 transition-colors">See all [→]</Link>}>
       <div className="divide-y divide-line">
         {top.map((o) => (
-          <Link key={o.key} href={`/opportunities?open=${encodeURIComponent(o.key)}`} className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm hover:bg-ink/60 transition-colors">
-            <span className="w-32 shrink-0 hidden sm:block">
-              <CategoryPill category={o.category} />
-            </span>
-            <span className="text-ink-100 min-w-0 flex-1 truncate">{o.title}</span>
-            <span className="eyebrow whitespace-nowrap hidden md:block">
-              {o.effort} effort · {o.confidence === "HIGH" ? "High" : o.confidence === "MEDIUM" ? "Medium" : "Low"} confidence
-            </span>
-            <span className="w-28 text-right tabular whitespace-nowrap text-ink-100">
-              {o.savings ? (
-                <>
-                  {o.savings.kind === "estimated" ? "≈ " : ""}
-                  {fmtEur(o.savings.eur)}
-                  <span className="text-xs text-ink-400 ml-0.5">/mo</span>
-                </>
-              ) : (
-                <span className="text-ink-400">—</span>
-              )}
-            </span>
-          </Link>
+          <div key={o.key} className="flex items-center gap-2 pr-5 hover:bg-ink/60 transition-colors">
+            <Link href={`/opportunities?open=${encodeURIComponent(o.key)}`} className="flex-1 min-w-0 flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 pl-5 py-3 text-sm">
+              <span className="w-32 shrink-0 hidden sm:block">
+                <CategoryPill category={o.category} />
+              </span>
+              <span className="text-ink-100 min-w-0 flex-1 truncate">{o.title}</span>
+              <span className="eyebrow whitespace-nowrap hidden md:block">
+                {o.effort} effort · {o.confidence === "HIGH" ? "High" : o.confidence === "MEDIUM" ? "Medium" : "Low"} confidence
+              </span>
+              <span className="w-28 text-right tabular whitespace-nowrap text-ink-100">
+                {o.savings ? (
+                  <>
+                    {o.savings.kind === "estimated" ? "≈ " : ""}
+                    {fmtEur(o.savings.eur)}
+                    <span className="text-xs text-ink-400 ml-0.5">/mo</span>
+                  </>
+                ) : (
+                  <span className="text-ink-400">—</span>
+                )}
+              </span>
+            </Link>
+            {/* "Act" anche qui: il menu controlla da sé il ruolo; esiti ed errori finiscono in /opportunities. */}
+            <ActMenu o={o} back="/opportunities" />
+          </div>
         ))}
       </div>
     </Panel>

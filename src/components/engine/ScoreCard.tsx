@@ -116,7 +116,7 @@ function SegmentGauge({ value, warn }: { value: number; warn: boolean }) {
   const on = warn ? "bg-accent/90" : "bg-ink-100/80";
   return (
     <div aria-hidden>
-      <div className="flex gap-[3px] h-2.5">
+      <div className="flex gap-[3px] h-3.5">
         {Array.from({ length: n }, (_, i) => (
           <span key={i} className={`flex-1 rounded-[1px] ${i < filled ? on : "bg-ink-100/[0.08]"}`} />
         ))}
@@ -134,8 +134,7 @@ function SegmentGauge({ value, warn }: { value: number; warn: boolean }) {
 }
 
 /**
- * Card dell'Angar Score per la Overview, in versione compatta (una sola fascia
- * orizzontale): numero grande e sottile, calibro sottile, verdetto su una riga,
+ * Card dell'Angar Score per la Overview, a misura media (né compatta né alta): numero grande e sottile, calibro sottile, verdetto su una riga,
  * le 5 dimensioni come righe minime. "Improve my score" è il pulsante PRINCIPALE
  * della pagina. Solo presentazione.
  */
@@ -153,12 +152,12 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
       </h2>
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         {/* Sinistra: punteggio, calibro, verdetto e azione principale */}
-        <div className="flex flex-col min-w-0 px-5 sm:px-6 pt-11 pb-5">
+        <div className="flex flex-col min-w-0 px-6 sm:px-8 pt-14 pb-7">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             <div className="flex items-end gap-3 min-w-0">
-              <span className="text-[44px] leading-[0.85] font-light tracking-[-0.04em] tabular text-ink-100">
+              <span className="text-[52px] leading-[0.85] font-light tracking-[-0.04em] tabular text-ink-100">
                 {score}
-                <span className="text-[16px] tracking-normal text-ink-400 ml-1">/100</span>
+                <span className="text-[18px] tracking-normal text-ink-400 ml-1">/100</span>
               </span>
               <div className="flex flex-col gap-0.5 min-w-0">
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-100 whitespace-nowrap">
@@ -180,7 +179,7 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
               </div>
             </div>
             <div className="flex flex-col items-start sm:items-end gap-1">
-              <Link href="/score/improve" className="btn btn-primary btn-go">
+              <Link href="/opportunities?view=score" className="btn btn-primary btn-go">
                 Improve my score
               </Link>
               {gain > 0 && actions > 0 && (
@@ -191,31 +190,31 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
             </div>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-6">
             <SegmentGauge value={score} warn={warn} />
           </div>
 
-          <p className="text-sm text-ink-400 mt-2 line-clamp-1" title={data.verdict}>
+          <p className="text-sm leading-relaxed text-ink-400 mt-4 line-clamp-2 max-w-xl" title={data.verdict}>
             {data.verdict}
           </p>
         </div>
 
         {/* Destra: le 5 dimensioni, righe strette */}
-        <div className="min-w-0 border-t lg:border-t-0 lg:border-l border-line px-5 sm:px-6 py-3 flex flex-col">
+        <div className="min-w-0 border-t lg:border-t-0 lg:border-l border-line px-6 sm:px-8 py-6 lg:pt-14 lg:pb-7 flex flex-col">
           <div className="flex items-center justify-between gap-3">
             <h3 className="eyebrow">Breakdown</h3>
             <Link href="/score" className="eyebrow hover:!text-ink-100 transition-colors">
               See details [→]
             </Link>
           </div>
-          <ul className="flex flex-col mt-1 flex-1 justify-center" aria-label="Dimensions">
+          <ul className="flex flex-col mt-2 flex-1 justify-center" aria-label="Dimensions">
             {dims.map((d) => {
               const v = d.value == null ? null : Math.max(0, Math.min(100, Math.round(d.value)));
               return (
                 <li key={d.axis} className="border-b border-line last:border-0">
                   <Link
                     href={`/score#axis-${d.axis}`}
-                    className="group grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2rem_8.75rem] items-center gap-x-5 gap-y-1.5 py-2"
+                    className="group grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2rem_8.75rem] items-center gap-x-5 gap-y-1.5 py-3"
                     aria-label={`${d.label}: ${v ?? "not measured"}${v != null ? " out of 100" : ""}, ${d.levelLabel}`}
                   >
                     <span className="text-sm leading-5 text-ink-100 truncate group-hover:underline underline-offset-4 decoration-ink-100/30">{d.label}</span>

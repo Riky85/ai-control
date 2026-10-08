@@ -11,7 +11,7 @@ import { fmtMoney } from "@/lib/pricing/service";
 
 /**
  * Viste del vecchio /savings, spostate dentro Opportunities (stesse schede): In progress (registro
- * dei risparmi), Contracts e Subscriptions. Subscriptions compare anche in Spend.
+ * dei risparmi) e Contracts. Subscriptions è usata solo in Spend (/spend/subscriptions).
  */
 
 const DAY = 86400000;
@@ -61,7 +61,7 @@ export function Progress({ saved, org, extra }: { saved: SavedSoFar; canSave?: n
           return (
             <tr key={r.id}>
               <td className={`${td} text-ink-100`}>
-                {r.assetId ? <Link href={`/assets/${r.assetId}`} className="hover:underline">{r.title}</Link> : r.title}
+                {r.assetId ? <Link href={`/estate/${r.assetId}`} className="hover:underline">{r.title}</Link> : r.title}
                 <span className="block eyebrow mt-0.5">{LEDGER_KIND_LABEL[r.kind as LedgerKind] ?? r.kind} · {r.createdBy}</span>
               </td>
               <td className={td}>
@@ -113,7 +113,7 @@ export function Contracts({ rows }: { rows: Awaited<ReturnType<typeof contractRo
         {rows.map((r) => (
           <tr key={r.assetId}>
             <td className={td}>
-              <Link href={`/assets/${r.assetId}`} className="flex items-center gap-2 text-ink-100 hover:underline">
+              <Link href={`/estate/${r.assetId}`} className="flex items-center gap-2 text-ink-100 hover:underline">
                 <VendorBadge vendor={r.vendor ?? ""} name={r.name} size={24} />
                 {r.name}
               </Link>
@@ -155,7 +155,7 @@ export function Subscriptions({ rows }: { rows: SubscriptionRow[] }) {
         {rows.map((r) => (
           <tr key={r.assetId}>
             <td className={td}>
-              <Link href={`/assets/${r.assetId}`} className="flex items-center gap-2 text-ink-100 hover:underline" title={r.source}>
+              <Link href={`/estate/${r.assetId}`} className="flex items-center gap-2 text-ink-100 hover:underline" title={r.source}>
                 <VendorBadge vendor={r.vendor ?? ""} name={r.name} size={24} />
                 {r.name}
               </Link>
@@ -194,7 +194,7 @@ export function ComingRenewals({ rows }: { rows: { assetId: string; name: string
       </summary>
       <div className="divide-y divide-line">
         {soon.map((r) => (
-          <Link key={r.assetId + r.date.toISOString()} href={`/assets/${r.assetId}`} className="flex items-center gap-4 px-5 py-3 hover:bg-ink-100/[0.02] transition-colors">
+          <Link key={r.assetId + r.date.toISOString()} href={`/estate/${r.assetId}`} className="flex items-center gap-4 px-5 py-3 hover:bg-ink-100/[0.02] transition-colors">
             <span className="w-24 font-mono text-[11px] uppercase text-ink-400 tabular">{fmtDate(r.date)}</span>
             <span className="flex-1 text-sm text-ink-100">{r.name} <span className="eyebrow ml-1">{r.annual ? "yearly" : "monthly"}</span></span>
             <span className="text-sm tabular text-ink-100">{fmtEur(r.amountEur)}</span>

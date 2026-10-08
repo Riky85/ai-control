@@ -49,14 +49,14 @@ const BLOCK = /^(?:please |per favore )?(block|ban|disallow|reject|blocca|vieta|
 
 /** Pagine riconosciute a voce, con parole italiane e inglesi. */
 const PAGES: { href: string; label: string; words: RegExp }[] = [
-  { href: "/simulate", label: "Simulator", words: /\b(simula\w*|simulat\w*|what if|e se|scenari\w*)\b/ },
+  { href: "/impact?view=score", label: "Score what if", words: /\b(simula\w*|simulat\w*|what if|e se|scenari\w*)\b/ },
   { href: "/report/board", label: "Board report", words: /\b(board|consiglio|cda|board report)\b/ },
   { href: "/contracts/upload", label: "Read a contract", words: /\b(contratt\w*|contract\w*|pdf)\b/ },
   { href: "/impact", label: "Impact simulator", words: /\b(impact|impatto|simulatore d'impatto)\b/ },
   { href: "/opportunities", label: "Opportunities", words: /\b(opportunit\w*|savings?|risparmi\w*|decision\w*|decision[ei]|cosa cambiare)\b/ },
   { href: "/estate/graph", label: "AI Estate graph", words: /\b(graph|grafo|dipendenz\w*|dependenc\w*)\b/ },
   { href: "/estate", label: "AI Estate", words: /\b(estate|ai estate|inventar\w*|inventory|le nostre ai|your ai)\b/ },
-  { href: "/market", label: "AI market changes", words: /\b(market|mercato|deprecat\w*|ritir\w*)\b/ },
+  { href: "/market", label: "Price changes", words: /\b(market|mercato|deprecat\w*|ritir\w*)\b/ },
   { href: "/spend", label: "Spend", words: /\b(spend|spesa|spese|costi|costs?)\b/ },
   { href: "/catalog", label: "AI price list", words: /\b(price list|listino|catalog\w*)\b/ },
   { href: "/usage", label: "Usage", words: /\b(usage|utilizzo|uso)\b/ },
@@ -121,14 +121,14 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
     const a = byName((ap ?? bl)![2], assets);
     if (!a) return { handled: true, answer: L(`I can't find "${(ap ?? bl)![2]}" among your AI.`, `Non trovo "${(ap ?? bl)![2]}" tra le vostre AI.`), href: "/", hrefLabel: "Overview" };
     const status = ap ? "APPROVED" : "UNAPPROVED";
-    if (a.status === status) return { handled: true, answer: L(`${a.name} is already ${ap ? "approved" : "not allowed"}.`, `${a.name} è già ${ap ? "approvata" : "non consentita"}.`), href: `/assets/${a.id}`, hrefLabel: a.name };
+    if (a.status === status) return { handled: true, answer: L(`${a.name} is already ${ap ? "approved" : "not allowed"}.`, `${a.name} è già ${ap ? "approvata" : "non consentita"}.`), href: `/estate/${a.id}`, hrefLabel: a.name };
     return {
       handled: true,
       answer: ap
         ? L(`Approve ${a.name} for the whole company?`, `Approvo ${a.name} per tutta l'azienda?`)
         : L(`Mark ${a.name} as not allowed? People using it will see a gentle message, and angar Edge blocks it on the network.`, `Segno ${a.name} come non consentita? Chi la usa vedrà un messaggio e angar Edge la blocca in rete.`),
       confirm: { label: ap ? L("Approve", "Approva") : L("Not allowed", "Non consentire"), assetId: a.id, status },
-      href: `/assets/${a.id}`,
+      href: `/estate/${a.id}`,
       hrefLabel: a.name,
     };
   }
@@ -147,10 +147,10 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
       seats ? L(`${seats} seats paid`, `${seats} posti pagati`) : null,
       status,
     ].filter(Boolean);
-    return { handled: true, answer: `${one.name}: ${parts.join(" · ")}.`, href: `/assets/${one.id}`, hrefLabel: L(`Open ${one.name}`, `Apri ${one.name}`) };
+    return { handled: true, answer: `${one.name}: ${parts.join(" · ")}.`, href: `/estate/${one.id}`, hrefLabel: L(`Open ${one.name}`, `Apri ${one.name}`) };
   }
 
-  // ——— angar Score ———
+  // ——— Angar Score ———
   if (/\b(score|punteggio|rating|voto|valutazione|health|salute|maturit\w*)\b/.test(t)) {
     const { computeScore, scoreActions } = await import("@/lib/engine/score");
     const r = await computeScore(orgId);
@@ -162,11 +162,11 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
     return {
       handled: true,
       answer: L(
-        `Your angar Score is ${r.score} (${r.levelLabel}, ${r.confidenceLabel.toLowerCase()}) — AI spend efficiency.${weakest ? ` Weakest: ${weakest.label.toLowerCase()} ${weakest.value}.` : ""}${save ? ` ${save} a month could be saved.` : ""}${best ? ` Best next action: ${best.title}${best.points > 0 ? ` (+${best.points} points)` : ""}.` : ""}`,
-        `Il vostro angar Score è ${r.score} (${r.levelLabel}, ${r.confidenceLabel.toLowerCase()}) — efficienza della spesa AI.${weakest ? ` Più debole: ${weakest.label.toLowerCase()} ${weakest.value}.` : ""}${save ? ` Si possono risparmiare ${save} al mese.` : ""}${best ? ` Prossima azione migliore: ${best.title}${best.points > 0 ? ` (+${best.points} punti)` : ""}.` : ""}`
+        `Your Angar Score is ${r.score} (${r.levelLabel}, ${r.confidenceLabel.toLowerCase()}) — AI spend efficiency.${weakest ? ` Weakest: ${weakest.label.toLowerCase()} ${weakest.value}.` : ""}${save ? ` ${save} a month could be saved.` : ""}${best ? ` Best next action: ${best.title}${best.points > 0 ? ` (+${best.points} points)` : ""}.` : ""}`,
+        `Il vostro Angar Score è ${r.score} (${r.levelLabel}, ${r.confidenceLabel.toLowerCase()}) — efficienza della spesa AI.${weakest ? ` Più debole: ${weakest.label.toLowerCase()} ${weakest.value}.` : ""}${save ? ` Si possono risparmiare ${save} al mese.` : ""}${best ? ` Prossima azione migliore: ${best.title}${best.points > 0 ? ` (+${best.points} punti)` : ""}.` : ""}`
       ),
-      href: best ? "/score/improve" : "/score",
-      hrefLabel: best ? L("Improve my score", "Migliora il punteggio") : L("Open angar Score", "Apri angar Score"),
+      href: best ? "/opportunities?view=score" : "/score",
+      hrefLabel: best ? L("Improve my score", "Migliora il punteggio") : L("Open Angar Score", "Apri Angar Score"),
     };
   }
 
@@ -273,7 +273,7 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
   // ——— Navigazione ———
   const page = PAGES.find((p) => p.words.test(t));
   if (page) return { handled: true, go: true, answer: L(`Opening ${page.label}.`, `Apro ${page.label}.`), href: page.href, hrefLabel: page.label };
-  if (one) return { handled: true, go: true, answer: L(`Opening ${one.name}.`, `Apro ${one.name}.`), href: `/assets/${one.id}`, hrefLabel: one.name };
+  if (one) return { handled: true, go: true, answer: L(`Opening ${one.name}.`, `Apro ${one.name}.`), href: `/estate/${one.id}`, hrefLabel: one.name };
   if (has(t, OPEN)) {
     const q = t.replace(OPEN, "").trim();
     const nav = NAV_PAGES.map((p) => ({ p, s: Math.max(fuzzyScore(q, p.label), fuzzyScore(q, p.keywords) - 25) })).sort((a, b) => b.s - a.s)[0];

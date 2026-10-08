@@ -3,6 +3,7 @@ import PublicHeader from "@/components/PublicHeader";
 import LeadForm from "@/components/LeadForm";
 import { LangSwitch, Eyebrow, HeroGrid, SectionTitle, FeatureCard, Steps, TrustStrip, Tick } from "@/components/PublicBits";
 import { currentSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { PARTNER } from "@/lib/plans";
 import { COMMON, PARTNERS, E_INVOICE_FORMATS, countryOptions, fill, pickLang } from "@/lib/i18n-partners";
 
@@ -10,7 +11,8 @@ type Props = { searchParams: { lang?: string } };
 
 export function generateMetadata({ searchParams }: Props): Metadata {
   const t = PARTNERS[pickLang(searchParams.lang)];
-  return { title: `${t.metaTitle} — angar`, description: t.metaDesc };
+  // Pagina marketing con dati di esempio: fuori dall'indice (potrà passare al sito).
+  return { title: `${t.metaTitle} — angar`, description: t.metaDesc, robots: { index: false } };
 }
 
 // Esempio illustrativo per la console (mai dati di clienti).
@@ -33,6 +35,8 @@ const ICONS = [
 
 // Pagina pubblica per commercialisti, consulenti fiscali e MSP / IT provider in tutta Europa.
 export default function PartnersPage({ searchParams }: Props) {
+  // Solo pubblica: dentro l'app (dati di esempio) non si mostra, si torna all'Overview.
+  if (currentSession()) redirect("/");
   const lang = pickLang(searchParams.lang);
   const c = COMMON[lang];
   const t = PARTNERS[lang];

@@ -38,7 +38,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
               <button className="btn btn-ghost" title={`Sent every month to owners and admins${emailEnabled() ? "" : " once email is set up"}`}>Email it to me</button>
             </form>
             <PrintButton />
-            <Link href="/report/board" className={`btn ${r.assets.length ? "btn-primary" : "btn-secondary"}`} title="Quarterly board report: angar Score, 12-month forecast, verified savings and top risks — ready to print as PDF">Board report</Link>
+            <Link href="/report/board" className={`btn ${r.assets.length ? "btn-primary" : "btn-secondary"}`} title="Quarterly board report: Angar Score, 12-month forecast, verified savings and top risks — ready to print as PDF">Board report</Link>
           </div>
         }
       />
@@ -62,7 +62,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
           Spend {trendWord(mom)} in {monthLabel(lastM.month)}: {fmtEur(lastM.eur)} vs {fmtEur(prevM.eur)}
         </Insight>
       ) : topCost && topShare >= 30 ? (
-        <Insight href={`/assets/${topCost.a.id}`} cta={`Open ${topCost.a.name}`}>
+        <Insight href={`/estate/${topCost.a.id}`} cta={`Open ${topCost.a.name}`}>
           <b className="font-medium">{topCost.a.name}</b> is {topShare}% of spend
         </Insight>
       ) : null}

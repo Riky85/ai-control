@@ -2,7 +2,7 @@ import { LevelPill, ScoreBar } from "@/components/engine/ScoreCard";
 import { AXES, AXIS_LABEL, LEVEL_LABEL, levelOf, type Axis } from "@/lib/engine/score-meta";
 
 /**
- * Esempio illustrativo dell'angar Score (mai dati di clienti) per le pagine
+ * Esempio illustrativo dell'Angar Score (mai dati di clienti) per le pagine
  * pubbliche: numero, livello, barra grigia e le 5 dimensioni. I valori danno
  * davvero 82 con i pesi del metodo (20/30/20/20/10).
  */

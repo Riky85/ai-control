@@ -44,7 +44,7 @@ export function StatCard({
 /**
  * Barre grigie della piattaforma — regola della casa: ogni tabella o blocco ha
  * una barra grigia in alto (titolo) o in basso (azioni, totali, link), come il
- * piè della card angar Score e l'intestazione delle tabelle.
+ * piè della card Angar Score e l'intestazione delle tabelle.
  */
 export const BAR_HEAD = "bg-ink border-b border-line px-5 py-3 text-sm bar-head";
 export const BAR_FOOT = "bg-ink border-t border-line px-5 py-3 text-sm bar-foot";

@@ -106,7 +106,7 @@ export function buildGraph(input: EstateInput): EstateGraph {
   const systemIds = new Set(input.systems.map((s) => s.id));
   const cost = new Map<string, SystemCost>();
   for (const s of input.systems) {
-    add({ key: nodeKey("system", s.id), type: "system", id: s.id, label: s.name, sub: s.vendor, href: `/assets/${s.id}` });
+    add({ key: nodeKey("system", s.id), type: "system", id: s.id, label: s.name, sub: s.vendor, href: `/estate/${s.id}` });
     cost.set(nodeKey("system", s.id), s.cost);
   }
   for (const p of input.processes) add({ key: nodeKey("process", p.id), type: "process", id: p.id, label: p.name, sub: `${p.criticality} criticality` });

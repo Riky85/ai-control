@@ -224,5 +224,5 @@ export async function applyContractAction(formData: FormData) {
     dataClauses: clauses,
   });
   revalidatePath("/", "layout");
-  redirect(`/assets/${encodeURIComponent(asset!.id)}?saved=contract`);
+  redirect(`/estate/${encodeURIComponent(asset!.id)}?saved=contract`);
 }

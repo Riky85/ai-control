@@ -85,7 +85,7 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
         </section>
 
         <section className="mt-10 avoid-break">
-          <H2 n={1}>angar Score</H2>
+          <H2 n={1}>Angar Score</H2>
           {p.engine.score ? (
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-[180px_1fr] print:grid-cols-[180px_1fr] gap-6 sm:gap-8 items-start">
               <div>
@@ -118,7 +118,7 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
               </div>
             </div>
           ) : (
-            <p className="text-sm text-[#5F5F69] mt-3">The angar Score isn't available yet.</p>
+            <p className="text-sm text-[#5F5F69] mt-3">The Angar Score isn't available yet.</p>
           )}
           <p className="text-xs text-[#5F5F69] mt-2">AI spend efficiency, 0–100: spend visibility, license utilization, tool efficiency, consumption efficiency and savings opportunity; computed only from facts in angar.</p>
         </section>
@@ -201,11 +201,11 @@ export default async function BoardPackPage({ searchParams }: { searchParams: { 
         </section>
 
         <section className="mt-10 avoid-break">
-          <H2 n={5}>Top AI tools by cost</H2>
+          <H2 n={5}>Top AI systems by cost</H2>
           <table className="w-full text-sm mt-3">
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wider text-[#5F5F69] border-b border-[#141418]">
-                <th className="py-2 font-semibold">AI tool</th>
+                <th className="py-2 font-semibold">AI system</th>
                 <th className="py-2 font-semibold text-right">Monthly</th>
                 <th className="py-2 font-semibold text-right">Yearly</th>
                 <th className="py-2 font-semibold text-right">Share</th>
@@ -317,7 +317,7 @@ function TrendChart({ bars }: { bars: QuarterBar[] }) {
   );
 }
 
-/** Andamento dell'angar Score (90 giorni): linea sottile, area tenue. */
+/** Andamento dell'Angar Score (90 giorni): linea sottile, area tenue. */
 function ScoreTrend({ points }: { points: { day: string; score: number }[] }) {
   if (points.length < 2) return <p className="text-xs text-[#5F5F69] mt-2">The 90-day trend appears after a few daily snapshots.</p>;
   const W = 520;
@@ -332,7 +332,7 @@ function ScoreTrend({ points }: { points: { day: string; score: number }[] }) {
   const last = points[points.length - 1];
   return (
     <div className="mt-3">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`angar Score over 90 days, from ${points[0].score} to ${last.score}`}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`Angar Score over 90 days, from ${points[0].score} to ${last.score}`}>
         <path d={`${line} L${x(points.length - 1).toFixed(1)},${H - pad} L${pad},${H - pad} Z`} fill="rgba(255,115,35,0.08)" />
         <path d={line} fill="none" stroke="#FF7323" strokeWidth={1.5} strokeLinejoin="round" />
         <circle cx={x(points.length - 1)} cy={y(last.score)} r={2.5} fill="#FF7323" />

@@ -9,6 +9,7 @@ import { encryptJson } from "@/lib/crypto";
 import { requireFeature } from "@/lib/plan-gate";
 import { runConnectorSync } from "./sync";
 import { normalizeOktaDomain, testOktaConnection, type OktaCredentials } from "./okta";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 /**
  * Collegamento Okta (solo admin): 1) dominio controllato, 2) token provato
@@ -41,6 +42,7 @@ export async function connectOktaAction(formData: FormData) {
   });
   await audit("connector.connect", "OKTA", { domain });
   const result = await runConnectorSync(s.orgId, "OKTA");
+  revalidateOrgSetup(s.orgId);
   revalidatePath("/", "layout");
   if (!result.ok) back(`Connected, but the first sync failed: ${result.error.slice(0, 200)}`);
   redirect("/connectors?connected=OKTA#OKTA");

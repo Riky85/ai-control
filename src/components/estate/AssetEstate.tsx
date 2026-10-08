@@ -87,7 +87,7 @@ export async function AssetDependencies({ assetId, orgId }: { assetId: string; o
 export function DependenciesPanel({ est, assetId, admin }: { est: EstateData; assetId: string; admin: boolean }) {
   const key = nodeKey("system", assetId);
   if (!est.graph.nodes.has(key)) return null;
-  const back = `/assets/${assetId}`;
+  const back = `/estate/${assetId}`;
   const { upstream, downstream, providers } = chainOf(est.graph, key);
   // Secondo livello a monte: processi che usano le applicazioni che chiamano questa AI.
   const procs = upstream.flatMap((u) => (u.node.type === "application" ? (est.graph.in.get(u.node.key) ?? []).map((e) => ({ edge: e, node: est.graph.nodes.get(e.from)! })) : [])).filter((x) => x.node);
@@ -191,7 +191,7 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
   const row = est.rows.find((r) => r.id === assetId);
   if (!a || !row) return null;
   const { repl, exit, fallback } = a;
-  const back = `/assets/${assetId}`;
+  const back = `/estate/${assetId}`;
   const p = row.profile;
   const capKeys = ["toolCalling", "structuredOutput", "mcp", "reasoning", "vision", "audio", "caching", "batch", "streaming", "embeddings", "fineTuning"];
   const candidates = repl.all.slice(0, 12);

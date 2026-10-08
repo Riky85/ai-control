@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
-// Pagina consolidata altrove per ridurre il numero di voci in sidebar —
-// redirect invece di eliminare, per non rompere link/segnalibri esistenti.
+// Le approvazioni vivono in "To review" (AI Estate): redirect per non rompere link e segnalibri.
 export default function ApprovalsRedirectPage() {
-  redirect("/governance?tab=reviews");
+  redirect("/review");
 }

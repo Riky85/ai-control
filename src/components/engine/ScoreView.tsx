@@ -33,7 +33,7 @@ export default function ScoreView({ result, plan, current, changedOn, changed, c
       <PageHeader subtitle="How well your AI spend is used"
         title="Angar Score"
         action={
-          <Link href="/simulate" className="btn btn-ghost btn-sm">
+          <Link href="/impact?view=score" className="btn btn-ghost btn-sm">
             What if…
           </Link>
         }
@@ -71,7 +71,7 @@ export default function ScoreView({ result, plan, current, changedOn, changed, c
               </p>
             )}
             <div className="flex flex-wrap items-center gap-2 mt-5">
-              <Link href="/score/improve" className="btn btn-primary btn-go">
+              <Link href="/opportunities?view=score" className="btn btn-primary btn-go">
                 Improve my score
               </Link>
               {plan.potential > result.score && (

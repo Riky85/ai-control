@@ -2,15 +2,15 @@
  * angar Engine — Simulatore "e se…".
  *
  * Parte dai numeri reali di oggi (spesa di ogni AI, posti, persone attive,
- * angar Score) e ricalcola al volo scenari: standardizzare su un'AI, togliere
+ * Angar Score) e ricalcola al volo scenari: standardizzare su un'AI, togliere
  * i posti non usati, passare alla fatturazione annuale, bloccare le AI non
  * consentite, tagliare i posti di un reparto.
  *
  * Modulo PURO (nessun database): lo usa il componente client. Il modello
- * serializzabile lo prepara la pagina server (app/simulate/model.ts).
+ * serializzabile lo prepara la pagina server (lib/engine/sim-model.ts).
  *
  * Effetto sul punteggio: ESATTO, non approssimato. Lo scenario corregge i
- * fatti dell'angar Score (posti pagati e attivi, doppioni, fatturazione
+ * fatti dell'Angar Score (posti pagati e attivi, doppioni, fatturazione
  * annuale, spesa) e si ricalcola con la stessa funzione pura di score-model.ts.
  * Bloccare le AI non consentite non cambia il punteggio (misura l'efficienza
  * della spesa, non il controllo).
@@ -206,7 +206,7 @@ export function simulate(model: SimModel, sc: Scenario): SimResult {
   const monthly = spendOf(st);
   const saveMonthly = baseMonthly - monthly;
 
-  // Effetto sul punteggio: fatti corretti dallo scenario, stesso calcolo dell'angar Score.
+  // Effetto sul punteggio: fatti corretti dallo scenario, stesso calcolo dell'Angar Score.
   const f: ScoreFacts = JSON.parse(JSON.stringify(model.score.facts));
   const kept = (id: string) => byId.get(id)?.kept ?? true;
   f.seatTools = f.seatTools

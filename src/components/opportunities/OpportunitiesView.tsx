@@ -7,9 +7,12 @@ import { CATEGORIES, CATEGORY_LABEL, STATUS_LABEL, type Category, type Opportuni
 import GoalBox from "./GoalBox";
 import { CategoryPill, OpportunityDrawer, OpportunityRow } from "./parts";
 
-export type OppView = "all" | "progress" | "contracts" | "subscriptions" | "autopilot";
+// "score" (prima /score/improve) e "stack" (prima /advisor) sono viste di Opportunities;
+// gli abbonamenti stanno solo in Spend (/spend/subscriptions).
+export type OppView = "all" | "score" | "stack" | "progress" | "contracts" | "autopilot";
 
-export const parseView = (v: string | undefined): OppView => (v === "progress" || v === "contracts" || v === "subscriptions" || v === "autopilot" ? v : "all");
+const VIEWS: OppView[] = ["score", "stack", "progress", "contracts", "autopilot"];
+export const parseView = (v: string | undefined): OppView => (VIEWS.includes(v as OppView) ? (v as OppView) : "all");
 
 /**
  * Pagina Opportunities (corpo): intestazione, obiettivo, numeri, schede e lista. I dati arrivano
@@ -44,7 +47,7 @@ export default function OpportunitiesView({
   hidden: number;
   canEdit: boolean;
   goal: React.ComponentProps<typeof GoalBox>;
-  /** Contenuto delle schede In progress / Contracts / Subscriptions / Autopilot. */
+  /** Contenuto delle schede Raise the score / Standard stack / In progress / Contracts / Autopilot. */
   tab?: React.ReactNode;
 }) {
   const open = list.filter((o) => o.status === "new" || o.status === "accepted" || o.status === "in_progress");
@@ -73,8 +76,7 @@ export default function OpportunitiesView({
         subtitle="What to change, and what it's worth"
         action={
           <>
-            <Link href="/advisor" className="btn btn-ghost btn-sm">Advisor</Link>
-            <Link href="/simulate" className="btn btn-ghost btn-sm">Quick simulator</Link>
+            <Link href="/impact?view=score" className="btn btn-ghost btn-sm">Score what if</Link>
             <ExportMenu dataset="savings" />
           </>
         }
@@ -94,9 +96,10 @@ export default function OpportunitiesView({
         active={view}
         items={[
           { key: "all", label: "All", href: "/opportunities", count: openCount || undefined },
+          { key: "score", label: "Raise the score", href: "/opportunities?view=score" },
+          { key: "stack", label: "Standard stack", href: "/opportunities?view=stack" },
           { key: "progress", label: "In progress", href: "/opportunities?view=progress", count: inProgressCount || undefined },
           { key: "contracts", label: "Contracts", href: "/opportunities?view=contracts", count: contractsSoon || undefined },
-          { key: "subscriptions", label: "Subscriptions", href: "/opportunities?view=subscriptions" },
           { key: "autopilot", label: "Autopilot", href: "/opportunities?view=autopilot" },
         ]}
       />

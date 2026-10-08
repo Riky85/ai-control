@@ -57,6 +57,7 @@ import { adminGet as openaiGet } from "@/lib/connectors/openai";
 import { isAdminKey, testApiKey } from "@/lib/connectors/api-key-providers";
 import type { ConnectorProvider, AiAssetStatus, EuAiActTier } from "@prisma/client";
 import { classifyAiAct, isAiActTier, toEuAiActTier, AI_ACT_TIER_LABEL, type AiActTier } from "@/lib/compliance/ai-act";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 
 // Ricalcola risk + assurance per un singolo asset dopo una modifica manuale
@@ -113,8 +114,9 @@ export async function syncConnectorAction(formData: FormData) {
   await guard("EDITOR", "connector.sync", formData, "/connectors");
   const provider = formData.get("provider") as ConnectorProvider;
   await runConnectorSync(currentOrgId(), provider);
+  revalidateOrgSetup(currentOrgId());
   revalidatePath("/connectors");
-  revalidatePath("/assets");
+  revalidatePath("/estate");
   revalidatePath("/activity");
   revalidatePath("/governance");
   revalidatePath("/changes");
@@ -169,6 +171,7 @@ export async function connectWithApiKeyAction(formData: FormData) {
     create: { organizationId: currentOrgId(), provider, credentialsEncrypted: credentials, status: "CONNECTED", scopes: [] },
   });
   const result = await runConnectorSync(currentOrgId(), provider);
+  revalidateOrgSetup(currentOrgId());
   revalidatePath("/", "layout");
   if (!result.ok) back(`Key saved, but the first sync failed: ${result.error.slice(0, 200)}`);
   await claimConnectorAssets(session, provider);
@@ -235,8 +238,9 @@ export async function addManualAssetAction(formData: FormData) {
     ownerEmail: String(formData.get("ownerEmail") ?? "").trim(),
     monthlyCost: cost ? Number(cost) : undefined,
   });
+  revalidateOrgSetup(currentOrgId());
   revalidatePath("/", "layout");
-  redirect(`/assets/${asset.id}`);
+  redirect(`/estate/${asset.id}`);
 }
 
 export async function importCsvAction(formData: FormData) {
@@ -269,6 +273,7 @@ export async function importCsvAction(formData: FormData) {
     });
     count++;
   }
+  revalidateOrgSetup(currentOrgId());
   revalidatePath("/", "layout");
   redirect(formData.get("next") === "review" ? `/?imported=${count}` : `/connectors?imported=${count}#import`);
 }
@@ -317,6 +322,7 @@ export async function disconnectConnectorAction(formData: FormData) {
     where: { organizationId: currentOrgId(), provider },
     data: { credentialsEncrypted: null, status: "DISCONNECTED", lastSyncError: null, lastSyncWarnings: [] },
   });
+  revalidateOrgSetup(currentOrgId());
   revalidatePath("/connectors");
 }
 
@@ -333,7 +339,7 @@ async function ownPolicy(orgId: string, policyId: string) {
 }
 
 export async function setAssetOwnerAction(formData: FormData) {
-  const s = await guard("EDITOR", "asset.set_owner", formData, "/assets");
+  const s = await guard("EDITOR", "asset.set_owner", formData, "/estate");
   const assetId = formData.get("assetId") as string;
   const ownerId = formData.get("ownerId") as string;
   await ownAsset(s.orgId, assetId);
@@ -343,15 +349,15 @@ export async function setAssetOwnerAction(formData: FormData) {
     data: { ownerId: ownerId || null },
   });
   await recomputeAssuranceFor(assetId);
-  revalidatePath(`/assets/${assetId}`);
-  revalidatePath("/assets");
+  revalidatePath(`/estate/${assetId}`);
+  revalidatePath("/estate");
   revalidatePath("/governance");
   revalidatePath("/changes");
   revalidatePath("/");
 }
 
 export async function setAssetStatusAction(formData: FormData) {
-  const s = await guard("EDITOR", "asset.set_status", formData, "/assets");
+  const s = await guard("EDITOR", "asset.set_status", formData, "/estate");
   const assetId = formData.get("assetId") as string;
   const status = formData.get("status") as AiAssetStatus;
   const before = await ownAsset(s.orgId, assetId);
@@ -365,15 +371,16 @@ export async function setAssetStatusAction(formData: FormData) {
     });
   }
   await recomputeAssuranceFor(assetId);
-  revalidatePath(`/assets/${assetId}`);
-  revalidatePath("/assets");
+  revalidateOrgSetup(s.orgId);
+  revalidatePath(`/estate/${assetId}`);
+  revalidatePath("/estate");
   revalidatePath("/governance");
   revalidatePath("/changes");
   revalidatePath("/");
 }
 
 export async function setAssetEuAiActTierAction(formData: FormData) {
-  const s = await guard("EDITOR", "asset.set_eu_ai_act", formData, "/assets");
+  const s = await guard("EDITOR", "asset.set_eu_ai_act", formData, "/estate");
   const assetId = formData.get("assetId") as string;
   const tier = formData.get("tier") as EuAiActTier;
   await ownAsset(s.orgId, assetId);
@@ -382,8 +389,8 @@ export async function setAssetEuAiActTierAction(formData: FormData) {
     data: { euAiActTier: tier },
   });
   await recomputeAssuranceFor(assetId);
-  revalidatePath(`/assets/${assetId}`);
-  revalidatePath("/assets");
+  revalidatePath(`/estate/${assetId}`);
+  revalidatePath("/estate");
   revalidatePath("/governance");
   revalidatePath("/changes");
 }
@@ -395,13 +402,13 @@ export async function setAssetEuAiActTierAction(formData: FormData) {
  */
 export async function setAssetAiActOverrideAction(formData: FormData) {
   const assetId = String(formData.get("assetId") ?? "");
-  const back = `/assets/${assetId}?tab=risk`;
+  const back = `/estate/${assetId}?tab=risk`;
   const s = await requireRole("EDITOR", back);
   const asset = await db.aiAsset.findFirst({
     where: { id: assetId, organizationId: s.orgId },
     select: { id: true, name: true, type: true, vendor: true, serviceId: true, model: true, department: true, euAiActTier: true, aiActTier: true, dataAccess: { select: { dataAsset: { select: { name: true } } } } },
   });
-  if (!asset) redirect(`/assets?error=${encodeURIComponent("That AI system isn't in this workspace.")}`);
+  if (!asset) redirect(`/estate?error=${encodeURIComponent("That AI system isn't in this workspace.")}`);
   const gate = await assetManageable(s.orgId, assetId);
   if (!gate.ok) redirect(`${back}&error=${encodeURIComponent(gate.message)}`);
   const raw = String(formData.get("aiActTier") ?? "");
@@ -418,8 +425,8 @@ export async function setAssetAiActOverrideAction(formData: FormData) {
   }
   await audit("asset.set_ai_act", asset.name, { assetId, tier: tier ?? "auto", note });
   await recomputeAssuranceFor(assetId);
-  revalidatePath(`/assets/${assetId}`);
-  revalidatePath("/assets");
+  revalidatePath(`/estate/${assetId}`);
+  revalidatePath("/estate");
   revalidatePath("/governance");
   revalidatePath("/governance/register");
   revalidatePath("/compliance");
@@ -431,7 +438,7 @@ export async function setAssetAiActOverrideAction(formData: FormData) {
 // dichiara quanto ne è sicuro. "basis" resta sempre "manual" finché non
 // esiste un vero connettore di billing.
 export async function setAssetCostAction(formData: FormData) {
-  await guard("EDITOR", "asset.set_cost", formData, "/assets");
+  await guard("EDITOR", "asset.set_cost", formData, "/estate");
   const assetId = formData.get("assetId") as string;
   const monthlyRaw = formData.get("monthlyCostEstimate") as string;
   const confidence = formData.get("confidence") as string;
@@ -443,15 +450,15 @@ export async function setAssetCostAction(formData: FormData) {
     update: { monthlyCostEstimate, confidence, notes, basis: "manual" },
     create: { aiAssetId: assetId, monthlyCostEstimate, confidence, notes, basis: "manual" },
   });
-  revalidatePath(`/assets/${assetId}`);
-  revalidatePath("/assets");
+  revalidatePath(`/estate/${assetId}`);
+  revalidatePath("/estate");
   revalidatePath("/providers");
 }
 
 // Alternativa registrata a mano — mai generata da un modello, mai un
 // punteggio nascosto. L'utente dice cosa ha confrontato e perché.
 export async function addAlternativeAction(formData: FormData) {
-  await guard("EDITOR", "asset.add_alternative", formData, "/assets");
+  await guard("EDITOR", "asset.add_alternative", formData, "/estate");
   const assetId = formData.get("assetId") as string;
   const provider = (formData.get("provider") as string)?.trim();
   const model = (formData.get("model") as string)?.trim();
@@ -468,16 +475,16 @@ export async function addAlternativeAction(formData: FormData) {
       reasoning: (formData.get("reasoning") as string)?.trim() || null,
     },
   });
-  revalidatePath(`/assets/${assetId}`);
+  revalidatePath(`/estate/${assetId}`);
   revalidatePath("/opportunities");
 }
 
 export async function deleteAlternativeAction(formData: FormData) {
-  await guard("EDITOR", "asset.delete_alternative", formData, "/assets");
+  await guard("EDITOR", "asset.delete_alternative", formData, "/estate");
   const id = formData.get("alternativeId") as string;
   const assetId = formData.get("assetId") as string;
   await db.modelAlternative.delete({ where: { id } });
-  revalidatePath(`/assets/${assetId}`);
+  revalidatePath(`/estate/${assetId}`);
   revalidatePath("/opportunities");
 }
 
@@ -615,6 +622,7 @@ export async function reviewAssetAction(formData: FormData) {
   if (decision === "notai") {
     await db.aiAsset.update({ where: { id: assetId }, data: { deletedAt: new Date() } });
     await db.assetChange.create({ data: { aiAssetId: assetId, field: "status", oldValue: owned.status, newValue: "NOT_AI" } });
+    revalidateOrgSetup(s.orgId);
     const skip = String(formData.get("skip") ?? "");
     redirect(`/review${skip ? `?skip=${encodeURIComponent(skip)}` : ""}`);
   }
@@ -645,6 +653,7 @@ export async function reviewAssetAction(formData: FormData) {
     });
   }
   await recomputeAssuranceFor(assetId);
+  revalidateOrgSetup(s.orgId);
   revalidatePath("/", "layout");
   const skip = String(formData.get("skip") ?? "");
   redirect(`/review?reviewed=${encodeURIComponent(before.name)}${skip ? `&skip=${encodeURIComponent(skip)}` : ""}`);
@@ -666,6 +675,7 @@ export async function approveAllReviewAction() {
     await recomputeAssuranceFor(a.id);
     done++;
   }
+  revalidateOrgSetup(s.orgId);
   revalidatePath("/", "layout");
   redirect(`/review?reviewed=${done}`);
 }

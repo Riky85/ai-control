@@ -160,7 +160,7 @@ async function PeopleAggregate({ mode }: { mode: PrivacyMode }) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard label="People known" value={String(users.length)} hint="From company accounts and provider keys" />
         <StatCard label="Using AI" value={maskCount(usingAi)} hint="Active in the last 30 days" />
-        <StatCard label="AI tools used" value={String(all.length)} hint="By at least one person" />
+        <StatCard label="AI systems used" value={String(all.length)} hint="By at least one person" />
       </div>
       {all[0] && (
         <Insight href="/usage" cta="See usage">

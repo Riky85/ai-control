@@ -86,7 +86,7 @@ export default function SpendView({ s, forecast, anomalies, priceChanges }: { s:
               {s.variance.slice(0, 8).map((v) => (
                 <tr key={v.id}>
                   <td className={td}>
-                    <Link href={`/assets/${v.id}`} className="text-ink-100 hover:underline">{v.name}</Link>
+                    <Link href={`/estate/${v.id}`} className="text-ink-100 hover:underline">{v.name}</Link>
                     <span className="block eyebrow mt-0.5 truncate max-w-md" title={`${v.source} · ${v.basis}`}>{v.source}</span>
                   </td>
                   <td className={`${td} text-right tabular text-ink-100`}>{fmtEur(v.actual)}</td>

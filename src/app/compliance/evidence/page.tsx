@@ -26,7 +26,7 @@ export default async function EvidencePackPage() {
     <div className="flex flex-col gap-6">
       <div className="contents print:hidden">
         <PageHeader
-          crumbs={[{ label: "AI Act", href: "/compliance" }, { label: "Evidence pack" }]}
+          crumbs={[{ label: "AI Act", href: "/compliance" }, { label: "AI Act evidence pack" }]}
           title="AI Act evidence pack"
           subtitle="AI Act and NIS2, one document."
           action={
@@ -166,7 +166,7 @@ export default async function EvidencePackPage() {
           )}
         </div>
         }
-        footer={<span className="text-xs text-ink-400">Full hashes are in the JSON download. Full log: <Link href="/audit" className="underline hover:text-ink-100">Audit log</Link>.</span>}
+        footer={<span className="text-xs text-ink-400">Full hashes are in the JSON download. Full log: <Link href="/activity?tab=audit" className="underline hover:text-ink-100">Audit log</Link>.</span>}
         columns={["When", "Who", "Action", "Target", "Hash", "Previous"]} empty={pack.auditLog.lastEntries.length ? false : "Nothing recorded yet."}
       >
             {pack.auditLog.lastEntries.map((e, i) => (

@@ -90,7 +90,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
         <StatCard label="High risk owned" value={String(highRiskOwned)} hint={highRiskOwned > 0 ? "Status: attention" : "Status: good"} tone={highRiskOwned > 0 ? "alarm" : undefined} />
       </div>
       {notAllowed.length > 0 ? (
-        <Insight tone="alarm" href={`/assets/${notAllowed[0].aiAssetId}`} cta={`Open ${notAllowed[0].aiAsset.name}`}>
+        <Insight tone="alarm" href={`/estate/${notAllowed[0].aiAssetId}`} cta={`Open ${notAllowed[0].aiAsset.name}`}>
           Uses <b className="font-medium">{notAllowed[0].aiAsset.name}</b>
           {notAllowed.length > 1 ? ` and ${notAllowed.length - 1} more AI` : ""}, which {notAllowed.length > 1 ? "aren't" : "isn't"} allowed — point them to an approved alternative.
         </Insight>
@@ -105,7 +105,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
           <h2 className="px-4 py-3 text-sm font-bold text-ink-100">Assets owned</h2>
           {person.ownedAssets.map((a) => (
-            <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
+            <Link key={a.id} href={`/estate/${a.id}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="font-medium text-ink-100 truncate min-w-0">{a.name}</span>
               <div className="flex items-center gap-3 text-xs">
                 {a.riskAssessments[0] && <Badge>{a.riskAssessments[0].level}</Badge>}
@@ -123,7 +123,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
         <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
           <h2 className="px-4 py-3 text-sm font-bold text-ink-100">Assets used</h2>
           {person.usages.map((u) => (
-            <Link key={u.id} href={`/assets/${u.aiAssetId}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
+            <Link key={u.id} href={`/estate/${u.aiAssetId}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="font-medium text-ink-100 truncate min-w-0">{u.aiAsset.name}</span>
               <div className="flex items-center gap-3 text-xs shrink-0">
                 <span className="eyebrow tabular">{u.lastSeenAt ? `Last used ${fmtAgo(u.lastSeenAt)}` : "Not seen yet"}</span>

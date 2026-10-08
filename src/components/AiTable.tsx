@@ -62,7 +62,7 @@ export default function AiTable({
         return (
           <tr key={a.id} className="hover:bg-ink-100/[0.02] transition-colors">
             <td className="px-5 py-3">
-              <Link href={`/assets/${a.id}`} className="flex items-center gap-3 group">
+              <Link href={`/estate/${a.id}`} className="flex items-center gap-3 group">
                 <VendorBadge vendor={a.vendor ?? a.connector?.provider ?? ""} name={a.name} size={32} />
                 <span className="min-w-0">
                   <span className="flex items-center gap-2">

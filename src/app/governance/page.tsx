@@ -27,7 +27,7 @@ export const dynamic = "force-dynamic";
 const DAY = 86400000;
 
 // I driver dell'asse Governance puntano a pagine generiche: qui li portiamo al posto giusto.
-const HREF_FIX: Record<string, string> = { "/policies": "#policies", "/governance": "/assets" };
+const HREF_FIX: Record<string, string> = { "/policies": "#policies", "/governance": "/estate" };
 
 // Governance: testata (asse Governance + prontezza AI Act), poi decisioni, AI Act,
 // policy, AI literacy e registri. Ogni blocco ha un solo prossimo passo.
@@ -115,7 +115,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
   const vendorRows = [...byVendor.values()].sort((a, b) => b.trainsCount - a.trainsCount || b.aiCount - a.aiCount || a.vendor.localeCompare(b.vendor));
   const vendorFlagged = vendorAssets.filter((a) => vendorFlags(vendorRiskFor(a), { type: a.type, dataSensitivities: a.dataAccess.map((d) => d.dataAsset.sensitivity), paidPlan: !!a.cost?.planId }).length > 0).length;
 
-  // Cosa tiene giù l'indice di governance (fuori dall'angar Score), altrimenti i controlli AI Act non superati.
+  // Cosa tiene giù l'indice di governance (fuori dall'Angar Score), altrimenti i controlli AI Act non superati.
   const holds: Holdback[] = score
     ? score.control.drivers
         .filter((d) => d.axis === "governance" && d.impact < 0 && !d.missingData)
@@ -155,7 +155,6 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
         items={[
           { key: "overview", label: "Overview", href: "/governance" },
           { key: "assurance", label: "Assurance checks", href: "/governance?tab=assurance" },
-          { key: "register", label: "Register", href: "/governance/register" },
         ]}
       />
 
@@ -226,7 +225,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
             links={[
               { href: "/api/export/register", label: "AI register", tag: "Excel · every AI", download: true, locked: !registerOk },
               { href: "/compliance/evidence", label: "Evidence pack", tag: "AI Act · NIS2 · SHA-256" },
-              { href: "/audit", label: "Audit log", tag: "Tamper-evident" },
+              { href: "/activity?tab=audit", label: "Audit log", tag: "Tamper-evident" },
               { href: "/governance?tab=assurance", label: "Assurance checks", tag: "Checks for each AI" },
               { href: "/data", label: "Data exposure", tag: "What AI can reach" },
               { href: "/activity", label: "Activity", tag: "What AI did" },

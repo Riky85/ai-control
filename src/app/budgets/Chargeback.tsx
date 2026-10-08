@@ -98,7 +98,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
         <Table columns={["Unallocated", "Why", { label: "Amount", className: "text-right" }]}>
           {cb.unallocated.map((u, i) => (
             <tr key={i}>
-              <td className={`${td} text-ink-100`}>{u.assetId ? <Link href={`/assets/${u.assetId}`} className="hover:underline">{u.name}</Link> : u.name}</td>
+              <td className={`${td} text-ink-100`}>{u.assetId ? <Link href={`/estate/${u.assetId}`} className="hover:underline">{u.name}</Link> : u.name}</td>
               <td className={`${td} text-ink-400`}>
                 {u.reason}
                 {u.reason === "People without a department" && (

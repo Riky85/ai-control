@@ -47,7 +47,7 @@ export default async function MarketChangePage({ params }: { params: { id: strin
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader crumbs={[{ label: "AI market changes", href: "/market" }, { label: h.subject }]} title={`${h.subject}: ${h.change}`} subtitle={h.provider} action={sim ? <Link href={sim} className="btn btn-primary">Simulate</Link> : undefined} />
+      <PageHeader crumbs={[{ label: "Price changes", href: "/market" }, { label: h.subject }]} title={`${h.subject}: ${h.change}`} subtitle={h.provider} action={sim ? <Link href={sim} className="btn btn-primary">Simulate</Link> : undefined} />
 
       <Panel title="Change" flush>
         <div className="divide-y divide-line">
@@ -79,7 +79,7 @@ export default async function MarketChangePage({ params }: { params: { id: strin
       >
         {(detail.systems ?? []).map((s) => (
           <tr key={s.id}>
-            <td className={td}><Link href={`/assets/${s.id}`} className="text-ink-100 hover:underline">{s.name}</Link></td>
+            <td className={td}><Link href={`/estate/${s.id}`} className="text-ink-100 hover:underline">{s.name}</Link></td>
             <td className={`${td} text-right tabular text-ink-400`}>{Math.round(s.fraction * 100)}%</td>
             <td className={`${td} text-right tabular text-ink-100`}>{s.monthlyEur != null ? `${s.costKind === "estimated" ? "≈ " : ""}${eurShort(s.monthlyEur)}` : "Unknown"}</td>
             <td className={`${td} text-right tabular text-ink-100`} title={s.deltaBasis === "tokens" ? "Observed tokens × price change" : s.deltaBasis === "spend" ? "Spend × price change" : undefined}>

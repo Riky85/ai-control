@@ -246,7 +246,7 @@ async function ownAsset(orgId: string, assetId: unknown, back: string) {
 /** Blocca (o sblocca) un'AI sulla rete aziendale: i sensori angar Edge con il blocco attivo rispondono 0.0.0.0. */
 export async function setNetworkBlockAction(formData: FormData) {
   const assetId = String(formData.get("assetId") ?? "");
-  const back = `/assets/${encodeURIComponent(assetId)}`;
+  const back = `/estate/${encodeURIComponent(assetId)}`;
   const s = await requireRole("ADMIN", back);
   const asset = await ownAsset(s.orgId, assetId, back);
   const block = formData.get("block") === "on";
@@ -262,7 +262,7 @@ export async function setNetworkBlockAction(formData: FormData) {
 /** L'AI approvata da suggerire al posto di questa (nel messaggio dell'app desktop e negli avvisi). */
 export async function setInsteadAssetAction(formData: FormData) {
   const assetId = String(formData.get("assetId") ?? "");
-  const back = `/assets/${encodeURIComponent(assetId)}`;
+  const back = `/estate/${encodeURIComponent(assetId)}`;
   const s = await requireRole("EDITOR", back);
   const asset = await ownAsset(s.orgId, assetId, back);
   const raw = String(formData.get("insteadAssetId") ?? "");

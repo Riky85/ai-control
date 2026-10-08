@@ -330,7 +330,7 @@ async function raiseAlerts(sensor: Sensor, mode: PrivacyMode, rows: Row[], fresh
   }
   const hrefOf = (sid: string) => {
     const a = assetOf.get(sid);
-    if (a) return `/assets/${a.id}`;
+    if (a) return `/estate/${a.id}`;
     return `/edge/sensors?view=${sid.startsWith("cand:") ? "new" : edgeService(sid)?.kind === "api" ? "invisible" : "ai"}`;
   };
 

@@ -13,7 +13,7 @@ import { euOnlyDeployment } from "@/lib/eu-only";
 import { getPlanState } from "@/lib/plan-gate";
 import { hasFeature } from "@/lib/plans";
 import { resolvesPublic } from "@/lib/webhooks";
-import { policyFromRow } from "./policy";
+import { GATEWAY_SERVICE_ID, policyFromRow } from "./policy";
 import type { GatewayStore, LogEntry, OrgContext, UpstreamConfig } from "./proxy";
 import type { GatewayProvider } from "./usage";
 
@@ -59,13 +59,20 @@ function connectorKey(provider: GatewayProvider, encrypted: string | null | unde
 }
 
 async function loadContext(orgId: string): Promise<OrgContext> {
-  const [org, policyRow, upstreams, connectors, plan] = await Promise.all([
+  const [org, policyRow, upstreams, connectors, plan, blocked] = await Promise.all([
     db.organization.findUnique({ where: { id: orgId }, select: { euOnly: true } }),
     db.gatewayPolicy.findUnique({ where: { organizationId: orgId } }),
     db.gatewayUpstream.findMany({ where: { organizationId: orgId } }),
     db.connector.findMany({ where: { organizationId: orgId, provider: { in: ["OPENAI", "ANTHROPIC"] } }, select: { provider: true, credentialsEncrypted: true } }),
     getPlanState(orgId),
+    // AI "Not allowed" che corrispondono ai provider del Gateway (stesso serviceId della spesa del Gateway).
+    db.aiAsset.findMany({ where: { organizationId: orgId, deletedAt: null, status: "UNAPPROVED", serviceId: { in: Object.values(GATEWAY_SERVICE_ID) } }, select: { name: true, serviceId: true } }),
   ]);
+  const notAllowed: Partial<Record<GatewayProvider, string>> = {};
+  for (const provider of ["openai", "anthropic"] as GatewayProvider[]) {
+    const hit = blocked.find((a) => a.serviceId === GATEWAY_SERVICE_ID[provider]);
+    if (hit) notAllowed[provider] = hit.name;
+  }
   const out: Partial<Record<GatewayProvider, UpstreamConfig>> = {};
   for (const provider of ["openai", "anthropic"] as GatewayProvider[]) {
     const row = upstreams.find((u) => u.provider === provider);
@@ -78,6 +85,7 @@ async function loadContext(orgId: string): Promise<OrgContext> {
     forcedEuOnly: euOnlyDeployment() || org?.euOnly === true,
     policy: policyFromRow(policyRow),
     upstreams: out,
+    notAllowed,
   };
 }
 

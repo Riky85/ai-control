@@ -67,7 +67,7 @@ export default function CheckReport() {
         </section>
 
         <section className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-0 mt-8 border border-[#DCDCE1] rounded-lg overflow-hidden">
-          <Kpi label="AI services found" value={String(snap.lines.length)} />
+          <Kpi label="AI systems found" value={String(snap.lines.length)} />
           <Kpi label="AI spend a year" value={eur(snap.spend * 12)} hint={`${eur(snap.spend)} a month`} border />
           <Kpi label="Possible savings a year" value={eur(snap.save * 12)} hint={`${eur(snap.save)} a month`} border accent />
         </section>
@@ -78,7 +78,7 @@ export default function CheckReport() {
           <table className="w-full min-w-[520px] print:min-w-0 text-sm mt-3">
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wider text-[#5F5F69] border-b border-[#141418]">
-                <th className="py-2 font-semibold">AI service</th>
+                <th className="py-2 font-semibold">AI system</th>
                 <th className="py-2 font-semibold">Category</th>
                 <th className="py-2 font-semibold">Plan</th>
                 <th className="py-2 font-semibold text-right">Seats</th>

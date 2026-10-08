@@ -120,7 +120,7 @@ export async function reviewAssetCore(organizationId: string, assetId: string, a
  * si ricalcolano qui dal motore dei risparmi, mai dal link. Idempotente.
  */
 export async function acceptSavingCore(organizationId: string, ref: string, actorEmail: string, via: string) {
-  const { computeSavings } = await import("@/lib/savings");
+  const { computeSavings, canonicalSavingKey, savingKeyFilters } = await import("@/lib/savings");
   const { ledgerKindOf, ledgerAssetOf } = await import("@/lib/savings-ledger");
   const [{ items }, accepted] = await Promise.all([
     computeSavings(organizationId),
@@ -131,20 +131,29 @@ export async function acceptSavingCore(organizationId: string, ref: string, acto
   if (done) return { ok: true as const, title: done.title, changed: false };
   const item = items.find((i) => savingRef(i.key) === ref);
   if (!item) return { ok: false as const, error: "That saving isn't there any more — it may have changed with new data. Open Savings to see the current list." };
-  const now = new Date();
-  await db.savingAction.create({
-    data: {
-      organizationId,
-      assetId: ledgerAssetOf(item),
-      kind: ledgerKindOf(item.kind),
-      title: item.title.slice(0, 200),
-      expectedMonthlyEur: Math.round(item.monthlyEur * 100) / 100,
-      status: "accepted",
-      savingKey: item.key,
-      acceptedAt: now,
-      createdBy: actorEmail,
-    },
+  // Due clic sul link (o link e pagina insieme): lock su azienda + chiave canonica e controllo nella transazione.
+  const ck = canonicalSavingKey(item.key);
+  const created = await db.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`saving:${organizationId}:${ck}`}::text))`;
+    const existing = await tx.savingAction.findFirst({ where: { organizationId, OR: savingKeyFilters(item.key).map((k) => ({ savingKey: k })), status: { not: "failed" } }, select: { id: true } });
+    if (existing) return false;
+    const now = new Date();
+    await tx.savingAction.create({
+      data: {
+        organizationId,
+        assetId: ledgerAssetOf(item),
+        kind: ledgerKindOf(item.kind),
+        title: item.title.slice(0, 200),
+        expectedMonthlyEur: Math.round(item.monthlyEur * 100) / 100,
+        status: "accepted",
+        savingKey: item.key,
+        acceptedAt: now,
+        createdBy: actorEmail,
+      },
+    });
+    return true;
   });
+  if (!created) return { ok: true as const, title: item.title, changed: false };
   await audit("saving.accepted", item.title, { key: item.key, monthlyEur: item.monthlyEur, via }, { orgId: organizationId, actorEmail });
   return { ok: true as const, title: item.title, changed: true };
 }
@@ -164,7 +173,7 @@ type NewAi = { id: string; name: string; vendor: string | null };
 function slackReviewBlocks(orgId: string, assets: NewAi[]) {
   const blocks: unknown[] = [{ type: "section", text: { type: "mrkdwn", text: `*New AI found* — ${assets.length === 1 ? "decide if it's allowed" : `${assets.length} AI to review`}` } }];
   for (const a of assets) {
-    blocks.push({ type: "section", text: { type: "mrkdwn", text: `*${esc(a.name)}*${a.vendor ? ` · ${esc(a.vendor)}` : ""}\n<${appUrl()}/assets/${a.id}|Open in angar>` } });
+    blocks.push({ type: "section", text: { type: "mrkdwn", text: `*${esc(a.name)}*${a.vendor ? ` · ${esc(a.vendor)}` : ""}\n<${appUrl()}/estate/${a.id}|Open in angar>` } });
     const button = (act: ChatAct, text: string, style: string) =>
       slackInteractive()
         ? { type: "button", action_id: `angar_review_${act}`, text: { type: "plain_text", text }, style, value: JSON.stringify({ o: orgId, a: a.id }) }
@@ -188,7 +197,7 @@ function teamsReviewCard(orgId: string, assets: NewAi[]) {
           actions: [
             { type: "Action.OpenUrl", title: "Approve", url: chatActionUrl({ act: "approve", org: orgId, asset: a.id }) },
             { type: "Action.OpenUrl", title: "Not allowed", url: chatActionUrl({ act: "reject", org: orgId, asset: a.id }) },
-            { type: "Action.OpenUrl", title: "Open", url: `${appUrl()}/assets/${a.id}` },
+            { type: "Action.OpenUrl", title: "Open", url: `${appUrl()}/estate/${a.id}` },
           ],
         },
       ]),
@@ -206,7 +215,7 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
  */
 export function notifyNewAi(organizationId: string, assets: NewAi[]): void {
   if (!assets.length) return;
-  for (const a of assets.slice(0, 50)) emitWebhook(organizationId, "ai.discovered", { id: a.id, name: a.name, vendor: a.vendor, url: `${appUrl()}/assets/${a.id}` });
+  for (const a of assets.slice(0, 50)) emitWebhook(organizationId, "ai.discovered", { id: a.id, name: a.name, vendor: a.vendor, url: `${appUrl()}/estate/${a.id}` });
   const shown = assets.slice(0, 5);
   const more = assets.length - shown.length;
   const text = `New AI found: ${shown.map((a) => a.name).join(", ")}${more > 0 ? ` and ${more} more` : ""} — review: ${appUrl()}/review`;

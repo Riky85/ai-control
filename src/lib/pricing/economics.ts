@@ -198,7 +198,7 @@ export function buildEconomics(a: EconomicsInput, now = Date.now()): Economics {
   if (sub?.renewalDate) renewal = { date: sub.renewalDate, inferred: false };
   else if (derived?.renewalDate) renewal = { date: derived.renewalDate, inferred: false };
   else {
-    const last = a.spend.find((s) => s.source === "bank" || s.source === "invoice");
+    const last = a.spend.find((s) => s.source === "bank" || s.source === "invoice" || s.source === "check");
     if (last) {
       const annual = Boolean(a.cost?.annualBilling);
       const next = new Date(last.date);

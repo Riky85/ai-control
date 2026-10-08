@@ -5,6 +5,7 @@ import { currentOrgId } from "@/lib/org";
 import { VendorBadge } from "@/components/VendorIcon";
 import { reviewAssetAction, approveAllReviewAction } from "@/lib/actions";
 import { currentSession } from "@/lib/auth";
+import NotAllowedEnforcement from "@/components/estate/NotAllowedEnforcement";
 
 export const dynamic = "force-dynamic";
 
@@ -94,7 +95,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
             return (
               <li key={a.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 px-4 py-3">
                 <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={30} />
-                <Link href={`/assets/${a.id}`} className="flex-1 min-w-0 hover:underline">
+                <Link href={`/estate/${a.id}`} className="flex-1 min-w-0 hover:underline">
                   <span className="flex items-center gap-2 text-sm font-medium text-ink-100 truncate">
                     {lvl && <span title={`Risk: ${lvl.toLowerCase()}`} className={`h-2 w-2 rounded-full shrink-0 ${lvl === "HIGH" || lvl === "CRITICAL" ? "bg-alarm" : lvl === "MEDIUM" ? "bg-accent" : "bg-steady"}`} />}
                     {a.name}
@@ -117,6 +118,8 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
           })}
         </ul>
       )}
+      {/* Cosa fa "Not allowed" qui, prima di sceglierlo. */}
+      {canDecide && queue.length > 0 && <NotAllowedEnforcement orgId={orgId} />}
     </div>
   );
 }

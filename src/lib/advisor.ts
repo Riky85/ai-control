@@ -167,7 +167,7 @@ export async function computeAdvice(organizationId: string) {
         monthlySaving: r2(saving),
         confidence: o.estimated || std.estimated ? "LOW" : movers.length ? "MEDIUM" : "HIGH",
         assets: [ref(stdAsset), ...oRef].slice(0, 3),
-        href: `/assets/${o.assets[0].id}`,
+        href: `/estate/${o.assets[0].id}`,
         manageUrl: o.service ? MANAGE_URL[o.service] ?? null : null,
       });
     }
@@ -212,7 +212,7 @@ export async function computeAdvice(organizationId: string) {
         monthlySaving: r2(diff),
         confidence: "MEDIUM",
         assets: personal.slice(0, 3).map(ref),
-        href: `/assets/${personal[0].id}`,
+        href: `/estate/${personal[0].id}`,
         manageUrl: manage,
       });
     }
@@ -229,7 +229,7 @@ export async function computeAdvice(organizationId: string) {
         monthlySaving: r2(extra * per),
         confidence: std.estimated ? "MEDIUM" : "HIGH",
         assets: [ref(stdAsset)],
-        href: `/assets/${stdAsset.id}`,
+        href: `/estate/${stdAsset.id}`,
         manageUrl: manage,
       });
     }
@@ -249,7 +249,7 @@ export async function computeAdvice(organizationId: string) {
           monthlySaving: r2(save),
           confidence: "HIGH",
           assets: [ref(stdAsset)],
-          href: `/assets/${stdAsset.id}`,
+          href: `/estate/${stdAsset.id}`,
           manageUrl: manage,
         });
     }

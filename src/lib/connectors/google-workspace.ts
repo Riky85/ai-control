@@ -6,7 +6,8 @@
  * Mai email, documenti o chat.
  *
  * Variabili d'ambiente di angar: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET.
- * Scope: admin.reports.audit.readonly, admin.directory.user.readonly.
+ * Scope: admin.reports.audit.readonly, admin.directory.user.readonly, apps.licensing,
+ * admin.directory.user.security (consensi OAuth delle app: elenco e revoca).
  */
 import type { Connector, ConnectorSyncResult, ObservedAsset } from "./types";
 import { decryptJson } from "@/lib/crypto";
@@ -18,6 +19,8 @@ export const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/admin.directory.user.readonly",
   // Togliere le licenze Gemini aggiuntive dalla pulizia posti (seat-removal/providers.ts).
   "https://www.googleapis.com/auth/apps.licensing",
+  // Accessi delle app di terze parti (users.tokens: elenco e revoca), pagina /estate/access.
+  "https://www.googleapis.com/auth/admin.directory.user.security",
   "openid",
   "email",
 ];

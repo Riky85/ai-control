@@ -67,7 +67,7 @@ export default async function ProvidersPage() {
       </div>
 
       {above.length > 0 && (
-        <Insight tone="signal" href={`/assets/${above[0].assetIds[0]}`} cta={`Open ${above[0].name}`}>
+        <Insight tone="signal" href={`/estate/${above[0].assetIds[0]}`} cta={`Open ${above[0].name}`}>
           Above {priceIndex.networkCompanies ? "market" : "list price"}: {above.slice(0, 2).map((r) => r.name).join(", ")}
           {above.length > 2 ? ` +${above.length - 2}` : ""}
         </Insight>
@@ -92,7 +92,7 @@ export default async function ProvidersPage() {
               <td className={td}>
                 <div className="flex flex-wrap gap-1.5">
                   {r.list.map((a) => (
-                    <Link key={a.id} href={`/assets/${a.id}`} className="rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] border-line text-ink-400 hover:text-ink-100 hover:border-ink-400 transition-colors">
+                    <Link key={a.id} href={`/estate/${a.id}`} className="rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] border-line text-ink-400 hover:text-ink-100 hover:border-ink-400 transition-colors">
                       {a.name}
                     </Link>
                   ))}

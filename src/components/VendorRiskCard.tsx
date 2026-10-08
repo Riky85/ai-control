@@ -67,7 +67,7 @@ export async function VendorRiskFlags({ orgId }: { orgId: string }) {
         {shown.map(({ a, flags }) => (
           <li key={a.id} className="py-2 flex items-start gap-3">
             <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${flags.some((f) => f.kind === "personal_data_no_eu") ? "bg-alarm" : "bg-accent"}`} />
-            <Link href={`/assets/${a.id}?tab=risk`} className="flex-1 min-w-0 hover:underline">
+            <Link href={`/estate/${a.id}?tab=risk`} className="flex-1 min-w-0 hover:underline">
               <span className="text-sm text-ink-100">{a.name}</span>
               <span className="block text-xs text-ink-400">{flags.map((f) => f.label).join(" · ")}</span>
             </Link>

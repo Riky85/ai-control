@@ -1,11 +1,6 @@
-import { currentOrgId } from "@/lib/org";
-import ImproveView from "@/components/engine/ImproveView";
-import { computeScoreCached, scoreActions } from "@/lib/engine/score";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-// "Improve my score": il piano d'azione dell'angar Score, con i punti ricalcolati per ogni correzione.
-export default async function ImproveScorePage() {
-  const result = await computeScoreCached(currentOrgId());
-  return <ImproveView result={result} plan={scoreActions(result.facts, result)} />;
+// "Improve my score" ora è la vista "Raise the score" di Opportunities: redirect per non rompere link e segnalibri.
+export default function ImproveScoreRedirectPage() {
+  redirect("/opportunities?view=score");
 }

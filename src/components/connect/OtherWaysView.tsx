@@ -9,7 +9,7 @@ import CsvDropzone from "@/components/CsvDropzone";
 import { uploadNetworkLogAction, revokeDiscoveryTokenAction } from "@/lib/discovery-actions";
 import { fmtDateTime } from "@/lib/format";
 
-// Scheda "Other ways" dell'area Desktop app (prima /discover): estensione del browser,
+// Pagina "Other ways" di Connect (prima /discover, poi scheda di /download): estensione del browser,
 // scansione una tantum, log di rete, angar Edge e ciò che è stato trovato in automatico.
 // angar gira nel cloud e non vede dentro la rete del cliente: la scansione parte dal
 // lato del cliente e invia solo ciò che riconosce come AI.
@@ -129,7 +129,7 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
             return (
               <tr key={a.id}>
                 <td className={td}>
-                  <Link href={`/assets/${a.id}`} className="flex items-center gap-3">
+                  <Link href={`/estate/${a.id}`} className="flex items-center gap-3">
                     <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={28} />
                     <span>
                       <span className="block font-medium text-ink-100 hover:underline">{a.name}</span>

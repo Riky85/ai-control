@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { computeSavings } from "@/lib/savings";
+import { canonicalSavingKey, computeSavings, savingKeyFilters } from "@/lib/savings";
 import { ledgerKindOf, ledgerAssetOf } from "@/lib/savings-ledger";
 
 const back = (path: string, params: Record<string, string>) => {
@@ -23,10 +23,15 @@ export async function acceptSavingAction(formData: FormData) {
   const { items } = await computeSavings(s.orgId);
   const item = items.find((i) => i.key === key);
   if (!item) redirect(back("/opportunities", { error: "That suggestion isn't there any more — it may have changed with new data." }));
-  const existing = await db.savingAction.findFirst({ where: { organizationId: s.orgId, savingKey: key, status: { not: "failed" } } });
-  if (!existing) {
+  // Doppio invio (due clic, due schede): lock su azienda + chiave canonica e controllo dentro la transazione,
+  // con le forme vecchie della chiave (doppioni "dup:<categoria>:…"), come in opportunities/actions.ts.
+  const ck = canonicalSavingKey(key);
+  const created = await db.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`saving:${s.orgId}:${ck}`}::text))`;
+    const existing = await tx.savingAction.findFirst({ where: { organizationId: s.orgId, OR: savingKeyFilters(key).map((k) => ({ savingKey: k })), status: { not: "failed" } } });
+    if (existing) return false;
     const now = new Date();
-    await db.savingAction.create({
+    await tx.savingAction.create({
       data: {
         organizationId: s.orgId,
         assetId: ledgerAssetOf(item!),
@@ -40,8 +45,9 @@ export async function acceptSavingAction(formData: FormData) {
         createdBy: s.email,
       },
     });
-    await audit(done ? "saving.done" : "saving.accepted", item!.title, { key, monthlyEur: item!.monthlyEur });
-  }
+    return true;
+  });
+  if (created) await audit(done ? "saving.done" : "saving.accepted", item!.title, { key, monthlyEur: item!.monthlyEur });
   revalidatePath("/", "layout");
   redirect(done ? "/opportunities?view=progress" : "/opportunities");
 }
@@ -74,7 +80,7 @@ export async function removeSeatAction(formData: FormData) {
   const assetId = String(formData.get("assetId") ?? "");
   const email = String(formData.get("email") ?? "").trim().toLowerCase().slice(0, 320);
   const from = String(formData.get("back") ?? "");
-  const path = from === "cleanup" ? "/usage?view=cleanup" : `/assets/${encodeURIComponent(assetId)}?tab=people`;
+  const path = from === "cleanup" ? "/usage?view=cleanup" : `/estate/${encodeURIComponent(assetId)}?tab=people`;
   const s = await requireRole("ADMIN", path);
   const [asset, known] = await Promise.all([
     db.aiAsset.findFirst({ where: { id: assetId, organizationId: s.orgId }, select: { id: true } }),
@@ -93,7 +99,7 @@ export async function removeSeatAction(formData: FormData) {
 /** Rimozione automatica dei posti liberati (impostazione dell'azienda). */
 export async function setAutoRemoveSeatsAction(formData: FormData) {
   const assetId = String(formData.get("assetId") ?? "");
-  const path = assetId ? `/assets/${encodeURIComponent(assetId)}?tab=people` : "/usage?view=cleanup";
+  const path = assetId ? `/estate/${encodeURIComponent(assetId)}?tab=people` : "/usage?view=cleanup";
   const s = await requireRole("ADMIN", path);
   const on = formData.get("on") === "1";
   await db.organization.update({ where: { id: s.orgId }, data: { autoRemoveSeats: on } });
@@ -117,7 +123,7 @@ const textOf = (v: FormDataEntryValue | null, max = 120) => {
 
 export async function saveContractAction(formData: FormData) {
   const assetId = String(formData.get("assetId") ?? "");
-  const path = `/assets/${encodeURIComponent(assetId)}`;
+  const path = `/estate/${encodeURIComponent(assetId)}`;
   const s = await requireRole("EDITOR", path);
   const asset = await db.aiAsset.findFirst({ where: { id: assetId, organizationId: s.orgId }, select: { id: true, name: true } });
   if (!asset) redirect("/");

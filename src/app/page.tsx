@@ -15,6 +15,8 @@ import { computeScoreCached, scoreHistory, scoreActions } from "@/lib/engine/sco
 import MarketChangesBlock from "@/components/market/MarketChangesBlock";
 import { loadOpportunitiesCached } from "@/lib/opportunities";
 import { OverviewMetricsRow, TopOpportunities } from "@/components/overview/TopOpportunities";
+import ImportCheckOffer from "@/components/check/ImportCheckOffer";
+import { loadDemoDataAction } from "@/lib/test-data-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +28,7 @@ function greeting(name?: string | null) {
   return first ? `${part}, ${first}` : "Welcome to angar";
 }
 
-// Home (spec §15): angar Score, le 6 metriche dell'estate, le opportunità migliori e i cambi di mercato
+// Home (spec §15): Angar Score, le 6 metriche dell'estate, le opportunità migliori e i cambi di mercato
 // che contano. L'elenco delle AI è in AI Estate (/estate): i vecchi link "/?view=graph", "/?q=…#your-ai" vanno lì.
 export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string; spend?: string; view?: string } & AiFilterParams }) {
   if (searchParams.view === "graph") redirect("/estate/graph");
@@ -45,7 +47,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
     db.spendRecord.count({ where: { organizationId: orgId } }),
   ]);
 
-  // angar Score: solo se c'è almeno un'AI (altrimenti non c'è niente da valutare).
+  // Angar Score: solo se c'è almeno un'AI (altrimenti non c'è niente da valutare).
   let scoreCard: ScoreCardData | null = null;
   if (all.length > 0) {
     const [score, history] = await Promise.all([computeScoreCached(orgId), scoreHistory(orgId, 30)]);
@@ -90,7 +92,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       {(searchParams.connected || searchParams.imported || searchParams.spend) && (
         <div className="rounded-xl border border-line bg-panel dark:bg-ink px-4 py-3 text-sm text-ink-100">
           {searchParams.spend ? (
-            <><b>{searchParams.spend} AI service{searchParams.spend === "1" ? "" : "s"} found.</b></>
+            <><b>{searchParams.spend} AI system{searchParams.spend === "1" ? "" : "s"} found.</b></>
           ) : searchParams.connected ? (
             <><b>Connected.</b></>
           ) : (
@@ -114,11 +116,22 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <CsvDropzone accept=".csv,.txt,.tsv,.xlsx,.xls,.ods,.xml,.xsig,.p7m,.zip,.pdf" multiple label="Drop a bank statement or invoices" />
             <button className="btn btn-primary">Show my AI spend</button>
           </form>
-          <div className="flex items-center gap-4 text-sm text-ink-400">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-ink-400">
             <a href="/api/spend/sample" className="underline hover:text-ink-100">Download a sample statement</a>
             <span>·</span>
             <Link href="/connect" className="underline hover:text-ink-100">Other sources</Link>
+            {/* Dati di esempio: stessa azione di Onboarding e Settings (solo il proprietario). */}
+            {session?.role === "OWNER" && (
+              <>
+                <span>·</span>
+                <form action={loadDemoDataAction}>
+                  <button className="underline hover:text-ink-100">Load demo data</button>
+                </form>
+              </>
+            )}
           </div>
+          {/* AI Spend Check fatto prima di registrarsi: si importa con un clic (solo se non ci sono ancora costi). */}
+          {spendCount === 0 && session?.role !== "VIEWER" && <ImportCheckOffer className="max-w-xl" />}
         </div>
       ) : (
         <>

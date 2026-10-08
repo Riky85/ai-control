@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { appOrigin } from "@/lib/mail";
 import { audit } from "@/lib/audit";
 import { syncAccounting } from "@/lib/connectors/chift";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export async function GET(req: Request) {
   await audit("connector.connect", "ACCOUNTING");
   try {
     const r = await syncAccounting(s.orgId);
+    revalidateOrgSetup(s.orgId);
     return NextResponse.redirect(`${origin}/?spend=${r.services}`);
   } catch (err) {
     return NextResponse.redirect(`${origin}/sources?error=${encodeURIComponent(`Connected. The first import will run shortly (${(err as Error).message}).`)}`);

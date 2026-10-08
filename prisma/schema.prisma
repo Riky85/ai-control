@@ -217,6 +217,9 @@ model Organization {
   aiEvaluations     AiEvaluation[]
   // Impatto dei cambiamenti del mercato AI sull'estate (market/).
   aiMarketChangeImpacts AiMarketChangeImpact[]
+  // Richieste di nuove AI dai dipendenti (estate/requests) e consensi OAuth alle app di terze parti (estate/access).
+  aiRequests  AiRequest[]
+  oauthGrants OAuthGrant[]
 }
 
 // Avvisi della piattaforma (campanella in alto a destra): rinnovi in arrivo,
@@ -427,6 +430,8 @@ model AiAsset {
   // Bloccata sulla rete aziendale da angar Edge (DNS), con l'AI approvata da suggerire.
   blockOnNetwork Boolean @default(false)
   insteadAssetId String?
+  // Ultimo avviso "Nudge users" alle persone che usano un'AI non consentita (al massimo uno ogni 7 giorni).
+  nudgedAt DateTime?
   euAiActTier EuAiActTier @default(UNCLASSIFIED)
   // Classe AI Act scelta a mano (compliance/ai-act.ts): "prohibited" | "high" | "limited" | "minimal" | "gpai"; null = automatica.
   aiActTier String?
@@ -1665,4 +1670,56 @@ model OpportunityState {
 
   @@unique([organizationId, key])
   @@index([organizationId, status])
+}
+
+// Richiesta di una nuova AI da parte di un dipendente (estate/requests): l'amministratore approva
+// (crea o collega un AiAsset APPROVED), rifiuta o chiede informazioni. Il richiedente riceve un'email.
+model AiRequest {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requesterEmail String
+  name           String
+  vendor         String?
+  url            String?
+  purpose        String
+  team           String?
+  expectedUsers  Int?
+  dataTypes      String[]     @default([])
+  estMonthlyEur  Float?
+  status         String       @default("REQUESTED") // "REQUESTED" | "APPROVED" | "REJECTED" | "NEEDS_INFO"
+  decidedBy      String?
+  decidedAt      DateTime?
+  decisionNote   String?
+  aiAssetId      String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, status])
+}
+
+// App di terze parti con un consenso OAuth su Microsoft 365 / Google Workspace (estate/access).
+// appId: id dell'oggetto service principal (Microsoft) o client id OAuth (Google).
+// userRefs: email delle persone che hanno dato il consenso (solo con la privacy "per persona"), per avvisi e revoca.
+model OAuthGrant {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider       String       // "MICROSOFT_365" | "GOOGLE_WORKSPACE"
+  appId          String
+  appName        String
+  publisher      String?
+  scopes         String[]     @default([])
+  userCount      Int          @default(0)
+  userRefs       String[]     @default([])
+  // Consenso dell'amministratore per tutta l'azienda (Microsoft "AllPrincipals").
+  adminConsent   Boolean      @default(false)
+  isAi           Boolean      @default(false)
+  serviceId      String?
+  aiAssetId      String?
+  firstSeenAt    DateTime     @default(now())
+  lastSeenAt     DateTime     @default(now())
+
+  @@unique([organizationId, provider, appId])
+  @@index([organizationId, provider])
 }

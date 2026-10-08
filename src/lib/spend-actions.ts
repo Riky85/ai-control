@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { parseSpendFile, type ParseResult } from "@/lib/spend/parse";
 import { ingestSpend } from "@/lib/spend/ingest";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 const MAX = 30 * 1024 * 1024;
 
@@ -30,6 +31,7 @@ export async function uploadSpendAction(formData: FormData) {
   }
   const found = await ingestSpend(s.orgId, all);
   await audit("spend.upload", `${files.length} file(s), ${found.length} AI services`);
+  revalidateOrgSetup(s.orgId);
   revalidatePath("/", "layout");
   redirect(`/?spend=${found.length}`);
 }
@@ -67,7 +69,7 @@ export async function remindInactiveAction(formData: FormData) {
   const assetId = String(formData.get("assetId") ?? "");
   const r = await sendSeatReminders(s.orgId, assetId, s.email);
   await audit("seats.remind_inactive", assetId, { asked: r.asked, sent: r.sent });
-  redirect(`/assets/${assetId}?tab=people&${r.sent ? `reminded=${r.sent}` : `error=${encodeURIComponent(r.reason || "Nobody to ask right now.")}`}`);
+  redirect(`/estate/${assetId}?tab=people&${r.sent ? `reminded=${r.sent}` : `error=${encodeURIComponent(r.reason || "Nobody to ask right now.")}`}`);
 }
 
 export async function setEmployeesAction(formData: FormData) {
@@ -84,6 +86,7 @@ export async function syncFattureInCloudAction() {
   const { syncFattureInCloud } = await import("@/lib/connectors/fatture-in-cloud");
   try {
     const r = await syncFattureInCloud(s.orgId);
+    revalidateOrgSetup(s.orgId);
     revalidatePath("/", "layout");
     redirect(`/?spend=${r.services}`);
   } catch (err) {
@@ -119,6 +122,7 @@ export async function syncBankAction() {
   } catch (err) {
     redirect(`/sources?error=${encodeURIComponent((err as Error).message)}`);
   }
+  revalidateOrgSetup(s.orgId);
   revalidatePath("/", "layout");
   redirect(`/?spend=${services}`);
 }
@@ -132,6 +136,7 @@ export async function syncAccountingAction() {
   } catch (err) {
     redirect(`/sources?error=${encodeURIComponent((err as Error).message)}`);
   }
+  revalidateOrgSetup(s.orgId);
   revalidatePath("/", "layout");
   redirect(`/?spend=${services}`);
 }

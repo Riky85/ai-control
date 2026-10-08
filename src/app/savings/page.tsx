@@ -5,6 +5,8 @@ export const dynamic = "force-dynamic";
 // /savings è diventato Opportunities: stesse schede (Suggestions → All, In progress, Contracts,
 // Subscriptions, Autopilot). I vecchi link e i segnalibri continuano a funzionare.
 export default function SavingsPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+  // Gli abbonamenti ora stanno solo in Spend.
+  if (searchParams.view === "subscriptions") redirect("/spend/subscriptions");
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(searchParams)) {
     const val = Array.isArray(v) ? v[0] : v;

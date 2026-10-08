@@ -4,7 +4,7 @@
  * etichettata come stima), spesa per dipendente vs benchmark, risparmi
  * realizzati, AI principali, shadow AI, stato AI Act e copertura Edge.
  *
- * angar Engine: angar Score (voto, assi, andamento 90 giorni), previsione a
+ * angar Engine: Angar Score (voto, assi, andamento 90 giorni), previsione a
  * 12 mesi (forecastSpend), risparmi verificati sugli addebiti, rischi
  * principali e un riassunto esecutivo di 3 righe scritto in modo
  * deterministico (executiveSummary, niente LLM). Il motore è in sola lettura.
@@ -145,7 +145,7 @@ export function executiveSummary(i: SummaryInput): [string, string, string] {
         ? `${eur0(i.identifiedMonthly)} a month of savings identified (${eur0(i.identifiedMonthly * 12)} a year), not yet acted on.`
         : "No waste found in the current AI estate.";
   const control =
-    (i.score != null ? `angar Score ${i.score} (${i.grade})${i.scoreDelta90 != null && Math.abs(i.scoreDelta90) >= 1 ? `, ${signed(i.scoreDelta90)} points in 90 days` : ""}` : `AI Act readiness ${i.aiActScore}%`) +
+    (i.score != null ? `Angar Score ${i.score} (${i.grade})${i.scoreDelta90 != null && Math.abs(i.scoreDelta90) >= 1 ? `, ${signed(i.scoreDelta90)} points in 90 days` : ""}` : `AI Act readiness ${i.aiActScore}%`) +
     (i.topRisk ? `; top risk: ${/^[A-Z][a-z]/.test(i.topRisk) ? i.topRisk.charAt(0).toLowerCase() + i.topRisk.slice(1) : i.topRisk}.` : "; no open high risks.");
   return [spend, savings, control];
 }

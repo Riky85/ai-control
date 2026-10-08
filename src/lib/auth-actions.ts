@@ -18,6 +18,7 @@ import { encryptJson, decryptJson } from "@/lib/crypto";
 import { newTotpSecret, verifyTotp, newRecoveryCodes, hashRecoveryCode } from "@/lib/totp";
 import { ssoAvailable } from "@/lib/sso";
 import { claimFirstAccount, bootstrapEmailConfigured } from "@/lib/bootstrap";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 // NB: in un file "use server" ogni funzione esportata è un endpoint pubblico.
 // issueSession vive in @/lib/auth proprio per non esserlo.
@@ -87,6 +88,7 @@ async function finishPasswordLogin(account: LoginAccount, next: string, fail: (m
     const invite = await db.workspaceMember.findUnique({ where: { inviteToken: next.slice("/api/invite/".length) } });
     if (invite && invite.email === email && invite.status === "invited") {
       await db.workspaceMember.update({ where: { id: invite.id }, data: { status: "active", inviteToken: null } });
+      revalidateOrgSetup(invite.organizationId);
       // Il link d'invito arriva per email: l'indirizzo ora è confermato.
       await db.account.update({ where: { id: account.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date(), emailVerifiedAt: account.emailVerifiedAt ?? new Date() } });
       await audit("member.join", email, { via: "invite" }, { orgId: invite.organizationId, actorEmail: email });
@@ -203,6 +205,7 @@ export async function signUpAction(formData: FormData) {
     if (invited.length > 0) {
       await db.workspaceMember.update({ where: { id: invited[0].id }, data: { status: "active", inviteToken: null, name: name || undefined } });
       orgId = invited[0].organizationId;
+      revalidateOrgSetup(orgId);
     } else {
       // Privacy di default: i nuovi workspace partono "per reparto" (gruppi di almeno 5).
       // Il dato di default nello schema resta "individual" per i workspace esistenti.
@@ -215,7 +218,9 @@ export async function signUpAction(formData: FormData) {
   if (!account.emailVerifiedAt && emailEnabled()) await sendVerificationEmail(account);
   await audit("auth.signup", email, { firstAccount: isFirstAccount, invited: invited.length > 0 }, { orgId, actorEmail: email });
   await issueSession(account, orgId, "pwd");
-  redirect(isFirstAccount || invited.length > 0 ? "/" : "/onboarding");
+  // Un solo percorso di primo avvio: chi crea un workspace (anche il primo account) va all'onboarding;
+  // chi entra con un invito trova il workspace già avviato.
+  redirect(invited.length > 0 ? "/" : "/onboarding");
 }
 
 export async function signOutAction() {

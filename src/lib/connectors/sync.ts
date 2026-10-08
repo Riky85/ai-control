@@ -61,6 +61,8 @@ export async function runConnectorSync(organizationId: string, provider: Connect
     // Microsoft 365 / Google Workspace: storico email dei servizi AI in background (24 mesi la prima volta).
     if (provider === "MICROSOFT_365" || provider === "GOOGLE_WORKSPACE") {
       void import("./email-history").then((m) => m.startEmailHistory(organizationId, provider)).catch(() => undefined);
+      // Consensi OAuth delle app di terze parti (/estate/access), in background; no-op senza il permesso.
+      void import("@/lib/access").then((m) => m.refreshOAuthGrants(organizationId, provider)).catch(() => undefined);
     }
     return { ok: true as const, ...summary };
   } catch (err) {

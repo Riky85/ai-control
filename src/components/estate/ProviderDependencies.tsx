@@ -41,7 +41,7 @@ export function ProviderDependenciesTable({ est }: { est: EstateData }) {
           <td className={td}>
             <div className="flex flex-wrap gap-1.5">
               {deps.slice(0, 6).map((d) => (
-                <Link key={d.r.id} href={`/assets/${d.r.id}`} className="inline-flex items-center rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-400 hover:text-ink-100 hover:border-ink-400 transition-colors">
+                <Link key={d.r.id} href={`/estate/${d.r.id}`} className="inline-flex items-center rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-400 hover:text-ink-100 hover:border-ink-400 transition-colors">
                   {d.r.name}{d.f < 1 ? ` · ${Math.round(d.f * 100)}%` : ""}
                 </Link>
               ))}

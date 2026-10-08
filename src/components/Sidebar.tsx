@@ -107,7 +107,7 @@ const MENU_ITEMS = [
 
 // Sidebar in stile Claude Console: nome del prodotto in serif, selettore
 // organizzazione, ricerca con scorciatoia, voci principali, gruppo "More"
-// richiudibile, utente in fondo. Aperta di default.
+// richiudibile, utente in fondo. Chiusa di default.
 export interface SidebarWorkspaceProps {
   current: WorkspaceOption | null;
   workspaces: WorkspaceOption[];
@@ -390,6 +390,13 @@ function SetupChecklist({
               );
             })}
           </ol>
+          {/* Piede: la guida di primo avvio resta raggiungibile finché i passi non sono finiti. */}
+          <div className="mt-1 border-t border-sb-ink/[0.08] px-3 pt-2.5 pb-1.5 flex items-center justify-between gap-3 text-xs">
+            <span className="text-sb-muted">Not sure where to start?</span>
+            <Link href="/onboarding" onClick={() => setOpen(false)} className="font-medium text-sb-ink hover:underline">
+              Get started →
+            </Link>
+          </div>
         </div>
       )}
       <button

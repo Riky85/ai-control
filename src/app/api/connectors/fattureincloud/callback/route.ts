@@ -6,6 +6,7 @@ import { encryptJson } from "@/lib/crypto";
 import { appOrigin } from "@/lib/mail";
 import { audit } from "@/lib/audit";
 import { ficTokenRequest, syncFattureInCloud } from "@/lib/connectors/fatture-in-cloud";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export async function GET(req: Request) {
   await audit("connector.connect", "FATTURE_IN_CLOUD");
   try {
     const r = await syncFattureInCloud(s.orgId);
+    revalidateOrgSetup(s.orgId);
     return NextResponse.redirect(`${origin}/?spend=${r.services}`);
   } catch (err) {
     return back(`Connected, but reading invoices failed: ${(err as Error).message}`);

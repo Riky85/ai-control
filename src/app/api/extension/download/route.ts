@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 // Estensione già collegata al workspace: niente token da copiare.
 export async function GET(req: Request) {
-  const s = await requireRole("EDITOR", "/discover");
+  const s = await requireRole("EDITOR", "/connect/other");
   const server = appOrigin(req.headers).replace(/\/$/, "");
   const { token } = await ensureWorkspaceToken(s.orgId);
   const org = await db.organization.findUnique({ where: { id: s.orgId } });

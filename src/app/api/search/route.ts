@@ -32,7 +32,7 @@ export async function GET(req: Request) {
 
   for (const a of assets) {
     const score = Math.max(fuzzyScore(q, a.name), a.vendor ? fuzzyScore(q, a.vendor) - 15 : 0);
-    if (score > 0) scored.push({ type: "ai", label: a.name, sub: a.vendor ?? undefined, href: `/assets/${a.id}`, vendor: a.vendor, score });
+    if (score > 0) scored.push({ type: "ai", label: a.name, sub: a.vendor ?? undefined, href: `/estate/${a.id}`, vendor: a.vendor, score });
   }
   for (const u of users) {
     const name = u.name ?? u.email;

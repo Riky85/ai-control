@@ -150,7 +150,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
           {rows.map(({ a, sug }) => (
             <tr key={a.id}>
               <td className={td}>
-                <Link href={`/assets/${a.id}`} className="flex items-center gap-3 hover:underline">
+                <Link href={`/estate/${a.id}`} className="flex items-center gap-3 hover:underline">
                   <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={28} />
                   <span className="font-medium text-ink-100">{a.name}</span>
                 </Link>
@@ -174,7 +174,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
                 )}
                 <div className="text-xs text-ink-400 mt-1 max-w-sm">{sug.reason}</div>
               </td>
-              <td className={`${td} ${a.owner ? "text-ink-100" : a.euAiActTier === "HIGH_RISK" ? "text-alarm" : "text-ink-400"}`}>{a.owner ? (people ? a.owner.name ?? a.owner.email : "Assigned") : <Link href={`/assets/${a.id}`} className="underline hover:text-ink-100">Assign owner</Link>}</td>
+              <td className={`${td} ${a.owner ? "text-ink-100" : a.euAiActTier === "HIGH_RISK" ? "text-alarm" : "text-ink-400"}`}>{a.owner ? (people ? a.owner.name ?? a.owner.email : "Assigned") : <Link href={`/estate/${a.id}`} className="underline hover:text-ink-100">Assign owner</Link>}</td>
               <td className={`${td} text-ink-400`}>{STATUS_LABEL[a.status]}</td>
             </tr>
           ))}

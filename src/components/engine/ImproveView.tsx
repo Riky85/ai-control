@@ -16,9 +16,9 @@ const CERTAINTY_STYLE: Record<ActionCertainty, string> = {
 /**
  * "Improve my score": il piano d'azione (solo presentazione). Ogni azione ha i punti ricalcolati
  * (punteggio con la correzione − oggi), il risparmio con la base del calcolo, la certezza e il link
- * al flusso esistente (Savings, posti, fonti).
+ * al flusso esistente (Savings, posti, fonti). embedded: vista "Raise the score" dentro Opportunities, senza intestazione.
  */
-export default function ImproveView({ result, plan }: { result: FullScore; plan: ActionPlan }) {
+export default function ImproveView({ result, plan, embedded = false }: { result: FullScore; plan: ActionPlan; embedded?: boolean }) {
   const scored = plan.actions.filter((a) => a.points > 0);
   const best = plan.best;
   const rest = plan.actions.filter((a) => a.key !== best?.key);
@@ -30,7 +30,7 @@ export default function ImproveView({ result, plan }: { result: FullScore; plan:
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader subtitle="Actions that raise your score" title="Improve your score" crumbs={[{ label: "Angar Score", href: "/score" }, { label: "Improve" }]} />
+      {!embedded && <PageHeader subtitle="Actions that raise your score" title="Improve your score" crumbs={[{ label: "Angar Score", href: "/score" }, { label: "Improve" }]} />}
 
       {/* Riepilogo: punteggio attuale, potenziale, risparmi */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line animate-rise">

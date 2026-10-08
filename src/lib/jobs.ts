@@ -322,7 +322,7 @@ export async function runDueJobs(now = new Date()) {
           await m.refreshOrgImpacts(o.id, now);
           await m.marketAlerts(o.id, now);
         })().catch((err) => console.error("[jobs] market impact failed", o.id, err));
-        // angar Engine: autopilot dei risparmi, anomalie e fotografia dell'angar Score.
+        // angar Engine: autopilot dei risparmi, anomalie e fotografia dell'Angar Score.
         await (await import("@/lib/engine/autopilot")).runAutopilot(o.id).catch((err) => console.error("[jobs] autopilot failed", o.id, err));
         await (await import("@/lib/engine/forecast")).anomalyAlerts(o.id).catch((err) => console.error("[jobs] anomalies failed", o.id, err));
         await (await import("@/lib/engine/score")).recordScoreSnapshot(o.id, now).catch((err) => console.error("[jobs] score snapshot failed", o.id, err));

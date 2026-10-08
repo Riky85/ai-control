@@ -2,7 +2,7 @@ import { currentOrgId } from "@/lib/org";
 import { currentSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { featureEnabled } from "@/lib/plan-gate";
-import { PageHeader, Tabs, Notice } from "@/components/ui";
+import { PageHeader, Notice } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import { LockedNote } from "@/components/LockedFeature";
 import { loadRegister } from "@/lib/compliance/register";
@@ -41,16 +41,6 @@ export default async function RegisterPage({ searchParams }: { searchParams: { e
         />
       </div>
 
-      <div className="print:hidden">
-        <Tabs
-          active="register"
-          items={[
-            { key: "overview", label: "Overview", href: "/governance" },
-            { key: "assurance", label: "Assurance checks", href: "/governance?tab=assurance" },
-            { key: "register", label: "Register", href: "/governance/register" },
-          ]}
-        />
-      </div>
 
       {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
       {searchParams.saved !== undefined && !editing && <Notice tone="success">{Number(searchParams.saved) ? "Saved." : "Nothing changed."}</Notice>}

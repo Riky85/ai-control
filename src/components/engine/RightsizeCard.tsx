@@ -88,7 +88,7 @@ export default function RightsizeCard({ assets, saveMonthlyEur, upgradeMonthlyEu
             return (
               <li key={a.assetId} className="px-5 py-3">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_minmax(0,10rem)_auto] items-center gap-x-5 gap-y-2">
-                  <Link href={`/assets/${a.assetId}?tab=people`} className="flex items-center gap-3 min-w-0 group">
+                  <Link href={`/estate/${a.assetId}?tab=people`} className="flex items-center gap-3 min-w-0 group">
                     <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={28} />
                     <span className="min-w-0">
                       <span className="block text-sm text-ink-100 truncate group-hover:underline">{a.name}</span>

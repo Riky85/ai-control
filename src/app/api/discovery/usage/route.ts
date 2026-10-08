@@ -85,7 +85,7 @@ export async function POST(req: Request) {
       severity: "critical",
       title: `${a.name} is not allowed — used by ${whoLabel}`,
       body: `${whoLabel.charAt(0).toUpperCase() + whoLabel.slice(1)} used ${a.name}, which your company marked as not allowed. Talk to them or suggest ${(a.insteadAssetId && instead.get(a.insteadAssetId)) || "the approved alternative"}.`,
-      href: `/assets/${a.id}`,
+      href: `/estate/${a.id}`,
       dedupeKey: `policy:${a.id}:${id}:${today}`,
     });
     notices.push({

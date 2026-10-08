@@ -54,7 +54,7 @@ export default async function ChangesTab({ q: rawQ, field }: { q?: string; field
         <StatCard label="Status changes" value={String(statuses.length)} hint={nowUnapproved.length ? `${nowUnapproved.length} now not allowed` : "Allowed, not allowed, to review"} tone={nowUnapproved.length ? "signal" : undefined} href="/activity?tab=changes&field=status" />
       </div>
       {models.length > 0 ? (
-        <Insight tone="signal" href={`/assets/${models[0].aiAssetId}`} cta={`Open ${models[0].aiAsset.name}`}>
+        <Insight tone="signal" href={`/estate/${models[0].aiAssetId}`} cta={`Open ${models[0].aiAsset.name}`}>
           {new Set(models.map((c) => c.aiAssetId)).size} AI switched model this month — latest <b className="font-medium">{models[0].aiAsset.name}</b> to {models[0].newValue ?? "an unknown model"}. Check the risk class still fits.
         </Insight>
       ) : recent.length === 0 ? (
@@ -69,7 +69,7 @@ export default async function ChangesTab({ q: rawQ, field }: { q?: string; field
         {changes.map((c) => (
           <tr key={c.id}>
             <td className={td}>
-              <Link href={`/assets/${c.aiAssetId}`} className="flex items-center gap-3 group">
+              <Link href={`/estate/${c.aiAssetId}`} className="flex items-center gap-3 group">
                 <VendorBadge vendor={c.aiAsset.vendor ?? ""} name={c.aiAsset.name} size={32} />
                 <span>
                   <span className="block font-medium text-ink-100 group-hover:underline">{c.aiAsset.name}</span>

@@ -1,6 +1,6 @@
 /**
  * Opportunities — il motore decisionale (spec §12): l'uscita azionabile di tutti i motori
- * (risparmi, angar Score, estate, cambi di mercato, Impact Simulator, prezzi).
+ * (risparmi, Angar Score, estate, cambi di mercato, Impact Simulator, prezzi).
  * Tipi puri: nessun database, nessun "use client".
  *
  * Regola sui numeri: ogni cifra porta il suo tipo (reale / calcolata / stimata) e la base di
@@ -81,7 +81,7 @@ export interface Opportunity {
   /** Base di calcolo leggibile: come sono nati i numeri. */
   calculation: string[];
   engines: Engine[];
-  /** Punti di angar Score guadagnati (se l'azione è anche nel piano "Improve my score"). */
+  /** Punti di Angar Score guadagnati (se l'azione è anche nel piano "Improve my score"). */
   scorePoints: number | null;
   /** Link "Review" (pagina dove si agisce). */
   href: string;

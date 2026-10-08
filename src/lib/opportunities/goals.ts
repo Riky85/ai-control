@@ -175,7 +175,7 @@ export function goalDependency(ctx: ImpactContext, provider: string): GoalAnswer
       ? alt.type === "model" && from
         ? `/impact?s=replace-model&from=${encodeURIComponent(from)}&to=${encodeURIComponent(alt.id)}&system=${encodeURIComponent(row.id)}`
         : `/impact?s=replace-provider&from=${encodeURIComponent(provider)}&to=${encodeURIComponent(alt.providerId)}&system=${encodeURIComponent(row.id)}`
-      : `/assets/${row.id}?tab=estate`;
+      : `/estate/${row.id}?tab=estate`;
     steps.push({
       key: row.id,
       title: row.name,
@@ -238,7 +238,7 @@ export function goalDeprecation(ctx: ImpactContext, model?: string | null): Goal
   if (!id) return { kind: "deprecation", title: "Prepare for a deprecation", summary: "No model in use is deprecated or retiring.", steps: [], impactHref: null, basis: "Models from the angar catalog with a deprecated or retired lifecycle, or a retirement date.", empty: "No model in use is deprecated or retiring." };
   const sc = { s: "deprecation" as const, model: id };
   const res = runScenario(ctx, sc);
-  const steps = [...res.systems].sort((a, b) => (b.compat.score ?? -1) - (a.compat.score ?? -1) || a.name.localeCompare(b.name)).map((s) => stepOf(s, `/assets/${s.id}?tab=estate`));
+  const steps = [...res.systems].sort((a, b) => (b.compat.score ?? -1) - (a.compat.score ?? -1) || a.name.localeCompare(b.name)).map((s) => stepOf(s, `/estate/${s.id}?tab=estate`));
   const name = modelById(id)?.name ?? id;
   const fits = steps.filter((s) => (s.compatibility ?? 0) >= 70).length;
   return {
@@ -282,7 +282,7 @@ export function goalMigrate(ctx: ImpactContext): GoalAnswer {
       confidence: best.confidence,
       compatibility: best.compatibility,
       picked: risk !== "High",
-      href: best.type === "model" && from ? `/impact?s=replace-model&from=${encodeURIComponent(from)}&to=${encodeURIComponent(best.id)}&system=${encodeURIComponent(row.id)}` : `/assets/${row.id}?tab=estate`,
+      href: best.type === "model" && from ? `/impact?s=replace-model&from=${encodeURIComponent(from)}&to=${encodeURIComponent(best.id)}&system=${encodeURIComponent(row.id)}` : `/estate/${row.id}?tab=estate`,
       sortScore: Math.round(score * 1000) / 1000,
     });
   }

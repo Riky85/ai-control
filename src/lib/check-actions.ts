@@ -6,8 +6,18 @@ import { quickReport } from "@/lib/spend/quick";
 import { headers } from "next/headers";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
+/** Tetto degli addebiti restituiti al browser (stesso valore di CHECK_MAX_CHARGES). */
+const MAX_CHARGES = 5000;
+
 export type CheckResult =
-  | { ok: true; rowsRead: number; months: number; report: ReturnType<typeof quickReport> }
+  | {
+      ok: true;
+      rowsRead: number;
+      months: number;
+      report: ReturnType<typeof quickReport>;
+      /** Addebiti AI normalizzati: restano nel browser e si possono importare dopo la registrazione. */
+      charges: { date: string; amountEur: number; description: string; service: string; seats?: number }[];
+    }
   | { ok: false; error: string };
 
 /** AI Spend Check pubblico: legge i file in memoria e non salva nulla. */
@@ -32,5 +42,12 @@ export async function checkSpendAction(formData: FormData): Promise<CheckResult>
   }
   if (!charges.length) return { ok: false, error: warnings[0] ?? `Read ${rows} rows — no AI subscriptions found in this file.` };
   const months = start && end ? Math.max(1, Math.round((end.getTime() - start.getTime()) / (30.4 * 86400000))) : 1;
-  return { ok: true, rowsRead: rows, months, report: quickReport(summarize(charges)) };
+  const recent = [...charges].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, MAX_CHARGES);
+  return {
+    ok: true,
+    rowsRead: rows,
+    months,
+    report: quickReport(summarize(charges)),
+    charges: recent.map((c) => ({ date: c.date.toISOString(), amountEur: c.amountEur, description: c.description.slice(0, 200), service: c.service.slice(0, 200), ...(c.seats ? { seats: c.seats } : {}) })),
+  };
 }

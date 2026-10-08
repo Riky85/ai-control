@@ -56,7 +56,7 @@ export function RegisterTable({ rows, canEdit, tiers }: { rows: RopaRow[]; canEd
         {rows.map((r) => (
           <tr key={r.id} id={`row-${r.id}`} className="scroll-mt-6">
             <td className={`${td} align-top min-w-[9rem]`}>
-              <Link href={`/assets/${r.id}?tab=risk`} className="font-medium text-ink-100 hover:underline">
+              <Link href={`/estate/${r.id}?tab=risk`} className="font-medium text-ink-100 hover:underline">
                 {r.name}
               </Link>
               {r.vendor && <div className="text-xs text-ink-400">{r.vendor}</div>}
@@ -68,7 +68,7 @@ export function RegisterTable({ rows, canEdit, tiers }: { rows: RopaRow[]; canEd
             ))}
             <td className={`${td} align-top text-xs leading-5 whitespace-nowrap`}>
               {r.owner.state === "todo" ? (
-                <Link href={`/assets/${r.id}`} className="hover:opacity-80">
+                <Link href={`/estate/${r.id}`} className="hover:opacity-80">
                   <Pill tone="signal">To complete</Pill>
                 </Link>
               ) : (

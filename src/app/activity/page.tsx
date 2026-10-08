@@ -1,5 +1,7 @@
 import FilterBar from "@/components/FilterBar";
 import ChangesTab from "./ChangesTab";
+import AuditTab from "./AuditTab";
+import { currentSession } from "@/lib/auth";
 import { fmtAgo, fmtDateTime } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
@@ -88,7 +90,7 @@ async function EventsSummary({ orgId }: { orgId: string }) {
           No new events in {Math.floor((now - last.occurredAt.getTime()) / DAY)} days — a connector may have stopped syncing.
         </Insight>
       ) : top && (
-        <Insight tone={changeWeek != null && changeWeek >= 40 ? "signal" : "accent"} href={`/assets/${top[0]}`} cta={`Open ${top[1].name}`}>
+        <Insight tone={changeWeek != null && changeWeek >= 40 ? "signal" : "accent"} href={`/estate/${top[0]}`} cta={`Open ${top[1].name}`}>
           {changeWeek != null ? `Activity is ${trendWord(changeWeek)} vs last week. ` : ""}
           <b className="font-medium">{top[1].name}</b> is the busiest AI — {topShare}% of events {week.length ? "this week" : "this month"}.
         </Insight>
@@ -97,25 +99,39 @@ async function EventsSummary({ orgId }: { orgId: string }) {
   );
 }
 
+// "Audit log" (prima /audit) solo per amministratori; "Activity evidence" per distinguerla dall'AI Act evidence pack.
 const TABS = [
-  { key: "events", label: "Events" },
-  { key: "changes", label: "Changes" },
-  { key: "evidence", label: "Evidence" },
+  { key: "events", label: "Events", admin: false },
+  { key: "changes", label: "Changes", admin: false },
+  { key: "evidence", label: "Activity evidence", admin: false },
+  { key: "audit", label: "Audit log", admin: true },
 ] as const;
 
 export default async function ActivityPage({ searchParams }: { searchParams: { q?: string; tab?: string; field?: string } }) {
+  const role = currentSession()?.role ?? "VIEWER";
+  const isAdmin = role === "ADMIN" || role === "OWNER";
+  const tabs = TABS.filter((t) => !t.admin || isAdmin);
+  // Chi non è amministratore e apre ?tab=audit passa da AuditTab, che rimanda con il messaggio del ruolo.
   const tab = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : "events";
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader subtitle="Everything angar has seen"
         title="Activity"
-        action={<ExportMenu dataset={tab === "changes" ? "changes" : "activity"} />}
+        action={tab === "audit" ? undefined : <ExportMenu dataset={tab === "changes" ? "changes" : "activity"} />}
       />
 
-      <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/activity?tab=${t.key}` }))} />
+      <Tabs active={tab} items={tabs.map((t) => ({ key: t.key, label: t.label, href: `/activity?tab=${t.key}` }))} />
 
-      {tab === "events" ? <EventsTab q={searchParams.q} /> : tab === "changes" ? <ChangesTab q={searchParams.q} field={searchParams.field} /> : <EvidenceTab />}
+      {tab === "events" ? (
+        <EventsTab q={searchParams.q} />
+      ) : tab === "changes" ? (
+        <ChangesTab q={searchParams.q} field={searchParams.field} />
+      ) : tab === "audit" ? (
+        <AuditTab q={searchParams.q} />
+      ) : (
+        <EvidenceTab />
+      )}
     </div>
   );
 }
@@ -204,7 +220,7 @@ async function EvidenceTab() {
         Every control, its status, and where that status comes from — this is the record you'd hand to an auditor.
       </p>
       {worst ? (
-        <Insight tone="alarm" href={`/assets/${worst.firstAsset}`} cta="Fix the first one">
+        <Insight tone="alarm" href={`/estate/${worst.firstAsset}`} cta="Fix the first one">
           <b className="font-medium">{worst.label}</b> fails on {worst.n} AI — the control to fix first.
         </Insight>
       ) : withReport.length > 0 ? (
@@ -217,7 +233,7 @@ async function EvidenceTab() {
           return (
             <div key={asset.id} className="flex flex-col gap-2">
               <div className="px-1 flex items-center justify-between">
-                <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
+                <Link href={`/estate/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
                   {asset.name}
                 </Link>
                 <span className="eyebrow">{checks.length} controls</span>

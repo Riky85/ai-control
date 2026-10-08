@@ -125,6 +125,7 @@ export default async function ConnectPage() {
         <Link href="/connectors" className="hover:text-ink-100 underline">AI provider keys{keyCount ? ` (${keyCount})` : ""}</Link>
         <Link href="/connectors#import" className="hover:text-ink-100 underline">Import a list</Link>
         <Link href="/connectors#network-logs" className="hover:text-ink-100 underline">Network logs</Link>
+        <Link href="/connect/other" className="hover:text-ink-100 underline">Browser extension &amp; one-off scan</Link>
       </div>
     </div>
   );

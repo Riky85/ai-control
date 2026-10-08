@@ -99,7 +99,7 @@ export default function PriceIndexCard({ rows, networkCompanies, minCompanies }:
           {shown.map((r) => (
             <li key={r.serviceId} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] items-center gap-x-5 gap-y-2 px-5 py-3">
               <div className="min-w-0">
-                <Link href={`/assets/${r.assetIds[0]}`} className="text-sm text-ink-100 hover:underline truncate block">{r.name}</Link>
+                <Link href={`/estate/${r.assetIds[0]}`} className="text-sm text-ink-100 hover:underline truncate block">{r.name}</Link>
                 <div className="eyebrow mt-0.5 flex flex-wrap gap-x-3 tabular">
                   <span>
                     You <b className={`font-normal ${r.verdict === "above" ? "text-accent" : "text-ink-100"}`}>{r.yourSeatEur != null ? seat(r.yourSeatEur) : "—"}</b>

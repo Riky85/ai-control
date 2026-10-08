@@ -1,5 +1,5 @@
 /**
- * angar Score — "AI spend efficiency" (metodo 2): dal database ai fatti, e
+ * Angar Score — "AI spend efficiency" (metodo 2): dal database ai fatti, e
  * storico. Il calcolo vero è in score-model.ts (puro, con la formula
  * documentata); qui si leggono solo i fatti.
  *
@@ -209,7 +209,7 @@ export async function loadScoreFacts(orgId: string, now = new Date()): Promise<{
     const last = c[c.length - 1];
     const ref = median(c.slice(-4, -1).map((x) => x.eur));
     if (t - last.date.getTime() <= ANOMALY.recentChargeDays * DAY && ref > 0 && (last.eur - ref) / ref > ANOMALY.priceJump && last.eur - ref >= ANOMALY.priceMinEur)
-      growth.push({ key: `charge:${id}`, assetId: id, name: byId.get(id)?.name ?? "API", currentEur: Math.round(last.eur * 100) / 100, expectedEur: Math.round(ref * 100) / 100, href: `/assets/${id}?tab=spend` });
+      growth.push({ key: `charge:${id}`, assetId: id, name: byId.get(id)?.name ?? "API", currentEur: Math.round(last.eur * 100) / 100, expectedEur: Math.round(ref * 100) / 100, href: `/estate/${id}?tab=spend` });
   }
   const gwPrev = new Map(gwBefore.map((g) => [g.provider, g._sum.costEur ?? 0]));
   let gwSpend = 0;
@@ -381,7 +381,7 @@ export async function whatChanged(orgId: string, current: { score: number; month
   };
 }
 
-/** Il piano d'azione per l'azienda (stesse azioni di /score/improve). */
+/** Il piano d'azione per l'azienda (stesse azioni di /opportunities?view=score). */
 export async function computeActionPlan(orgId: string) {
   const r = await computeScoreCached(orgId);
   return { result: r, plan: scoreActions(r.facts, r) };

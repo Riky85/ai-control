@@ -14,6 +14,7 @@ import { db } from "@/lib/db";
 import { planById, withinLimit, PLANS, EDGE, addonById, planRank } from "@/lib/plans";
 import { stripeEnabled, stripePost, checkoutCommonParams } from "@/lib/stripe";
 import { getPlanState } from "@/lib/plan-gate";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 const ROLES: MemberRole[] = ["OWNER", "ADMIN", "EDITOR", "VIEWER"];
 
@@ -63,6 +64,7 @@ export async function inviteMemberAction(formData: FormData) {
     text: `You've been invited to the ${o.name} workspace on angar as ${role.toLowerCase()}.\n\nOpen this link to join (it's personal — don't forward it):\n${signupLink}`,
   });
   await audit("member.invite", email, { role, emailSent: mail.sent });
+  revalidateOrgSetup(me.orgId);
   revalidatePath("/workspace");
   redirect(`/workspace?invited=1&inviteLink=${encodeURIComponent(signupLink)}&emailSent=${mail.sent ? 1 : 0}`);
 }
@@ -97,6 +99,7 @@ export async function removeMemberAction(formData: FormData) {
   }
   await db.workspaceMember.deleteMany({ where: { id, organizationId: currentOrgId() } });
   await audit("member.remove", member?.email);
+  revalidateOrgSetup(me.orgId);
   revalidatePath("/workspace");
 }
 

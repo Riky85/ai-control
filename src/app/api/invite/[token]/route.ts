@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { issueSession } from "@/lib/auth";
 import { audit } from "@/lib/audit";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,8 @@ export async function GET(req: Request, { params }: { params: { token: string } 
   if (!session) return NextResponse.redirect(url(`/login?email=${encodeURIComponent(member.email)}&next=${encodeURIComponent(`/api/invite/${token}`)}`));
 
   await db.workspaceMember.update({ where: { id: member.id }, data: { status: "active", inviteToken: null } });
+  // I primi passi della sidebar cambiano subito, senza aspettare la cache di 60 s.
+  revalidateOrgSetup(member.organizationId);
   // Il link d'invito arriva per email: l'indirizzo è confermato.
   if (!account.emailVerifiedAt) await db.account.update({ where: { id: account.id }, data: { emailVerifiedAt: new Date() } });
   await issueSession(account, member.organizationId);

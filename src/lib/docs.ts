@@ -24,13 +24,13 @@ export const DOCS: DocArticle[] = [
     keywords: ["overview", "intro", "what", "how it works"],
     body: `angar answers three questions without asking you to type anything: which AI does the company use, how much does it cost, and where can we save.
 ## The sidebar, top to bottom
-- Overview — angar Score, the key numbers of your AI estate, the top opportunities and the market changes that affect you.
+- Overview — Angar Score, the key numbers of your AI estate, the top opportunities and the market changes that affect you.
 - Score — how efficiently you spend on AI, and how to improve it.
-- AI Estate — every AI you use or pay for (List and Graph), Providers, To review and AI market changes.
-- Spend — what your AI costs and why: by provider, model, AI and team, forecast, Budgets, Usage, Subscriptions and the AI price list.
+- AI Estate — every AI you use or pay for (List and Graph), Providers, To review, Requests and App access.
+- Spend — what your AI costs and why: by provider, model, AI and team, forecast, Budgets, Usage, Subscriptions, Renewals, the AI price list and Price changes.
 - Opportunities — what to change and what it's worth, goals with a ranked plan, and the Impact simulator.
 - Connect — where the data comes from: bank and invoices, company accounts, provider keys, the desktop app and angar Edge.
-- Governance — policies, EU AI Act and the records auditors ask for.`,
+- Governance — policies, the register, EU AI Act, data exposure and Activity (events, changes, evidence and the audit log).`,
   },
   {
     slug: "first-10-minutes",
@@ -221,7 +221,7 @@ Internet is used only to download updates and the desktop app. Bank, Microsoft 3
     summary: "Overview lists every AI with its cost; To review is where you decide about new AI in one click.",
     keywords: ["overview", "review", "approve", "allowed", "not allowed", "passport", "status", "owner"],
     body: `## Overview
-angar Score, six numbers about your AI estate (AI systems, monthly spend, potential savings, provider concentration, unowned AI, high dependencies), the top opportunities and the market changes that affect you.
+Angar Score, six numbers about your AI estate (AI systems, monthly spend, potential savings, provider concentration, unowned AI, high dependencies), the top opportunities and the market changes that affect you.
 ## AI Estate
 Every AI you use or pay for, with monthly cost, users and status (AI Estate → List; the Graph tab shows what depends on what). Click one to open its page: cost, seats, who uses it, the data it touches, risk and how to save. Set the status (Approved, Needs review, Not allowed) next to the title.
 ## To review
@@ -247,10 +247,10 @@ Each suggestion says how sure angar is and has a button to the provider's billin
   {
     slug: "angar-score",
     section: "Using angar",
-    title: "angar Score",
+    title: "Angar Score",
     summary: "One number, 0–100, for how efficiently your company turns AI spend into AI use — with the reasons and the actions that raise it.",
     keywords: ["score", "rating", "efficiency", "improve", "dimensions", "provisional", "confidence", "utilization", "licenses", "visibility", "consumption"],
-    body: `The angar Score measures AI spend efficiency: not how much you spend, and not how much you use AI, but how well spend turns into use. It only uses ratios, so a company spending €15,000 a month at 96% seat use scores higher than one spending €1,000 at 30%.
+    body: `The Angar Score measures AI spend efficiency: not how much you spend, and not how much you use AI, but how well spend turns into use. It only uses ratios, so a company spending €15,000 a month at 96% seat use scores higher than one spending €1,000 at 30%.
 ## The five dimensions
 - Spend visibility (20%) — how much of your AI spend angar sees: bank or cards, invoices and, for API spend, provider billing; charges matched to a known AI; real costs instead of list-price estimates; an owner for each paid AI.
 - License utilization (30%) — paid seats against seats used in the last 30 days, across seat-based AI such as ChatGPT, Claude, Copilot, Gemini and Cursor. 25% use or less scores 0, full use scores 100.

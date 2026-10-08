@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
-// La lista delle AI ora vive in Home (con gli stessi filtri).
+// La lista delle AI vive in AI Estate (/estate, stessi filtri): un solo salto, i parametri restano.
 export default function AssetsPage({ searchParams }: { searchParams: Record<string, string> }) {
   const qs = new URLSearchParams(searchParams).toString();
-  redirect(qs ? `/?${qs}` : "/");
+  redirect(qs ? `/estate?${qs}` : "/estate");
 }

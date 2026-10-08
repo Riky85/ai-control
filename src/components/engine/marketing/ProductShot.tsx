@@ -2,7 +2,7 @@ import ScoreMock from "@/components/engine/marketing/ScoreMock";
 import { fmtEur } from "@/lib/format";
 
 /**
- * "Foto del prodotto" per l'hero: finestra con barra del titolo, angar Score
+ * "Foto del prodotto" per l'hero: finestra con barra del titolo, Angar Score
  * (numero, livello e le 5 dimensioni), la prima azione e una riga di
  * risparmio. Dati illustrativi.
  */
@@ -40,7 +40,7 @@ export default function ProductShot() {
             <b className="font-semibold">{fmtEur(1240)}</b> <span className="text-ink-400">a month</span>
           </span>
         </div>
-        <figcaption className="sr-only">Example company: angar Score 82 out of 100, Good.</figcaption>
+        <figcaption className="sr-only">Example company: Angar Score 82 out of 100, Good.</figcaption>
       </figure>
     </div>
   );

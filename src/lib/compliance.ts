@@ -128,7 +128,7 @@ export async function readiness(organizationId: string, now = new Date()) {
       detail: approved.length ? `${approvedOwned.length} of ${approved.length} allowed AI have an owner.` : "No allowed AI yet.",
       weight: 15,
       fraction: ratio(approvedOwned.length, approved.length),
-      href: "/assets",
+      href: "/estate",
     },
     {
       key: "unapproved",

@@ -26,6 +26,7 @@ import { db } from "@/lib/db";
 import { isOnPrem } from "@/lib/edition";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, THEME_SCRIPT, parseTheme } from "@/lib/theme";
+import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 
 // Un solo sans pulito (stile Exa): Geist (licenza OFL, file locali nel pacchetto
 // "geist", niente download da Google) per testo, titoli e marchio.
@@ -103,8 +104,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Lista di controllo della sidebar: si spunta da sola dai dati; sparisce quando è tutto fatto.
   // Uso: app desktop installata, oppure un connettore di identità (Microsoft 365, Google Workspace, Okta).
   const setupSteps = [
-    { key: "spend", title: "See what you pay for AI", href: "/sources", done: setupState.hasSpend },
-    { key: "usage", title: "See who really uses each AI", href: "/download", done: devicesTotal > 0 || setupState.identityConnected },
+    { key: "spend", title: "See what you pay for AI", href: "/", done: setupState.hasSpend },
+    { key: "usage", title: "See who really uses each AI", href: "/connect", done: devicesTotal > 0 || setupState.identityConnected },
     { key: "team", title: "Invite your team", href: "/workspace", done: setupState.hasTeam },
   ];
   const setup = setupSteps.some((s) => !s.done) ? { steps: setupSteps } : null;
@@ -129,7 +130,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {head}
       <body className={`flex h-screen overflow-hidden bg-sidebar text-ink-100 font-body`}>
         <SearchPalette />
-        <Sidebar initialCollapsed={false} setup={setup} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={platformAdmin} connectedComputers={connectedComputers} reviewCount={reviewCount} trial={trial} onprem={isOnPrem()} />
+        {/* Sidebar chiusa di default; resta aperta solo se l'utente l'ha aperta (cookie "0"). */}
+        <Sidebar initialCollapsed={cookies().get(SIDEBAR_COOKIE)?.value !== "0"} setup={setup} orgName={org?.name} workspace={workspace} userName={session.name ?? member.name ?? undefined} userEmail={session.email} platformAdmin={platformAdmin} connectedComputers={connectedComputers} reviewCount={reviewCount} trial={trial} onprem={isOnPrem()} />
         <div id="app-scroll" className="flex-1 flex flex-col min-w-0 bg-canvas overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable]">
           <ScrollReset targetId="app-scroll" />
           {/* Senza padding in alto: la barra del titolo (PageHeader) è la prima cosa della pagina.

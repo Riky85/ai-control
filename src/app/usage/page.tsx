@@ -126,7 +126,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
   const weekBefore = trend.values.slice(-14, -7).reduce((t, v) => t + v, 0);
   const weekChange = pctChange(lastWeek, weekBefore);
   const count = (n: number) => (individual ? String(n) : maskCount(n));
-  const cleanupHref = (assetId: string) => (individual ? "/usage?view=cleanup" : `/assets/${assetId}?tab=people`);
+  const cleanupHref = (assetId: string) => (individual ? "/usage?view=cleanup" : `/estate/${assetId}?tab=people`);
 
   // Per reparto (k-anonimato: gruppi di almeno MIN_GROUP persone).
   const departments =
@@ -338,7 +338,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
             {cleanup.map((c) => (
               <tr key={c.id}>
                 <td className={td}>
-                  <Link href={`/assets/${c.assetId}?tab=people`} className="flex items-center gap-2 text-ink-100 hover:underline">
+                  <Link href={`/estate/${c.assetId}?tab=people`} className="flex items-center gap-2 text-ink-100 hover:underline">
                     <VendorBadge vendor={c.vendor ?? ""} name={c.assetName} size={24} />
                     {c.assetName}
                   </Link>
@@ -383,7 +383,7 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
                     {nameOf(p.email) !== p.email && !isPseudonym(p.email) && <span className="block text-xs text-ink-400">{p.email}</span>}
                   </td>
                   <td className={td}>
-                    <Link href={`/assets/${p.assetId}`} className="flex items-center gap-2 text-ink-100 hover:underline">
+                    <Link href={`/estate/${p.assetId}`} className="flex items-center gap-2 text-ink-100 hover:underline">
                       <VendorBadge vendor={p.vendor ?? ""} name={p.name} size={24} />
                       {p.name}
                     </Link>

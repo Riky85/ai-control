@@ -1,5 +1,5 @@
 /**
- * angar Score — "AI spend efficiency" (metodo 2). Modulo PURO: nessun
+ * Angar Score — "AI spend efficiency" (metodo 2). Modulo PURO: nessun
  * database, nessun React. Lo usano il caricatore (score.ts), il simulatore
  * nel browser e le prove con dati finti.
  *
@@ -310,7 +310,7 @@ function utilization(f: ScoreFacts): RawDim {
   const totIdle = idle.reduce((s, t) => s + idleEur(t), 0);
   for (const t of idle) {
     const n = t.paidSeats - Math.min(t.activeSeats, t.paidSeats);
-    pens.push({ label: `${plural(n, `inactive ${t.name} seat`)} of ${t.paidSeats}`, pts: totIdle > 0 ? (lost * idleEur(t)) / totIdle : 0, href: `/assets/${t.assetId}?tab=people`, actionKey: `seats:${t.assetId}` });
+    pens.push({ label: `${plural(n, `inactive ${t.name} seat`)} of ${t.paidSeats}`, pts: totIdle > 0 ? (lost * idleEur(t)) / totIdle : 0, href: `/estate/${t.assetId}?tab=people`, actionKey: `seats:${t.assetId}` });
   }
   const unm = (1 - cov) * (100 - Math.min(sm, UNMEASURED_CAP));
   if (unm > 0) {
@@ -615,7 +615,7 @@ export function scoreActions(facts: ScoreFacts, base: ScoreResult = scoreFromFac
       monthlyEur: save,
       basis: `${t.paidSeats} seats × ${eurSeat(t.seatEur)} → ${keep} seats × ${eurSeat(t.seatEur)} = ${eur(save)} a month`,
       certainty: early ? "medium" : "high",
-      href: inProg ? "/opportunities?view=progress" : `/assets/${t.assetId}?tab=people`,
+      href: inProg ? "/opportunities?view=progress" : `/estate/${t.assetId}?tab=people`,
       cta: inProg ? "See progress" : "Review seats",
       inProgress: inProg,
       fix: { type: "seats", assetId: t.assetId },

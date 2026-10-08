@@ -94,7 +94,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
 
   const aiName = (sid: string, name: string) => {
     const a = assetFor.get(sid);
-    return a ? <Link href={`/assets/${a.id}`} className="font-medium text-ink-100 hover:underline">{name}</Link> : <span className="font-medium text-ink-100">{name}</span>;
+    return a ? <Link href={`/estate/${a.id}`} className="font-medium text-ink-100 hover:underline">{name}</Link> : <span className="font-medium text-ink-100">{name}</span>;
   };
   const clientCell = (e: { client: string; clientLabel: string | null }) =>
     e.client === "*" ? "—" : e.clientLabel ? <><span className="text-ink-100">{e.clientLabel}</span> <span className="text-ink-400 text-xs">{e.client}</span></> : <span className="text-ink-100">{e.client}</span>;
@@ -353,7 +353,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                   <td className={`${td} text-right tabular text-ink-100`}>{n(g.hits)}</td>
                   <td className={`${td} text-ink-400`}>{dayStr(g.last)}</td>
                   <td className={td}>
-                    <Link href={a ? `/assets/${a.id}` : "/review"} className="btn btn-secondary btn-sm whitespace-nowrap">Review</Link>
+                    <Link href={a ? `/estate/${a.id}` : "/review"} className="btn btn-secondary btn-sm whitespace-nowrap">Review</Link>
                   </td>
                 </tr>
               );

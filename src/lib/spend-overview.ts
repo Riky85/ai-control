@@ -65,7 +65,7 @@ export function buildSpendOverview(assets: AssetForSavings[], estate: EstateData
     p.eur += m.eur;
     if (m.estimated) p.estimatedEur += m.eur;
     providers.set(vendor, p);
-    systems.push({ key: a.id, label: a.name, eur: m.eur, estimatedEur: m.estimated ? m.eur : 0, href: `/assets/${a.id}`, note: isUsageBased(a) ? "Usage-based" : "Subscription" });
+    systems.push({ key: a.id, label: a.name, eur: m.eur, estimatedEur: m.estimated ? m.eur : 0, href: `/estate/${a.id}`, note: isUsageBased(a) ? "Usage-based" : "Subscription" });
   }
 
   // Per modello: costo di ogni AI system ripartito sui modelli che usa (quota d'uso; senza quota, in parti uguali).

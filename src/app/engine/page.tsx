@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import PublicHeader from "@/components/PublicHeader";
 import { currentSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { networkStats } from "@/lib/engine/price-index";
 import ScoreMock from "@/components/engine/marketing/ScoreMock";
 import ForecastCard, { type ForecastCardProps } from "@/components/engine/ForecastCard";
@@ -20,7 +21,9 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "angar Engine — the intelligence layer for company AI",
-  description: "angar Score, AI Price Index, spend forecasts and a savings Autopilot proven on real bills. Built in the EU, anonymous by design.",
+  description: "Angar Score, AI Price Index, spend forecasts and a savings Autopilot proven on real bills. Built in the EU, anonymous by design.",
+  // Pagina marketing con dati di esempio: fuori dall'indice (potrà passare al sito).
+  robots: { index: false },
 };
 
 // Esempi illustrativi (mai dati di clienti): servono a mostrare le card vere dell'Engine.
@@ -58,7 +61,9 @@ const mailto = (subject: string) => `mailto:${process.env.SALES_EMAIL ?? ""}?sub
 // Pagina pubblica dell'angar Engine per investitori, aziende e partner.
 // Numeri della rete solo aggregati e anonimi (null sotto le 5 aziende: non si mostrano).
 export default async function EnginePage() {
-  const signedIn = Boolean(currentSession());
+  // Solo pubblica: dentro l'app (dati di esempio) non si mostra, si torna all'Overview.
+  if (currentSession()) redirect("/");
+  const signedIn = false;
   const net = await networkStats().catch(() => null);
   // Fatti del catalogo: dal codice, anche se la rete non risponde.
   const catalog = net?.catalog ?? { aiServices: AI_SERVICES.length, pricedPlans: PLANS.length, pricedServices: new Set(PLANS.map((p) => p.service)).size, apiModels: API_MODELS.length, pricesAsOf: PRICES_AS_OF };
@@ -106,7 +111,7 @@ export default async function EnginePage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href={signedIn ? "/score" : "/signup"} className="btn btn-primary h-10 px-4">
-                {signedIn ? "See your angar Score" : "Get your angar Score"}
+                {signedIn ? "See your Angar Score" : "Get your Angar Score"}
               </Link>
               <a href={mailto("angar Engine — partnership")} className="btn btn-secondary h-10 px-4">
                 Talk to us
@@ -156,7 +161,7 @@ export default async function EnginePage() {
         <section className="flex flex-col gap-8">
           <Heading kicker="Four engines" title="From raw charges to decisions." />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <EngineCard id="engine-score" n="01" name="angar Score" title="One number for AI spend efficiency." text="0–100 across five dimensions: spend visibility, license utilization, tool efficiency, consumption efficiency and savings opportunity. Ratios only — spending less never scores higher. Every point is explained, and each fix shows the points it gains.">
+            <EngineCard id="engine-score" n="01" name="Angar Score" title="One number for AI spend efficiency." text="0–100 across five dimensions: spend visibility, license utilization, tool efficiency, consumption efficiency and savings opportunity. Ratios only — spending less never scores higher. Every point is explained, and each fix shows the points it gains.">
               <ScoreMock compact />
             </EngineCard>
 
@@ -247,11 +252,11 @@ export default async function EnginePage() {
             }}
           />
           <div className="relative flex flex-col items-center gap-5">
-            <h2 className="font-display text-[28px] sm:text-[34px] leading-tight font-semibold tracking-tight text-ink-100 max-w-2xl">See your angar Score in minutes.</h2>
+            <h2 className="font-display text-[28px] sm:text-[34px] leading-tight font-semibold tracking-tight text-ink-100 max-w-2xl">See your Angar Score in minutes.</h2>
             <p className="text-sm sm:text-base text-ink-400 max-w-md">Drop one bank statement — nothing to install.</p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link href={signedIn ? "/score" : "/signup"} className="btn btn-primary h-10 px-4">
-                {signedIn ? "See your angar Score" : "Get your angar Score"}
+                {signedIn ? "See your Angar Score" : "Get your Angar Score"}
               </Link>
               <a href={mailto("angar Engine — partnership")} className="btn btn-secondary h-10 px-4">
                 Partner with us

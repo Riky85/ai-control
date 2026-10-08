@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { PageHeader, Tabs } from "@/components/ui";
 import ComputersView from "./ComputersView";
-import OtherWaysView from "./OtherWaysView";
+import { redirect } from "next/navigation";
 import CopyButton from "@/components/CopyButton";
 import { Wordmark } from "@/components/Logo";
 import { ensureWorkspaceToken } from "@/lib/discovery/ingest";
@@ -17,12 +17,12 @@ export const dynamic = "force-dynamic";
 const VIEWS = [
   { key: "download", label: "Download" },
   { key: "computers", label: "Computers" },
-  { key: "other", label: "Other ways" },
 ] as const;
 
-// Area "Desktop app": download, computer collegati e altri modi di trovare le AI
-// (prima tre pagine: /download, /computers, /discover).
-export default async function DownloadPage({ searchParams }: { searchParams: { view?: string } }) {
+// Area "Desktop app": download e computer collegati (prima /download e /computers).
+// Gli altri modi di trovare le AI (prima ?view=other) sono in Connect → /connect/other.
+export default async function DownloadPage({ searchParams }: { searchParams: { view?: string; error?: string } }) {
+  if (searchParams.view === "other") redirect(`/connect/other${searchParams.error ? `?error=${encodeURIComponent(searchParams.error)}` : ""}`);
   const s = currentSession()!;
   const view = VIEWS.some((v) => v.key === searchParams.view) ? searchParams.view! : "download";
   const h = headers();
@@ -63,13 +63,6 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
       <div className="flex flex-col gap-6">
         {header}
         <ComputersView orgId={s.orgId} />
-      </div>
-    );
-  if (view === "other")
-    return (
-      <div className="flex flex-col gap-6">
-        {header}
-        <OtherWaysView orgId={s.orgId} base={base} token={token} joinUrl={joinUrl} canEdit={s.role !== "VIEWER"} canAdmin={s.role === "ADMIN" || s.role === "OWNER"} />
       </div>
     );
 

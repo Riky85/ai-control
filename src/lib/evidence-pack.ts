@@ -26,6 +26,7 @@ const SOURCE_LABEL: Record<string, string> = {
   FATTURE_IN_CLOUD: "Invoices",
   bank: "Bank statement",
   invoice: "Invoices",
+  check: "Spend check",
   cloud: "Cloud billing",
   AZURE_OPENAI: "Azure Cost Management",
   AWS_BEDROCK: "AWS Cost Explorer",

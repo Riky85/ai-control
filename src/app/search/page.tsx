@@ -71,7 +71,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       {ai.length > 0 && (
         <Group title="AI systems">
           {ai.map(({ a }) => (
-            <Link key={a.id} href={`/assets/${a.id}`} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.02] transition-colors">
+            <Link key={a.id} href={`/estate/${a.id}`} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.02] transition-colors">
               <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={26} />
               <span className="font-medium text-ink-100 truncate min-w-0">{a.name}</span>
               {a.vendor && <span className="text-ink-400 truncate min-w-0">· {a.vendor}</span>}

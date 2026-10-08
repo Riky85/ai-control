@@ -38,33 +38,38 @@ export const AREAS: Area[] = [
       { href: "/estate", label: "List", match: ["/assets"] },
       { href: "/estate/graph", label: "Graph", match: [] },
       { href: "/providers", label: "Providers", match: [] },
-      { href: "/review", label: "To review", match: [] },
-      { href: "/market", label: "Market changes", match: [] },
+      { href: "/review", label: "To review", match: ["/approvals"] },
+      { href: "/estate/requests", label: "Requests", match: [] },
+      { href: "/estate/access", label: "App access", match: [] },
     ],
   },
-  // Spend: quanto costa e perché (spec §16). Budget, uso, abbonamenti e listino come schede.
+  // Spend: quanto costa e perché (spec §16). Budget, uso, abbonamenti, rinnovi, listino e cambi di prezzo come schede.
   {
     key: "spend",
     label: "Spend",
     href: "/spend",
     icon: "report",
     tabs: [
-      { href: "/spend", label: "Overview", match: ["/report"] },
+      // "Summary" e non "Overview", per non confondersi con l'Overview principale.
+      { href: "/spend", label: "Summary", match: ["/report"] },
       { href: "/budgets", label: "Budgets", match: [] },
       { href: "/usage", label: "Usage", match: ["/people"] },
       { href: "/spend/subscriptions", label: "Subscriptions", match: [] },
+      { href: "/spend/renewals", label: "Renewals", match: [] },
       { href: "/catalog", label: "Price list", match: [] },
+      // Cambi di prezzo e ritiri del mercato (prima scheda di AI Estate): l'URL resta /market.
+      { href: "/market", label: "Price changes", match: [] },
     ],
   },
-  // Opportunities: il motore decisionale (prima Savings) e l'Impact simulator.
+  // Opportunities: il motore decisionale (prima Savings; Advisor e "Improve my score" sono sue viste) e l'Impact simulator.
   {
     key: "opportunities",
     label: "Opportunities",
     href: "/opportunities",
     icon: "savings",
     tabs: [
-      { href: "/opportunities", label: "Opportunities", match: ["/savings", "/advisor", "/simulate", "/negotiate", "/contracts"] },
-      { href: "/impact", label: "Impact simulator", match: [] },
+      { href: "/opportunities", label: "Opportunities", match: ["/savings", "/advisor", "/negotiate", "/contracts"] },
+      { href: "/impact", label: "Impact simulator", match: ["/simulate"] },
     ],
   },
   {
@@ -74,14 +79,29 @@ export const AREAS: Area[] = [
     icon: "connectors",
     tabs: [{ href: "/connect", label: "Connect", match: ["/connect", "/sources", "/connectors", "/download", "/computers", "/discover", "/edge", "/gateway"] }],
     children: [
-      { href: "/sources", label: "Sources", match: ["/sources", "/discover"] },
+      { href: "/sources", label: "Sources", match: ["/sources"] },
       { href: "/connectors", label: "AI provider keys", match: ["/connectors"] },
       { href: "/download", label: "Desktop app", match: ["/download", "/computers"] },
       { href: "/edge/sensors", label: "angar Edge", match: ["/edge"] },
       { href: "/gateway", label: "Gateway", match: ["/gateway"] },
+      { href: "/connect/other", label: "Other ways", match: ["/connect/other", "/discover"] },
     ],
   },
-  { key: "governance", label: "Governance", href: "/governance", icon: "assurance", secondary: true, tabs: [{ href: "/governance", label: "Governance", match: ["/governance", "/compliance", "/data", "/activity", "/changes", "/audit", "/policies", "/approvals", "/assurance", "/evidence"] }] },
+  // Governance: schede vere, così ogni sotto-pagina mostra la barra.
+  {
+    key: "governance",
+    label: "Governance",
+    href: "/governance",
+    icon: "assurance",
+    secondary: true,
+    tabs: [
+      { href: "/governance", label: "Overview", match: ["/policies", "/assurance"] },
+      { href: "/governance/register", label: "Register", match: [] },
+      { href: "/compliance", label: "Compliance", match: [] },
+      { href: "/data", label: "Data", match: [] },
+      { href: "/activity", label: "Activity", match: ["/changes", "/audit", "/evidence"] },
+    ],
+  },
 ];
 
 /** Impostazioni: nel menu utente, stesse schede in alto. */

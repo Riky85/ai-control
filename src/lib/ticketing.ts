@@ -92,7 +92,7 @@ export function normaliseServiceNowInstance(raw: string): string | null {
 
 export const isProjectKey = (k: string) => /^[A-Z][A-Z0-9_]{1,19}$/.test(k);
 
-const KIND_LABEL: Record<string, string> = { policy: "AI not allowed in use", anomaly: "Spend anomaly", secret: "Leaked AI key" };
+const KIND_LABEL: Record<string, string> = { policy: "AI not allowed in use", anomaly: "Spend anomaly", secret: "Leaked AI key", opportunity: "Opportunity", request: "AI system request", access: "App access" };
 
 function summaryOf(a: TicketAlert) {
   return `[angar] ${a.title}`.replace(/[\r\n]+/g, " ").slice(0, 250);
@@ -290,4 +290,62 @@ export async function sendTestTicket(organizationId: string, provider: TicketPro
   const r = await openWith(row, a, false);
   await record(row, organizationId, r, a, "ticket.test");
   return r;
+}
+
+// ── Eventi dalle pagine (Opportunities "Act", richieste, accessi) ───────────
+
+/** Strumento di ticketing collegato (il primo: Jira prima di ServiceNow), o null. */
+export async function connectedTicketing(organizationId: string): Promise<{ provider: TicketProvider; label: string } | null> {
+  const rows = await db.connector
+    .findMany({ where: { organizationId, provider: { in: TICKET_PROVIDERS }, status: "CONNECTED", credentialsEncrypted: { not: null } }, select: { provider: true } })
+    .catch(() => [] as { provider: string }[]);
+  const p = (TICKET_PROVIDERS as string[]).find((x) => rows.some((r) => r.provider === x)) as TicketProvider | undefined;
+  return p ? { provider: p, label: p === "JIRA" ? "Jira" : "ServiceNow" } : null;
+}
+
+export interface TicketEvent {
+  /** "opportunity" | "request" | "access" | … (va nel tipo del ticket). */
+  kind: string;
+  title: string;
+  body: string;
+  /** URL completo in angar (o null). */
+  url: string | null;
+  /** Stessa chiave → stesso ticket (si cerca prima di crearne un altro). */
+  dedupeKey: string;
+  severity?: "warning" | "critical";
+}
+
+/**
+ * Ticket su richiesta di una persona (es. "Act → Create a ticket" in Opportunities), senza il
+ * filtro di shouldTicket. Cerca prima un ticket con lo stesso riferimento, così due clic non
+ * aprono due ticket. Non lancia mai; l'esito finisce nel registro di audit.
+ */
+export async function ticketForEvent(organizationId: string, e: TicketEvent, actorEmail: string | null): Promise<TicketResult & { provider?: TicketProvider }> {
+  try {
+    const tool = await connectedTicketing(organizationId);
+    if (!tool) return { ok: false, error: "Connect Jira or ServiceNow first (Settings → Integrations)." };
+    const row = (await db.connector.findUnique({
+      where: { organizationId_provider: { organizationId, provider: tool.provider } },
+      select: { id: true, provider: true, credentialsEncrypted: true },
+    })) as Row | null;
+    if (!row?.credentialsEncrypted) return { ok: false, error: `${tool.label} isn't connected.` };
+    const a: TicketAlert = { kind: e.kind, severity: e.severity ?? "warning", title: e.title, body: e.body, url: e.url, dedupeKey: e.dedupeKey.slice(0, 300) };
+    const k = `${organizationId}:${row.provider}:${a.dedupeKey}`;
+    if (inflight.has(k)) return { ok: false, error: "A ticket for this is being created — try again in a moment." };
+    inflight.add(k);
+    try {
+      const r = await openWith(row, a, true);
+      const res = await db.connector
+        .update({ where: { id: row.id }, data: r.ok ? { lastSyncedAt: new Date(), lastSyncError: null } : { lastSyncError: r.error.slice(0, 500) } })
+        .then(() => r)
+        .catch(() => r);
+      await audit(r.ok ? "ticket.created" : "ticket.failed", r.ok ? r.key : a.title.slice(0, 120), { provider: row.provider, kind: a.kind, ok: r.ok, ...(r.ok ? { existing: !!r.existing } : { error: r.error.slice(0, 200) }) }, { orgId: organizationId, actorEmail });
+      return { ...res, provider: row.provider };
+    } finally {
+      inflight.delete(k);
+    }
+  } catch (err) {
+    console.error("[ticketing] event failed", organizationId, (err as Error).message);
+    return { ok: false, error: "The ticket couldn't be created." };
+  }
 }

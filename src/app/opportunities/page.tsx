@@ -7,11 +7,14 @@ import { answerGoal, estateProviders, isGoal, retiringModels, type GoalAnswer } 
 import { loadImpactContext } from "@/lib/impact";
 import { savedSoFar } from "@/lib/savings-ledger";
 import { contractRows, NOTICE_ALERT_DAYS } from "@/lib/contracts";
-import { subscriptionRows } from "@/lib/pricing/subscriptions";
+import { redirect } from "next/navigation";
+import { computeScoreCached, scoreActions } from "@/lib/engine/score";
+import ImproveView from "@/components/engine/ImproveView";
+import StackAdvice from "@/components/opportunities/StackAdvice";
 import { fmtEur } from "@/lib/format";
 import AutopilotPanel, { loadAutopilotPanel } from "@/components/engine/AutopilotPanel";
 import OpportunitiesView, { parseView, StateProgress } from "@/components/opportunities/OpportunitiesView";
-import { ComingRenewals, Contracts, Progress, Subscriptions } from "@/components/opportunities/SavingsViews";
+import { ComingRenewals, Contracts, Progress } from "@/components/opportunities/SavingsViews";
 import { upcomingRenewals } from "@/lib/renewals";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +24,8 @@ type SP = { view?: string; cat?: string; open?: string; goal?: string; target?: 
 // Opportunities = il motore decisionale: tutte le cose da cambiare (risparmi, dipendenze, mercato, dati),
 // con obiettivi in cima. Sostituisce /savings (che rimanda qui con le stesse schede).
 export default async function OpportunitiesPage({ searchParams }: { searchParams: SP }) {
+  // Gli abbonamenti ora stanno solo in Spend: il vecchio link della scheda rimanda lì.
+  if (searchParams.view === "subscriptions") redirect("/spend/subscriptions");
   const orgId = currentOrgId();
   const role = currentSession()?.role ?? "VIEWER";
   const view = parseView(searchParams.view);
@@ -60,7 +65,11 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
         <Contracts rows={contracts} />
       </>
     );
-  if (view === "subscriptions") tab = <Subscriptions rows={await subscriptionRows(orgId)} />;
+  if (view === "score") {
+    const result = await computeScoreCached(orgId);
+    tab = <ImproveView result={result} plan={scoreActions(result.facts, result)} embedded />;
+  }
+  if (view === "stack") tab = <StackAdvice orgId={orgId} />;
   if (view === "autopilot") tab = <AutopilotPanel {...await loadAutopilotPanel(orgId)} />;
 
   return (

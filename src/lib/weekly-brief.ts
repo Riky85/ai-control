@@ -5,7 +5,7 @@
  *  - una AI nuova da approvare / non consentire (costo e persone che la usano),
  *  - il risparmio più grande da accettare (pesato per confidenza),
  *  - un'anomalia (prezzo, posti, spesa) o un'AI non consentita ancora in uso,
- *  - il calo dell'angar Score con la correzione che fa guadagnare di più,
+ *  - il calo dell'Angar Score con la correzione che fa guadagnare di più,
  *  - un cambiamento del mercato AI che tocca l'estate (prezzo, deprecazione, ritiro: market/).
  * Il "valore" è un numero deterministico in € equivalenti (vedi VALUE): nessun
  * LLM. Prima passata una decisione per tipo (varietà), poi le migliori rimaste.
@@ -89,7 +89,7 @@ export function reviewCandidates(assets: ReviewInput[]): DecisionCandidate[] {
       title: `New AI to decide: ${a.name}`,
       detail: bits.join(" · "),
       value: VALUE.reviewBase + (a.monthlyEur ?? 0) + VALUE.reviewEachActive * a.activeUsers,
-      href: `/assets/${a.id}`,
+      href: `/estate/${a.id}`,
     };
   });
 }
@@ -119,7 +119,7 @@ export function policyCandidates(assets: { id: string; name: string }[]): Decisi
     title: `${a.name} is not allowed but still in use`,
     detail: "Seen in the last 7 days. Block it on the network, tell the team, or allow it if it's needed.",
     value: VALUE.policy,
-    href: `/assets/${a.id}`,
+    href: `/estate/${a.id}`,
   }));
 }
 
@@ -156,7 +156,7 @@ export function scoreCandidate(s: ScoreInput): DecisionCandidate[] {
     return [{
       kind: "score",
       id: "score",
-      title: `angar Score down ${Math.round(drop)} points to ${s.score} (${s.grade})`,
+      title: `Angar Score down ${Math.round(drop)} points to ${s.score} (${s.grade})`,
       detail: fix || "Open the Score to see what changed.",
       value: VALUE.scoreDropBase + drop * VALUE.scoreDropEachPoint,
       href: s.top?.href ?? "/score",
@@ -166,7 +166,7 @@ export function scoreCandidate(s: ScoreInput): DecisionCandidate[] {
     return [{
       kind: "score",
       id: "score",
-      title: `Raise your angar Score (${s.score}, ${s.grade})`,
+      title: `Raise your Angar Score (${s.score}, ${s.grade})`,
       detail: fix,
       value: Math.abs(s.top.scoreImpact) * VALUE.scoreFixEachPoint,
       href: s.top.href,
@@ -375,7 +375,7 @@ export async function loadBrief(orgId: string, now = new Date()) {
     ...(result
       ? (() => {
           const best = score.scoreActions(result.facts, result).best;
-          return scoreCandidate({ score: result.score, grade: result.levelLabel, previous: prev?.score ?? null, top: best && best.points > 0 ? { label: best.title, scoreImpact: best.points, href: "/score/improve" } : null });
+          return scoreCandidate({ score: result.score, grade: result.levelLabel, previous: prev?.score ?? null, top: best && best.points > 0 ? { label: best.title, scoreImpact: best.points, href: "/opportunities?view=score" } : null });
         })()
       : []),
   ];

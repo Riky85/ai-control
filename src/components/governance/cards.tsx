@@ -15,7 +15,7 @@ export interface Holdback {
   pts: number;
 }
 
-/** Testata: indice di governance (non fa parte dell'angar Score) + prontezza AI Act, e cosa li tiene giù. */
+/** Testata: indice di governance (non fa parte dell'Angar Score) + prontezza AI Act, e cosa li tiene giù. */
 export function GovernanceHeader({ governance, readiness, holds }: { governance: number | null; readiness: number; holds: Holdback[] }) {
   return (
     <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="gov-readiness-title">
@@ -74,7 +74,7 @@ export function DecisionsCard({ d }: { d: DecisionsData }) {
       : d.review > 0
         ? { href: "/review", label: `Review ${d.review} AI` }
         : d.noOwner > 0
-          ? { href: "/assets", label: `Give ${d.noOwner} allowed AI an owner` }
+          ? { href: "/estate", label: `Give ${d.noOwner} allowed AI an owner` }
           : null;
   return (
     <Section
@@ -143,7 +143,7 @@ export function AiActCard({ d }: { d: AiActData }) {
     d.tiers.UNCLASSIFIED > 0
       ? { href: "/compliance", label: `Classify ${d.tiers.UNCLASSIFIED} AI` }
       : d.missingOwners > 0
-        ? { href: "/assets", label: `Give ${d.missingOwners} AI an owner` }
+        ? { href: "/estate", label: `Give ${d.missingOwners} AI an owner` }
         : !d.literacyRecorded
           ? { href: "/compliance", label: "Record AI literacy training" }
           : null;

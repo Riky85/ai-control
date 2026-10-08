@@ -21,7 +21,7 @@ import { createAlert, postToChat } from "@/lib/alerts";
 import { fmtDate, fmtEur } from "@/lib/format";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 import { MANAGE_URL } from "@/lib/pricing/catalog";
-import { computeSavingsCached, serviceOf, type Saving } from "@/lib/savings";
+import { canonicalSavingKey, computeSavingsCached, savingKeyFilters, serviceOf, type Saving } from "@/lib/savings";
 import { ledgerKindOf, ledgerAssetOf } from "@/lib/savings-ledger";
 import { supportOf, type SeatRemovalSupport } from "@/lib/seat-removal";
 import type { AutopilotTask, ConnectorProvider, Prisma } from "@prisma/client";
@@ -74,7 +74,7 @@ type PlanSaving = Pick<Saving, "key" | "kind" | "title" | "assets">;
 type AssetRef = Saving["assets"][number];
 
 /** Pagina di fatturazione del fornitore, altrimenti la scheda dell'AI in angar. */
-export const billingUrl = (a: Pick<AssetRef, "id" | "serviceId">) => (a.serviceId && MANAGE_URL[a.serviceId]) || `/assets/${a.id}`;
+export const billingUrl = (a: Pick<AssetRef, "id" | "serviceId">) => (a.serviceId && MANAGE_URL[a.serviceId]) || `/estate/${a.id}`;
 
 const verifyStep = (s: PlanSaving): AutopilotStep => ({ id: "verify", label: "Verify on the next bills", auto: true, done: false, ref: ledgerAssetOf(s) ?? undefined });
 
@@ -119,14 +119,14 @@ export function planFor(saving: PlanSaving, ctx: PlanContext): AutopilotStep[] {
       steps.push({ id: "downgrade", label: "Move light users to the standard plan", auto: false, done: false, ref: a.id, href: billingUrl(a) });
       break;
     case "model":
-      steps.push({ id: "route", label: "Route simple requests to the cheaper model", auto: false, done: false, ref: a.id, href: `/assets/${a.id}`, detail: "Test on real prompts first" });
+      steps.push({ id: "route", label: "Route simple requests to the cheaper model", auto: false, done: false, ref: a.id, href: `/estate/${a.id}`, detail: "Test on real prompts first" });
       break;
     case "idle":
       steps.push({ id: "notify", label: `Ask the team if anyone still uses ${a.name}`, auto: true, done: false, ref: a.id });
       steps.push({ id: "cancel", label: `Cancel ${a.name}`, auto: false, done: false, ref: a.id, href: billingUrl(a) });
       break;
     case "alternative":
-      steps.push({ id: "migrate", label: "Test it on real work, then switch", auto: false, done: false, ref: a.id, href: `/assets/${a.id}` });
+      steps.push({ id: "migrate", label: "Test it on real work, then switch", auto: false, done: false, ref: a.id, href: `/estate/${a.id}` });
       break;
   }
   steps.push(verifyStep(saving));
@@ -244,24 +244,32 @@ export async function syncAutopilot(organizationId: string) {
 
 type TaskRow = AutopilotTask;
 
-/** Riga "accepted" nel registro, così la verifica sugli addebiti funziona. Idempotente. */
+/** Lock su azienda + chiave canonica (stesso schema di opportunities/actions.ts): niente righe doppie. */
+const lockSaving = (tx: Prisma.TransactionClient, orgId: string, key: string) => tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`saving:${orgId}:${canonicalSavingKey(key)}`}::text))`;
+/** Righe del registro con la stessa chiave (anche nelle forme vecchie dei doppioni). */
+const sameKey = (key: string) => savingKeyFilters(key).map((k) => ({ savingKey: k }));
+
+/** Riga "accepted" nel registro, così la verifica sugli addebiti funziona. Idempotente (lock + controllo nella transazione). */
 async function ensureLedgerRow(task: TaskRow, by: string) {
-  const existing = await db.savingAction.findFirst({ where: { organizationId: task.organizationId, savingKey: task.savingKey, status: { not: "failed" } } });
-  if (existing) return existing;
-  const verify = stepsOf(task.steps).find((s) => s.id === "verify");
-  return db.savingAction.create({
-    data: {
-      organizationId: task.organizationId,
-      assetId: verify?.ref ?? null,
-      kind: ledgerKindOf(task.kind as Saving["kind"]),
-      title: task.title.slice(0, 200),
-      expectedMonthlyEur: round2(task.expectedMonthlyEur),
-      status: "accepted",
-      savingKey: task.savingKey,
-      acceptedAt: new Date(),
-      createdBy: by,
-      note: "Approved in Autopilot",
-    },
+  return db.$transaction(async (tx) => {
+    await lockSaving(tx, task.organizationId, task.savingKey);
+    const existing = await tx.savingAction.findFirst({ where: { organizationId: task.organizationId, OR: sameKey(task.savingKey), status: { not: "failed" } } });
+    if (existing) return existing;
+    const verify = stepsOf(task.steps).find((s) => s.id === "verify");
+    return tx.savingAction.create({
+      data: {
+        organizationId: task.organizationId,
+        assetId: verify?.ref ?? null,
+        kind: ledgerKindOf(task.kind as Saving["kind"]),
+        title: task.title.slice(0, 200),
+        expectedMonthlyEur: round2(task.expectedMonthlyEur),
+        status: "accepted",
+        savingKey: task.savingKey,
+        acceptedAt: new Date(),
+        createdBy: by,
+        note: "Approved in Autopilot",
+      },
+    });
   });
 }
 
@@ -288,34 +296,38 @@ async function verificationOf(task: TaskRow): Promise<{ state: "pending" | "veri
 
 /** Tutti i passi (tranne la verifica) sono fatti: il registro passa a "done". */
 async function closeLedger(task: TaskRow, removedSeats: number, nothingToRemove: boolean) {
-  const row = await db.savingAction.findFirst({ where: { organizationId: task.organizationId, savingKey: task.savingKey, status: { not: "failed" } } });
-  if (task.kind === "seats" && removedSeats > 0) {
-    // Ogni posto tolto ha già la sua riga "done": quella complessiva si toglie per non contare due volte.
-    if (row?.status === "accepted") await db.savingAction.delete({ where: { id: row.id } });
-    return;
-  }
-  if (task.kind === "seats" && nothingToRemove) {
-    if (row?.status === "accepted") await db.savingAction.update({ where: { id: row.id }, data: { status: "failed", note: "Everyone still needs their seat" } });
-    return;
-  }
-  if (row?.status === "accepted") await db.savingAction.update({ where: { id: row.id }, data: { status: "done", doneAt: new Date() } });
-  else if (!row) {
-    const verify = stepsOf(task.steps).find((s) => s.id === "verify");
-    await db.savingAction.create({
-      data: {
-        organizationId: task.organizationId,
-        assetId: verify?.ref ?? null,
-        kind: ledgerKindOf(task.kind as Saving["kind"]),
-        title: task.title.slice(0, 200),
-        expectedMonthlyEur: round2(task.expectedMonthlyEur),
-        status: "done",
-        savingKey: task.savingKey,
-        doneAt: new Date(),
-        createdBy: task.approvedBy ?? AUTO_ACTOR,
-        note: "Done in Autopilot",
-      },
-    });
-  }
+  await db.$transaction(async (tx) => {
+    // Lock + lettura nella transazione: due chiusure insieme non creano due righe "done".
+    await lockSaving(tx, task.organizationId, task.savingKey);
+    const row = await tx.savingAction.findFirst({ where: { organizationId: task.organizationId, OR: sameKey(task.savingKey), status: { not: "failed" } } });
+    if (task.kind === "seats" && removedSeats > 0) {
+      // Ogni posto tolto ha già la sua riga "done": quella complessiva si toglie per non contare due volte.
+      if (row?.status === "accepted") await tx.savingAction.delete({ where: { id: row.id } });
+      return;
+    }
+    if (task.kind === "seats" && nothingToRemove) {
+      if (row?.status === "accepted") await tx.savingAction.update({ where: { id: row.id }, data: { status: "failed", note: "Everyone still needs their seat" } });
+      return;
+    }
+    if (row?.status === "accepted") await tx.savingAction.update({ where: { id: row.id }, data: { status: "done", doneAt: new Date() } });
+    else if (!row) {
+      const verify = stepsOf(task.steps).find((s) => s.id === "verify");
+      await tx.savingAction.create({
+        data: {
+          organizationId: task.organizationId,
+          assetId: verify?.ref ?? null,
+          kind: ledgerKindOf(task.kind as Saving["kind"]),
+          title: task.title.slice(0, 200),
+          expectedMonthlyEur: round2(task.expectedMonthlyEur),
+          status: "done",
+          savingKey: task.savingKey,
+          doneAt: new Date(),
+          createdBy: task.approvedBy ?? AUTO_ACTOR,
+          note: "Done in Autopilot",
+        },
+      });
+    }
+  });
 }
 
 // ── Posti: stato delle domande ─────────────────────────────────────────────
@@ -374,7 +386,7 @@ async function runStep(task: TaskRow, step: AutopilotStep, org: { autoRemoveSeat
         severity: "warning",
         title: next ? `Switch to yearly billing before ${fmtDate(next.date)}` : "Switch to yearly billing",
         body: `${task.title}. Saves ${fmtEur(task.expectedMonthlyEur)} a month.`,
-        href: `/assets/${step.ref}`,
+        href: `/estate/${step.ref}`,
         dedupeKey: `autopilot-remind:${task.id}`,
       });
       return { state: "done", detail: next ? `Renews ${fmtDate(next.date)}` : "Reminder sent" };

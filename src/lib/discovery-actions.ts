@@ -7,10 +7,11 @@ import { requireRole } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { domainsFromText, ingestFindings, newDiscoveryToken } from "@/lib/discovery/ingest";
 import { revokeDesktopTokens } from "@/lib/discovery/desktop-tokens";
+import { revalidateOrgSetup } from "@/lib/layout-data";
 
 /** Nuovo token per lo scanner: il precedente smette di funzionare. Mostrato una sola volta. */
 export async function createDiscoveryTokenAction(): Promise<{ token: string; hint: string }> {
-  const s = await requireRole("ADMIN", "/download?view=other");
+  const s = await requireRole("ADMIN", "/connect/other");
   const t = newDiscoveryToken();
   const { encryptJson } = await import("@/lib/crypto");
   await db.organization.update({ where: { id: s.orgId }, data: { discoveryTokenHash: t.hash, discoveryTokenHint: t.hint, discoveryTokenEncrypted: encryptJson({ token: t.token }) } });
@@ -19,12 +20,13 @@ export async function createDiscoveryTokenAction(): Promise<{ token: string; hin
 }
 
 export async function revokeDiscoveryTokenAction() {
-  const s = await requireRole("ADMIN", "/download?view=other");
+  const s = await requireRole("ADMIN", "/connect/other");
   await db.organization.update({ where: { id: s.orgId }, data: { discoveryTokenHash: null, discoveryTokenHint: null, discoveryTokenEncrypted: null, joinCode: null } });
   // Anche i token delle singole installazioni dell'app desktop.
   await revokeDesktopTokens(s.orgId);
   await audit("discovery.token_revoked");
   revalidatePath("/download");
+  revalidatePath("/connect/other");
 }
 
 /**
@@ -35,7 +37,7 @@ export async function revokeDiscoveryTokenAction() {
  */
 export async function uploadNetworkLogAction(formData: FormData) {
   const from = String(formData.get("back") ?? "");
-  const backTo = from === "/connectors" ? "/connectors" : "/download?view=other";
+  const backTo = from === "/connectors" ? "/connectors" : "/connect/other";
   const anchor = backTo === "/connectors" ? "#network-logs" : "#network";
   // Su /connectors l'errore resta accanto al modulo di caricamento (logerror), non nel messaggio globale.
   const key = backTo === "/connectors" ? "logerror" : "error";
@@ -72,6 +74,7 @@ export async function uploadNetworkLogAction(formData: FormData) {
     services = (await ingestFindings(s.orgId, `Network log · ${names}`.slice(0, 120), findings)).length;
   }
   await audit("discovery.log_upload", names, { lines: r.lines, aiLines: r.aiLines, services, formats: Object.keys(r.formats) });
+  revalidateOrgSetup(s.orgId);
   revalidatePath("/", "layout");
   const fmt = Object.entries(r.formats)
     .sort((a, b) => b[1] - a[1])

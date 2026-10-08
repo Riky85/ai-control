@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { checkSpendAction, type CheckResult } from "@/lib/check-actions";
 import { VendorBadge } from "@/components/VendorIcon";
 import EmailReport from "@/components/check/EmailReport";
-import { saveSnapshot, type CheckSnapshot } from "@/components/check/report-data";
+import { saveSnapshot, CHECK_MAX_CHARGES, type CheckSnapshot } from "@/components/check/report-data";
 
 const eur = (n: number) => "€" + Math.round(n).toLocaleString("en-GB");
 
@@ -12,17 +12,27 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
   const [result, setResult] = useState<CheckResult | null>(null);
   const [names, setNames] = useState<string>("");
   const [pending, start] = useTransition();
-  // Riepilogo aggregato per il report PDF e l'email (mai le righe dell'estratto conto).
-  const snapshot: CheckSnapshot | null = result?.ok
-    ? {
-        createdAt: new Date().toISOString(),
-        months: result.months,
-        spend: result.report.spend,
-        save: result.report.save,
-        lines: result.report.lines.map(({ service, name, vendor, category, plan, seats, monthlyEur }) => ({ service, name, vendor, category, plan, seats, monthlyEur })),
-        savings: result.report.savings,
-      }
-    : null;
+  // Riepilogo per il report PDF e l'email, più gli addebiti AI normalizzati (mai il file né le righe
+  // non AI): resta nel browser e, dopo la registrazione, si può importare nel workspace.
+  const snapshot: CheckSnapshot | null = useMemo(
+    () =>
+      result?.ok
+        ? {
+            createdAt: new Date().toISOString(),
+            months: result.months,
+            spend: result.report.spend,
+            save: result.report.save,
+            lines: result.report.lines.map(({ service, name, vendor, category, plan, seats, monthlyEur }) => ({ service, name, vendor, category, plan, seats, monthlyEur })),
+            savings: result.report.savings,
+            charges: result.charges.slice(0, CHECK_MAX_CHARGES),
+          }
+        : null,
+    [result]
+  );
+  // Salvato subito: così "Create a free account" porta con sé il check.
+  useEffect(() => {
+    if (snapshot) saveSnapshot(snapshot);
+  }, [snapshot]);
 
   return (
     <div className="flex flex-col gap-10">
@@ -57,7 +67,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
         <button disabled={pending} className="btn btn-primary disabled:opacity-60">{pending ? "Reading…" : "Check my AI spend"}</button>
         <p className="text-xs text-ink-400">Bank or card exports, or e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X, Facturae).</p>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-ink-400">
-          <span>Only AI lines are looked at. Nothing is saved.</span>
+          <span>Only AI lines are looked at. Nothing is saved on our servers.</span>
           <a href="/api/spend/sample" className="underline hover:text-ink-100">Try a sample statement</a>
         </div>
       </form>
@@ -67,7 +77,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
       {result?.ok && (
         <div className="flex flex-col gap-6 animate-rise">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Big label="AI services you pay for" value={String(result.report.lines.length)} />
+            <Big label="AI systems you pay for" value={String(result.report.lines.length)} />
             <Big label="AI spend" value={`${eur(result.report.spend)}/mo`} hint={`${eur(result.report.spend * 12)} a year`} />
             <Big label="You could save" value={`${eur(result.report.save)}/mo`} hint={`${eur(result.report.save * 12)} a year`} accent />
           </div>

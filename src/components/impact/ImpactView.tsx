@@ -160,7 +160,7 @@ export default function ImpactView({
         title="Impact"
         subtitle="What happens if I change this?"
         action={
-          <Link href="/simulate" className="btn btn-ghost btn-sm">
+          <Link href="/impact?view=score" className="btn btn-ghost btn-sm">
             Score what if
           </Link>
         }

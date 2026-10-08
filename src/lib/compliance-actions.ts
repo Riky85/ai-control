@@ -15,10 +15,10 @@ const BACK = "/compliance";
 
 function refresh(assetIds: string[]) {
   revalidatePath(BACK);
-  revalidatePath("/assets");
+  revalidatePath("/estate");
   revalidatePath("/changes");
   revalidatePath("/governance");
-  for (const id of assetIds.slice(0, 50)) revalidatePath(`/assets/${id}`);
+  for (const id of assetIds.slice(0, 50)) revalidatePath(`/estate/${id}`);
 }
 
 // Stesso ricalcolo risk + assurance delle altre modifiche manuali (actions.ts),
