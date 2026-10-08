@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { Notice, PageHeader } from "@/components/ui";
+import { Notice, PageHeader, Switch } from "@/components/ui";
 import CsvDropzone from "@/components/CsvDropzone";
 import { uploadSpendAction, syncFattureInCloudAction, syncBankAction, syncAccountingAction } from "@/lib/spend-actions";
 import { fmtDate } from "@/lib/format";
@@ -60,7 +60,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
           <span className="min-w-0">
             <span className="text-ink-100 group-hover:underline" title="Plan, seats, price, renewal and notice from a contract, order form or invoice">Read a contract (PDF)</span>
           </span>
-          <span className="font-mono text-[12px] text-ink-400 group-hover:text-ink-100 shrink-0" aria-hidden>[→]</span>
+          <span className="font-mono text-xs text-ink-400 group-hover:text-ink-100 shrink-0" aria-hidden>[→]</span>
         </Link>
       </Card>
 
@@ -74,7 +74,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
             return (
             <SourceRow key={p.id} label={p.label} detail={email ? <EmailHistoryLine provider={p.id} view={email} /> : undefined}>
               {p.connected ? (
-                <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">Connected</span>
+                <span className="eyebrow !text-steady">Connected</span>
               ) : p.available ? (
                 workplaceEnabled ? <a href={p.connectUrl} className="btn btn-secondary btn-sm">Connect</a> : <LockedNote feature={p.id === "GOOGLE_WORKSPACE" ? "googleWorkspace" : p.id === "OKTA" ? "okta" : "microsoft365"} />
               ) : (
@@ -84,11 +84,11 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
             );
           })}
           <SourceRow label="AI provider keys" hint="OpenAI, Anthropic, Gemini, Azure OpenAI, Bedrock, Vertex AI…">
-            {keys.length > 0 && <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">{keys.length} connected</span>}
+            {keys.length > 0 && <span className="eyebrow !text-steady">{keys.length} connected</span>}
             <Link href="/connectors" className="btn btn-secondary btn-sm">{keys.length ? "Manage" : "Add a key"}</Link>
           </SourceRow>
           <SourceRow label="Network logs" hint="Cloudflare Gateway, Cisco Umbrella, Zscaler, Fortinet, DNS servers">
-            {networkLogs.length > 0 && <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">{networkLogs.length} connected</span>}
+            {networkLogs.length > 0 && <span className="eyebrow !text-steady">{networkLogs.length} connected</span>}
             <Link href="/connectors#network-logs" className="btn btn-secondary btn-sm">{networkLogs.length ? "Manage" : "Connect"}</Link>
           </SourceRow>
           <AutoRow label="Bank account" state={bankState} connectHref="/sources/bank" syncAction={syncBankAction} />
@@ -106,7 +106,7 @@ function Card({ title, status, children }: { title: string; status: string | nul
       {/* Barra grigia in alto: titolo e stato. */}
       <div className="-mx-5 -mt-5 flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
         <h2 className="text-sm font-bold text-ink-100">{title}</h2>
-        {status && <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">✓ {status}</span>}
+        {status && <span className="eyebrow !text-steady">✓ {status}</span>}
       </div>
       <div className="flex flex-col gap-3 mt-auto">{children}</div>
     </section>
@@ -148,16 +148,7 @@ function EmailHistoryLine({ provider, view }: { provider: string; view: EmailHis
       <form action={setEmailHistoryAction} className="shrink-0">
         <input type="hidden" name="provider" value={provider} />
         <input type="hidden" name="on" value={view.on ? "off" : "on"} />
-        <button
-          type="submit"
-          role="switch"
-          aria-checked={view.on}
-          aria-label="Email history"
-          title={view.on ? "Turn off email history" : "Turn on email history"}
-          className={`relative block h-5 w-9 rounded-full transition-colors ${view.on ? "bg-steady" : "bg-ink-400/40"}`}
-        >
-          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${view.on ? "left-[18px]" : "left-0.5"}`} />
-        </button>
+        <Switch on={view.on} aria-label="Email history" title={view.on ? "Turn off email history" : "Turn on email history"} className="!block" />
       </form>
     </div>
   );
@@ -170,7 +161,7 @@ function AutoRow({ label, hint, state, connectHref, syncAction }: { label: strin
     <SourceRow label={label} hint={hint}>
       {state === "connected" ? (
         <>
-          <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">Connected</span>
+          <span className="eyebrow !text-steady">Connected</span>
           <form action={syncAction}>
             <button className="btn btn-secondary btn-sm">Sync now</button>
           </form>

@@ -86,14 +86,14 @@ export default function GoalBox({
               <div className="rounded-lg border border-line overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 bg-ink">
-                      <th className="text-left font-normal px-4 py-2 w-8">#</th>
-                      <th className="text-left font-normal px-4 py-2">Step</th>
-                      <th className="text-right font-normal px-4 py-2 whitespace-nowrap">Change a month</th>
-                      <th className="text-left font-normal px-4 py-2">Effort</th>
-                      <th className="text-left font-normal px-4 py-2">Risk</th>
-                      <th className="text-left font-normal px-4 py-2">Confidence</th>
-                      <th className="px-4 py-2" />
+                    <tr className="bar-thead text-left font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 bg-ink border-b border-line">
+                      <th className="text-left font-normal px-4 py-2.5 w-8">#</th>
+                      <th className="text-left font-normal px-4 py-2.5">Step</th>
+                      <th className="text-right font-normal px-4 py-2.5 whitespace-nowrap">Change a month</th>
+                      <th className="text-left font-normal px-4 py-2.5">Effort</th>
+                      <th className="text-left font-normal px-4 py-2.5">Risk</th>
+                      <th className="text-left font-normal px-4 py-2.5">Confidence</th>
+                      <th className="px-4 py-2.5" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">

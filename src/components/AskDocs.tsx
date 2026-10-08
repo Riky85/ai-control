@@ -23,9 +23,11 @@ const SUGGESTIONS = ["How much do we spend on AI?", "Where can we save?", "How d
 // Pannello di aiuto (assistente + guide): si apre dal pulsante a libro in
 // alto a destra di ogni pagina (evento "angar:toggle-docs"), niente più
 // pulsante fluttuante sopra i contenuti. Esc per chiudere.
-export default function AskDocs({ docs }: { docs: DocLink[] }) {
+export default function AskDocs() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  // Indice delle guide: chiesto a /api/docs-index alla prima apertura (non più nel payload di ogni pagina).
+  const [docs, setDocs] = useState<DocLink[] | null>(null);
   const [tab, setTab] = useState<"ask" | "docs">("ask");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -49,6 +51,17 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
       window.removeEventListener("keydown", esc);
     };
   }, []);
+  useEffect(() => {
+    if (!open || docs) return;
+    let alive = true;
+    fetch("/api/docs-index")
+      .then((r) => (r.ok ? r.json() : { docs: [] }))
+      .then((j: { docs?: DocLink[] }) => alive && setDocs(Array.isArray(j.docs) ? j.docs : []))
+      .catch(() => alive && setDocs([]));
+    return () => {
+      alive = false;
+    };
+  }, [open, docs]);
   if (pathname.startsWith("/share")) return null;
 
   async function ask(text: string) {
@@ -71,7 +84,7 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
     }
   }
 
-  const shown = docs.filter((d) => `${d.title} ${d.summary}`.toLowerCase().includes(filter.toLowerCase()));
+  const shown = (docs ?? []).filter((d) => `${d.title} ${d.summary}`.toLowerCase().includes(filter.toLowerCase()));
 
   if (!open) return null;
 
@@ -150,6 +163,7 @@ export default function AskDocs({ docs }: { docs: DocLink[] }) {
                 <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search the docs" className="w-full border border-line rounded-lg px-3 py-2 text-sm text-ink-100 placeholder:text-ink-400 outline-none focus:border-ink-400" />
               </div>
               <div className="divide-y divide-line">
+                {docs === null && <div className="px-4 py-3 text-sm text-ink-400">Loading…</div>}
                 {shown.map((d) => (
                   <Link key={d.slug} href={`/docs/${d.slug}`} onClick={() => setOpen(false)} className="block px-4 py-3 hover:bg-ink-100/[0.02] transition-colors">
                     <div className="text-[11px] text-ink-400">{d.section}</div>

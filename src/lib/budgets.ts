@@ -4,7 +4,7 @@
  * numero inventato, solo il costo che già vediamo diviso per chi lo usa.
  */
 import { db } from "@/lib/db";
-import { monthlyOf } from "@/lib/savings";
+import { monthlyOf, assetCostInclude } from "@/lib/savings";
 import { createAlert } from "@/lib/alerts";
 
 export const UNASSIGNED = "Unassigned";
@@ -28,7 +28,7 @@ export async function departmentSpend(organizationId: string): Promise<Departmen
     // Stesso perimetro della spesa mostrata altrove (loadAssets): esclude le AI rifiutate.
     where: { organizationId, deletedAt: null, status: { not: "UNAPPROVED" } },
     include: {
-      cost: true,
+      ...assetCostInclude,
       usages: { select: { id: true, userId: true, externalUserRef: true, user: { select: { department: true } } } },
     },
   });
@@ -246,7 +246,7 @@ export async function teamValue(organizationId: string, now = new Date()) {
       type: true,
       serviceId: true,
       department: true,
-      cost: true,
+      ...assetCostInclude,
       usages: { select: { id: true, userId: true, externalUserRef: true, lastSeenAt: true, user: { select: { department: true } } } },
     },
   });

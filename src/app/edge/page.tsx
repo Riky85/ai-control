@@ -54,7 +54,7 @@ export default function EdgePage() {
             </span>
           </div>
           <div className="flex items-center gap-3 pt-1">
-            <Link href="/edge/sensors" className="btn btn-primary">
+            <Link href="/edge/sensors" className="btn btn-secondary">
               Set up a sensor
             </Link>
             <a href={requestHref} className="text-sm text-ink-400 hover:text-ink-100 underline">
@@ -201,7 +201,7 @@ export default function EdgePage() {
           <span className="text-sm text-ink-400">/device·mo</span>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Link href="/edge/sensors" className="btn btn-primary">
+          <Link href="/edge/sensors" className="btn btn-secondary">
             Set up a sensor
           </Link>
           <a href={requestHref} className="btn btn-secondary">
@@ -217,8 +217,8 @@ function Row({ k, a, b }: { k: string; a: string; b: string }) {
   return (
     <>
       <div className="px-3 py-1.5 border-b border-line eyebrow">{k}</div>
-      <div className="px-3 py-1.5 border-b border-line text-ink-100 text-[13px]">{a}</div>
-      <div className="px-3 py-1.5 border-b border-line text-ink-100 text-[13px]">{b}</div>
+      <div className="px-3 py-1.5 border-b border-line text-ink-100 text-sm">{a}</div>
+      <div className="px-3 py-1.5 border-b border-line text-ink-100 text-sm">{b}</div>
     </>
   );
 }

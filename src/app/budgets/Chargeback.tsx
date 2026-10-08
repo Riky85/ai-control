@@ -24,7 +24,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
   const accountsSet = !!settings?.expenseAccount;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <form method="get" action="/budgets" className="flex items-center gap-2">
           <input type="hidden" name="view" value="chargeback" />
@@ -51,7 +51,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
         </details>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard
           label={`AI cost in ${monthLabel(month)}`}
           value={fmtEur(cb.totalEur)}
@@ -62,7 +62,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
       </div>
 
       <Table
-        columns={["Team", { label: "Cost centre", className: "w-[340px]" }, "Pays for", { label: "People", className: "text-right" }, { label: "Amount", className: "text-right" }]}
+        columns={["Team", { label: "Cost centre", className: "lg:w-[340px]" }, "Pays for", { label: "People", className: "text-right" }, { label: "Amount", className: "text-right" }]}
         empty={cb.rows.length === 0 ? "Nothing to charge this month." : false}
       >
         {cb.rows.map((r) => (
@@ -81,7 +81,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
               {r.lines.slice(0, 3).map((l) => (
                 <div key={l.assetId ?? l.name} className="flex justify-between gap-3 text-xs">
                   <span className="truncate" title={METHOD_LABEL[l.method]}>
-                    {l.name} <span className="text-ink-400/70">· {l.method === "seats" ? "seats" : l.method === "users" ? "active users" : "set on AI"}</span>
+                    {l.name} <span className="text-ink-400">· {l.method === "seats" ? "seats" : l.method === "users" ? "active users" : "set on AI"}</span>
                   </span>
                   <span className="tabular shrink-0">{fmtEur(l.eur)}</span>
                 </div>

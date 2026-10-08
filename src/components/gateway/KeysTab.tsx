@@ -72,7 +72,7 @@ export default function KeysTab({ keys, teams, canEdit }: { keys: GwKeyRow[]; te
                     {canEdit && !k.revokedAt && (
                       <details className="relative inline-block text-left">
                         <summary className="btn btn-secondary btn-sm list-none cursor-pointer">Edit</summary>
-                        <div className="absolute right-0 z-20 mt-2 w-[320px] rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
+                        <div className="absolute right-0 z-20 mt-2 w-[320px] max-w-[calc(100vw-2rem)] rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
                           <form action={updateGatewayKeyAction} className="flex flex-col gap-2.5">
                             <input type="hidden" name="id" value={k.id} />
                             <label className="flex flex-col gap-1 text-xs text-ink-400">

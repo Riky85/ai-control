@@ -57,9 +57,10 @@ export function planState(org: OrgForPlan, now = new Date()): PlanState {
 /**
  * Stato del piano dal database. La prima volta che un'organizzazione in prova
  * non ha una data di fine, la fissa (così la prova non si sposta ogni giorno).
+ * `loaded`: l'organizzazione già letta dal chiamante (es. il layout), per non rileggerla.
  */
-export async function getPlanState(orgId: string): Promise<PlanState & { org: Organization }> {
-  const org = await db.organization.findUniqueOrThrow({ where: { id: orgId } });
+export async function getPlanState(orgId: string, loaded?: Organization | null): Promise<PlanState & { org: Organization }> {
+  const org = loaded && loaded.id === orgId ? loaded : await db.organization.findUniqueOrThrow({ where: { id: orgId } });
   const state = planState(org);
   if (state.trialEndsAt && !org.trialEndsAt && org.planStatus === "trialing" && !org.stripeSubscriptionId) {
     await db.organization.updateMany({ where: { id: orgId, trialEndsAt: null }, data: { trialEndsAt: state.trialEndsAt } });

@@ -135,7 +135,7 @@ export interface SendResult {
 export async function sendPolicyAcks(organizationId: string, sentBy: string): Promise<SendResult> {
   const snap = await ensurePolicySnapshot(organizationId);
   if (!showsPeople(await orgPrivacyMode(organizationId))) {
-    return { version: snap.version, people: 0, created: 0, sent: 0, emailOff: false, reason: "Per-person links are off with this employee privacy mode — share the generic link instead." };
+    return { version: snap.version, people: 0, created: 0, sent: 0, emailOff: false, reason: "Personal links are off with this employee privacy mode — share the generic link instead." };
   }
   const { sendEmail, emailEnabled } = await import("@/lib/mail");
   const emails = await recipients(organizationId);
@@ -251,7 +251,7 @@ export async function ackSummaryForPack(organizationId: string) {
     measures: [
       "Company AI policy shared with employees, with the list of approved and not-allowed AI tools",
       `AI literacy mini-module (${QUIZ_TOTAL} multiple-choice questions: data protection, verifying output, approval of new tools, transparency, high-risk uses)`,
-      s.personal ? "Personal acknowledgement links with up to 2 reminders" : "Generic acknowledgement link without per-person tracking (employee privacy mode)",
+      s.personal ? "Personal acknowledgement links with up to 2 reminders" : "Generic acknowledgement link without individual tracking (employee privacy mode)",
     ],
   };
 }

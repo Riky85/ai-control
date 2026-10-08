@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { isOnPrem } from "@/lib/edition";
+import { currentSession, isPlatformAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +16,14 @@ export async function GET() {
   }
   const missing = ["DATABASE_URL", "SESSION_SECRET", "CREDENTIALS_SECRET"].filter((k) => !process.env[k]);
   const healthy = database === "ok" && missing.length === 0;
+  // I nomi delle variabili mancanti solo all'admin di piattaforma: agli altri basta "incomplete".
+  const s = currentSession();
+  const admin = Boolean(s && (await isPlatformAdmin(s.email)));
   return Response.json(
     {
       status: healthy ? "ok" : "degraded",
       database,
-      config: missing.length ? `missing: ${missing.join(", ")}` : "ok",
+      config: missing.length ? (admin ? `missing: ${missing.join(", ")}` : "incomplete") : "ok",
       version: (process.env.RAILWAY_GIT_COMMIT_SHA ?? process.env.ANGAR_VERSION)?.slice(0, 7) ?? "dev",
       edition: isOnPrem() ? "onprem" : "cloud",
       responseMs: Date.now() - started,

@@ -293,20 +293,20 @@ export function buildEmployeeNotice(c: NoticeContext, lang: NoticeLang): Notice 
 
   const collected = [
     "The names of the AI tools used for work (for example ChatGPT or Microsoft Copilot) and the day and time they were used.",
-    s.desktop && "From the angar app on company computers: time spent on each AI tool per day (for example \"ChatGPT, 40 minutes\") and the computer's name.",
-    s.extension && "From the angar extension in the company browser: the names of AI websites visited, per day.",
+    s.desktop && "From the angar app on company computers: time spent on each AI tool each day (for example \"ChatGPT, 40 minutes\") and the computer's name.",
+    s.extension && "From the angar extension in the company browser: the names of AI websites visited, each day.",
     s.microsoft365 && "From Microsoft 365: sign-ins to AI apps with your company account (app name and date).",
     s.google && "From Google Workspace: AI apps connected to your company account (app name and date).",
     s.okta && "From Okta: AI apps assigned to you and sign-ins with your company account (app name and dates).",
-    s.edge && `From the company network (angar Edge): which AI services are contacted and the number of connections per device${s.firewallBytes ? ", and the amount of data sent (bytes) from the firewall logs" : ""}.`,
+    s.edge && `From the company network (angar Edge): which AI services are contacted and the number of connections for each device${s.firewallBytes ? ", and the amount of data sent (bytes) from the firewall logs" : ""}.`,
     "From the company directory: name, work email and department.",
     "Costs of AI subscriptions from company invoices and bank statements (company data, not yours).",
   ].filter(Boolean) as string[];
   const modeText =
     c.mode === "individual"
-      ? "Per person: angar administrators see which AI tools each person uses, to manage licences (for example to ask whether an unused paid seat is still needed)."
+      ? "By person: angar administrators see which AI tools each person uses, to manage licences (for example to ask whether an unused paid seat is still needed)."
       : c.mode === "department"
-        ? `Per department: angar shows no names, emails or devices — only totals per department, and only for groups of at least ${MIN_GROUP} people. Smaller teams are merged.`
+        ? `By department: angar shows no names, emails or devices — only department totals, and only for groups of at least ${MIN_GROUP} people. Smaller teams are merged.`
         : "Company totals only: angar shows no names, devices or departments — only totals for the whole company.";
   return {
     title: "Notice to employees: how angar is used to manage AI tools",

@@ -43,7 +43,7 @@ export function SetupSteps({ created, appUrl, edgeImage }: { created: Created; a
   if (created.kind === "cloud") {
     const push = `${appUrl}/api/edge/logs?token=${t}`;
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <Cmd label="Push URL (POST, text / NDJSON / CSV / syslog, gzip ok). The token is in it: treat it as a secret." value={push} />
         <Cmd label="Test it" value={`curl -X POST --data-binary @dns.log "${push}"`} />
         <Notes items={CLOUD_NOTES} />
@@ -53,7 +53,7 @@ export function SetupSteps({ created, appUrl, edgeImage }: { created: Created; a
   const install = `curl -fsSL ${appUrl}/api/edge/install.sh | sudo ${server ? `ANGAR_SERVER=${server} ` : ""}sh -s -- ${t}`;
   const docker = `docker run -d --name angar-edge --restart unless-stopped --network host -e ANGAR_EDGE_TOKEN=${t}${server ? ` -e ANGAR_SERVER=${server}` : ""} -v angar-edge:/var/lib/angar-edge ${edgeImage}`;
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <Cmd label="Linux with systemd (Raspberry Pi OS 64-bit, Debian, Ubuntu, any VM)" value={install} />
       <Cmd label="or Docker (host network, so it sees the real device IPs)" value={docker} />
       <details className="rounded-lg border border-line px-3 py-2.5">

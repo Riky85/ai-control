@@ -10,7 +10,7 @@ export default async function ComputersView({ orgId }: { orgId: string }) {
     db.edgeSensor.count({ where: { organizationId: orgId, lastSeenAt: { gte: new Date(Date.now() - 15 * 60 * 1000) } } }),
   ]);
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <DesktopDevices organizationId={orgId} />
       <Link href="/edge/sensors" className="rounded-xl border border-line bg-panel px-5 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 hover:border-ink-400 transition-colors">
         <span className="flex flex-wrap items-center gap-2 text-sm text-ink-100">

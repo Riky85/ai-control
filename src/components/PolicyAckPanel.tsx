@@ -60,7 +60,7 @@ export default async function PolicyAckPanel({
           ) : (
             (!s.version || s.changed) && (
               <form action={publishPolicyAction}>
-                <button className="btn btn-primary btn-sm">{s.version ? "Publish new version" : "Create link"}</button>
+                <button className="btn btn-secondary btn-sm">{s.version ? "Publish new version" : "Create link"}</button>
               </form>
             )
           )}

@@ -12,7 +12,7 @@
  */
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
 import { lookup } from "dns/promises";
-import { isIP } from "net";
+import { BlockList, isIP } from "net";
 import { db } from "@/lib/db";
 import { decryptJson } from "@/lib/crypto";
 
@@ -42,17 +42,48 @@ export function verifyWebhookSignature(secret: string, timestamp: number, body: 
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export function privateIp(ip: string): boolean {
-  if (isIP(ip) === 6) {
-    const v = ip.toLowerCase();
-    if (v === "::1" || v === "::" || v.startsWith("fc") || v.startsWith("fd") || v.startsWith("fe80")) return true;
-    const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v);
-    return mapped ? privateIp(mapped[1]) : false;
+// Reti non pubbliche (IPv4 e IPv6) per l'anti-SSRF: net.BlockList fa il confronto per prefisso.
+const BLOCKED = new BlockList();
+for (const [net, bits] of [
+  ["0.0.0.0", 8], ["10.0.0.0", 8], ["100.64.0.0", 10], ["127.0.0.0", 8], ["169.254.0.0", 16], ["172.16.0.0", 12],
+  ["192.0.0.0", 24], ["192.0.2.0", 24], ["192.168.0.0", 16], ["198.18.0.0", 15], ["198.51.100.0", 24], ["203.0.113.0", 24], ["224.0.0.0", 3],
+] as const) BLOCKED.addSubnet(net, bits, "ipv4");
+for (const [net, bits] of [
+  ["::", 128], ["::1", 128], ["64:ff9b::", 96], ["64:ff9b:1::", 48], ["100::", 64], ["2001::", 32], ["2001:db8::", 32],
+  ["2002::", 16], ["fc00::", 7], ["fe80::", 10], ["fec0::", 10], ["ff00::", 8],
+] as const) BLOCKED.addSubnet(net, bits, "ipv6");
+
+/** Espande un IPv6 nei suoi 8 gruppi da 16 bit (null se non valido). */
+function v6Groups(ip: string): number[] | null {
+  let v = ip.toLowerCase().split("%")[0];
+  // Coda IPv4 puntata (es. ::ffff:127.0.0.1) → due gruppi esadecimali.
+  const tail = /(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(v);
+  if (tail) {
+    const b = tail.slice(1).map(Number);
+    if (b.some((n) => n > 255)) return null;
+    v = v.slice(0, tail.index) + ((b[0] << 8) | b[1]).toString(16) + ":" + ((b[2] << 8) | b[3]).toString(16);
   }
-  const p = ip.split(".").map(Number);
-  if (p.length !== 4 || p.some((n) => !Number.isInteger(n))) return true;
-  const [a, b] = p;
-  return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 198 && (b === 18 || b === 19)) || a >= 224;
+  const [head, rest] = v.split("::");
+  const h = head ? head.split(":") : [];
+  const r = rest !== undefined ? (rest ? rest.split(":") : []) : null;
+  const groups = r === null ? h : [...h, ...Array(8 - h.length - r.length).fill("0"), ...r];
+  if (groups.length !== 8) return null;
+  const n = groups.map((g) => parseInt(g, 16));
+  return n.some((x) => !Number.isInteger(x) || x < 0 || x > 0xffff) ? null : n;
+}
+
+export function privateIp(ip: string): boolean {
+  const kind = isIP(ip);
+  if (kind === 4) return BLOCKED.check(ip, "ipv4");
+  if (kind !== 6) return true;
+  const g = v6Groups(ip);
+  if (!g) return true;
+  // IPv4 mappato (::ffff:a.b.c.d) o compatibile (::a.b.c.d): si ricontrolla come IPv4.
+  if (g.slice(0, 5).every((x) => x === 0) && (g[5] === 0xffff || g[5] === 0)) {
+    const v4 = `${g[6] >> 8}.${g[6] & 255}.${g[7] >> 8}.${g[7] & 255}`;
+    if (BLOCKED.check(v4, "ipv4")) return true;
+  }
+  return BLOCKED.check(g.map((x) => x.toString(16)).join(":"), "ipv6");
 }
 
 /** Controllo statico dell'URL (al salvataggio): https, niente host interni. */

@@ -64,7 +64,7 @@ export default function SetupWizard({ steps, initialHidden = false, primary = tr
 
       <div className="relative p-6 lg:p-7 flex flex-col gap-4 min-w-0">
         <div className="flex items-center gap-2 text-xs text-ink-400">
-          <span className="rounded-full border border-accent/40 px-2 py-0.5 text-accent font-medium tabular">
+          <span className="rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-100 tabular">
             {doneCount} of {steps.length} done
           </span>
           <span>Setup guide</span>
@@ -140,11 +140,11 @@ function Preview() {
     <div className="w-[290px] rounded-t-xl border border-b-0 border-line bg-ink shadow-[0_-8px_32px_rgba(20,20,24,0.06)] dark:bg-sidebar dark:shadow-[0_-10px_60px_rgba(0,0,0,0.35)] select-none" aria-hidden>
       <div className="grid grid-cols-2 gap-2 p-3">
         <div className="rounded-lg border border-line bg-panel px-3 py-2">
-          <div className="text-[10px] text-ink-400">AI in use</div>
+          <div className="font-mono uppercase text-[10px] tracking-[0.04em] text-ink-400">AI in use</div>
           <div className="font-display text-[20px] font-semibold tabular text-ink-100 leading-tight">13</div>
         </div>
         <div className="rounded-lg border border-accent/40 bg-panel px-3 py-2">
-          <div className="text-[10px] text-ink-400">You could save</div>
+          <div className="font-mono uppercase text-[10px] tracking-[0.04em] text-ink-400">You could save</div>
           <div className="font-display text-[20px] font-semibold tabular text-accent leading-tight">
             €683<span className="text-[10px] text-ink-400 font-normal">/mo</span>
           </div>

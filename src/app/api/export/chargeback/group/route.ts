@@ -1,4 +1,4 @@
-import { currentSession } from "@/lib/auth";
+import { currentSession, activeMember } from "@/lib/auth";
 import { myGroups, intercompany } from "@/lib/groups";
 import { currentMonth, monthRange } from "@/lib/chargeback";
 import { deNumber, toCsv } from "@/lib/accounting-export";
@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const s = currentSession();
   if (!s) return new Response("Not signed in", { status: 401 });
+  // La sessione da sola non basta: serve essere ancora membri attivi del workspace.
+  if (!(await activeMember(s))) return new Response("Forbidden", { status: 403 });
   const url = new URL(req.url);
   const month = url.searchParams.get("month") || currentMonth();
   if (!monthRange(month)) return new Response("Invalid month — use YYYY-MM", { status: 400 });

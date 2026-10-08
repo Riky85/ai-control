@@ -14,7 +14,7 @@ import { fmtAgo } from "@/lib/format";
 import { erasePastNamesAction } from "@/lib/discovery/privacy-actions";
 import { PRIVACY_MODES, privacyModeOf, showsPeople } from "@/lib/privacy";
 import { INDUSTRIES } from "@/lib/industries";
-import { Notice, PageHeader, Tabs } from "@/components/ui";
+import { Notice, PageHeader, Switch, Tabs } from "@/components/ui";
 import { Row, Section, Status } from "@/components/SettingsRows";
 import { VendorBadge } from "@/components/VendorIcon";
 import ThemeSelect from "@/components/ThemeSelect";
@@ -24,6 +24,7 @@ import { cookies } from "next/headers";
 import { THEME_COOKIE, parseTheme } from "@/lib/theme";
 import VoiceSetting from "@/components/VoiceSetting";
 import { VOICE_COOKIE, parseVoiceMode } from "@/lib/voice";
+import DeleteWorkspaceForm from "@/components/gdpr/DeleteWorkspaceForm";
 
 export const dynamic = "force-dynamic";
 
@@ -146,17 +147,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
             >
               <form action={setEuOnlyAction}>
                 <input type="hidden" name="on" value={euOn ? "0" : "1"} />
-                <button
-                  type="submit"
-                  role="switch"
-                  aria-checked={euOn}
+                <Switch
+                  on={euOn}
                   aria-label="Keep AI answers inside the EU"
                   title={euForced ? "Set for the whole deployment" : euOn ? "Turn off" : "Turn on"}
                   disabled={!isAdmin || euForced}
-                  className={`relative h-5 w-9 rounded-full transition-colors disabled:opacity-60 ${euOn ? "bg-steady" : "bg-ink-400/40"}`}
-                >
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${euOn ? "left-[18px]" : "left-0.5"}`} />
-                </button>
+                />
               </form>
             </Row>
             <Row title="Employee notice" hint="EN · IT · DE · FR · ES">
@@ -255,6 +251,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
               </form>
             </Row>
           </Section>
+          {/* GDPR: cancellazione definitiva del workspace, solo Owner. */}
+          {role === "OWNER" && org && (
+            <Section title="Delete workspace" id="delete-workspace">
+              <Row title="Delete everything" hint="Owners only. Removes all data, members and the audit log. Can't be undone.">
+                <DeleteWorkspaceForm name={org.name} />
+              </Row>
+            </Section>
+          )}
         </>
       )}
     </div>

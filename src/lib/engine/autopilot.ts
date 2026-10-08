@@ -336,7 +336,7 @@ async function runStep(task: TaskRow, step: AutopilotStep, org: { autoRemoveSeat
   const orgId = task.organizationId;
   switch (step.id) {
     case "ask": {
-      if (!showsPeople(await orgPrivacyMode(orgId))) return { state: "fail", error: "Seat questions need the per-person employee privacy (Settings → Employee privacy)." };
+      if (!showsPeople(await orgPrivacyMode(orgId))) return { state: "fail", error: "Seat questions need the by-person employee privacy mode (Settings → Employee privacy)." };
       const { sendSeatReminders } = await import("@/lib/seats");
       // Le risposte vanno a una persona: chi ha approvato, altrimenti un owner del workspace.
       const owner = task.approvedBy && task.approvedBy !== AUTO_ACTOR ? null : await db.workspaceMember.findFirst({ where: { organizationId: orgId, role: "OWNER", status: "active" }, select: { email: true } });

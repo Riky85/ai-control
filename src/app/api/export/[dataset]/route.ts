@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
+import { PassThrough, Readable } from "stream";
 import { db } from "@/lib/db";
-import { currentSession } from "@/lib/auth";
+import { currentSession, activeMember } from "@/lib/auth";
 import { planGate } from "@/lib/plan-gate";
 import { appOrigin } from "@/lib/mail";
 import { computeSavings, categoryOf } from "@/lib/savings";
@@ -10,7 +11,32 @@ import { groupByDepartment, maskCount, orgPrivacyMode, showsPeople, type Privacy
 export const dynamic = "force-dynamic";
 
 type Row = Record<string, string | number | null | undefined>;
-type Sheet = { name: string; rows: Row[] };
+/**
+ * Un foglio: righe già in memoria (piccole), oppure lette a pagine dal database
+ * e scritte man mano nel file (tabelle che possono essere enormi, es. addebiti).
+ */
+type Sheet = { name: string; rows: Row[] } | { name: string; columns: { header: string; width: number }[]; pages: () => AsyncGenerator<Row[]> };
+
+/** Righe lette per pagina dalle tabelle grandi. */
+const PAGE = 5000;
+
+/** Addebiti AI dell'organizzazione, dal più recente, a pagine (cursore su id: niente OFFSET). */
+async function* spendPages(orgId: string): AsyncGenerator<Row[]> {
+  let cursor: string | undefined;
+  for (;;) {
+    const page = await db.spendRecord.findMany({
+      where: { organizationId: orgId },
+      orderBy: [{ date: "desc" }, { id: "desc" }],
+      select: { id: true, date: true, service: true, amountEur: true, source: true, description: true },
+      take: PAGE,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+    });
+    if (!page.length) return;
+    yield page.map((r) => ({ Date: day(r.date), Service: r.service, "Amount €": eur(r.amountEur), Source: label(r.source), Description: r.description }));
+    if (page.length < PAGE) return;
+    cursor = page[page.length - 1].id;
+  }
+}
 
 const eur = (n?: number | null) => (n == null ? null : Math.round(n * 100) / 100);
 const day = (d?: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
@@ -102,12 +128,16 @@ async function build(dataset: string, orgId: string, mode: PrivacyMode = "indivi
       Suggestion: i.title, "AI systems": i.assets.map((a) => a.name).join(", "), "Saving €/month": eur(i.monthlyEur), "Saving €/year": eur(i.monthlyEur * 12),
       Confidence: label(i.confidence), Why: i.detail,
     }));
-    const spend = await db.spendRecord.findMany({ where: { organizationId: orgId }, orderBy: { date: "desc" } });
     return {
       title: "Savings",
       sheets: [
         { name: "Savings", rows },
-        { name: "AI charges", rows: spend.map((r) => ({ Date: day(r.date), Service: r.service, "Amount €": eur(r.amountEur), Source: label(r.source), Description: r.description })) },
+        // Tutti gli addebiti: possono essere centinaia di migliaia, si scrivono a pagine.
+        {
+          name: "AI charges",
+          columns: [{ header: "Date", width: 12 }, { header: "Service", width: 28 }, { header: "Amount €", width: 14 }, { header: "Source", width: 16 }, { header: "Description", width: 48 }],
+          pages: () => spendPages(orgId),
+        },
       ],
     };
   }
@@ -175,7 +205,7 @@ export async function GET(_req: Request, { params }: { params: { dataset: string
   // Come il layout delle pagine: la sessione da sola non basta, serve essere ancora membri attivi del workspace.
   const s = currentSession();
   if (!s) return new Response("Not signed in", { status: 401 });
-  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } }, select: { status: true } });
+  const member = await activeMember(s);
   if (!member || member.status !== "active") return new Response("Forbidden", { status: 403 });
   const orgId = s.orgId;
   const gate = params.dataset === "register" ? await planGate(orgId, "registerExport") : null;
@@ -183,28 +213,69 @@ export async function GET(_req: Request, { params }: { params: { dataset: string
   const [org, data] = await Promise.all([db.organization.findUnique({ where: { id: orgId } }), orgPrivacyMode(orgId).then((mode) => build(params.dataset, orgId, mode))]);
   if (!data) return new Response("Unknown export", { status: 404 });
 
-  const wb = new ExcelJS.Workbook();
+  const slug = `${(org?.name ?? "angar").replace(/[^a-z0-9]+/gi, "-")}-${data.title.replace(/[^a-z0-9]+/gi, "-")}-${new Date().toISOString().slice(0, 10)}`.toLowerCase();
+
+  // File scritto in streaming: righe lette a pagine e inviate subito, mai tutto il foglio in memoria.
+  const out = new PassThrough();
+  writeWorkbook(out, data.sheets).catch((err) => {
+    console.error("[export] failed", params.dataset, err);
+    out.destroy(err as Error);
+  });
+  return new Response(Readable.toWeb(out) as unknown as ReadableStream<Uint8Array>, {
+    headers: {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": `attachment; filename="${slug}.xlsx"`,
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+/** Aspetta che chi scarica abbia letto quanto già inviato (o che abbia chiuso la connessione). */
+async function drained(out: PassThrough) {
+  if (out.destroyed) throw new Error("Download closed");
+  if (!out.writableNeedDrain) return;
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      out.off("drain", done);
+      out.off("close", done);
+      resolve();
+    };
+    out.once("drain", done);
+    out.once("close", done);
+  });
+  if (out.destroyed) throw new Error("Download closed");
+}
+
+async function writeWorkbook(out: PassThrough, sheets: Sheet[]) {
+  const wb = new ExcelJS.stream.xlsx.WorkbookWriter({ stream: out, useStyles: true, useSharedStrings: false });
   wb.creator = "angar";
   wb.created = new Date();
-  for (const sheet of data.sheets) {
-    const ws = wb.addWorksheet(sheet.name.slice(0, 31));
-    const headers = sheet.rows.length ? Object.keys(sheet.rows[0]) : ["No data"];
-    ws.columns = headers.map((h) => ({ header: h, key: h, width: Math.min(48, Math.max(12, h.length + 2, ...sheet.rows.map((r) => String(r[h] ?? "").length + 2))) }));
-    sheet.rows.forEach((r) => ws.addRow(r));
+  for (const sheet of sheets) {
+    const ws = wb.addWorksheet(sheet.name.slice(0, 31), { views: [{ state: "frozen", ySplit: 1 }] });
+    const inMemory = "rows" in sheet;
+    const columns = inMemory
+      ? (sheet.rows.length ? Object.keys(sheet.rows[0]) : ["No data"]).map((h) => ({ header: h, width: Math.min(48, Math.max(12, h.length + 2, ...sheet.rows.map((r) => String(r[h] ?? "").length + 2))) }))
+      : sheet.columns;
+    const headers = columns.map((c) => c.header);
+    ws.columns = columns.map((c) => ({ header: c.header, key: c.header, width: c.width, ...(/€/.test(c.header) ? { style: { numFmt: '#,##0.00 "€"' } } : {}) }));
     const head = ws.getRow(1);
     head.font = { bold: true, color: { argb: "FF141418" } };
     head.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF6F6F8" } };
     head.border = { bottom: { style: "thin", color: { argb: "FFE6E6EB" } } };
-    ws.views = [{ state: "frozen", ySplit: 1 }];
-    if (sheet.rows.length) ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
-    headers.forEach((h, i) => { if (/€/.test(h)) ws.getColumn(i + 1).numFmt = '#,##0.00 "€"'; });
+    head.commit();
+    let count = 0;
+    if (inMemory) {
+      for (const r of sheet.rows) ws.addRow(r).commit();
+      count = sheet.rows.length;
+    } else {
+      for await (const page of sheet.pages()) {
+        for (const r of page) ws.addRow(r).commit();
+        count += page.length;
+        await drained(out);
+      }
+    }
+    if (count) ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
+    ws.commit();
   }
-  const buffer = await wb.xlsx.writeBuffer();
-  const slug = `${(org?.name ?? "angar").replace(/[^a-z0-9]+/gi, "-")}-${data.title.replace(/[^a-z0-9]+/gi, "-")}-${new Date().toISOString().slice(0, 10)}`.toLowerCase();
-  return new Response(buffer as ArrayBuffer, {
-    headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="${slug}.xlsx"`,
-    },
-  });
+  await wb.commit();
 }

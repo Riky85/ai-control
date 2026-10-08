@@ -43,7 +43,7 @@ function dpiaEn(): TrustDoc {
       {
         ul: [
           "Names of AI tools in use, recognised from running programs and from the browser history on the computer, matched against angar's catalogue of AI services.",
-          "Minutes of use per AI tool per day, and the time it was last seen.",
+          "Minutes of use for each AI tool, each day, and the time it was last seen.",
           "Computer name, operating system, app version, local IP addresses, and the employee's work email.",
         ],
       },
@@ -68,7 +68,7 @@ function dpiaEn(): TrustDoc {
       { h3: "How the data is shown (privacy mode)" },
       {
         ul: [
-          `By department (default for new workspaces): totals per department only, for groups of at least ${MIN_GROUP} people; smaller teams are merged into "Other (small teams)"; counts under ${MIN_GROUP} are shown as "<${MIN_GROUP}". Usage is stored under a keyed pseudonym (HMAC-SHA256 with a per-workspace secret), not an email; computer names are obfuscated.`,
+          `By department (default for new workspaces): department totals only, for groups of at least ${MIN_GROUP} people; smaller teams are merged into "Other (small teams)"; counts under ${MIN_GROUP} are shown as "<${MIN_GROUP}". Usage is stored under a keyed pseudonym (HMAC-SHA256 with a secret unique to each workspace), not an email; computer names are obfuscated.`,
           "Company totals only: no names, devices or departments.",
           "By person: administrators see which AI tools each person uses — needed for seat clean-up.",
           "Mode chosen: [[By department / Company totals only / By person]] — reason: [[ ]].",
@@ -106,7 +106,7 @@ function dpiaEn(): TrustDoc {
             ["Unauthorised access to the data", "Encryption in transit; SSO and two-step verification (can be mandatory); roles; connectors read by default, changes only after admin approval; credentials encrypted with AES-256-GCM; audit log.", "Low", "Medium"],
             ["Data kept longer than needed", `Automatic deletion after ${m} months.`, "Low", "Low"],
             ["Employees unaware of the processing", "Employee notice before installation; the app shows a welcome screen when it is set up; the works council is involved.", "Low", "Medium"],
-            ["Switching to per-person mode without safeguards", "Mode change limited to administrators and recorded in the audit log; this DPIA and the employee notice to be updated first.", "[[ ]]", "Medium"],
+            ["Switching to by-person mode without safeguards", "Mode change limited to administrators and recorded in the audit log; this DPIA and the employee notice to be updated first.", "[[ ]]", "Medium"],
           ],
         },
       },

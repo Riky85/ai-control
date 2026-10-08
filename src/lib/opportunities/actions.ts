@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { computeSavings } from "@/lib/savings";
+import { computeSavings, savingKeyFilters } from "@/lib/savings";
 import { ledgerKindOf, ledgerAssetOf } from "@/lib/savings-ledger";
 import { loadOpportunities } from "@/lib/opportunities";
 import { canMove, isStatus } from "@/lib/opportunities/status";
@@ -40,37 +40,48 @@ export async function setOpportunityStatusAction(formData: FormData) {
   if (!canMove(o!.status, to as never)) redirect(back);
 
   if (o!.ledger === "savings") {
+    // Stessa chiave nelle forme vecchie (doppioni "dup:<categoria>:…"): vanno trattate insieme.
+    const keyOr = savingKeyFilters(key);
     if (to === "dismissed") {
       await db.savingDismissal.upsert({ where: { organizationId_key: { organizationId: s.orgId, key } }, update: {}, create: { organizationId: s.orgId, key } });
     } else if (to === "new") {
-      // Riapre: toglie il "not for us" o annulla un'accettazione non ancora fatta.
-      await db.savingDismissal.deleteMany({ where: { organizationId: s.orgId, key } });
-      await db.savingAction.deleteMany({ where: { organizationId: s.orgId, savingKey: key, status: "accepted" } });
+      // Riapre: toglie il "not for us" e annulla accettazione o "fatto", così il suggerimento torna nell'elenco.
+      await db.$transaction([
+        db.savingDismissal.deleteMany({ where: { organizationId: s.orgId, OR: keyOr.map((k) => ({ key: k })) } }),
+        db.savingAction.deleteMany({ where: { organizationId: s.orgId, OR: keyOr.map((k) => ({ savingKey: k })), status: { in: ["accepted", "done", "verified"] } } }),
+      ]);
     } else {
       const done = to === "done";
       const { items, inProgress } = await computeSavings(s.orgId);
       const item = items.find((i) => i.key === key) ?? inProgress.find((i) => i.key === key);
-      const existing = await db.savingAction.findFirst({ where: { organizationId: s.orgId, savingKey: key, status: { not: "failed" } } });
-      if (existing && done && existing.status === "accepted") {
-        await db.savingAction.update({ where: { id: existing.id }, data: { status: "done", doneAt: new Date() } });
-      } else if (!existing && item) {
-        const now = new Date();
-        await db.savingAction.create({
-          data: {
-            organizationId: s.orgId,
-            assetId: ledgerAssetOf(item),
-            kind: ledgerKindOf(item.kind),
-            title: item.title.slice(0, 200),
-            expectedMonthlyEur: Math.round(item.monthlyEur * 100) / 100,
-            status: done ? "done" : "accepted",
-            savingKey: key,
-            acceptedAt: now,
-            doneAt: done ? now : null,
-            createdBy: s.email,
-          },
-        });
-      }
+      // Doppio invio (due clic, due schede): lock su azienda + chiave e controllo dentro la transazione.
+      await db.$transaction(async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`saving:${s.orgId}:${key}`}::text))`;
+        const existing = await tx.savingAction.findFirst({ where: { organizationId: s.orgId, OR: keyOr.map((k) => ({ savingKey: k })), status: { not: "failed" } }, orderBy: { acceptedAt: "desc" } });
+        if (existing && done && existing.status === "accepted") {
+          await tx.savingAction.update({ where: { id: existing.id }, data: { status: "done", doneAt: new Date() } });
+        } else if (!existing && item) {
+          const now = new Date();
+          await tx.savingAction.create({
+            data: {
+              organizationId: s.orgId,
+              assetId: ledgerAssetOf(item),
+              kind: ledgerKindOf(item.kind),
+              title: item.title.slice(0, 200),
+              expectedMonthlyEur: Math.round(item.monthlyEur * 100) / 100,
+              status: done ? "done" : "accepted",
+              savingKey: key,
+              acceptedAt: now,
+              doneAt: done ? now : null,
+              createdBy: s.email,
+            },
+          });
+        }
+      });
     }
+  } else if (to === "new") {
+    // Riapre: senza riga di stato l'opportunità torna "new".
+    await db.opportunityState.deleteMany({ where: { organizationId: s.orgId, key } });
   } else {
     await db.opportunityState.upsert({
       where: { organizationId_key: { organizationId: s.orgId, key } },

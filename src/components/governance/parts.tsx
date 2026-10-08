@@ -8,7 +8,8 @@ import { BlockHead } from "@/components/ui";
 
 const PILL = {
   alarm: "text-alarm bg-alarm/10",
-  signal: "text-signal bg-signal/10",
+  // "signal" coincide con l'arancio di attenzione.
+  signal: "text-accent bg-accent/10",
   steady: "text-steady bg-steady/10",
   accent: "text-accent bg-accent/10",
   muted: "text-ink-400 bg-ink-100/[0.06]",

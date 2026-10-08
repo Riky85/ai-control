@@ -46,8 +46,8 @@ export default async function ChangesTab({ q: rawQ, field }: { q?: string; field
     return <EmptyState title="No changes yet" text="When a synced model, vendor or status differs from what was on record, it shows up here." href="/connect" cta="Connect a source" />;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Changes, 30 days" value={String(recent.length)} hint={`${new Set(recent.map((c) => c.aiAssetId)).size} AI affected`} />
         <StatCard label="Model changes" value={String(models.length)} hint="New model behind an AI" href="/activity?tab=changes&field=model" />
         <StatCard label="Vendor changes" value={String(vendors.length)} hint="Provider behind an AI changed" href="/activity?tab=changes&field=vendor" />

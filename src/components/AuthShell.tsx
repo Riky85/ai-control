@@ -48,9 +48,8 @@ function Showcase() {
   ];
   return (
     <div className="relative h-full min-h-[calc(100vh-2rem)] rounded-3xl border border-line bg-panel overflow-hidden flex flex-col justify-between p-10">
-      {/* bagliore */}
-      <div className="pointer-events-none absolute -top-40 -right-40 h-[520px] w-[520px] rounded-full bg-accent/25 blur-[120px]" />
-      <div className="pointer-events-none absolute -bottom-48 -left-32 h-[420px] w-[420px] rounded-full bg-accent/10 blur-[110px]" />
+      {/* bagliore neutro (l'arancio resta solo come segnale) */}
+      <div className="pointer-events-none absolute -top-40 -right-40 h-[520px] w-[520px] rounded-full bg-ink-100/[0.04] blur-[120px]" />
 
       <div className="relative max-w-md">
         <p className="font-display text-[26px] leading-[1.15] font-semibold tracking-tight text-ink-100">

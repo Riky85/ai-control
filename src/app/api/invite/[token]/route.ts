@@ -24,6 +24,8 @@ export async function GET(req: Request, { params }: { params: { token: string } 
   if (!session) return NextResponse.redirect(url(`/login?email=${encodeURIComponent(member.email)}&next=${encodeURIComponent(`/api/invite/${token}`)}`));
 
   await db.workspaceMember.update({ where: { id: member.id }, data: { status: "active", inviteToken: null } });
+  // Il link d'invito arriva per email: l'indirizzo è confermato.
+  if (!account.emailVerifiedAt) await db.account.update({ where: { id: account.id }, data: { emailVerifiedAt: new Date() } });
   await issueSession(account, member.organizationId);
   await audit("member.join", member.email, { via: "invite" }, { orgId: member.organizationId, actorEmail: member.email });
   return NextResponse.redirect(url("/"));

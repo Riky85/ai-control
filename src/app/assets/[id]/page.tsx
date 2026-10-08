@@ -14,7 +14,7 @@ import { noticeDeadline, daysUntil } from "@/lib/contracts";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { VendorBadge } from "@/components/VendorIcon";
-import { StatCard, Tabs, Panel, Table, td, PageHeader } from "@/components/ui";
+import { StatCard, Tabs, Panel, Table, td, PageHeader, Switch } from "@/components/ui";
 import StatusDot from "@/components/StatusDot";
 import VendorRiskCard from "@/components/VendorRiskCard";
 import ExportMenu from "@/components/ExportMenu";
@@ -210,7 +210,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
       <Tabs active={tab} items={TABS.map((t) => ({ key: t.key, label: t.label, href: `/assets/${asset.id}?tab=${t.key}` }))} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <div className="lg:col-span-2 flex flex-col gap-4">
+        <div className="lg:col-span-2 flex flex-col gap-6">
           {tab === "overview" && (
             <>
               {market && market.verdict !== "unknown" && <MarketPriceStrip row={pickRow(market)} />}
@@ -477,15 +477,7 @@ async function NetworkBlock({ asset, orgId }: { asset: { id: string; blockOnNetw
         <form action={setNetworkBlockAction}>
           <input type="hidden" name="assetId" value={asset.id} />
           <input type="hidden" name="block" value={asset.blockOnNetwork ? "off" : "on"} />
-          <button
-            type="submit"
-            role="switch"
-            aria-checked={asset.blockOnNetwork}
-            title={asset.blockOnNetwork ? "Unblock" : "Block"}
-            className={`relative h-5 w-9 rounded-full transition-colors ${asset.blockOnNetwork ? "bg-alarm" : "bg-ink-400/40"}`}
-          >
-            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${asset.blockOnNetwork ? "left-[18px]" : "left-0.5"}`} />
-          </button>
+          <Switch on={asset.blockOnNetwork} tone="alarm" aria-label="Block on network" title={asset.blockOnNetwork ? "Unblock" : "Block"} />
         </form>
       </div>
       {asset.blockOnNetwork && blockingSensors === 0 && (

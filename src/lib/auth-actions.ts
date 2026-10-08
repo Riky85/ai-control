@@ -6,9 +6,8 @@ import { fmtTime } from "@/lib/format";
 import { cookies, headers } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
 import { sendEmail, appOrigin, emailEnabled } from "@/lib/mail";
-import { requireRole, issueSession, ssoEnforced } from "@/lib/auth";
+import { requireRole, issueSession, ssoEnforced, bumpSessionVersion, unverifiedMayEnter } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import type { MemberRole } from "@prisma/client";
 import { db } from "@/lib/db";
 import { hashPassword, verifyPassword, passwordProblem } from "@/lib/password";
 import { SESSION_COOKIE, signPurpose, verifyPurpose, verifySession } from "@/lib/session";
@@ -18,6 +17,7 @@ import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { encryptJson, decryptJson } from "@/lib/crypto";
 import { newTotpSecret, verifyTotp, newRecoveryCodes, hashRecoveryCode } from "@/lib/totp";
 import { ssoAvailable } from "@/lib/sso";
+import { claimFirstAccount, bootstrapEmailConfigured } from "@/lib/bootstrap";
 
 // NB: in un file "use server" ogni funzione esportata è un endpoint pubblico.
 // issueSession vive in @/lib/auth proprio per non esserlo.
@@ -35,7 +35,7 @@ function safeNext(next: FormDataEntryValue | string | null | undefined) {
   return n.startsWith("/") && !n.startsWith("//") && !n.startsWith("/\\") && !n.startsWith("/login") ? n : "/";
 }
 
-type LoginAccount = { id: string; email: string; name: string | null };
+type LoginAccount = { id: string; email: string; name: string | null; emailVerifiedAt: Date | null; createdAt: Date };
 
 async function registerFailure(account: { id: string; failedLogins: number }) {
   const failed = account.failedLogins + 1;
@@ -52,6 +52,8 @@ export async function signInAction(formData: FormData) {
   const fail = (msg: string) => redirect(`/login?error=${encodeURIComponent(msg)}&email=${encodeURIComponent(email)}${next !== "/" ? `&next=${encodeURIComponent(next)}` : ""}`);
 
   if (!rateLimit(`login:${ip()}`, 20, 10 * 60_000)) fail(TOO_MANY);
+  // Anche per email: da tante reti diverse contro lo stesso account (oltre al blocco dopo 5 errori).
+  if (email && !rateLimit(`login:email:${email}`, 10, 10 * 60_000)) fail("Too many attempts for this account. Wait a few minutes and try again.");
 
   const account = await db.account.findUnique({ where: { email } });
   if (account?.lockedUntil && account.lockedUntil > new Date()) {
@@ -85,7 +87,8 @@ async function finishPasswordLogin(account: LoginAccount, next: string, fail: (m
     const invite = await db.workspaceMember.findUnique({ where: { inviteToken: next.slice("/api/invite/".length) } });
     if (invite && invite.email === email && invite.status === "invited") {
       await db.workspaceMember.update({ where: { id: invite.id }, data: { status: "active", inviteToken: null } });
-      await db.account.update({ where: { id: account.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
+      // Il link d'invito arriva per email: l'indirizzo ora è confermato.
+      await db.account.update({ where: { id: account.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date(), emailVerifiedAt: account.emailVerifiedAt ?? new Date() } });
       await audit("member.join", email, { via: "invite" }, { orgId: invite.organizationId, actorEmail: email });
       await issueSession(account, invite.organizationId, "pwd");
       redirect("/");
@@ -95,16 +98,22 @@ async function finishPasswordLogin(account: LoginAccount, next: string, fail: (m
   const memberships = await db.workspaceMember.findMany({
     where: { email, status: "active" },
     orderBy: { invitedAt: "asc" },
-    include: { organization: { select: { name: true, ssoRequired: true, ssoDomain: true } } },
+    include: { organization: { select: { name: true, ssoRequired: true, ssoDomain: true, createdAt: true } } },
   });
   if (memberships.length === 0) {
     const pending = await db.workspaceMember.count({ where: { email, status: "invited" } });
     fail(pending ? "Open the invitation link we emailed you to join the workspace." : "This account isn't part of any workspace. Ask an owner to invite you.");
   }
   // Workspace con SSO obbligatorio: niente password. Si entra in un altro, se c'è.
-  const allowed = memberships.filter((m) => !ssoEnforced(m.organization, email));
-  if (allowed.length === 0) {
+  const notSso = memberships.filter((m) => !ssoEnforced(m.organization, email));
+  if (notSso.length === 0) {
     fail(`${memberships[0].organization.name} requires signing in with Microsoft or Google.`);
+  }
+  // Email non confermata: solo i workspace creati da questo account (vedi unverifiedMayEnter).
+  const allowed = notSso.filter((m) => unverifiedMayEnter(account, m, m.organization));
+  if (allowed.length === 0) {
+    if (rateLimit(`verify:${account.id}`, 3, 60 * 60_000)) await sendVerificationEmail(account);
+    fail("Check your email to verify your address — we sent you a confirmation link. Open it, then sign in again.");
   }
   await db.account.update({ where: { id: account.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
   await issueSession(account, allowed[0].organizationId, "pwd");
@@ -162,43 +171,45 @@ export async function signUpAction(formData: FormData) {
   const fail = (msg: string) => redirect(`/signup?error=${encodeURIComponent(msg)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&company=${encodeURIComponent(company)}${inviteToken ? `&invite=${encodeURIComponent(inviteToken)}` : ""}`);
 
   if (!rateLimit(`signup:${ip()}`, 10, 60 * 60_000)) fail(TOO_MANY);
+  if (email && !rateLimit(`signup:email:${email}`, 3, 60 * 60_000)) fail(TOO_MANY);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail("Enter a valid email.");
   const problem = passwordProblem(password);
   if (problem) fail(problem);
   if (await db.account.findUnique({ where: { email } })) fail("An account with this email already exists — sign in instead.");
 
-  const isFirstAccount = (await db.account.count()) === 0;
   // Si entra in un workspace solo con il link d'invito giusto (prova di possesso dell'email).
   const invite = inviteToken ? await db.workspaceMember.findUnique({ where: { inviteToken } }) : null;
   const invited = invite && invite.email === email && invite.status === "invited" ? [invite] : [];
+  const passwordHash = await hashPassword(password);
 
-  // Il link d'invito arriva per email: chi lo usa ha già dimostrato di possedere l'indirizzo.
-  const account = await db.account.create({
-    data: { email, name: name || null, passwordHash: await hashPassword(password), emailVerifiedAt: invited.length ? new Date() : null },
-  });
+  // Primo account della piattaforma (solo l'email indicata in ANGAR_BOOTSTRAP_EMAIL, se impostata):
+  // Owner dei workspace già esistenti, in una transazione serializzabile.
+  // L'email è considerata confermata solo se il gestore l'ha indicata esplicitamente.
+  const first = invited.length
+    ? null
+    : await claimFirstAccount(email, { name: name || null, passwordHash, emailVerifiedAt: bootstrapEmailConfigured(email) ? new Date() : null }, { name: name || null, company });
+  const isFirstAccount = Boolean(first);
 
   let orgId: string;
-  if (isFirstAccount) {
-    // Primo account della piattaforma: diventa Owner dei workspace già esistenti.
-    const orgs = await db.organization.findMany({ orderBy: { createdAt: "asc" } });
-    for (const o of orgs) {
-      await db.workspaceMember.upsert({
-        where: { organizationId_email: { organizationId: o.id, email } },
-        update: { role: "OWNER" as MemberRole, status: "active", name: name || undefined },
-        create: { organizationId: o.id, email, name: name || null, role: "OWNER", status: "active" },
-      });
-    }
-    orgId = orgs[0]?.id ?? (await db.organization.create({ data: { name: company || "My company", privacyMode: "department" } })).id;
-    if (!orgs.length) await db.workspaceMember.create({ data: { organizationId: orgId, email, name: name || null, role: "OWNER", status: "active" } });
-  } else if (invited.length > 0) {
-    await db.workspaceMember.update({ where: { id: invited[0].id }, data: { status: "active", inviteToken: null, name: name || undefined } });
-    orgId = invited[0].organizationId;
+  let account;
+  if (first) {
+    account = first.account;
+    orgId = first.orgId;
   } else {
-    // Privacy di default: i nuovi workspace partono "per reparto" (gruppi di almeno 5).
-    // Il dato di default nello schema resta "individual" per i workspace esistenti.
-    const org = await db.organization.create({ data: { name: company || `${name || email.split("@")[0]}'s company`, privacyMode: "department" } });
-    await db.workspaceMember.create({ data: { organizationId: org.id, email, name: name || null, role: "OWNER", status: "active" } });
-    orgId = org.id;
+    // Il link d'invito arriva per email: chi lo usa ha già dimostrato di possedere l'indirizzo.
+    account = await db.account.create({
+      data: { email, name: name || null, passwordHash, emailVerifiedAt: invited.length ? new Date() : null },
+    });
+    if (invited.length > 0) {
+      await db.workspaceMember.update({ where: { id: invited[0].id }, data: { status: "active", inviteToken: null, name: name || undefined } });
+      orgId = invited[0].organizationId;
+    } else {
+      // Privacy di default: i nuovi workspace partono "per reparto" (gruppi di almeno 5).
+      // Il dato di default nello schema resta "individual" per i workspace esistenti.
+      const org = await db.organization.create({ data: { name: company || `${name || email.split("@")[0]}'s company`, privacyMode: "department" } });
+      await db.workspaceMember.create({ data: { organizationId: org.id, email, name: name || null, role: "OWNER", status: "active" } });
+      orgId = org.id;
+    }
   }
 
   if (!account.emailVerifiedAt && emailEnabled()) await sendVerificationEmail(account);
@@ -209,7 +220,11 @@ export async function signUpAction(formData: FormData) {
 
 export async function signOutAction() {
   const s = currentSession();
-  if (s) await audit("auth.logout", s.email);
+  if (s) {
+    await audit("auth.logout", s.email);
+    // Revoca il token (anche eventuali copie): è stateless, conta la versione nel DB.
+    await bumpSessionVersion(s.accountId).catch(() => null);
+  }
   cookies().delete(SESSION_COOKIE);
   redirect("/login");
 }
@@ -279,9 +294,20 @@ export async function resetPasswordAction(formData: FormData) {
   if (!row || row.usedAt || row.expiresAt < new Date()) redirect("/forgot?expired=1");
   const problem = passwordProblem(password);
   if (problem) back(problem);
+  const before = await db.account.findUniqueOrThrow({ where: { id: row!.accountId }, select: { emailVerifiedAt: true } });
+  // Il link è arrivato per email: l'indirizzo è confermato. Se non lo era, l'account potrebbe
+  // essere stato creato da altri con questa email: via anche la loro MFA. Sessioni aperte revocate.
   const account = await db.account.update({
     where: { id: row!.accountId },
-    data: { passwordHash: await hashPassword(password), failedLogins: 0, lockedUntil: null, ssoOnly: false },
+    data: {
+      passwordHash: await hashPassword(password),
+      failedLogins: 0,
+      lockedUntil: null,
+      ssoOnly: false,
+      emailVerifiedAt: before.emailVerifiedAt ?? new Date(),
+      sessionVersion: { increment: 1 },
+      ...(before.emailVerifiedAt ? {} : { totpEnabledAt: null, totpSecretEncrypted: null, totpLastStep: null, recoveryCodesHash: [] }),
+    },
   });
   // Il link usato e gli altri ancora aperti per lo stesso account non valgono più.
   await db.passwordResetToken.updateMany({ where: { accountId: account.id, usedAt: null }, data: { usedAt: new Date() } });
@@ -312,7 +338,8 @@ async function me() {
   const s = currentSession();
   if (!s) redirect("/login");
   const account = await db.account.findUnique({ where: { id: s.accountId } });
-  if (!account) redirect("/api/auth/signout");
+  // Account cancellato o sessione revocata (logout altrove, cambio password…): si esce.
+  if (!account || account.sessionVersion !== s!.sv) redirect("/api/auth/signout");
   return { s: s!, account: account! };
 }
 
@@ -328,7 +355,7 @@ export async function updateProfileAction(formData: FormData) {
 }
 
 export async function changePasswordAction(formData: FormData) {
-  const { account } = await me();
+  const { s, account } = await me();
   const back = (q: string) => redirect(`/account?${q}#password`);
   if (!rateLimit(`pwchange:${account.id}`, 5, 15 * 60_000)) back(`error=${encodeURIComponent(TOO_MANY)}`);
   if (account.ssoOnly) back(`error=${encodeURIComponent("You sign in with Microsoft or Google. To add a password, use “Forgot password” on the sign-in page.")}`);
@@ -341,9 +368,11 @@ export async function changePasswordAction(formData: FormData) {
   const problem = passwordProblem(password);
   if (problem) back(`error=${encodeURIComponent(problem)}`);
   if (current === password) back(`error=${encodeURIComponent("Choose a password different from the current one.")}`);
-  await db.account.update({ where: { id: account.id }, data: { passwordHash: await hashPassword(password), failedLogins: 0, lockedUntil: null } });
+  // Nuova versione di sessione: gli altri dispositivi escono, questo riceve un token nuovo.
+  await db.account.update({ where: { id: account.id }, data: { passwordHash: await hashPassword(password), failedLogins: 0, lockedUntil: null, sessionVersion: { increment: 1 } } });
   await db.passwordResetToken.updateMany({ where: { accountId: account.id, usedAt: null }, data: { usedAt: new Date() } });
   await audit("account.password_changed", account.email);
+  await issueSession(account, s.orgId);
   back("saved=password");
 }
 
@@ -374,7 +403,8 @@ export async function confirmMfaAction(_prev: MfaFormState, formData: FormData):
   const step = verifyTotp(secret, String(formData.get("code") ?? ""));
   if (step === null) return { error: "That code didn't work. Check the time on your phone and try the newest code." };
   const codes = newRecoveryCodes();
-  await db.account.update({ where: { id: account.id }, data: { totpEnabledAt: new Date(), totpLastStep: step, recoveryCodesHash: codes.map(hashRecoveryCode) } });
+  // Le sessioni aperte prima della MFA (anche altrui) non valgono più; questa si rinnova sotto.
+  await db.account.update({ where: { id: account.id }, data: { totpEnabledAt: new Date(), totpLastStep: step, recoveryCodesHash: codes.map(hashRecoveryCode), sessionVersion: { increment: 1 } } });
   await audit("account.mfa_enabled", account.email);
   // Toglie l'eventuale obbligo di attivazione dalla sessione.
   await issueSession(account, s.orgId);

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type { MemberRole } from "@prisma/client";
 import { db } from "@/lib/db";
 import { signSession, verifySession, SESSION_COOKIE, SESSION_DAYS } from "@/lib/session";
+import { emailEnabled } from "@/lib/mail";
 
 /**
  * Sessione della richiesta corrente. Il middleware verifica la firma del
@@ -16,6 +17,7 @@ export interface Session {
   name?: string;
   orgId: string;
   role: MemberRole;
+  sv: number; // versione della sessione nel token (0 per i token vecchi)
 }
 
 export function currentSession(): Session | null {
@@ -30,6 +32,7 @@ export function currentSession(): Session | null {
       email: h.get("x-angar-email") ?? "",
       name: h.get("x-angar-name") ? decodeURIComponent(h.get("x-angar-name")!) : undefined,
       role: (h.get("x-angar-role") ?? "VIEWER") as MemberRole,
+      sv: Number(h.get("x-angar-sv") ?? 0) || 0,
     };
   } catch {
     return null;
@@ -39,20 +42,66 @@ export function currentSession(): Session | null {
 const RANK: Record<MemberRole, number> = { VIEWER: 0, EDITOR: 1, ADMIN: 2, OWNER: 3 };
 
 /**
+ * Il token è stateless: per revocarlo (logout, cambio password, MFA…) si
+ * confronta la sua versione con Account.sessionVersion. Restituisce il membro
+ * attivo del workspace della sessione, oppure null (sessione revocata,
+ * account cancellato o membro rimosso). Da usare in export e download.
+ */
+export async function activeMember(s: Session) {
+  const [member, account] = await Promise.all([
+    db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } } }),
+    db.account.findUnique({ where: { id: s.accountId }, select: { sessionVersion: true } }),
+  ]);
+  if (!account || account.sessionVersion !== s.sv) return null;
+  if (!member || member.status !== "active") return null;
+  return member;
+}
+
+/** Solo la versione della sessione (per chi non passa dal membro, es. backup di piattaforma). */
+export async function sessionCurrent(s: Session) {
+  const account = await db.account.findUnique({ where: { id: s.accountId }, select: { sessionVersion: true } });
+  return Boolean(account && account.sessionVersion === s.sv);
+}
+
+/** Invalida tutte le sessioni aperte dell'account (i token già emessi non valgono più). */
+export async function bumpSessionVersion(accountId: string) {
+  return db.account.update({ where: { id: accountId }, data: { sessionVersion: { increment: 1 } } });
+}
+
+/**
  * Per le azioni che modificano dati: ricontrolla il ruolo nel database (non
  * solo nel token), così un membro rimosso o declassato perde subito i
- * permessi di scrittura.
+ * permessi di scrittura. Anche una sessione revocata viene chiusa qui.
  */
 export async function requireRole(min: MemberRole, back = "/"): Promise<Session> {
   const s = currentSession();
   if (!s) redirect("/login");
-  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } } });
+  const [member, account] = await Promise.all([
+    db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } } }),
+    db.account.findUnique({ where: { id: s.accountId }, select: { sessionVersion: true } }),
+  ]);
+  if (!account || account.sessionVersion !== s.sv) redirect("/api/auth/signout?reason=" + encodeURIComponent("Your session has ended — sign in again."));
   if (!member || member.status !== "active") redirect("/login?error=" + encodeURIComponent("You no longer have access to this workspace."));
   if (RANK[member.role] < RANK[min]) {
     const sep = back.includes("?") ? "&" : "?";
     redirect(`${back}${sep}error=${encodeURIComponent(`This needs the ${min.toLowerCase()} role or higher — ask an owner of this workspace.`)}`);
   }
   return { ...s, role: member.role };
+}
+
+/**
+ * Email non ancora confermata: con la password si entra SOLO nei workspace
+ * creati dall'account stesso (Owner di un workspace nato dopo l'account).
+ * Altrimenti chi registra per primo l'email di un altro entrerebbe nei suoi
+ * workspace. Senza email configurata la conferma è impossibile: si lascia passare.
+ */
+export function unverifiedMayEnter(
+  account: { emailVerifiedAt: Date | null; createdAt: Date },
+  member: { role: MemberRole },
+  org: { createdAt: Date }
+): boolean {
+  if (account.emailVerifiedAt || !emailEnabled()) return true;
+  return member.role === "OWNER" && org.createdAt.getTime() >= account.createdAt.getTime() - 1000;
 }
 
 /**
@@ -95,15 +144,21 @@ export async function issueSession(account: { id: string; email: string; name: s
   const current = await verifySession(cookies().get(SESSION_COOKIE)?.value);
   const m = method ?? (current?.a === account.id && current.m === "sso" ? "sso" : "pwd");
   const [org, acct] = await Promise.all([
-    db.organization.findUnique({ where: { id: orgId }, select: { name: true, ssoRequired: true, ssoDomain: true, mfaRequired: true } }),
-    db.account.findUnique({ where: { id: account.id }, select: { totpEnabledAt: true } }),
+    db.organization.findUnique({ where: { id: orgId }, select: { name: true, ssoRequired: true, ssoDomain: true, mfaRequired: true, createdAt: true } }),
+    db.account.findUnique({ where: { id: account.id }, select: { totpEnabledAt: true, sessionVersion: true, emailVerifiedAt: true, createdAt: true } }),
   ]);
+  if (!org || !acct) throw new Error("Not a member of this workspace");
+  // Email non confermata: niente accesso con password ai workspace di altri.
+  if (m === "pwd" && !unverifiedMayEnter(acct, member, org)) {
+    const msg = "Check your email to verify your address before opening this workspace.";
+    redirect(current ? `/?error=${encodeURIComponent(msg)}` : `/login?error=${encodeURIComponent(msg)}&email=${encodeURIComponent(account.email)}`);
+  }
   if (m === "pwd" && ssoEnforced(org, account.email)) {
     const msg = `${org?.name ?? "This workspace"} requires signing in with Microsoft or Google.`;
     redirect(current ? `/?error=${encodeURIComponent(msg + " Sign out and use the Microsoft or Google button.")}` : `/login?error=${encodeURIComponent(msg)}&email=${encodeURIComponent(account.email)}`);
   }
   const mustEnrolMfa = m === "pwd" && Boolean(org?.mfaRequired) && !acct?.totpEnabledAt;
-  const token = await signSession({ a: account.id, e: account.email, n: account.name ?? undefined, o: orgId, r: member.role, m, ...(mustEnrolMfa ? { f: 1 as const } : {}) });
+  const token = await signSession({ a: account.id, e: account.email, n: account.name ?? undefined, o: orgId, r: member.role, m, v: acct.sessionVersion, ...(mustEnrolMfa ? { f: 1 as const } : {}) });
   cookies().set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: secureCookies(),

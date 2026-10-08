@@ -393,9 +393,14 @@ async function raiseAlerts(sensor: Sensor, mode: PrivacyMode, rows: Row[], fresh
   // (d) Tentativi bloccati: un riepilogo al giorno per AI.
   const blocked = new Map<string, { name: string; n: number }>();
   for (const r of rows) if (r.blocked > 0) blocked.set(r.serviceId, { name: r.serviceName, n: (blocked.get(r.serviceId)?.n ?? 0) + r.blocked });
+  // Le alternative consigliate ("usa X al posto di Y"): una sola query per tutte.
+  const insteadIds = Array.from(new Set(Array.from(blocked.keys()).map((sid) => assetOf.get(sid)?.insteadAssetId).filter((x): x is string => !!x)));
+  const insteadById = new Map(
+    (insteadIds.length ? await db.aiAsset.findMany({ where: { id: { in: insteadIds }, organizationId, deletedAt: null }, select: { id: true, name: true } }) : []).map((x) => [x.id, x])
+  );
   for (const [sid, b] of blocked) {
     const a = assetOf.get(sid);
-    const instead = a?.insteadAssetId ? await db.aiAsset.findFirst({ where: { id: a.insteadAssetId, organizationId, deletedAt: null }, select: { name: true } }) : null;
+    const instead = a?.insteadAssetId ? insteadById.get(a.insteadAssetId) ?? null : null;
     await alert({
       kind: "policy",
       severity: "info",

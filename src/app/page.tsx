@@ -67,7 +67,8 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
     };
   }
 
-  const costed = assets.map((a) => monthlyOf(a)).filter((m): m is NonNullable<typeof m> => !!m && m.eur > 0);
+  // Come /spend e lo Score: i server MCP non sono AI a pagamento, fuori dalla spesa.
+  const costed = assets.filter((a) => a.type !== "MCP_SERVER").map((a) => monthlyOf(a)).filter((m): m is NonNullable<typeof m> => !!m && m.eur > 0);
   const spend = costed.reduce((s, m) => s + m.eur, 0);
   const estimatedEur = costed.filter((m) => m.estimated).reduce((t, m) => t + m.eur, 0);
   // Opportunità (stesso totale del motore dei risparmi) e metriche dell'estate.
@@ -106,7 +107,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
       {assets.length === 0 ? (
         <div className="rounded-xl border border-line bg-panel p-6 sm:p-10 flex flex-col items-center text-center gap-5">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-ink-100">Which AI do you pay for?</h2>
+            <h2 className="text-[22px] font-semibold tracking-[-0.01em] text-ink-100">Which AI do you pay for?</h2>
           </div>
           <form action={uploadSpendAction} className="w-full max-w-xl flex flex-col gap-3">
             <input type="hidden" name="back" value="/" />

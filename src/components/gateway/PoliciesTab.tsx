@@ -4,25 +4,17 @@ import { REDACT_KINDS, REDACT_LABEL } from "@/lib/gateway/detect";
 import type { GwPolicyView } from "@/lib/gateway/data";
 import { saveGatewayPolicyAction, saveGatewayUpstreamAction, saveTeamCapAction, toggleGatewayRuleAction } from "@/lib/gateway-actions";
 import ConnectSnippets from "./ConnectSnippets";
+import { Switch } from "@/components/ui";
 
 const card = "rounded-xl border border-line bg-panel animate-rise";
 const head = "bar-head rounded-t-xl border-b border-line px-5 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1";
 
-function Switch({ field, on, disabled, label }: { field: string; on: boolean; disabled?: boolean; label: string }) {
+function RuleSwitch({ field, on, disabled, label }: { field: string; on: boolean; disabled?: boolean; label: string }) {
   return (
     <form action={toggleGatewayRuleAction} className="flex items-center gap-2 shrink-0">
       <input type="hidden" name="field" value={field} />
       <input type="hidden" name="on" value={on ? "0" : "1"} />
-      <button
-        type="submit"
-        role="switch"
-        aria-checked={on}
-        aria-label={label}
-        disabled={disabled}
-        className={`relative h-5 w-9 rounded-full transition-colors disabled:opacity-60 ${on ? "bg-steady" : "bg-ink-400/40"}`}
-      >
-        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${on ? "left-[18px]" : "left-0.5"}`} />
-      </button>
+      <Switch on={on} aria-label={label} disabled={disabled} />
       <span className="eyebrow w-16">{on ? "Enabled" : "Disabled"}</span>
     </form>
   );
@@ -64,12 +56,12 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
                 : "Non-EU endpoints are blocked."
             }
             help="Send requests only to provider endpoints hosted in the EU. Others are blocked."
-            control={<Switch field="euOnly" on={euOn} disabled={ro || view.forcedEuOnly !== null} label="EU-only providers" />}
+            control={<RuleSwitch field="euOnly" on={euOn} disabled={ro || view.forcedEuOnly !== null} label="EU-only providers" />}
           >
             {euOn && !view.upstreams.some((u) => u.euHosted) && <p className="text-xs text-alarm">No EU endpoint set: every request is blocked.</p>}
           </Rule>
 
-          <Rule title="Allowed models" text="Other models are blocked." help="A name also allows its dated versions." control={<Switch field="modelsRestricted" on={p.modelsRestricted} disabled={ro} label="Allowed models" />}>
+          <Rule title="Allowed models" text="Other models are blocked." help="A name also allows its dated versions." control={<RuleSwitch field="modelsRestricted" on={p.modelsRestricted} disabled={ro} label="Allowed models" />}>
             <form action={saveGatewayPolicyAction} className="flex flex-col gap-2">
               <input type="hidden" name="section" value="models" />
               {p.allowedModels.length > 0 && (
@@ -90,7 +82,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
             </form>
           </Rule>
 
-          <Rule title="Block health data" text="Diagnoses, records, medication." help="English, Italian, German, French, Spanish." control={<Switch field="blockHealth" on={p.blockHealth} disabled={ro} label="Block health data" />} />
+          <Rule title="Block health data" text="Diagnoses, records, medication." help="English, Italian, German, French, Spanish." control={<RuleSwitch field="blockHealth" on={p.blockHealth} disabled={ro} label="Block health data" />} />
 
           <Rule id="caps" title="Monthly caps" text="A team stops at its cap." help="Caps reset on the 1st; a key can also have its own cap.">
             <div className="flex flex-col gap-3">
@@ -130,7 +122,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
             </div>
           </Rule>
 
-          <Rule title="Redact sensitive values" text="Masked before leaving the company." help="The provider sees [IBAN], [EMAIL] and so on." control={<Switch field="redact" on={p.redact} disabled={ro} label="Redact sensitive values" />}>
+          <Rule title="Redact sensitive values" text="Masked before leaving the company." help="The provider sees [IBAN], [EMAIL] and so on." control={<RuleSwitch field="redact" on={p.redact} disabled={ro} label="Redact sensitive values" />}>
             <form action={saveGatewayPolicyAction} className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <input type="hidden" name="section" value="redact" />
               {REDACT_KINDS.map((k) => (

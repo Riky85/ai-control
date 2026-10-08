@@ -36,7 +36,7 @@ export default function ExportMenu({ dataset, csv, label = "Export" }: { dataset
           )}
           {csv && (
             <a href={csv} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-ink-100 hover:bg-ink-100/[0.04] transition-colors">
-              <span className="h-6 w-6 rounded-md bg-ink-400 text-white text-[10px] font-bold flex items-center justify-center">CSV</span>
+              <span className="h-6 w-6 rounded-md bg-ink-100 text-panel text-[10px] font-bold flex items-center justify-center">CSV</span>
               <span>
                 <span className="block">CSV</span>
                 <span className="block text-xs text-ink-400">Plain table, any tool</span>

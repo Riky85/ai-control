@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readBodyLimited } from "@/lib/body-limit";
 import { db } from "@/lib/db";
 import { newEdgeToken } from "@/lib/edge/auth";
 import { normalizeSerial, secretMatches } from "@/lib/edge/device-id";
@@ -14,8 +15,10 @@ const json = (body: unknown, status = 200, headers: Record<string, string> = {})
 export async function POST(req: Request) {
   let body: Record<string, unknown>;
   try {
-    const raw = await req.text();
-    if (raw.length > 10_000) return json({ error: "Too much data." }, 413);
+    // Endpoint pubblico: lettura a flusso con tetto di 10 KB.
+    const bytes = await readBodyLimited(req, 10_000);
+    if (bytes === null) return json({ error: "Too much data." }, 413);
+    const raw = bytes.toString("utf8");
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("not an object");
     body = parsed;

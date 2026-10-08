@@ -40,7 +40,13 @@ function sweep(now: number, windowMs: number) {
   for (const [k, b] of buckets) if (now - b.at > Math.max(windowMs, 3_600_000)) buckets.delete(k);
 }
 
-/** IP del client dietro al proxy di Railway (primo di x-forwarded-for). */
+/**
+ * IP del client dietro al proxy di Railway. Il proxy AGGIUNGE in fondo a
+ * x-forwarded-for l'IP reale da cui riceve la connessione: le voci a sinistra
+ * le può scrivere chiunque, quindi si prende l'ultima (mai la prima).
+ */
 export function clientIp(h: { get(name: string): string | null }): string {
-  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const xff = h.get("x-forwarded-for");
+  const last = xff?.split(",").map((x) => x.trim()).filter(Boolean).pop();
+  return last || h.get("x-real-ip")?.trim() || "unknown";
 }

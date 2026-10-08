@@ -4,9 +4,11 @@
  * importo: ricalcolare aggiorna l'importo, non duplica (stesso schema di
  * connectors/cloud-ai.ts). Così Savings, Budgets e la previsione la vedono.
  *
- * Se il connettore del provider (chiave admin OpenAI / Anthropic) è collegato,
- * la sua fatturazione contiene già queste chiamate: niente righe del Gateway
- * per quel provider (sarebbe spesa contata due volte).
+ * Se esiste il connettore del provider (chiave admin OpenAI / Anthropic, in
+ * qualsiasi stato) o se nel mese c'è già spesa reale di quel provider da
+ * un'altra fonte (connettore, estratto conto, fattura), quella spesa contiene
+ * già queste chiamate: niente righe del Gateway per quel provider e mese
+ * (sarebbe spesa contata due volte; quelle già scritte nel mese si tolgono).
  */
 import { db } from "@/lib/db";
 import { spendFingerprint, isoDay } from "@/lib/connectors/cloud-ai";
@@ -24,6 +26,9 @@ const SERVICE: Record<GatewayProvider, { serviceId: string; connector: "OPENAI" 
 export async function rollupGatewaySpend(orgId: string, day: string) {
   const from = new Date(`${day}T00:00:00Z`);
   const to = new Date(from.getTime() + DAY);
+  // Mese (UTC) del giorno: la spesa reale si confronta mese per mese.
+  const monthFrom = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), 1));
+  const monthTo = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 1));
   const groups = await db.gatewayRequest.groupBy({
     by: ["provider"],
     where: { organizationId: orgId, createdAt: { gte: from, lt: to }, costEur: { gt: 0 } },
@@ -35,8 +40,19 @@ export async function rollupGatewaySpend(orgId: string, day: string) {
     const provider = g.provider as GatewayProvider;
     const svc = SERVICE[provider];
     if (!svc) continue;
-    const billed = await db.connector.findFirst({ where: { organizationId: orgId, provider: svc.connector, status: "CONNECTED", credentialsEncrypted: { not: null } }, select: { id: true } });
-    if (billed) continue;
+    // Spesa reale del provider: connettore admin (qualsiasi stato) o addebiti del mese da altre fonti.
+    const billed =
+      (await db.connector.findFirst({ where: { organizationId: orgId, provider: svc.connector }, select: { id: true } })) ??
+      (await db.spendRecord.findFirst({
+        where: { organizationId: orgId, source: { not: "gateway" }, date: { gte: monthFrom, lt: monthTo }, OR: [{ service: svc.serviceId }, { aiAsset: { serviceId: svc.serviceId } }] },
+        select: { id: true },
+      }));
+    if (billed) {
+      // Le righe a listino del Gateway già scritte in questo mese andrebbero contate due volte: si tolgono.
+      const gone = await db.spendRecord.deleteMany({ where: { organizationId: orgId, source: "gateway", service: svc.serviceId, date: { gte: monthFrom, lt: monthTo } } });
+      written += gone.count;
+      continue;
+    }
     const amountEur = Math.round((g._sum.costEur ?? 0) * 100) / 100;
     const tokens = (g._sum.inputTokens ?? 0) + (g._sum.outputTokens ?? 0);
     const description = `${PROVIDER_LABEL[provider]} via angar Gateway — ${g._count._all.toLocaleString("en-GB")} requests, ${tokens.toLocaleString("en-GB")} tokens (list price, ${fmtEur(amountEur, { decimals: true })})`.slice(0, 180);

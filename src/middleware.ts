@@ -3,7 +3,7 @@ import { verifySession, SESSION_COOKIE } from "@/lib/session";
 
 // Percorsi accessibili senza login.
 const PUBLIC = ["/login", "/signup", "/forgot", "/reset/", "/share/", "/api/billing/webhook", "/api/health", "/api/backup/cron", "/api/discovery/", "/api/spend/sample", "/check", "/pricing", "/engine", "/partners", "/pilot", "/join/", "/api/check/", "/seat/", "/api/edge/", "/api/onprem/", "/api/invite/", "/login/mfa", "/api/auth/sso/", "/api/auth/signout", "/verify-email/", "/api/v1/", "/api/slack/", "/ack/", "/trust", "/api/gateway/"];
-const IDENTITY_HEADERS = ["x-angar-account", "x-angar-email", "x-angar-name", "x-angar-org", "x-angar-role"];
+const IDENTITY_HEADERS = ["x-angar-account", "x-angar-email", "x-angar-name", "x-angar-org", "x-angar-role", "x-angar-sv"];
 
 export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
@@ -39,6 +39,7 @@ export async function middleware(req: NextRequest) {
   if (session.n) headers.set("x-angar-name", encodeURIComponent(session.n));
   headers.set("x-angar-org", session.o);
   headers.set("x-angar-role", session.r);
+  headers.set("x-angar-sv", String(session.v ?? 0));
   return NextResponse.next({ request: { headers } });
 }
 

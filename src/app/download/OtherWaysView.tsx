@@ -105,7 +105,7 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
           {canEdit ? (
             <form action={uploadNetworkLogAction} className="flex flex-col gap-3 mt-auto">
               <CsvDropzone accept=".log,.txt,.csv,.json,.jsonl,.tsv,.gz,.zip,text/plain,text/csv,application/json,application/zip" multiple label="Choose log files or drag them here" />
-              <button className="btn btn-primary self-start">Find AI in this log</button>
+              <button className="btn btn-secondary self-start">Find AI in this log</button>
             </form>
           ) : (
             <p className="text-sm text-ink-400 mt-auto">Viewers can&apos;t upload logs — ask an editor.</p>
@@ -123,7 +123,7 @@ export default async function OtherWaysView({ orgId, base, token, joinUrl, canEd
         </section>
       </div>
 
-      <Table title="Found automatically" note={connector?.lastSyncedAt ? `Last result ${fmtDateTime(connector.lastSyncedAt)}` : "Nothing yet — install the desktop app on a computer."} action={found.some((a) => a.status === "UNKNOWN" || a.status === "UNREVIEWED") ? <Link href="/review" className="btn btn-primary btn-sm">Review what was found</Link> : undefined} columns={["AI system", "Seen on", "Last seen", "Status"]} empty={found.length === 0 && "No AI found automatically yet."}>
+      <Table title="Found automatically" note={connector?.lastSyncedAt ? `Last result ${fmtDateTime(connector.lastSyncedAt)}` : "Nothing yet — install the desktop app on a computer."} action={found.some((a) => a.status === "UNKNOWN" || a.status === "UNREVIEWED") ? <Link href="/review" className="btn btn-secondary btn-sm">Review what was found</Link> : undefined} columns={["AI system", "Seen on", "Last seen", "Status"]} empty={found.length === 0 && "No AI found automatically yet."}>
           {found.map((a) => {
             const devices = [...new Set(a.connectedSystems.map((c) => c.detail ?? ""))].filter(Boolean);
             return (

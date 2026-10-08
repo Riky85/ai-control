@@ -280,7 +280,7 @@ export function Tabs({ items, active }: { items: { key: string; label: string; h
         <Link
           key={t.key}
           href={t.href}
-          className={`shrink-0 whitespace-nowrap text-sm px-3.5 py-1.5 rounded-md transition-colors ${
+          className={`tab-link shrink-0 whitespace-nowrap text-sm px-3.5 py-1.5 rounded-md transition-colors ${
             active === t.key ? "bg-panel text-ink-100 font-medium shadow-card" : "text-ink-400 hover:text-ink-100"
           }`}
         >
@@ -327,20 +327,47 @@ export function InfoStrip({
   const inner = (
     <>
       <span className={`h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] flex items-center justify-center ${tone === "steady" ? "text-steady" : "text-ink-100"}`}>{icon}</span>
-      <span className="flex-1 min-w-0 flex items-baseline gap-2 text-sm">
+      {/* Su schermi piccoli il testo va a capo invece di sparire troncato. */}
+      <span className="flex-1 min-w-0 flex flex-wrap sm:flex-nowrap items-baseline gap-x-2 gap-y-0.5 text-sm">
         <span className="font-bold text-ink-100 shrink-0">{title}</span>
         {value && <span className="font-display font-light tabular text-ink-100 shrink-0">{value}</span>}
-        {text && <span className="text-ink-400 truncate">{text}</span>}
+        {text && <span className="text-ink-400 basis-full sm:basis-auto min-w-0 sm:truncate">{text}</span>}
       </span>
       {action ?? (href ? <span className="text-sm text-ink-400 shrink-0">→</span> : null)}
     </>
   );
-  const cls = "rounded-xl border border-line bg-panel px-4 py-3 flex items-center gap-3 animate-rise";
+  const cls = "rounded-xl border border-line bg-panel px-4 py-3 flex flex-wrap sm:flex-nowrap items-center gap-3 animate-rise";
   return href && !action ? (
     <Link href={href} className={`${cls} hover:border-ink-400 transition-colors`}>
       {inner}
     </Link>
   ) : (
     <section className={cls}>{inner}</section>
+  );
+}
+
+/**
+ * Interruttore unico della piattaforma (on/off). È un <button role="switch">:
+ * di norma type="submit" dentro un <form> con i campi nascosti, così il
+ * comportamento dei form esistenti resta lo stesso. Colori solo da token.
+ */
+export function Switch({
+  on,
+  tone = "steady",
+  className = "",
+  type = "submit",
+  ...rest
+}: { on: boolean; tone?: "steady" | "alarm" } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "role" | "aria-checked">) {
+  const track = on ? (tone === "alarm" ? "bg-alarm" : "bg-steady") : "bg-ink-400/40";
+  return (
+    <button
+      type={type}
+      role="switch"
+      aria-checked={on}
+      className={`relative inline-block shrink-0 h-5 w-9 rounded-full transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 ${track} ${className}`}
+      {...rest}
+    >
+      <span aria-hidden className={`absolute top-0.5 h-4 w-4 rounded-full bg-panel shadow-card transition-all ${on ? "left-[18px]" : "left-0.5"}`} />
+    </button>
   );
 }

@@ -585,6 +585,8 @@ model AiAssetActivity {
   createdAt  DateTime          @default(now())
 
   @@index([aiAssetId, occurredAt])
+  // Conservazione: cancellazione per data su tutta la tabella.
+  @@index([occurredAt])
 }
 
 model RiskAssessment {
@@ -669,6 +671,8 @@ model WorkspaceMember {
   inviteToken    String?      @unique
 
   @@unique([organizationId, email])
+  // Workspace dell'utente (layout, a ogni navigazione): ricerca per email e stato.
+  @@index([email, status])
 }
 
 // Link di sola lettura a una dashboard, condivisibile fuori da Angar.
@@ -705,6 +709,8 @@ model Account {
   totpEnabledAt       DateTime?
   totpLastStep        Int?
   recoveryCodesHash   String[]  @default([])
+  // Versione delle sessioni: incrementata a logout, cambio/reset password, MFA attivata → i token vecchi non valgono più.
+  sessionVersion      Int       @default(0)
 }
 
 // Registro di audit: chi ha fatto cosa, quando, da dove. Solo in aggiunta.
@@ -868,6 +874,8 @@ model EdgeEvent {
 
   @@unique([sensorId, day, serviceId, client, source])
   @@index([organizationId, day])
+  // Conservazione: cancellazione per giorno su tutta la tabella.
+  @@index([day])
 }
 
 // Token per singola installazione dell'app desktop (dal link aziendale). Il primo
@@ -1140,6 +1148,8 @@ model GatewayRequest {
 
   @@index([organizationId, createdAt])
   @@index([keyId, createdAt])
+  // Conservazione: cancellazione per data su tutta la tabella.
+  @@index([createdAt])
 }
 
 // ───────────────────────── Economia AI: catalogo globale ─────────────────────────

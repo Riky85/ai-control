@@ -9,6 +9,8 @@ import { updateProfileAction, changePasswordAction, resendVerificationAction, si
 import { fmtDate } from "@/lib/format";
 import { Notice, PageHeader } from "@/components/ui";
 import { Row, Section } from "@/components/SettingsRows";
+import DeleteAccountForm from "@/components/gdpr/DeleteAccountForm";
+import { accountDeletionPreview } from "@/lib/gdpr";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,7 @@ export default async function AccountPage({ searchParams }: { searchParams: { sa
   if (!account) redirect("/api/auth/signout");
   const session = await verifySession(cookies().get(SESSION_COOKIE)?.value);
   const via = session?.m === "sso" ? "Microsoft or Google" : "email and password";
+  const removal = await accountDeletionPreview(account.email);
 
   return (
     <div className="flex flex-col gap-6">
@@ -69,7 +72,22 @@ export default async function AccountPage({ searchParams }: { searchParams: { sa
           </form>
         </Row>
       </Section>
-      <p className="text-xs text-ink-400 px-1">Lost a device? Ask an owner to remove and re-invite you — a new password doesn&apos;t sign out other browsers.</p>
+      <p className="text-xs text-ink-400 px-1">Lost a device? Change your password or sign out — both sign out your other browsers too.</p>
+      {/* GDPR: cancellazione del proprio account. */}
+      <Section title="Delete account" id="delete-account">
+        <Row
+          title="Delete my account"
+          hint={
+            removal.blocked.length
+              ? `You're the only owner of ${removal.blocked.join(", ")} — make someone else an owner first.`
+              : removal.alone.length
+                ? `Also deletes ${removal.alone.join(", ")}, where you're the only member. Can't be undone.`
+                : "Removes you from every workspace. Can't be undone."
+          }
+        >
+          <DeleteAccountForm email={account.email} blocked={removal.blocked.length > 0} />
+        </Row>
+      </Section>
     </div>
   );
 }

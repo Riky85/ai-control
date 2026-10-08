@@ -8,7 +8,7 @@
 import { db } from "@/lib/db";
 import { createAlert } from "@/lib/alerts";
 import { fmtEur } from "@/lib/format";
-import type { Saving } from "@/lib/savings";
+import { canonicalSavingKey, type Saving } from "@/lib/savings";
 
 const DAY = 86400000;
 export const VERIFY_AFTER_DAYS = 45;
@@ -68,7 +68,17 @@ export type SavedSoFar = Awaited<ReturnType<typeof savedSoFar>>;
 
 /** Totali per /savings, la home e il report mensile. */
 export async function savedSoFar(organizationId: string) {
-  const rows = await db.savingAction.findMany({ where: { organizationId }, orderBy: { acceptedAt: "desc" }, take: 1000 });
+  const all = await db.savingAction.findMany({ where: { organizationId }, orderBy: { acceptedAt: "desc" }, take: 1000 });
+  // Difesa contro i doppi invii: una sola riga valida per suggerimento (la più avanzata, poi la più recente).
+  const rank: Record<string, number> = { verified: 3, done: 2, accepted: 1 };
+  const best = new Map<string, (typeof all)[number]>();
+  for (const r of all) {
+    if (!r.savingKey || r.status === "failed") continue;
+    const k = canonicalSavingKey(r.savingKey);
+    const cur = best.get(k);
+    if (!cur || (rank[r.status] ?? 0) > (rank[cur.status] ?? 0)) best.set(k, r);
+  }
+  const rows = all.filter((r) => !r.savingKey || r.status === "failed" || best.get(canonicalSavingKey(r.savingKey)) === r);
   const now = Date.now();
   const verified = rows.filter((r) => r.status === "verified");
   const done = rows.filter((r) => r.status === "done");

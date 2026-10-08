@@ -7,7 +7,7 @@
 import { db } from "@/lib/db";
 import { createAlert } from "@/lib/alerts";
 import { fmtDate, fmtEur } from "@/lib/format";
-import { monthlyOf } from "@/lib/savings";
+import { monthlyOf, assetCostInclude } from "@/lib/savings";
 
 const DAY = 86400000;
 export const NOTICE_ALERT_DAYS = 14;
@@ -51,7 +51,7 @@ export async function contractRows(organizationId: string) {
       deletedAt: null,
       cost: { OR: [{ contractEnd: { not: null } }, { contractStart: { not: null } }, { poNumber: { not: null } }, { costCenter: { not: null } }, { contractOwnerEmail: { not: null } }, { contractUrl: { not: null } }] },
     },
-    include: { cost: true, usages: { select: { id: true } } },
+    include: { ...assetCostInclude, usages: { select: { id: true } } },
     orderBy: { name: "asc" },
   });
   const now = Date.now();

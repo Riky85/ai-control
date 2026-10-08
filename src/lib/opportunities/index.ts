@@ -8,7 +8,7 @@
  */
 import * as React from "react";
 import { db } from "@/lib/db";
-import { computeSavingsCached, monthlyOf } from "@/lib/savings";
+import { computeSavingsCached, monthlyOf, canonicalSavingKey } from "@/lib/savings";
 import { computeScoreCached, scoreActions } from "@/lib/engine/score";
 import { loadEstateCached } from "@/lib/estate/graph";
 import { loadMarketFeed } from "@/lib/market/service";
@@ -39,10 +39,19 @@ async function loadStatus(orgId: string): Promise<StatusInput> {
     db.savingAction.findMany({ where: { organizationId: orgId, savingKey: { not: null }, status: { not: "failed" } }, select: { savingKey: true, status: true } }),
     db.savingDismissal.findMany({ where: { organizationId: orgId }, select: { key: true } }),
   ]);
+  // Chiavi vecchie dei doppioni → chiave attuale; più righe sulla stessa chiave: vince la più avanzata.
+  const rank = { accepted: 1, done: 2, verified: 3 } as const;
+  const led = new Map<string, "accepted" | "done" | "verified">();
+  for (const l of ledger) {
+    const st = l.status as "accepted" | "done" | "verified";
+    const k = canonicalSavingKey(l.savingKey!);
+    const cur = led.get(k);
+    if (!cur || (rank[st] ?? 0) > (rank[cur] ?? 0)) led.set(k, st);
+  }
   return {
     states: new Map(states.filter((s) => isStatus(s.status)).map((s) => [s.key, s.status as Status])),
-    ledger: new Map(ledger.map((l) => [l.savingKey!, l.status as "accepted" | "done" | "verified"])),
-    dismissed: new Set(dismissed.map((d) => d.key)),
+    ledger: led,
+    dismissed: new Set(dismissed.map((d) => canonicalSavingKey(d.key))),
   };
 }
 
@@ -88,7 +97,20 @@ export async function loadOpportunities(orgId: string, now = new Date()) {
 
   // Rinnovi: annuali dagli addebiti, e termini di contratto con preavviso (le date del contratto vincono).
   const ren: RenewalIn[] = [
-    ...contracts.filter((c) => c.termEnd).map((c) => ({ assetId: c.assetId, name: c.name, vendor: c.vendor, date: c.termEnd!, amountEur: c.monthlyEur ?? 0, annual: true, from: "contract" as const, noticeBy: c.deadline })),
+    // Importo coerente con il periodo: contratto annuale → costo dell'anno (mensile × 12), altrimenti mensile.
+    ...contracts
+      .filter((c) => c.termEnd)
+      .map((c) => ({
+        assetId: c.assetId,
+        name: c.name,
+        vendor: c.vendor,
+        date: c.termEnd!,
+        amountEur: c.annualBilling ? (c.monthlyEur ?? 0) * 12 : c.monthlyEur ?? 0,
+        annual: c.annualBilling,
+        from: "contract" as const,
+        noticeBy: c.deadline,
+        endsOnly: c.autoRenew === false,
+      })),
     ...renewals.filter((r) => r.annual).map((r) => ({ assetId: r.assetId, name: r.name, vendor: r.vendor, date: r.date, amountEur: r.amountEur, annual: r.annual, from: "charges" as const })),
   ];
 

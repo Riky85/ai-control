@@ -387,7 +387,7 @@ function Kpi({ label, value, hint, border, accent }: { label: string; value: str
   return (
     <div className={`px-4 py-4 ${border ? "border-t sm:border-t-0 sm:border-l print:border-t-0 print:border-l border-[#DCDCE1]" : ""}`}>
       <div className="text-[11px] uppercase tracking-wider text-[#5F5F69]">{label}</div>
-      <div className={`text-[24px] font-semibold tracking-tight tabular mt-1 ${accent ? "text-[#FF7323]" : ""}`}>{value}</div>
+      <div className={`text-[24px] font-semibold tracking-tight tabular mt-1 ${accent ? "text-accent" : ""}`}>{value}</div>
       {hint && <div className="text-xs text-[#5F5F69]">{hint}</div>}
     </div>
   );

@@ -10,7 +10,7 @@ import { PRIVACY_MODES } from "@/lib/privacy";
 import { fmtEur, fmtAgo } from "@/lib/format";
 import { switchWorkspaceAction, createWorkspaceAction } from "@/lib/workspace-actions";
 import { setManagedByMeAction } from "@/lib/partner-actions";
-import { Notice, PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
+import { EmptyState, Notice, PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
 import Badge from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
@@ -68,20 +68,16 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
       </div>
 
       {onlyOwn && (
-        <div className="rounded-xl border border-dashed border-line bg-panel p-8 flex flex-col gap-3 animate-rise">
-          <h2 className="text-base font-bold text-ink-100">Manage AI spend for all your clients</h2>
-          <p className="text-sm text-ink-400 max-w-2xl">
-            Accountants, consultants and MSPs use angar to look after AI spend for many client companies at once. Create one workspace for each client, drop their bank
-            statement or invite them, and this console shows every client side by side — spend, possible savings, AI to review and alerts — sorted by where you can save
-            the most.
-          </p>
-          <ol className="text-sm text-ink-100 list-decimal pl-5 flex flex-col gap-1">
-            <li>Create a client workspace with the button above.</li>
-            <li>Add their costs (bank statement, invoices or a connected bank) from Sources.</li>
-            <li>Invite the client from Workspace → Members, if they should see it too.</li>
-          </ol>
-          <p className="text-xs text-ink-400">Each workspace stays separate: clients never see each other, and you only see workspaces you&apos;re a member of.</p>
-        </div>
+        // Stato vuoto standard: una riga e una sola azione.
+        <EmptyState
+          className="animate-rise"
+          text="No client workspaces yet. Create one for each client with the button above, then add their costs from Sources. Clients never see each other."
+          action={
+            <Link href="/sources" className="btn btn-secondary btn-sm">
+              Open Sources
+            </Link>
+          }
+        />
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">

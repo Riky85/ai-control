@@ -7,7 +7,7 @@
  * solo mediana e quartili.
  */
 import { db } from "@/lib/db";
-import { monthlyOf } from "@/lib/savings";
+import { monthlyOf, assetCostInclude } from "@/lib/savings";
 
 export const MIN_COMPANIES = 5;
 const DAY = 86400000;
@@ -60,6 +60,17 @@ let cache: { at: number; points: Map<string, OrgPoint> } | null = null;
 
 const normIndustry = (s: string | null | undefined) => (s ?? "").trim().toLowerCase() || null;
 
+/**
+ * Media mensile degli addebiti degli ultimi 90 giorni: somma divisa per i mesi
+ * davvero coperti (mesi di calendario UTC con addebiti, almeno 1), non sempre per 3:
+ * un'azienda con un solo mese di dati non va divisa per tre.
+ */
+function monthlyFromRecords(records: { date: Date; amountEur: number }[]) {
+  const sum = records.reduce((t, r) => t + r.amountEur, 0);
+  const months = new Set(records.map((r) => `${r.date.getUTCFullYear()}-${r.date.getUTCMonth()}`)).size;
+  return sum / Math.max(1, months);
+}
+
 /** Spesa mensile per dipendente di ogni azienda con dipendenti impostati e almeno un costo. */
 async function loadPoints(): Promise<Map<string, OrgPoint>> {
   if (cache && Date.now() - cache.at < CACHE_MS) return cache.points;
@@ -69,9 +80,9 @@ async function loadPoints(): Promise<Map<string, OrgPoint>> {
     ? await Promise.all([
         db.aiAsset.findMany({
           where: { organizationId: { in: ids }, deletedAt: null, status: { not: "UNAPPROVED" } },
-          select: { organizationId: true, name: true, vendor: true, serviceId: true, cost: true, usages: { select: { id: true } } },
+          select: { organizationId: true, name: true, vendor: true, serviceId: true, ...assetCostInclude, usages: { select: { id: true } } },
         }),
-        db.spendRecord.groupBy({ by: ["organizationId"], where: { organizationId: { in: ids }, date: { gte: new Date(Date.now() - 90 * DAY) } }, _sum: { amountEur: true } }),
+        db.spendRecord.findMany({ where: { organizationId: { in: ids }, date: { gte: new Date(Date.now() - 90 * DAY) } }, select: { organizationId: true, date: true, amountEur: true } }),
       ])
     : [[], []];
 
@@ -80,7 +91,9 @@ async function loadPoints(): Promise<Map<string, OrgPoint>> {
     const m = monthlyOf(a);
     if (m && m.eur > 0) byAssets.set(a.organizationId, (byAssets.get(a.organizationId) ?? 0) + m.eur);
   }
-  const byRecords = new Map(records.map((r) => [r.organizationId, (r._sum.amountEur ?? 0) / 3]));
+  const recordsByOrg = new Map<string, { date: Date; amountEur: number }[]>();
+  for (const r of records) recordsByOrg.set(r.organizationId, [...(recordsByOrg.get(r.organizationId) ?? []), r]);
+  const byRecords = new Map([...recordsByOrg].map(([id, list]) => [id, monthlyFromRecords(list)]));
 
   const points = new Map<string, OrgPoint>();
   for (const o of orgs) {
@@ -120,12 +133,12 @@ export async function getBenchmark(orgId: string): Promise<Benchmark> {
   if (employees) {
     const own = await db.aiAsset.findMany({
       where: { organizationId: orgId, deletedAt: null, status: { not: "UNAPPROVED" } },
-      select: { name: true, vendor: true, serviceId: true, cost: true, usages: { select: { id: true } } },
+      select: { name: true, vendor: true, serviceId: true, ...assetCostInclude, usages: { select: { id: true } } },
     });
     let monthly = own.reduce((t, a) => t + (monthlyOf(a)?.eur ?? 0), 0);
     if (monthly <= 0) {
-      const r = await db.spendRecord.aggregate({ where: { organizationId: orgId, date: { gte: new Date(Date.now() - 90 * DAY) } }, _sum: { amountEur: true } });
-      monthly = (r._sum.amountEur ?? 0) / 3;
+      const r = await db.spendRecord.findMany({ where: { organizationId: orgId, date: { gte: new Date(Date.now() - 90 * DAY) } }, select: { date: true, amountEur: true } });
+      monthly = monthlyFromRecords(r);
     }
     yours = monthly / employees;
   }

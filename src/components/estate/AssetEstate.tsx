@@ -284,11 +284,11 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
             <div className="overflow-x-auto border-t border-line">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 text-left">
-                    <th className="px-5 py-2 font-normal">Alternatives</th>
-                    <th className="px-3 py-2 font-normal text-right">Fit</th>
-                    <th className="px-3 py-2 font-normal">Effort</th>
-                    <th className="px-5 py-2 font-normal text-right" title={`Estimates from list prices${repl.current.surface ? ` · current API: ${SURFACE_LABEL[repl.current.surface]}` : ""} · ranked by compatibility, not price${repl.required.assumed ? " · needs assumed from the current model" : ""}`}>A month</th>
+                  <tr className="bar-thead text-left font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 bg-ink border-b border-line">
+                    <th className="px-5 py-2.5 font-normal">Alternatives</th>
+                    <th className="px-3 py-2.5 font-normal text-right">Fit</th>
+                    <th className="px-3 py-2.5 font-normal">Effort</th>
+                    <th className="px-5 py-2.5 font-normal text-right" title={`Estimates from list prices${repl.current.surface ? ` · current API: ${SURFACE_LABEL[repl.current.surface]}` : ""} · ranked by compatibility, not price${repl.required.assumed ? " · needs assumed from the current model" : ""}`}>A month</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">

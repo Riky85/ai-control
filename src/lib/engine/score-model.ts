@@ -98,7 +98,15 @@ export interface Opportunity {
   overlapPeople?: number | null;
   /** Accettato nel registro dei risparmi ma non ancora fatto: conta ancora. */
   inProgress?: boolean;
+  /**
+   * Quota sommata al totale dei risparmi (computeSavings.counted: tetto sul costo di ogni AI,
+   * 0 per quelli già accettati), come il totale delle Opportunities. Assente = monthlyEur.
+   */
+  countedEur?: number;
 }
+
+/** Risparmio di un'opportunità che entra nei totali (senza doppi conteggi sulla stessa AI). */
+export const countedOf = (o: Pick<Opportunity, "monthlyEur" | "countedEur">) => o.countedEur ?? o.monthlyEur;
 
 /** Spesa a consumo sopra l'atteso (ultimo addebito vs mediana dei precedenti, o gateway 30 vs 30 giorni). */
 export interface GrowthItem {
@@ -356,7 +364,8 @@ function savingsOpp(f: ScoreFacts): RawDim {
   if (!f.costKnown || f.monthlySpendEur <= 0) return unmeasured("Add costs to find savings", "/sources");
   const pens: Pen[] = [];
   for (const c of ["HIGH", "MEDIUM", "LOW"] as OpportunityConfidence[]) {
-    const e = f.opportunities.filter((o) => o.confidence === c).reduce((t, o) => t + o.monthlyEur, 0);
+    // Stessa quota "counted" del totale delle Opportunities: niente somma oltre il costo dell'AI.
+    const e = f.opportunities.filter((o) => o.confidence === c).reduce((t, o) => t + countedOf(o), 0);
     if (e >= 1) pens.push({ label: `${eur(e)} a month of ${CERTAINTY_WORD[c]} savings found`, pts: ((e * CERTAINTY_WEIGHT[c]) / f.monthlySpendEur) * 300, href: "/opportunities" });
   }
   const scaled = scaleTo(pens, 100);

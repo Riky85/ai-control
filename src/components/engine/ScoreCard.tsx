@@ -30,7 +30,7 @@ export function AxisGauge({ label, value, size = 64, href }: { label: string; va
         <span className="text-xs font-semibold text-ink-100 min-w-0 max-w-full truncate">{label}</span>
         <span className={`inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] text-[10px] whitespace-nowrap ${lv.pill}`}>{lv.label}</span>
       </div>
-      <div className={`font-display font-semibold tabular text-ink-100 leading-tight mt-1 ${big ? "text-[26px]" : "text-[22px]"}`}>
+      <div className={`font-display font-light tracking-[-0.03em] tabular text-ink-100 leading-tight mt-1 ${big ? "text-[26px]" : "text-[22px]"}`}>
         {v}
         <span className="text-[11px] font-normal text-ink-400 ml-0.5">/100</span>
       </div>
@@ -105,40 +105,46 @@ export function scoreSentence(d: Pick<ScoreCardData, "verdict" | "savingsMonthly
   return d.savingsMonthlyEur >= 1 ? `${d.verdict} ${eur(d.savingsMonthlyEur)} a month could be saved.` : d.verdict;
 }
 
-/** Calibro segmentato: 50 tacche sottili, piene fino al punteggio in arancio (stile Exein: l'arancio è il dato). */
-function SegmentGauge({ value }: { value: number }) {
+/**
+ * Calibro segmentato sottile: 50 tacche piene fino al punteggio. L'arancio è un
+ * segnale: compare solo sotto 60 (fair/weak); con un buon punteggio le tacche
+ * piene restano neutre.
+ */
+function SegmentGauge({ value, warn }: { value: number; warn: boolean }) {
   const n = 50;
   const filled = Math.round((Math.max(0, Math.min(100, value)) / 100) * n);
+  const on = warn ? "bg-accent/90" : "bg-ink-100/80";
   return (
     <div aria-hidden>
-      <div className="flex gap-[3px] h-4">
+      <div className="flex gap-[3px] h-2.5">
         {Array.from({ length: n }, (_, i) => (
-          <span key={i} className={`flex-1 rounded-[1px] ${i < filled ? "bg-accent/90" : "bg-ink-100/[0.08]"}`} />
+          <span key={i} className={`flex-1 rounded-[1px] ${i < filled ? on : "bg-ink-100/[0.08]"}`} />
         ))}
       </div>
-      {/* Soglie dei livelli: 40 · 60 · 80. */}
-      <div className="relative mt-2 h-4 font-mono text-[11px] text-ink-400 tabular">
-        <span className="absolute left-0">0</span>
+      {/* Soglie dei livelli: 40 · 60 · 80 (etichette corte, solo le soglie). */}
+      <div className="relative mt-1 h-3 font-mono text-[10px] leading-3 text-ink-400 tabular">
         {[40, 60, 80].map((t) => (
           <span key={t} className="absolute -translate-x-1/2" style={{ left: `${t}%` }}>
             {t}
           </span>
         ))}
-        <span className="absolute right-0">100</span>
       </div>
     </div>
   );
 }
 
 /**
- * Card dell'Angar Score per la Overview, in stile analisi finanziaria: numero
- * grande e sottile, calibro segmentato, una frase, le 5 dimensioni come righe
- * minime con barre sottili. "Improve my score" è il pulsante PRINCIPALE della
- * pagina (l'unico arancio). Solo presentazione.
+ * Card dell'Angar Score per la Overview, in versione compatta (una sola fascia
+ * orizzontale): numero grande e sottile, calibro sottile, verdetto su una riga,
+ * le 5 dimensioni come righe minime. "Improve my score" è il pulsante PRINCIPALE
+ * della pagina. Solo presentazione.
  */
 export default function ScoreCard({ data }: { data: ScoreCardData }) {
   const { score, level, levelLabel, confidence, confidenceLabel, dims, delta, potential, actions } = data;
   const gain = potential != null ? Math.round(potential - score) : 0;
+  // Calibro arancio solo quando il livello è "Needs attention" (stessa soglia delle dimensioni).
+  const warn = level === "weak";
+  const lowConf = confidence !== "measured" && confidence !== "high";
   return (
     <section className="relative rounded-xl border border-line bg-panel animate-rise" aria-labelledby="score-card-title">
       {/* Linguetta in alto a sinistra con il nome del blocco (stile Exein). */}
@@ -146,79 +152,77 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
         Angar Score
       </h2>
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        {/* Sinistra: punteggio */}
-        <div className="flex flex-col min-w-0 px-6 sm:px-8 pt-14 pb-6 sm:pb-8">
-          {confidence !== "measured" && confidence !== "high" && <span className="eyebrow -mt-4 mb-4">{confidenceLabel}</span>}
-
-          <div className="flex items-end gap-4">
-            <span className="text-[56px] leading-[0.85] font-light tracking-[-0.04em] tabular text-ink-100">
-              {score}
-              <span className="text-[20px] tracking-normal text-ink-400 ml-1">/100</span>
-            </span>
-            <div className="flex flex-col gap-1.5 pb-1">
-              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-100">
-                <span className={`h-1.5 w-1.5 rounded-full ${LEVEL_STYLE[level].dot}`} aria-hidden />
-                {levelLabel}
+        {/* Sinistra: punteggio, calibro, verdetto e azione principale */}
+        <div className="flex flex-col min-w-0 px-5 sm:px-6 pt-11 pb-5">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+            <div className="flex items-end gap-3 min-w-0">
+              <span className="text-[44px] leading-[0.85] font-light tracking-[-0.04em] tabular text-ink-100">
+                {score}
+                <span className="text-[16px] tracking-normal text-ink-400 ml-1">/100</span>
               </span>
-              <span className="text-xs text-ink-400 tabular">
-                {delta && (
-                  <>
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-100 whitespace-nowrap">
+                  <span className={`h-1.5 w-1.5 rounded-full ${LEVEL_STYLE[level].dot}`} aria-hidden />
+                  {levelLabel}
+                </span>
+                {delta ? (
+                  <span className="text-xs text-ink-400 tabular whitespace-nowrap">
                     <span className={delta.points > 0 ? "text-steady" : delta.points < 0 ? "text-alarm" : ""}>
                       {delta.points > 0 ? "+" : ""}
                       {formatPts(delta.points)}
                     </span>{" "}
                     since {fmtDay(delta.since)}
-                  </>
-                )}
-              </span>
+                    {lowConf && <> · {confidenceLabel}</>}
+                  </span>
+                ) : lowConf ? (
+                  <span className="eyebrow truncate">{confidenceLabel}</span>
+                ) : null}
+              </div>
+            </div>
+            <div className="flex flex-col items-start sm:items-end gap-1">
+              <Link href="/score/improve" className="btn btn-primary btn-go">
+                Improve my score
+              </Link>
+              {gain > 0 && actions > 0 && (
+                <span className="text-xs text-ink-400 tabular whitespace-nowrap">
+                  Up to <span className="text-ink-100 font-medium">{Math.round(potential!)}</span> with {actions} action{actions === 1 ? "" : "s"}
+                </span>
+              )}
             </div>
           </div>
 
-          <div className="mt-7">
-            <SegmentGauge value={score} />
+          <div className="mt-4">
+            <SegmentGauge value={score} warn={warn} />
           </div>
 
-          <p className="text-sm leading-relaxed text-ink-400 mt-5 max-w-md">{data.verdict}</p>
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-auto pt-7">
-            <Link href="/score/improve" className="btn btn-primary btn-go">
-              Improve my score
-            </Link>
-            {gain > 0 && actions > 0 ? (
-              <span className="text-xs text-ink-400 tabular">
-                Up to <span className="text-ink-100 font-medium">{Math.round(potential!)}</span> with {actions} action{actions === 1 ? "" : "s"}
-              </span>
-            ) : (
-              <Link href="/score" className="text-sm text-ink-400 hover:text-ink-100 transition-colors">
-                See details →
-              </Link>
-            )}
-          </div>
+          <p className="text-sm text-ink-400 mt-2 line-clamp-1" title={data.verdict}>
+            {data.verdict}
+          </p>
         </div>
 
-        {/* Destra: le 5 dimensioni */}
-        <div className="min-w-0 border-t lg:border-t-0 lg:border-l border-line p-6 sm:p-8 lg:pt-14 flex flex-col">
+        {/* Destra: le 5 dimensioni, righe strette */}
+        <div className="min-w-0 border-t lg:border-t-0 lg:border-l border-line px-5 sm:px-6 py-3 flex flex-col">
           <div className="flex items-center justify-between gap-3">
             <h3 className="eyebrow">Breakdown</h3>
             <Link href="/score" className="eyebrow hover:!text-ink-100 transition-colors">
               See details [→]
             </Link>
           </div>
-          <ul className="flex flex-col mt-4 flex-1 justify-center" aria-label="Dimensions">
+          <ul className="flex flex-col mt-1 flex-1 justify-center" aria-label="Dimensions">
             {dims.map((d) => {
               const v = d.value == null ? null : Math.max(0, Math.min(100, Math.round(d.value)));
               return (
                 <li key={d.axis} className="border-b border-line last:border-0">
                   <Link
                     href={`/score#axis-${d.axis}`}
-                    className="group grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2rem_8.75rem] items-center gap-x-5 gap-y-2 py-3.5"
+                    className="group grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2rem_8.75rem] items-center gap-x-5 gap-y-1.5 py-2"
                     aria-label={`${d.label}: ${v ?? "not measured"}${v != null ? " out of 100" : ""}, ${d.levelLabel}`}
                   >
-                    <span className="text-sm text-ink-100 truncate group-hover:underline underline-offset-4 decoration-ink-100/30">{d.label}</span>
+                    <span className="text-sm leading-5 text-ink-100 truncate group-hover:underline underline-offset-4 decoration-ink-100/30">{d.label}</span>
                     <span className="order-last sm:order-none col-span-2 sm:col-span-1 h-1 rounded-full bg-ink-100/[0.08] overflow-hidden" aria-hidden>
                       {v != null && <span className={`block h-full rounded-full animate-grow ${d.level === "weak" ? "bg-accent" : "bg-ink-100/70"}`} style={{ width: `${Math.max(2, v)}%` }} />}
                     </span>
-                    <span className={`text-sm tabular text-right ${d.level === "weak" ? "text-accent" : "text-ink-100"}`}>{v ?? "—"}</span>
+                    <span className={`text-sm leading-5 tabular text-right ${d.level === "weak" ? "text-accent" : "text-ink-100"}`}>{v ?? "—"}</span>
                     <span className={`hidden sm:inline-flex items-center gap-1.5 eyebrow min-w-0 ${d.level === "weak" ? "!text-accent" : ""}`}>
                       <span className="truncate">{d.levelLabel}</span>
                     </span>

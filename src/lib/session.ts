@@ -14,6 +14,7 @@ export interface SessionPayload {
   r: string; // ruolo nel workspace corrente
   m?: "pwd" | "sso"; // come si è entrati (assente nei token vecchi = password)
   f?: 1; // MFA da attivare prima di usare l'app (workspace con MFA obbligatoria)
+  v?: number; // Account.sessionVersion al momento del login (assente nei token vecchi = 0)
   x: number; // scadenza (unix secondi)
 }
 

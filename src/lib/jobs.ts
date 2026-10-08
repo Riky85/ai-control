@@ -53,9 +53,14 @@ async function finish(name: string, key: string) {
 // ── Rinnovi: avviso 14 giorni prima, con i posti non usati ───────────────
 export async function renewalAlerts(orgId: string) {
   const renewals = await upcomingRenewals(orgId, 14);
+  // Una sola query per tutti i sistemi in rinnovo (prima una per rinnovo).
+  const assets = renewals.length
+    ? await db.aiAsset.findMany({ where: { id: { in: Array.from(new Set(renewals.map((r) => r.assetId))) }, organizationId: orgId }, include: { cost: true, usages: { select: { lastSeenAt: true } } } })
+    : [];
+  const assetById = new Map(assets.map((a) => [a.id, a]));
   let n = 0;
   for (const r of renewals) {
-    const asset = await db.aiAsset.findFirst({ where: { id: r.assetId, organizationId: orgId }, include: { cost: true, usages: { select: { lastSeenAt: true } } } });
+    const asset = assetById.get(r.assetId) ?? null;
     if (asset?.cost?.contractEnd) continue; // con il contratto registrato avvisa noticeDeadlineAlerts (contracts.ts)
     const seats = asset?.cost?.seats ?? null;
     // Stessa definizione di posto attivo di Usage e Savings (30 giorni).
@@ -86,9 +91,14 @@ export async function seatFollowups(orgId: string) {
   const released = await db.seatReminder.findMany({ where: { organizationId: orgId, response: "release", removedAt: null } });
   const byAsset = new Map<string, number>();
   for (const r of [...stale, ...released]) byAsset.set(r.aiAssetId, (byAsset.get(r.aiAssetId) ?? 0) + 1);
+  // Nomi di tutti i sistemi in una sola query (prima una per sistema).
+  const names = byAsset.size
+    ? await db.aiAsset.findMany({ where: { id: { in: Array.from(byAsset.keys()) }, organizationId: orgId }, select: { id: true, name: true } })
+    : [];
+  const nameById = new Map(names.map((x) => [x.id, x]));
   let n = 0;
   for (const [assetId, count] of byAsset) {
-    const a = await db.aiAsset.findFirst({ where: { id: assetId, organizationId: orgId }, select: { name: true } });
+    const a = nameById.get(assetId);
     if (!a) continue;
     if (
       await createAlert(orgId, {
@@ -191,17 +201,60 @@ export async function monthlyReports() {
 /** Mesi di conservazione dei dati d'uso (come scritto nell'informativa ai dipendenti). */
 export const USAGE_RETENTION_MONTHS = 12;
 
+/** Righe cancellate per giro e giri massimi per tabella (1 milione di righe al giorno al massimo). */
+const PURGE_BATCH = 5000;
+const PURGE_MAX_ROUNDS = 200;
+
+/**
+ * Cancellazione a blocchi: si leggono PURGE_BATCH id e si cancellano, finché
+ * non resta niente (o fino a PURGE_MAX_ROUNDS giri; il resto il giorno dopo).
+ * Evita un'unica DELETE enorme che blocca la tabella e gonfia il WAL.
+ */
+async function deleteInBatches(findIds: () => Promise<{ id: string }[]>, deleteIds: (ids: string[]) => Promise<{ count: number }>) {
+  let total = 0;
+  for (let round = 0; round < PURGE_MAX_ROUNDS; round++) {
+    const ids = (await findIds()).map((r) => r.id);
+    if (!ids.length) break;
+    total += (await deleteIds(ids)).count;
+    if (ids.length < PURGE_BATCH) break;
+  }
+  return total;
+}
+
 /** Conservazione: cancella i dati d'uso più vecchi di USAGE_RETENTION_MONTHS (attività, traffico Edge, log del Gateway). */
 export async function purgeOldUsage(now = new Date()) {
   const cutoff = new Date(now);
   cutoff.setMonth(cutoff.getMonth() - USAGE_RETENTION_MONTHS);
-  const [activities, edge, gateway] = await Promise.all([
-    db.aiAssetActivity.deleteMany({ where: { occurredAt: { lt: cutoff } } }),
-    db.edgeEvent.deleteMany({ where: { day: { lt: cutoff.toISOString().slice(0, 10) } } }),
-    db.gatewayRequest.deleteMany({ where: { createdAt: { lt: cutoff } } }),
-  ]);
-  return activities.count + edge.count + gateway.count;
+  const cutoffDay = cutoff.toISOString().slice(0, 10);
+  // Una tabella alla volta, per non tenere occupate tre connessioni con cancellazioni lunghe.
+  const activities = await deleteInBatches(
+    () => db.aiAssetActivity.findMany({ where: { occurredAt: { lt: cutoff } }, select: { id: true }, take: PURGE_BATCH }),
+    (ids) => db.aiAssetActivity.deleteMany({ where: { id: { in: ids } } })
+  );
+  const edge = await deleteInBatches(
+    () => db.edgeEvent.findMany({ where: { day: { lt: cutoffDay } }, select: { id: true }, take: PURGE_BATCH }),
+    (ids) => db.edgeEvent.deleteMany({ where: { id: { in: ids } } })
+  );
+  const gateway = await deleteInBatches(
+    () => db.gatewayRequest.findMany({ where: { createdAt: { lt: cutoff } }, select: { id: true }, take: PURGE_BATCH }),
+    (ids) => db.gatewayRequest.deleteMany({ where: { id: { in: ids } } })
+  );
+  // Minimizzazione GDPR: contatti dello Spend Check mai confermati (doppio opt-in) oltre 12 mesi,
+  // ed errori tecnici (possono contenere percorsi e messaggi con dati) oltre 90 giorni.
+  const leads = await deleteInBatches(
+    () => db.lead.findMany({ where: { kind: "check", confirmedAt: null, createdAt: { lt: cutoff } }, select: { id: true }, take: PURGE_BATCH }),
+    (ids) => db.lead.deleteMany({ where: { id: { in: ids } } })
+  );
+  const errorCutoff = new Date(now.getTime() - ERROR_RETENTION_DAYS * 86_400_000);
+  const errors = await deleteInBatches(
+    () => db.errorEvent.findMany({ where: { createdAt: { lt: errorCutoff } }, select: { id: true }, take: PURGE_BATCH }),
+    (ids) => db.errorEvent.deleteMany({ where: { id: { in: ids } } })
+  );
+  return activities + edge + gateway + leads + errors;
 }
+
+/** Giorni di conservazione del registro errori (ErrorEvent). */
+export const ERROR_RETENTION_DAYS = 90;
 
 /** Tutti i lavori dovuti adesso, per tutte le aziende. Idempotente. */
 export async function runDueJobs(now = new Date()) {

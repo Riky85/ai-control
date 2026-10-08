@@ -53,7 +53,7 @@ export default async function PlanBanner({ orgId }: { orgId: string }) {
           Your {state.org.planStatus === "trialing" ? "trial" : "subscription"} has ended — you&apos;re on Free limits. All your data stays visible; changes beyond Free are locked.
         </span>
       )}
-      <Link href="/billing" className="btn btn-primary btn-sm">Choose a plan</Link>
+      <Link href="/billing" className="btn btn-secondary btn-sm">Choose a plan</Link>
     </div>
   );
 }

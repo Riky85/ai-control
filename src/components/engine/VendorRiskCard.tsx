@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Pill } from "@/components/governance/parts";
 import { RESIDENCY_LABEL, type Residency, type Training, type VendorRisk } from "@/lib/vendor-risk";
 
 /**
@@ -7,21 +8,8 @@ import { RESIDENCY_LABEL, type Residency, type Training, type VendorRisk } from 
  * Stesso linguaggio di PriceIndexCard: linee sottili, pillole tinte.
  */
 
-const TONE = {
-  alarm: "text-alarm bg-alarm/10",
-  signal: "text-accent bg-accent/10",
-  steady: "text-steady bg-steady/10",
-  muted: "text-ink-400 bg-ink-100/[0.06]",
-} as const;
-type Tone = keyof typeof TONE;
-
-function Pill({ tone, children, title }: { tone: Tone; children: React.ReactNode; title?: string }) {
-  return (
-    <span title={title} className={`inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] text-[10px] whitespace-nowrap ${TONE[tone]}`}>
-      {children}
-    </span>
-  );
-}
+// Pillola condivisa (stessa grafica di Governance e Usage).
+type Tone = "alarm" | "signal" | "steady" | "muted";
 
 const EU_HQ = ["France", "Germany", "Italy", "Spain", "Netherlands", "Belgium", "Ireland", "Sweden", "Finland", "Denmark", "Austria", "Poland", "Portugal", "Norway", "Luxembourg", "Czechia"];
 

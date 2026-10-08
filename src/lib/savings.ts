@@ -4,6 +4,7 @@
  * inventato: ogni suggerimento dice da dove viene e quanto è sicuro.
  */
 import * as React from "react";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { countActive, SEAT_WINDOW_DAYS } from "@/lib/seats";
 import { AI_SERVICES } from "@/lib/discovery/catalog";
@@ -30,6 +31,21 @@ const round = (n: number) => Math.round(n);
 
 export type AssetForSavings = Awaited<ReturnType<typeof loadAssets>>[number];
 
+/** Abbonamento inserito a mano ancora valido: vince su AiSystemCost per posti e prezzi (vedi monthlyOf). */
+export const manualSubscriptionArgs = {
+  where: { origin: "manual", effectiveUntil: null },
+  orderBy: { updatedAt: "desc" },
+  take: 1,
+  include: { seatLines: true },
+} satisfies Prisma.AiAsset$subscriptionsArgs;
+
+/**
+ * Relazioni che servono a monthlyOf: costo e abbonamento manuale. Ogni lettura
+ * delle AI che poi chiama monthlyOf le include (in `include` o `select`), così
+ * tutte le pagine mostrano lo stesso costo.
+ */
+export const assetCostInclude = { cost: true, subscriptions: manualSubscriptionArgs } as const;
+
 export async function loadAssets(organizationId: string, opts: { includeRejected?: boolean } = {}) {
   return db.aiAsset.findMany({
     where: { organizationId, deletedAt: null, ...(opts.includeRejected ? {} : { status: { not: "UNAPPROVED" as const } }) },
@@ -40,7 +56,7 @@ export async function loadAssets(organizationId: string, opts: { includeRejected
       activities: { where: { eventType: { in: ["discovery.seen", "edge.seen"] } }, orderBy: { occurredAt: "desc" }, take: 1, select: { occurredAt: true } },
       connector: { select: { provider: true, credentialsEncrypted: true } },
       // Abbonamento inserito a mano: vince su AiSystemCost per posti e prezzi.
-      subscriptions: { where: { origin: "manual", effectiveUntil: null }, orderBy: { updatedAt: "desc" }, take: 1, include: { seatLines: true } },
+      subscriptions: manualSubscriptionArgs,
     },
     orderBy: { name: "asc" },
   });
@@ -80,6 +96,22 @@ export function monthlyOf(
     if (e && e.known) return { eur: Math.round(e.eur * 100) / 100, estimated: true };
   }
   return null;
+}
+
+/**
+ * Chiave attuale di un suggerimento. I doppioni avevano la chiave
+ * "dup:<categoria>:<id,…>" (cambiava con gli strumenti): oggi è "dup:<categoria>".
+ */
+export function canonicalSavingKey(key: string) {
+  if (!key.startsWith("dup:")) return key;
+  const [, cat] = key.split(":");
+  return `dup:${cat}`;
+}
+
+/** Filtri Prisma (da mettere in OR) per una chiave e le sue forme vecchie (doppioni: "dup:<categoria>:…"). */
+export function savingKeyFilters(key: string): ({ equals: string } | { startsWith: string })[] {
+  const k = canonicalSavingKey(key);
+  return k.startsWith("dup:") ? [{ equals: k }, { startsWith: `${k}:` }] : [{ equals: k }];
 }
 
 export async function computeSavings(organizationId: string) {
@@ -152,8 +184,9 @@ export async function computeSavings(organizationId: string) {
     // 3. Posti "premium" dove probabilmente basta lo standard.
     if (plan && /premium|max-20x|chatgpt-pro/.test(plan.id)) {
       const plans = legacyPlans();
-      const standard = plans.find((p) => p.service === plan.service && p.business === plan.business && !/premium|max|pro$/.test(p.id) && p.monthlyUsd < plan.monthlyUsd) ??
-        plans.find((p) => p.service === plan.service && p.monthlyUsd < plan.monthlyUsd && p.id !== plan.id);
+      // Solo piani a pagamento: un piano gratuito (prezzo 0) darebbe un rapporto infinito.
+      const standard = plans.find((p) => p.service === plan.service && p.business === plan.business && !/premium|max|pro$/.test(p.id) && p.monthlyUsd > 0 && p.monthlyUsd < plan.monthlyUsd) ??
+        plans.find((p) => p.service === plan.service && p.monthlyUsd > 0 && p.monthlyUsd < plan.monthlyUsd && p.id !== plan.id);
       if (standard) {
         const n = seats ?? 1;
         const save = m.eur - seatsEur(standard.id, n);
@@ -237,7 +270,8 @@ export async function computeSavings(organizationId: string) {
     const drop = sorted.slice(1);
     const save = drop.reduce((s, a) => s + monthlyOf(a)!.eur, 0);
     out.push({
-      key: `dup:${cat}:${sorted.map((a) => a.id).join(",")}`,
+      // Chiave stabile per categoria: se cambiano gli strumenti, "not for us" e accettazioni restano.
+      key: `dup:${cat}`,
       kind: "duplicate",
       title: `${list.length} ${categoryPlural(cat)} — keep one`,
       detail: `You pay for ${sorted.map((a) => a.name).join(", ")}. They do the same job: standardise on ${keep.name} and cancel the others where the same people have both.`,
@@ -248,9 +282,10 @@ export async function computeSavings(organizationId: string) {
     });
   }
 
-  const hidden = new Set([...dismissed.map((d) => d.key), ...ledger.map((a) => a.savingKey!)]);
+  // Le vecchie chiavi dei doppioni ("dup:<categoria>:<id,…>") valgono come la chiave nuova.
+  const hidden = new Set([...dismissed.map((d) => d.key), ...ledger.map((a) => a.savingKey!)].map(canonicalSavingKey));
   // Accettati ma non ancora fatti: fuori dall'elenco, ma l'angar Score li conta ancora (lo spreco c'è ancora).
-  const accepted = new Set(ledger.filter((a) => a.status === "accepted").map((a) => a.savingKey!));
+  const accepted = new Set(ledger.filter((a) => a.status === "accepted").map((a) => canonicalSavingKey(a.savingKey!)));
   const inProgress = out.filter((s) => accepted.has(s.key) && s.monthlyEur >= 1);
   const visible = out.filter((s) => !hidden.has(s.key) && s.monthlyEur >= 1);
   // Se un'AI va tolta perché doppione, gli altri suggerimenti su di lei non servono.

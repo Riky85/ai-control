@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { currentSession } from "@/lib/auth";
+import { currentSession, activeMember } from "@/lib/auth";
 import { planGate } from "@/lib/plan-gate";
 import { appOrigin } from "@/lib/mail";
 import { loadRegister } from "@/lib/compliance/register";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const s = currentSession();
   if (!s) return new Response("Not signed in", { status: 401 });
-  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } }, select: { status: true } });
+  const member = await activeMember(s);
   if (!member || member.status !== "active") return new Response("Forbidden", { status: 403 });
   const gate = await planGate(s.orgId, "registerExport");
   if (!gate.ok) return Response.redirect(`${appOrigin(req.headers)}/billing?error=${encodeURIComponent(gate.message)}`, 303);

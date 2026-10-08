@@ -127,7 +127,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
 
       {view === "sensors" && (
         <>
-          <Table columns={["Sensor", "Status", "Last report", { label: "Settings", className: "w-[330px]" }, { label: "", className: "w-[1%]" }]} empty={sensors.length ? false : "No sensors yet. Add one below — it takes a few minutes."}>
+          <Table columns={["Sensor", "Status", "Last report", { label: "Settings", className: "lg:w-[330px]" }, { label: "", className: "w-[1%]" }]} empty={sensors.length ? false : "No sensors yet. Add one below — it takes a few minutes."}>
             {sensors.map((x) => {
               const st = (x.stats ?? {}) as Stats;
               const on = isOnline(x);

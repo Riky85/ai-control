@@ -26,8 +26,9 @@ export const metadata: Metadata = {
 // Esempi illustrativi (mai dati di clienti): servono a mostrare le card vere dell'Engine.
 const DEMO_FORECAST: ForecastCardProps = (() => {
   const now = new Date();
-  const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-  const add = (m: number) => new Date(now.getFullYear(), now.getMonth() + m, 1);
+  // Mesi in UTC, come il resto della previsione (forecast.ts): niente sfasamenti col fuso del server.
+  const key = (d: Date) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+  const add = (m: number) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + m, 1));
   const base = [3120, 3190, 3240, 3410, 3380, 3560, 3690, 3720, 3890, 4010, 4120, 4260];
   const history = base.map((eur, i) => ({ month: key(add(i - 12)), eur }));
   const projection = Array.from({ length: 12 }, (_, k) => {

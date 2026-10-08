@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { randomBytes } from "node:crypto";
-import type { MemberRole } from "@prisma/client";
 import { db } from "@/lib/db";
 import { appOrigin } from "@/lib/mail";
 import { verifyPurpose } from "@/lib/session";
 import { issueSession } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { claimFirstAccount } from "@/lib/bootstrap";
 import { ssoProvider, ssoCallbackUrl, exchangeCode, verifyIdToken, verifiedEmail, SsoError, SSO_COOKIE, SSO_COOKIE_PATH } from "@/lib/sso";
 
 export const dynamic = "force-dynamic";
@@ -50,15 +50,39 @@ export async function GET(req: Request, { params }: { params: { provider: string
   if (!email) return back(`${p.label} didn't confirm your email address. Use an account with a verified email, or sign in with your password.`);
 
   // Account: l'email verificata dal provider prova il possesso → si collega a quello esistente.
-  const isFirstAccount = (await db.account.count()) === 0;
+  let isFirstAccount = false;
   let account = await db.account.findUnique({ where: { email } });
   if (!account) {
-    account = await db.account.create({
-      data: { email, name: displayName ?? null, passwordHash: `sso$${randomBytes(32).toString("base64url")}`, ssoOnly: true, emailVerifiedAt: new Date() },
-    });
+    const data = { name: displayName ?? null, passwordHash: `sso$${randomBytes(32).toString("base64url")}`, ssoOnly: true, emailVerifiedAt: new Date() };
+    // Primo account della piattaforma (solo ANGAR_BOOTSTRAP_EMAIL, se impostata): Owner dei workspace esistenti.
+    const first = await claimFirstAccount(email, data, { name: displayName ?? null });
+    isFirstAccount = Boolean(first);
+    account = first?.account ?? (await db.account.create({ data: { ...data, email } }));
     await audit("auth.signup", email, { via: p.id, firstAccount: isFirstAccount }, { orgId: null, actorEmail: email });
-  } else if (!account.emailVerifiedAt || (!account.name && displayName)) {
-    account = await db.account.update({ where: { id: account.id }, data: { emailVerifiedAt: account.emailVerifiedAt ?? new Date(), name: account.name ?? displayName } });
+  } else if (!account.emailVerifiedAt) {
+    // Account con email mai confermata: potrebbe averlo creato qualcun altro con questa email
+    // (pre-registrazione). Il provider ora prova il possesso: via password e MFA di chi l'ha
+    // creato, e tutte le sessioni aperte revocate. Chi vuole una password usa "Forgot?".
+    account = await db.account.update({
+      where: { id: account.id },
+      data: {
+        emailVerifiedAt: new Date(),
+        name: account.name ?? displayName,
+        passwordHash: `sso$${randomBytes(32).toString("base64url")}`,
+        ssoOnly: true,
+        totpEnabledAt: null,
+        totpSecretEncrypted: null,
+        totpLastStep: null,
+        recoveryCodesHash: [],
+        failedLogins: 0,
+        lockedUntil: null,
+        sessionVersion: { increment: 1 },
+      },
+    });
+    await db.passwordResetToken.updateMany({ where: { accountId: account.id, usedAt: null }, data: { usedAt: new Date() } });
+    await audit("auth.unverified_account_claimed", email, { via: p.id }, { orgId: null, actorEmail: email });
+  } else if (!account.name && displayName) {
+    account = await db.account.update({ where: { id: account.id }, data: { name: displayName } });
   }
 
   // Link d'invito da cui si è partiti (se era per questa email).
@@ -76,17 +100,6 @@ export async function GET(req: Request, { params }: { params: { provider: string
   }
 
   let onboarding = false;
-  if (isFirstAccount) {
-    // Primo account della piattaforma: Owner dei workspace già esistenti (come nella registrazione).
-    const orgs = await db.organization.findMany({ orderBy: { createdAt: "asc" } });
-    for (const o of orgs) {
-      await db.workspaceMember.upsert({
-        where: { organizationId_email: { organizationId: o.id, email } },
-        update: { role: "OWNER" as MemberRole, status: "active" },
-        create: { organizationId: o.id, email, name: account.name, role: "OWNER", status: "active" },
-      });
-    }
-  }
   const memberships = await db.workspaceMember.findMany({ where: { email, status: "active" }, orderBy: { invitedAt: "asc" } });
   if (memberships.length === 0) {
     // Nuovo utente senza workspace: se ne crea uno, come alla registrazione.

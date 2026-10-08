@@ -122,7 +122,7 @@ export async function completeSeatRemoval(
 
 /** Clic "Remove seat": API del fornitore, poi pulizia in angar. */
 export async function removeSeatNow(organizationId: string, assetId: string, email: string, actorEmail: string): Promise<{ ok: boolean; message: string }> {
-  if (!showsPeople(await orgPrivacyMode(organizationId))) return { ok: false, message: "Seat removal needs the per-person employee privacy (Settings → Employee privacy)." };
+  if (!showsPeople(await orgPrivacyMode(organizationId))) return { ok: false, message: "Seat removal needs the by-person employee privacy mode (Settings → Employee privacy)." };
   const res = await removeSeat(organizationId, assetId, email);
   if (!res.ok) {
     await audit("seats.remove_failed", email, { assetId, error: res.error.slice(0, 300) }, { orgId: organizationId, actorEmail });

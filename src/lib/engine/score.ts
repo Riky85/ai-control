@@ -12,14 +12,14 @@
  */
 import * as React from "react";
 import { db } from "@/lib/db";
-import { computeSavingsCached, monthlyOf, categoryOf, type Saving } from "@/lib/savings";
+import { computeSavingsCached, monthlyOf, categoryOf, assetCostInclude, type Saving } from "@/lib/savings";
 import { assessAssetRisk } from "@/lib/risk-engine";
 import { SEAT_WINDOW_DAYS, countActive } from "@/lib/seats";
 import { vendorRiskFor, planTier, trainsOnYourData } from "@/lib/vendor-risk";
 import { PLANS, categoryPlural, type Category } from "@/lib/pricing/catalog";
 import { ANOMALY, median } from "@/lib/engine/forecast";
 import { AXES, SCORE_METHOD, type Axes } from "@/lib/engine/score-meta";
-import { scoreFromFacts, scoreActions, type ScoreFacts, type ScoreResult, type Opportunity, type GrowthItem, type SeatTool } from "@/lib/engine/score-model";
+import { scoreFromFacts, scoreActions, countedOf, type ScoreFacts, type ScoreResult, type Opportunity, type GrowthItem, type SeatTool } from "@/lib/engine/score-model";
 import { controlFromFacts, type ControlFacts, type ControlResult } from "@/lib/engine/control";
 
 const DAY = 86400000;
@@ -64,7 +64,8 @@ export async function loadScoreFacts(orgId: string, now = new Date()): Promise<{
     db.aiAsset.findMany({
       where: { organizationId: orgId, deletedAt: null },
       include: {
-        cost: true,
+        // Costo + abbonamento manuale: stesso costo mensile delle altre pagine (monthlyOf).
+        ...assetCostInclude,
         usages: { select: { id: true, firstSeenAt: true, lastSeenAt: true, userId: true, externalUserRef: true } },
         connectedSystems: true,
         dataAccess: { include: { dataAsset: true } },
@@ -181,6 +182,8 @@ export async function loadScoreFacts(orgId: string, now = new Date()): Promise<{
       ...(cat ? { label: categoryPlural(cat) } : {}),
       ...(s.kind === "duplicate" ? { overlapPeople: overlap } : {}),
       ...(inProgress ? { inProgress: true } : {}),
+      // Quota contata nel totale (tetto sul costo dell'AI); gli accettati non si sommano, come nelle Opportunities.
+      countedEur: inProgress ? 0 : Math.round((savings.counted.get(s.key) ?? 0) * 100) / 100,
     };
   };
   const seen = new Set<string>();
@@ -306,7 +309,7 @@ export async function recordScoreSnapshot(orgId: string, now = new Date(), resul
     score: r.score,
     axes: { v: SCORE_METHOD, ...r.axes, confidence: r.confidence },
     monthlySpendEur: r.facts.costKnown ? Math.round(r.facts.monthlySpendEur * 100) / 100 : null,
-    wasteMonthlyEur: r.facts.costKnown ? Math.round(r.facts.opportunities.reduce((s, o) => s + o.monthlyEur, 0) * 100) / 100 : null,
+    wasteMonthlyEur: r.facts.costKnown ? Math.round(r.facts.opportunities.reduce((s, o) => s + countedOf(o), 0) * 100) / 100 : null,
   };
   await db.engineSnapshot.upsert({
     where: { organizationId_day: { organizationId: orgId, day } },

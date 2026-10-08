@@ -422,7 +422,9 @@ export interface SidebarTrial {
 function TrialCard({ trial, collapsed }: { trial: SidebarTrial; collapsed: boolean }) {
   const urgent = !trial.trialing || trial.daysLeft <= 3;
   const pct = trial.trialing ? Math.max(4, Math.min(100, (trial.daysLeft / trial.totalDays) * 100)) : 0;
-  const color = urgent ? "#D9A928" : "#FF7323";
+  // Arancio solo quando la prova sta per finire (segnale), altrimenti neutro.
+  const stroke = urgent ? "stroke-accent" : "stroke-sb-ink/40";
+  const fill = urgent ? "bg-accent" : "bg-sb-ink/40";
   if (collapsed) {
     const r = 13;
     const c = 2 * Math.PI * r;
@@ -430,7 +432,7 @@ function TrialCard({ trial, collapsed }: { trial: SidebarTrial; collapsed: boole
       <Link href="/billing" title={trial.trialing ? `${planLabel(TRIAL_PLAN)} trial · ${trial.daysLeft} days left` : "Trial ended — choose a plan"} className="mx-auto mt-2 h-10 w-10 rounded-lg flex items-center justify-center hover:bg-sb-ink/[0.06] transition-colors relative">
         <svg width="32" height="32" viewBox="0 0 32 32" className="-rotate-90">
           <circle cx="16" cy="16" r={r} fill="none" strokeWidth="2.5" className="stroke-sb-ink/10" />
-          <circle cx="16" cy="16" r={r} fill="none" strokeWidth="2.5" strokeLinecap="round" stroke={color} strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} />
+          <circle cx="16" cy="16" r={r} fill="none" strokeWidth="2.5" strokeLinecap="round" className={stroke} strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} />
         </svg>
         <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-sb-ink tabular">{trial.trialing ? trial.daysLeft : "!"}</span>
       </Link>
@@ -440,13 +442,13 @@ function TrialCard({ trial, collapsed }: { trial: SidebarTrial; collapsed: boole
     <Link href="/billing" className="group mt-2 block rounded-xl border border-sb-ink/[0.08] bg-sb-ink/[0.03] hover:bg-sb-ink/[0.06] px-3 py-2.5 transition-colors">
       <div className="flex items-baseline justify-between gap-2 text-xs">
         <span className="font-medium text-sb-ink">{trial.trialing ? `${planLabel(TRIAL_PLAN)} trial` : "Trial ended"}</span>
-        <span className={`tabular ${urgent ? "text-signal dark:text-[#D9A928]" : "text-sb-muted"}`}>
+        <span className={`tabular ${urgent ? "text-signal" : "text-sb-muted"}`}>
           {trial.trialing ? `${trial.daysLeft} day${trial.daysLeft === 1 ? "" : "s"} left` : "Free limits"}
         </span>
       </div>
       {trial.trialing && (
         <div className="mt-2 h-1 rounded-full bg-sb-ink/[0.08] overflow-hidden">
-          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+          <div className={`h-full rounded-full ${fill}`} style={{ width: `${pct}%` }} />
         </div>
       )}
       <div className="mt-2 text-xs text-sb-muted group-hover:text-sb-ink transition-colors">Choose a plan →</div>

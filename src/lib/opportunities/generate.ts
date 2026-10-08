@@ -63,6 +63,8 @@ export interface RenewalIn {
   /** "charges" = dagli addebiti; "contract" = dal termine del contratto (preavviso). */
   from: "charges" | "contract";
   noticeBy?: Date | null;
+  /** Contratto senza rinnovo automatico: alla data finisce, non si rinnova. */
+  endsOnly?: boolean;
 }
 
 export interface GenInput {
@@ -526,19 +528,29 @@ function fromPricing(c: Ctx): Draft[] {
     });
   }
   const seen = new Set<string>();
+  // Le date del contratto vincono su quelle dedotte dagli addebiti: un'AI con contratto usa solo quelle.
+  const withContract = new Set(c.input.pricing.renewals.filter((r) => r.from === "contract").map((r) => r.assetId));
   for (const r of [...c.input.pricing.renewals].sort((a, b) => a.date.getTime() - b.date.getTime())) {
     if (seen.has(r.assetId)) continue;
+    if (r.from === "charges" && withContract.has(r.assetId)) continue;
     const days = Math.ceil((r.date.getTime() - c.input.now.getTime()) / 86_400_000);
     if (days < 0 || days > RENEWAL_DAYS) continue;
     seen.add(r.assetId);
     const month = r.date.toISOString().slice(0, 7);
+    const ends = !!r.endsOnly;
+    const day = r.date.toISOString().slice(0, 10);
     out.push({
       key: `renewal:${r.assetId}:${month}`,
-      title: `${r.name} renews in ${plural(days, "day")}`,
+      title: ends ? `${r.name} contract ends in ${plural(days, "day")}` : `${r.name} renews in ${plural(days, "day")}`,
       category: "REVIEW",
       systems: [sys(c, r.assetId, r.name)],
-      evidence: [`${r.annual ? "Yearly" : "Monthly"} renewal on ${r.date.toISOString().slice(0, 10)}`, ...(r.noticeBy ? [`Notice by ${r.noticeBy.toISOString().slice(0, 10)}`] : []), `Last charge ${eur(r.amountEur)}`],
-      reason: "Decide seats, plan and price before it renews",
+      evidence: [
+        ends ? `Contract ends on ${day} (no automatic renewal)` : `${r.annual ? "Yearly" : "Monthly"} renewal on ${day}`,
+        ...(r.noticeBy ? [`Notice by ${r.noticeBy.toISOString().slice(0, 10)}`] : []),
+        // Dal contratto l'importo è il costo del periodo, non un addebito visto.
+        r.from === "contract" ? `${r.annual ? "Yearly" : "Monthly"} cost ${eur(r.amountEur)}` : `Last charge ${eur(r.amountEur)}`,
+      ],
+      reason: ends ? "Decide whether to extend it, replace it or let it end" : "Decide seats, plan and price before it renews",
       currentCost: costOf(c, r.assetId),
       expectedCost: null,
       savings: null,
@@ -549,7 +561,7 @@ function fromPricing(c: Ctx): Draft[] {
       risk: r.annual ? "Medium" : "Low",
       confidence: r.from === "contract" ? "HIGH" : "MEDIUM",
       processes: processesOf(c, [r.assetId]),
-      recommendedAction: "Review seats and price, then renew or cancel",
+      recommendedAction: ends ? "Review usage, then extend, replace or let it end" : "Review seats and price, then renew or cancel",
       calculation: [r.from === "contract" ? "Date: contract term end" : `Date: last charge + ${r.annual ? "12 months" : "1 month"}`],
       engines: ["pricing"],
       href: `/assets/${r.assetId}`,

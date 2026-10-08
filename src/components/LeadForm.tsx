@@ -28,7 +28,7 @@ export default function LeadForm({
 }) {
   const [result, setResult] = useState<LeadFormResult | null>(null);
   const [pending, start] = useTransition();
-  const opt = <span className="text-ink-400/80 font-normal"> · {copy.optional}</span>;
+  const opt = <span className="text-ink-400 font-normal"> · {copy.optional}</span>;
 
   if (result?.ok) {
     return (

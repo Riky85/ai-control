@@ -4,7 +4,7 @@ import { remindInactiveAction } from "@/lib/spend-actions";
 import { groupByDepartment, maskCount, orgPrivacyMode, MIN_GROUP } from "@/lib/privacy";
 import { displayableRef } from "@/lib/discovery/pseudonym";
 import PrivacyNotice from "@/components/PrivacyNotice";
-import { Notice, Table, td } from "@/components/ui";
+import { Notice, Switch, Table, td } from "@/components/ui";
 import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { seatRemovalSupport } from "@/lib/seat-removal";
@@ -85,15 +85,7 @@ export default async function AssetPeople({
             <form action={setAutoRemoveSeatsAction}>
               <input type="hidden" name="assetId" value={asset.id} />
               <input type="hidden" name="on" value={org?.autoRemoveSeats ? "0" : "1"} />
-              <button
-                type="submit"
-                role="switch"
-                aria-checked={!!org?.autoRemoveSeats}
-                title={org?.autoRemoveSeats ? "Turn off" : "Turn on"}
-                className={`relative h-5 w-9 rounded-full transition-colors ${org?.autoRemoveSeats ? "bg-steady" : "bg-ink-400/40"}`}
-              >
-                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${org?.autoRemoveSeats ? "left-[18px]" : "left-0.5"}`} />
-              </button>
+              <Switch on={!!org?.autoRemoveSeats} aria-label="Remove seats automatically" title={org?.autoRemoveSeats ? "Turn off" : "Turn on"} />
             </form>
           </div>
         )}

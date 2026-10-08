@@ -12,7 +12,13 @@ export async function GET(req: Request) {
   from.setUTCDate(1);
   from.setUTCHours(0, 0, 0, 0);
   from.setUTCMonth(from.getUTCMonth() - (months - 1));
-  const rows = await db.spendRecord.findMany({ where: { organizationId: ctx.orgId, date: { gte: from } }, select: { date: true, amountEur: true, service: true, source: true }, take: 100_000 });
+  // Somme per mese e servizio fatte dal database (prima: fino a 100.000 righe lette e sommate qui).
+  // "date" è timestamp senza fuso, salvato in UTC: date_trunc dà il mese UTC, come prima.
+  const rows = await db.$queryRaw<{ month: string; service: string; eur: number }[]>`
+    SELECT to_char(date_trunc('month', "date"), 'YYYY-MM') AS month, "service", SUM("amountEur")::float8 AS eur
+    FROM "SpendRecord"
+    WHERE "organizationId" = ${ctx.orgId} AND "date" >= ${from}
+    GROUP BY 1, 2`;
   const byMonth = new Map<string, { month: string; totalEur: number; byService: Map<string, number> }>();
   for (let i = 0; i < months; i++) {
     const d = new Date(from);
@@ -21,10 +27,11 @@ export async function GET(req: Request) {
     byMonth.set(k, { month: k, totalEur: 0, byService: new Map() });
   }
   for (const r of rows) {
-    const m = byMonth.get(r.date.toISOString().slice(0, 7));
+    const m = byMonth.get(r.month);
     if (!m) continue;
-    m.totalEur += r.amountEur;
-    m.byService.set(r.service, (m.byService.get(r.service) ?? 0) + r.amountEur);
+    const eur = Number(r.eur) || 0;
+    m.totalEur += eur;
+    m.byService.set(r.service, (m.byService.get(r.service) ?? 0) + eur);
   }
   const r2 = (n: number) => Math.round(n * 100) / 100;
   return apiJson({

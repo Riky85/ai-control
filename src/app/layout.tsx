@@ -1,4 +1,4 @@
-import { currentSession, isPlatformAdmin } from "@/lib/auth";
+import { currentSession, isPlatformAdmin, sessionCurrent } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
@@ -15,12 +15,12 @@ import UrlNotice from "@/components/UrlNotice";
 import { TRIAL_DAYS } from "@/lib/plans";
 import { fmtDate } from "@/lib/format";
 import { getPlanState } from "@/lib/plan-gate";
+import { orgSetupState } from "@/lib/layout-data";
 import VerifyEmailBanner from "@/components/VerifyEmailBanner";
 import { Suspense } from "react";
 import DocsButton from "@/components/DocsButton";
 import VoiceControl from "@/components/VoiceControl";
 import { VOICE_COOKIE, parseVoiceMode } from "@/lib/voice";
-import { DOCS } from "@/lib/docs";
 import { planById } from "@/lib/plans";
 import { db } from "@/lib/db";
 import { isOnPrem } from "@/lib/edition";
@@ -88,27 +88,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   // Tutto in parallelo. Il ruolo nel token potrebbe essere vecchio: l'appartenenza
   // al workspace si verifica sempre nel database (il redirect arriva subito dopo).
-  const [member, org, { online: connectedComputers, total: devicesTotal }, memberships, platformAdmin, reviewCount, spendCount, memberCount] = await Promise.all([
+  // Primi passi e conteggio "da rivedere" arrivano dalla cache di 60 s (lib/layout-data).
+  const [member, org, { online: connectedComputers, total: devicesTotal }, memberships, platformAdmin, setupState, current] = await Promise.all([
     db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: session.orgId, email: session.email } } }),
     db.organization.findUnique({ where: { id: session.orgId } }),
     desktopDeviceCounts(session.orgId),
     db.workspaceMember.findMany({ where: { email: session.email, status: "active" }, include: { organization: { select: { id: true, name: true } } }, orderBy: { invitedAt: "asc" } }),
     isPlatformAdmin(session.email),
-    db.aiAsset.count({ where: { organizationId: session.orgId, deletedAt: null, status: { in: ["UNKNOWN", "UNREVIEWED"] } } }),
-    // Primi passi (prima erano nel riquadro della home): costi, uso, team.
-    db.spendRecord.count({ where: { organizationId: session.orgId } }),
-    db.workspaceMember.count({ where: { organizationId: session.orgId } }),
+    orgSetupState(session.orgId),
+    // Sessione revocata (logout altrove, cambio password): il token non vale più nemmeno per leggere.
+    sessionCurrent(session),
   ]);
+  const reviewCount = setupState.reviewCount;
   // Lista di controllo della sidebar: si spunta da sola dai dati; sparisce quando è tutto fatto.
+  // Uso: app desktop installata, oppure un connettore di identità (Microsoft 365, Google Workspace, Okta).
   const setupSteps = [
-    { key: "spend", title: "See what you pay for AI", href: "/sources", done: spendCount > 0 },
-    { key: "usage", title: "See who really uses each AI", href: "/download", done: devicesTotal > 0 },
-    { key: "team", title: "Invite your team", href: "/workspace", done: memberCount > 1 },
+    { key: "spend", title: "See what you pay for AI", href: "/sources", done: setupState.hasSpend },
+    { key: "usage", title: "See who really uses each AI", href: "/download", done: devicesTotal > 0 || setupState.identityConnected },
+    { key: "team", title: "Invite your team", href: "/workspace", done: setupState.hasTeam },
   ];
   const setup = setupSteps.some((s) => !s.done) ? { steps: setupSteps } : null;
+  if (!current) redirect("/api/auth/signout?reason=" + encodeURIComponent("Your session ended. Sign in again."));
   if (!member || member.status !== "active") redirect("/api/auth/signout?reason=" + encodeURIComponent("You no longer have access to that workspace."));
 
-  const planState = await getPlanState(session.orgId);
+  // L'organizzazione è già stata letta qui sopra: niente seconda lettura.
+  const planState = await getPlanState(session.orgId, org);
   const plan = planById(planState.effectivePlan);
   // Prova in corso o scaduta: una scheda piccola in fondo alla sidebar (niente striscia sopra la pagina).
   const trial = planState.trialing || planState.expired ? { trialing: planState.trialing, daysLeft: planState.trialDaysLeft ?? 0, totalDays: TRIAL_DAYS, endsAt: planState.trialEndsAt ? fmtDate(planState.trialEndsAt) : null } : null;
@@ -149,7 +153,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
             <VerifyEmailBanner />
           </main>
-          <AskDocs docs={DOCS.map(({ slug, title, section, summary }) => ({ slug, title, section, summary }))} />
+          <AskDocs />
         </div>
       </body>
     </html>

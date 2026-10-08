@@ -423,7 +423,7 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
       </Table>
 
       <Panel title="What depends on it">
-        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-6">
           <Chips title="Applications" items={r.applications} />
           <Chips title="Processes" items={r.processes} />
           <Chips title="Teams" items={r.teams} />
@@ -456,13 +456,21 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
         <summary className="cursor-pointer list-none select-none bg-ink bar-head rounded-xl group-open:rounded-b-none px-5 py-3 text-sm font-bold text-ink-100">Show calculation</summary>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
+            <thead>
+              <tr className="bar-thead text-left font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 bg-ink border-b border-line">
+                <th className="px-5 py-2.5 font-normal">Item</th>
+                <th className="px-3 py-2.5 font-normal text-right">Value</th>
+                <th className="px-3 py-2.5 font-normal">Type</th>
+                <th className="px-5 py-2.5 font-normal">Basis</th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-line">
               {r.calc.map((c, i) => (
                 <tr key={i} className="align-top">
                   <td className="px-5 py-2.5 text-ink-100 whitespace-nowrap">{c.label}</td>
                   <td className="px-3 py-2.5 text-right tabular text-ink-100 whitespace-nowrap">{c.value}</td>
                   <td className="px-3 py-2.5 whitespace-nowrap"><Tag kind={c.kind} /></td>
-                  <td className="px-5 py-2.5 text-xs text-ink-400 min-w-[320px]">{c.basis}</td>
+                  <td className="px-5 py-2.5 text-xs text-ink-400 sm:min-w-[320px]">{c.basis}</td>
                 </tr>
               ))}
             </tbody>

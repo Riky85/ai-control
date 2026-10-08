@@ -4,7 +4,7 @@ import { myGroups, entityRows } from "@/lib/groups";
 import { createGroupAction, addToGroupAction, removeFromGroupAction, renameGroupAction } from "@/lib/group-actions";
 import { switchWorkspaceAction } from "@/lib/workspace-actions";
 import { currentMonth, monthLabel, recentMonths } from "@/lib/chargeback";
-import { PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
+import { EmptyState, PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
 import { Insight } from "@/components/insight";
 
@@ -22,21 +22,23 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
     return (
       <div className="flex flex-col gap-6">
         <PageHeader title="Group view" subtitle="All your companies." />
-        <div className="rounded-xl border border-dashed border-line bg-panel p-8 flex flex-col gap-3 animate-rise">
-          <h2 className="text-base font-bold text-ink-100">Create a group for your companies</h2>
-          <p className="text-sm text-ink-400 max-w-2xl">
-            Holding companies use one workspace for each legal entity. A group adds them up: total AI spend, savings, AI in use, budgets for each entity and an intercompany
-            chargeback file. You only see the workspaces where you are an owner or admin.
-          </p>
-          {current ? (
-            <form action={createGroupAction} className="flex flex-wrap items-center gap-2">
-              <input name="name" required maxLength={100} placeholder="Group name, e.g. Rossi Holding" aria-label="Group name" className="field w-full sm:w-64" />
-              <button className="btn btn-primary">Create group with {current.name}</button>
-            </form>
-          ) : (
-            <p className="text-sm text-ink-400">You need to be an owner or admin of this workspace to create a group.</p>
-          )}
-        </div>
+        {/* Stato vuoto standard: una riga e una sola azione. */}
+        <EmptyState
+          className="animate-rise"
+          text={
+            current
+              ? "No group yet. A group adds up your companies' workspaces: AI spend, savings, budgets and an intercompany chargeback file."
+              : "No group yet. You need to be an owner or admin of this workspace to create one."
+          }
+          action={
+            current ? (
+              <form action={createGroupAction} className="flex flex-wrap items-center justify-center gap-2">
+                <input name="name" required maxLength={100} placeholder="Group name, e.g. Rossi Holding" aria-label="Group name" className="field w-full sm:w-64" />
+                <button className="btn btn-primary">Create group with {current.name}</button>
+              </form>
+            ) : undefined
+          }
+        />
       </div>
     );
 

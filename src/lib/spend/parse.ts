@@ -6,7 +6,7 @@
  * la stessa logica serve alla pagina pubblica "AI Spend Check" senza
  * salvare nulla. Si tengono SOLO le righe riconosciute come servizi AI.
  */
-import { unzipSync } from "fflate";
+import { unzipSync, Unzip, UnzipInflate, UnzipPassThrough } from "fflate";
 import * as XLSX from "xlsx";
 import { matchMerchant } from "@/lib/pricing/merchants";
 import { guessPlan } from "@/lib/pricing/catalog";
@@ -55,6 +55,46 @@ const ZIP_MAX_FILES = 300;
 const ZIP_MAX_BYTES = 60 * 1024 * 1024;
 
 const SHEET_EXT = /\.(xlsx|xls|ods)$/;
+
+// Fogli .xlsx/.ods sono zip: prima di XLSX.read si decomprime in streaming
+// contando i byte REALI (le dimensioni dichiarate nell'header possono mentire).
+const SHEET_MAX_UNZIPPED = 50 * 1024 * 1024;
+const SHEET_MAX_RATIO = 100;
+
+/** null = ok; altrimenti il motivo del rifiuto (zip bomb o zip illeggibile). */
+export function sheetZipProblem(data: Uint8Array): string | null {
+  let total = 0;
+  let bad: string | null = null;
+  try {
+    const uz = new Unzip((f) => {
+      let n = 0;
+      f.ondata = (err, chunk) => {
+        if (err) {
+          bad = "could not read this spreadsheet.";
+          return;
+        }
+        n += chunk?.length ?? 0;
+        total += chunk?.length ?? 0;
+        // Rapporto per singolo file (solo se grande: i file XML piccoli comprimono tanto).
+        if (!bad && n > 1024 * 1024 && f.size && n / f.size > SHEET_MAX_RATIO) bad = "too compressed to be a normal spreadsheet.";
+      };
+      f.start();
+    });
+    uz.register(UnzipInflate);
+    uz.register(UnzipPassThrough);
+    // A piccoli pezzi: ci si ferma appena si supera il limite, senza gonfiare tutto in memoria.
+    const STEP = 16 * 1024;
+    for (let i = 0; i < data.length; i += STEP) {
+      uz.push(data.subarray(i, i + STEP), i + STEP >= data.length);
+      if (total > SHEET_MAX_UNZIPPED) return `too big — up to ${SHEET_MAX_UNZIPPED / 1024 / 1024} MB unzipped.`;
+      if (bad) return bad;
+    }
+  } catch {
+    return "could not read this spreadsheet.";
+  }
+  if (total > 10 * 1024 * 1024 && total / Math.max(1, data.length) > SHEET_MAX_RATIO) return "too compressed to be a normal spreadsheet.";
+  return bad;
+}
 // Altri formati Office che sono zip ma non contengono fatture.
 const OFFICE_EXT = /\.(docx|pptx|xlsm|odt|odp|pages|numbers|key)$/;
 const startsWith = (data: Uint8Array, magic: string) => data.length >= magic.length && Array.from(magic).every((ch, i) => data[i] === ch.charCodeAt(0));
@@ -98,6 +138,10 @@ export async function parseSpendFile(name: string, data: Uint8Array, depth = 0):
   // .xsig: Facturae firmata XAdES (XML con ds:Signature).
   if (lower.endsWith(".xml") || lower.endsWith(".xsig")) return parseXmlInvoice(name, data);
   if (isSheet) {
+    if (startsWith(data, "PK\x03\x04")) {
+      const problem = sheetZipProblem(data);
+      if (problem) return { ...empty(), warnings: [`${name}: ${problem}`] };
+    }
     try {
       const wb = XLSX.read(data, { type: "array", cellDates: true });
       let out = empty();

@@ -19,7 +19,8 @@ export default function AreaTabs() {
           <Link
             key={t.href}
             href={t.href}
-            className={`rounded-full px-3 py-1 transition-colors ${active ? "bg-ink-100/[0.08] text-ink-100 font-medium" : "text-ink-400 hover:text-ink-100 hover:bg-ink-100/[0.04]"}`}
+            aria-current={active ? "page" : undefined}
+            className={`tab-link rounded-[3px] px-3 py-1 transition-colors ${active ? "bg-ink-100/[0.08] text-ink-100 font-medium" : "text-ink-400 hover:text-ink-100 hover:bg-ink-100/[0.04]"}`}
           >
             {t.label}
           </Link>

@@ -27,7 +27,7 @@ export function buildDpa(): TrustDoc {
       {
         ul: [
           "Identification and organisational data: name, work email, department.",
-          "AI tool usage: names of AI tools used, dates and times, minutes of use per day, number of visits or connections.",
+          "AI tool usage: names of AI tools used, dates and times, minutes of use each day, number of visits or connections.",
           "Device data (desktop app and angar Edge only): computer name, operating system, app version, local IP addresses.",
           "AI charges: date, amount, merchant description and service, taken from bank statements and invoices. Transactions that are not AI charges are not stored.",
           "angar user data: name, work email, role, sign-in records, two-step verification status, audit log of administrator actions.",

@@ -126,6 +126,18 @@ function useDelta(ch: ChangeLike, u: Use, exposureEur: number | null): { eur: nu
   return null;
 }
 
+/**
+ * Quota di un uso sul costo del suo AI system, su TUTTI gli usi del sistema (come
+ * spend-overview byModel): quote osservate normalizzate se note per tutti gli usi,
+ * altrimenti parti uguali.
+ */
+function shareOf(all: readonly Use[], u: Use): number {
+  if (!all.length) return 1;
+  const known = all.filter((x) => x.share != null);
+  const sum = known.reduce((t, x) => t + (x.share ?? 0), 0);
+  return known.length === all.length && sum > 0 ? (u.share ?? 0) / sum : 1 / all.length;
+}
+
 export function computeImpact(estate: EstateLike, ch: ChangeLike, now = new Date()): ImpactResult {
   const t = ch.changeType as ChangeType;
   const systems: SystemImpact[] = [];
@@ -137,7 +149,8 @@ export function computeImpact(estate: EstateLike, ch: ChangeLike, now = new Date
       seat = row.seatProductId === ch.productId;
     } else uses = matchingUses(ch, row);
     if (!uses.length && !seat) continue;
-    const fraction = seat ? 1 : Math.min(1, uses.reduce((s, u) => s + (u.share ?? 1), 0));
+    // Quota degli usi coinvolti su tutti gli usi del sistema (non solo su quelli coinvolti).
+    const fraction = seat ? 1 : Math.min(1, uses.reduce((s, u) => s + shareOf(row.uses, u), 0));
     const base = row.cost.actualEur ?? row.cost.estimatedEur ?? null;
     const costKind = row.cost.actualEur != null ? "actual" : row.cost.estimatedEur != null ? "estimated" : null;
     const monthly = base != null ? r2(base * fraction) : null;
@@ -151,7 +164,7 @@ export function computeImpact(estate: EstateLike, ch: ChangeLike, now = new Date
         let sum = 0;
         let any = false;
         for (const u of uses) {
-          const exp = base != null ? base * (u.share ?? (uses.length === 1 ? 1 : 1 / uses.length)) : null;
+          const exp = base != null ? base * shareOf(row.uses, u) : null;
           const d = useDelta(ch, u, exp);
           if (!d) continue;
           sum += d.eur;

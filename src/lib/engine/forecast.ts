@@ -213,19 +213,36 @@ export function monthlyTotals(records: { date: Date; amountEur: number }[], now:
   return first < 0 ? [] : out.slice(first);
 }
 
+/**
+ * Ultimo rinnovo di un abbonamento annuale (addebiti in ordine di data): il mese più
+ * recente con un addebito "da rinnovo" (almeno metà del più grande della finestra);
+ * importo = l'addebito più grande di quel mese, non l'ultima riga (posti aggiunti, rimborsi).
+ */
+export function lastRenewal(charges: { date: Date; eur: number }[]): { date: Date; eur: number } {
+  const max = Math.max(...charges.map((c) => c.eur));
+  if (!(max > 0)) return charges[charges.length - 1];
+  const big = charges.filter((c) => c.eur >= max / 2);
+  const month = monthKey(big[big.length - 1].date);
+  return charges.filter((c) => monthKey(c.date) === month).reduce((b, c) => (c.eur > b.eur ? c : b));
+}
+
 /** Previsione della spesa AI dell'azienda per i prossimi `months` mesi. */
 export async function forecastSpend(orgId: string, months = 12): Promise<SpendForecast> {
   const now = new Date();
   const [assets, records] = await Promise.all([
     loadAssets(orgId),
+    // 25 mesi: un abbonamento annuale ha sempre almeno un rinnovo nella finestra.
     db.spendRecord.findMany({
-      where: { organizationId: orgId, date: { gte: monthStart(now, -13) } },
+      where: { organizationId: orgId, date: { gte: monthStart(now, -25) } },
       select: { date: true, amountEur: true, aiAssetId: true },
       orderBy: { date: "asc" },
     }),
   ]);
+  const annualIds = new Set(assets.filter((a) => a.cost?.annualBilling).map((a) => a.id));
+  const byAsset = new Map<string, { date: Date; eur: number }[]>();
+  for (const r of records) if (r.aiAssetId) byAsset.set(r.aiAssetId, [...(byAsset.get(r.aiAssetId) ?? []), { date: r.date, eur: r.amountEur }]);
   const lastCharge = new Map<string, { date: Date; eur: number }>();
-  for (const r of records) if (r.aiAssetId) lastCharge.set(r.aiAssetId, { date: r.date, eur: r.amountEur });
+  for (const [id, list] of byAsset) lastCharge.set(id, annualIds.has(id) ? lastRenewal(list) : list[list.length - 1]);
   return projectSpend({
     now,
     months: clamp(Math.round(months), 1, 36),

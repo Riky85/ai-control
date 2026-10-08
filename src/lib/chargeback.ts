@@ -10,7 +10,7 @@
  *  - nessun utente noto: reparto dichiarato sull'AI, altrimenti non allocato.
  */
 import { db } from "@/lib/db";
-import { categoryOf, monthlyOf } from "@/lib/savings";
+import { categoryOf, monthlyOf, assetCostInclude } from "@/lib/savings";
 
 export type ChargeMethod = "seats" | "users" | "ai-department";
 export type UnallocatedReason = "Unused seats" | "People without a department" | "No known users" | "Charges not matched to an AI";
@@ -184,7 +184,7 @@ export async function computeChargeback(organizationId: string, month: string, n
       serviceId: true,
       department: true,
       firstSeenAt: true,
-      cost: true,
+      ...assetCostInclude,
       _count: { select: { spendRecords: true } },
       usages: { select: { id: true, userId: true, externalUserRef: true, firstSeenAt: true, lastSeenAt: true, user: { select: { department: true } } } },
     },

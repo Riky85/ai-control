@@ -177,7 +177,7 @@ export default function SearchPalette() {
               <p>Search your AI, people and pages — or ask{VOICE_ENABLED && voice.supported ? " (or press the mic and speak)" : ""}:</p>
               <div className="flex flex-wrap gap-1.5">
                 {["How much do we spend on AI?", "Where can we save?", "Unused seats", "What's new this month?", "What needs review?"].map((x) => (
-                  <button key={x} onClick={() => { setQ(x); ask(x); }} className="text-xs rounded-full border border-sb-ink/15 px-2.5 py-1 text-sb-text hover:text-sb-ink hover:bg-sb-ink/[0.06]">
+                  <button key={x} onClick={() => { setQ(x); ask(x); }} className="rounded-[2px] border border-sb-ink/15 px-2 py-1 font-mono uppercase text-[10px] tracking-[0.05em] text-sb-text hover:text-sb-ink hover:bg-sb-ink/[0.06]">
                     {x}
                   </button>
                 ))}

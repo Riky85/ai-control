@@ -163,38 +163,39 @@ function OsIcon({ os }: { os: DesktopOs }) {
 }
 
 /** Anteprima dell'app desktop (stessa grafica della finestra vera, schermata "You're all set"). */
+// Colori da token: il riquadro è force-dark, quindi i token danno i valori scuri.
 function AppPreview({ company, email }: { company: string; email: string }) {
   return (
-    <div className="force-dark w-[300px] rounded-t-xl border border-b-0 border-[#34383D] bg-[#1A1C1D] shadow-[0_-8px_32px_rgba(20,20,24,0.12)] dark:shadow-[0_-10px_60px_rgba(0,0,0,0.45)] text-[#EDEDEF] select-none" aria-hidden>
-      <div className="flex items-center h-10 px-4 border-b border-[#34383D]">
+    <div className="force-dark w-[300px] rounded-t-xl border border-b-0 border-line bg-panel shadow-[0_-8px_32px_rgba(20,20,24,0.12)] dark:shadow-[0_-10px_60px_rgba(0,0,0,0.45)] text-ink-100 select-none" aria-hidden>
+      <div className="flex items-center h-10 px-4 border-b border-line">
         <Wordmark size={13} />
-        <span className="ml-auto text-[#9CA0A8] text-sm leading-none">×</span>
+        <span className="ml-auto text-ink-400 text-sm leading-none">×</span>
       </div>
       <div className="px-5 pt-5 pb-6 flex flex-col gap-3">
-        <span className="h-10 w-10 rounded-full border border-[#3FB67A]/50 bg-[#3FB67A]/15 flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#3FB67A" strokeWidth="2"><path d="M3 8.5l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <span className="h-10 w-10 rounded-full border border-steady/50 bg-steady/15 text-steady flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 8.5l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </span>
         <div>
           <div className="text-[17px] font-semibold">You&apos;re all set</div>
-          <div className="text-[11px] text-[#9CA0A8] mt-1 leading-snug">angar is on and runs quietly in the background. It starts by itself — there&apos;s nothing else to do.</div>
+          <div className="text-[11px] text-ink-400 mt-1 leading-snug">angar is on and runs quietly in the background. It starts by itself — there&apos;s nothing else to do.</div>
         </div>
-        <div className="rounded-lg border border-[#34383D] bg-[#202327] px-3 py-2 flex flex-col gap-1.5 text-[11px]">
+        <div className="rounded-lg border border-line bg-ink px-3 py-2 flex flex-col gap-1.5 text-[11px]">
           {[
             ["Company", company],
             ["Email", email],
           ].map(([k, v]) => (
             <div key={k} className="flex gap-2">
-              <span className="w-14 shrink-0 text-[#9CA0A8]">{k}</span>
+              <span className="w-14 shrink-0 text-ink-400">{k}</span>
               <span className="truncate font-medium">{v}</span>
             </div>
           ))}
           <div className="flex gap-2 items-center">
-            <span className="w-14 shrink-0 text-[#9CA0A8]">Status</span>
-            <span className="h-1.5 w-1.5 rounded-full bg-[#3FB67A]" />
+            <span className="w-14 shrink-0 text-ink-400">Status</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-steady" />
             <span className="font-medium">Running in the background</span>
           </div>
         </div>
-        <div className="mt-2 h-8 rounded-lg bg-accent text-white text-[12px] font-semibold flex items-center justify-center">Done</div>
+        <div className="mt-2 h-8 rounded-lg bg-accent text-white text-xs font-semibold flex items-center justify-center">Done</div>
       </div>
     </div>
   );

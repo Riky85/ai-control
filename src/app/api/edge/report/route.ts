@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readBodyLimited } from "@/lib/body-limit";
 import { sensorForToken, tokenFrom } from "@/lib/edge/auth";
 import { batchFromReport, processEdgeBatch, touchSensor } from "@/lib/edge/ingest";
 import { privacyModeOf } from "@/lib/privacy";
@@ -11,10 +12,10 @@ const MAX_BODY = 1_000_000;
 export async function POST(req: Request) {
   const sensor = await sensorForToken(tokenFrom(req));
   if (!sensor) return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-  const len = Number(req.headers.get("content-length") ?? 0);
-  if (len > MAX_BODY) return NextResponse.json({ error: "Too much data." }, { status: 413 });
-  const raw = await req.text();
-  if (Buffer.byteLength(raw) > MAX_BODY) return NextResponse.json({ error: "Too much data." }, { status: 413 });
+  // Lettura a flusso con tetto: niente corpi enormi in memoria (Content-Length può mancare).
+  const bytes = await readBodyLimited(req, MAX_BODY);
+  if (bytes === null) return NextResponse.json({ error: "Too much data." }, { status: 413 });
+  const raw = bytes.toString("utf8");
   let body: Record<string, unknown>;
   try {
     const parsed = JSON.parse(raw);

@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { db } from "@/lib/db";
-import { currentSession } from "@/lib/auth";
+import { currentSession, activeMember } from "@/lib/auth";
 import { computeChargeback, currentMonth, METHOD_LABEL } from "@/lib/chargeback";
 import { maskCount, orgPrivacyMode, showsPeople } from "@/lib/privacy";
 import { datevExtf, detailCsv, teamSystemCsv, type AccountingConfig } from "@/lib/accounting-export";
@@ -14,7 +14,7 @@ type Format = (typeof FORMATS)[number];
 export async function GET(req: Request) {
   const s = currentSession();
   if (!s) return new Response("Not signed in", { status: 401 });
-  const member = await db.workspaceMember.findUnique({ where: { organizationId_email: { organizationId: s.orgId, email: s.email } } });
+  const member = await activeMember(s);
   if (!member || member.status !== "active") return new Response("Forbidden", { status: 403 });
 
   const url = new URL(req.url);

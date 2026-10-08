@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CsvDropzone from "@/components/CsvDropzone";
+import { PageHeader } from "@/components/ui";
 import { uploadSpendAction } from "@/lib/spend-actions";
 import { loadDemoDataAction } from "@/lib/test-data-actions";
 
@@ -9,11 +10,10 @@ export const dynamic = "force-dynamic";
 // Le altre fonti sono facoltative e si aggiungono quando si vuole.
 export default function Onboarding({ searchParams }: { searchParams: { error?: string } }) {
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-6 py-6">
-      <div className="text-center">
-        <h1 className="font-display text-[26px] leading-tight font-semibold tracking-tight text-ink-100">Let angar find your AI</h1>
-        <p className="text-sm text-ink-400 mt-2">One file is enough. angar finds every AI subscription, what it really costs and where you can save — nothing to type, nothing to remember.</p>
-      </div>
+    <div className="flex flex-col gap-6">
+      {/* Intestazione standard della piattaforma al posto del titolo centrato. */}
+      <PageHeader title="Get started" subtitle="One file is enough" />
+      <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
 
       <form action={uploadSpendAction} className="rounded-xl border border-line bg-panel p-6 flex flex-col gap-4">
         <input type="hidden" name="back" value="/onboarding" />
@@ -30,7 +30,7 @@ export default function Onboarding({ searchParams }: { searchParams: { error?: s
 
       <div>
         <div className="eyebrow mb-3">Or start from</div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <Option href="/sources#accounts" title="Company accounts" text="Microsoft 365 or Google Workspace — who uses which AI." />
           <Option href="/connectors" title="An AI provider key" text="Claude, OpenAI, Gemini, Mistral… exact API costs." />
           <Option href="/download" title="The desktop app" text="Which AI is used, and for how long. Never what people type." />
@@ -54,6 +54,7 @@ export default function Onboarding({ searchParams }: { searchParams: { error?: s
           </form>
           <Link href="/" className="text-sm text-ink-400 hover:text-ink-100">Skip</Link>
         </div>
+      </div>
       </div>
     </div>
   );
