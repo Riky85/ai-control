@@ -81,7 +81,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: { q?:
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="People" value={String(everyone.length)} hint={deptStats.size ? `${deptStats.size} department${deptStats.size === 1 ? "" : "s"}` : "No departments set"} tone="accent" />
+        <StatCard label="People" value={String(everyone.length)} hint={deptStats.size ? `${deptStats.size} department${deptStats.size === 1 ? "" : "s"}` : "No departments set"} />
         <StatCard label="Using AI" value={String(activeCount)} hint={`${Math.round((activeCount / everyone.length) * 100)}% active in the last 30 days`} href="/usage?view=people" />
         <StatCard label="Own an AI" value={String(owners)} hint={unowned ? `${unowned} AI without an owner` : "Every AI has an owner"} tone={unowned ? "signal" : undefined} href={unowned ? "/compliance" : undefined} />
         <StatCard label="Need attention" value={String(riskyOwners)} hint={riskyOwners ? "Own a high-risk AI" : "No high-risk AI owned"} tone={riskyOwners ? "alarm" : undefined} />
@@ -159,7 +159,7 @@ async function PeopleAggregate({ mode }: { mode: PrivacyMode }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard label="People known" value={String(users.length)} hint="From company accounts and provider keys" />
-        <StatCard label="Using AI" value={maskCount(usingAi)} hint="Active in the last 30 days" tone="accent" />
+        <StatCard label="Using AI" value={maskCount(usingAi)} hint="Active in the last 30 days" />
         <StatCard label="AI tools used" value={String(all.length)} hint="By at least one person" />
       </div>
       {all[0] && (

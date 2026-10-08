@@ -105,7 +105,7 @@ export function scoreSentence(d: Pick<ScoreCardData, "verdict" | "savingsMonthly
   return d.savingsMonthlyEur >= 1 ? `${d.verdict} ${eur(d.savingsMonthlyEur)} a month could be saved.` : d.verdict;
 }
 
-/** Calibro segmentato: 50 tacche sottili, piene fino al punteggio (neutre: il colore sta solo nel punto del livello). */
+/** Calibro segmentato: 50 tacche sottili, piene fino al punteggio in arancio (stile Exein: l'arancio è il dato). */
 function SegmentGauge({ value }: { value: number }) {
   const n = 50;
   const filled = Math.round((Math.max(0, Math.min(100, value)) / 100) * n);
@@ -113,11 +113,11 @@ function SegmentGauge({ value }: { value: number }) {
     <div aria-hidden>
       <div className="flex gap-[3px] h-4">
         {Array.from({ length: n }, (_, i) => (
-          <span key={i} className={`flex-1 rounded-[1px] ${i < filled ? "bg-ink-100/85" : "bg-ink-100/[0.08]"}`} />
+          <span key={i} className={`flex-1 rounded-[1px] ${i < filled ? "bg-accent/90" : "bg-ink-100/[0.08]"}`} />
         ))}
       </div>
       {/* Soglie dei livelli: 40 · 60 · 80. */}
-      <div className="relative mt-2 h-4 text-[11px] text-ink-400 tabular">
+      <div className="relative mt-2 h-4 font-mono text-[11px] text-ink-400 tabular">
         <span className="absolute left-0">0</span>
         {[40, 60, 80].map((t) => (
           <span key={t} className="absolute -translate-x-1/2" style={{ left: `${t}%` }}>
@@ -140,29 +140,29 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
   const { score, level, levelLabel, confidence, confidenceLabel, dims, delta, potential, actions } = data;
   const gain = potential != null ? Math.round(potential - score) : 0;
   return (
-    <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="score-card-title">
+    <section className="relative rounded-xl border border-line bg-panel animate-rise" aria-labelledby="score-card-title">
+      {/* Linguetta in alto a sinistra con il nome del blocco (stile Exein). */}
+      <h2 id="score-card-title" className="absolute -top-px -left-px z-10 eyebrow !text-ink-100 bg-ink border border-line rounded-tl-xl pl-3 pr-6 py-1.5 [clip-path:polygon(0_0,calc(100%-10px)_0,100%_100%,0_100%)]">
+        Angar Score
+      </h2>
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         {/* Sinistra: punteggio */}
-        <div className="flex flex-col min-w-0 p-6 sm:p-8">
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="score-card-title" className="text-[15px] font-bold tracking-[-0.01em] text-ink-100">
-              Angar Score
-            </h2>
-            {confidence !== "measured" && confidence !== "high" && <span className="text-xs text-ink-400 shrink-0">{confidenceLabel}</span>}
-          </div>
+        <div className="flex flex-col min-w-0 px-6 sm:px-8 pt-14 pb-6 sm:pb-8">
+          {confidence !== "measured" && confidence !== "high" && <span className="eyebrow -mt-4 mb-4">{confidenceLabel}</span>}
 
-          <div className="flex items-end gap-4 mt-6">
-            <span className="text-[48px] leading-[0.85] font-medium tracking-[-0.05em] tabular text-ink-100">{score}</span>
+          <div className="flex items-end gap-4">
+            <span className="text-[56px] leading-[0.85] font-light tracking-[-0.04em] tabular text-ink-100">
+              {score}
+              <span className="text-[20px] tracking-normal text-ink-400 ml-1">/100</span>
+            </span>
             <div className="flex flex-col gap-1.5 pb-1">
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-100">
                 <span className={`h-1.5 w-1.5 rounded-full ${LEVEL_STYLE[level].dot}`} aria-hidden />
                 {levelLabel}
               </span>
               <span className="text-xs text-ink-400 tabular">
-                out of 100
                 {delta && (
                   <>
-                    {" · "}
                     <span className={delta.points > 0 ? "text-steady" : delta.points < 0 ? "text-alarm" : ""}>
                       {delta.points > 0 ? "+" : ""}
                       {formatPts(delta.points)}
@@ -181,7 +181,7 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
           <p className="text-sm leading-relaxed text-ink-400 mt-5 max-w-md">{data.verdict}</p>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-auto pt-7">
-            <Link href="/score/improve" className="btn btn-primary">
+            <Link href="/score/improve" className="btn btn-primary btn-go">
               Improve my score
             </Link>
             {gain > 0 && actions > 0 ? (
@@ -197,11 +197,11 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
         </div>
 
         {/* Destra: le 5 dimensioni */}
-        <div className="min-w-0 border-t lg:border-t-0 lg:border-l border-line p-6 sm:p-8 flex flex-col">
+        <div className="min-w-0 border-t lg:border-t-0 lg:border-l border-line p-6 sm:p-8 lg:pt-14 flex flex-col">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-[15px] font-bold tracking-[-0.01em] text-ink-100">Breakdown</h3>
-            <Link href="/score" className="text-xs text-ink-400 hover:text-ink-100 transition-colors">
-              See details →
+            <h3 className="eyebrow">Breakdown</h3>
+            <Link href="/score" className="eyebrow hover:!text-ink-100 transition-colors">
+              See details [→]
             </Link>
           </div>
           <ul className="flex flex-col mt-4 flex-1 justify-center" aria-label="Dimensions">
@@ -216,11 +216,10 @@ export default function ScoreCard({ data }: { data: ScoreCardData }) {
                   >
                     <span className="text-sm text-ink-100 truncate group-hover:underline underline-offset-4 decoration-ink-100/30">{d.label}</span>
                     <span className="order-last sm:order-none col-span-2 sm:col-span-1 h-1 rounded-full bg-ink-100/[0.08] overflow-hidden" aria-hidden>
-                      {v != null && <span className="block h-full rounded-full bg-ink-100/75 animate-grow" style={{ width: `${Math.max(2, v)}%` }} />}
+                      {v != null && <span className={`block h-full rounded-full animate-grow ${d.level === "weak" ? "bg-accent" : "bg-ink-100/70"}`} style={{ width: `${Math.max(2, v)}%` }} />}
                     </span>
-                    <span className="text-sm font-medium tabular text-ink-100 text-right">{v ?? "—"}</span>
-                    <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-ink-400 min-w-0">
-                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${LEVEL_STYLE[d.level ?? "none"].dot}`} aria-hidden />
+                    <span className={`text-sm tabular text-right ${d.level === "weak" ? "text-accent" : "text-ink-100"}`}>{v ?? "—"}</span>
+                    <span className={`hidden sm:inline-flex items-center gap-1.5 eyebrow min-w-0 ${d.level === "weak" ? "!text-accent" : ""}`}>
                       <span className="truncate">{d.levelLabel}</span>
                     </span>
                   </Link>

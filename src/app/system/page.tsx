@@ -72,7 +72,7 @@ export default async function SystemPage({ searchParams }: { searchParams: { lea
       <PageHeader title="System" subtitle="Platform admins only." action={<a href="/system/catalog" className="btn btn-ghost btn-sm">Catalog freshness →</a>} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Checks passing" value={`${okCount}/${checks.length}`} hint={okCount === checks.length ? "Everything set up" : `${checks.length - okCount} need setup`} tone={critical ? "alarm" : okCount < checks.length ? "signal" : "accent"} />
+        <StatCard label="Checks passing" value={`${okCount}/${checks.length}`} hint={okCount === checks.length ? "Everything set up" : `${checks.length - okCount} need setup`} tone={critical ? "alarm" : okCount < checks.length ? "signal" : undefined} />
         <StatCard label="Errors, 24 h" value={String(errors24h)} hint={errors[0] ? `Last ${fmtAgo(errors[0].createdAt)}` : "None recorded"} tone={errors24h >= 10 ? "alarm" : errors24h ? "signal" : undefined} />
         <StatCard label="Last good backup" value={lastOkBackup ? fmtAgo(lastOkBackup.startedAt) : "—"} hint={lastOkBackup ? `${lastOkBackup.rows.toLocaleString()} rows` : "No successful backup yet"} tone={backupFresh ? undefined : "alarm"} />
         <StatCard label="Leads, 7 days" value={String(leads7)} hint={LEAD_KINDS.map((k) => `${leadCount(k.key)} ${k.label.toLowerCase()}`).join(" · ")} />

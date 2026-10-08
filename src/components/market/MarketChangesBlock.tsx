@@ -12,7 +12,7 @@ export default async function MarketChangesBlock({ orgId, max = 4 }: { orgId: st
   const rows = await loadMarketFeed(orgId, { now }).catch(() => []);
   if (!rows.length) return null;
   return (
-    <Panel title="AI estate changes" flush action={<Link href="/market" className="text-xs text-ink-400 hover:text-ink-100">All →</Link>}>
+    <Panel title="AI estate changes" flush action={<Link href="/market" className="eyebrow hover:!text-ink-100 transition-colors">All [→]</Link>}>
       <div className="divide-y divide-line">
         {rows.slice(0, max).map((r) => {
           const h = changeHeadline(r.change, now);

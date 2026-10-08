@@ -13,24 +13,25 @@ export function StatCard({
   value: string;
   hint?: string;
   href?: string;
-  tone?: "signal" | "alarm" | "accent";
+  tone?: "signal" | "alarm" | "warn";
 }) {
-  // L'arancio è riservato al pulsante principale: il valore resta neutro, il colore solo per lo stato.
-  const color = "text-ink-100";
-  const dot = tone === "signal" ? "bg-signal" : tone === "alarm" ? "bg-alarm" : null;
+  // Stile Exein: etichetta in mono maiuscolo, numero grande e sottile. L'arancio
+  // compare solo come segnale ("warn" = da guardare): riquadro arancio leggero.
+  const warn = tone === "warn" || tone === "signal";
+  const dot = tone === "alarm" ? "bg-alarm" : null;
   const inner = (
     <>
-      <div className="text-sm font-semibold text-ink-100 flex items-center gap-2">
-        {dot && <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />}
+      <div className={`eyebrow flex items-center gap-2 ${warn ? "!text-accent" : ""}`}>
+        {dot && <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />}
         {label}
       </div>
       <div>
-        <div className={`font-display text-[28px] leading-none font-medium tracking-[-0.025em] tabular ${color}`}>{value}</div>
-        {hint && <div className="text-xs text-ink-400 mt-1.5 truncate">{hint}</div>}
+        <div className={`font-display text-[30px] leading-none font-light tracking-[-0.03em] tabular ${warn ? "text-accent" : "text-ink-100"}`}>{value}</div>
+        {hint && <div className="text-xs text-ink-400 mt-2 truncate">{hint}</div>}
       </div>
     </>
   );
-  const cls = "rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-4 animate-rise";
+  const cls = `rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-4 animate-rise ${warn ? "tile-warn" : ""}`;
   return href ? (
     <Link href={href} className={`${cls} hover:border-ink-400 transition-colors`}>
       {inner}
@@ -71,7 +72,7 @@ export function BlockHead({
       </h2>
       {(note || action) && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
-          {note && <span className="text-xs text-ink-400 min-w-0">{note}</span>}
+          {note && <span className="eyebrow min-w-0">{note}</span>}
           {action}
         </div>
       )}
@@ -228,11 +229,11 @@ export function Table({
       <table className="w-full text-sm">
         <thead>
           {/* La riga delle colonne è la fascia grigia della tabella: titolo e piede restano chiari (globals.css). */}
-          <tr className="bar-thead text-left text-xs text-ink-400 bg-ink border-b border-line">
+          <tr className="bar-thead text-left font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 bg-ink border-b border-line">
             {columns.map((c, i) => {
               const col = typeof c === "string" ? { label: c } : c;
               return (
-                <th key={i} className={`px-5 py-2.5 font-semibold ${col.className ?? ""}`}>
+                <th key={i} className={`px-5 py-2.5 font-normal ${col.className ?? ""}`}>
                   {col.label}
                 </th>
               );
@@ -328,7 +329,7 @@ export function InfoStrip({
       <span className={`h-8 w-8 shrink-0 rounded-lg border border-line bg-ink-100/[0.04] flex items-center justify-center ${tone === "steady" ? "text-steady" : "text-ink-100"}`}>{icon}</span>
       <span className="flex-1 min-w-0 flex items-baseline gap-2 text-sm">
         <span className="font-bold text-ink-100 shrink-0">{title}</span>
-        {value && <span className="font-display font-semibold tabular text-ink-100 shrink-0">{value}</span>}
+        {value && <span className="font-display font-light tabular text-ink-100 shrink-0">{value}</span>}
         {text && <span className="text-ink-400 truncate">{text}</span>}
       </span>
       {action ?? (href ? <span className="text-sm text-ink-400 shrink-0">→</span> : null)}

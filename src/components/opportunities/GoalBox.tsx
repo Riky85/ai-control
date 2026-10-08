@@ -118,7 +118,7 @@ export default function GoalBox({
                         <td className="px-4 py-2.5 text-ink-100">{s.effort ?? "—"}</td>
                         <td className="px-4 py-2.5 text-ink-100">{s.risk ?? "—"}</td>
                         <td className="px-4 py-2.5 text-ink-100">{s.confidence ? CONF_LABEL[s.confidence] : "—"}</td>
-                        <td className="px-4 py-2.5 text-right whitespace-nowrap">{s.href && <Link href={s.href} className="text-xs text-ink-400 hover:text-ink-100">Open →</Link>}</td>
+                        <td className="px-4 py-2.5 text-right whitespace-nowrap">{s.href && <Link href={s.href} className="eyebrow hover:!text-ink-100 transition-colors">Open [→]</Link>}</td>
                       </tr>
                     ))}
                   </tbody>

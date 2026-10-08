@@ -48,7 +48,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
       {!(await featureEnabled(s.orgId, "partnerConsole")) && <Notice><span className="inline-flex flex-wrap items-center gap-x-2">The partner console is read-only on your plan. <LockedNote feature="partnerConsole" /></span></Notice>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Clients" value={String(clients.length)} hint={onlyOwn ? "Add your first client workspace" : "Workspaces you're a member of"} tone="accent" />
+        <StatCard label="Clients" value={String(clients.length)} hint={onlyOwn ? "Add your first client workspace" : "Workspaces you're a member of"} />
         <StatCard
           label="Total AI spend"
           value={totals.spend ? `${fmtEur(totals.spend)}/mo` : "—"}

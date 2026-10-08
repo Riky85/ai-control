@@ -134,7 +134,7 @@ export default async function CatalogFreshnessPage({ searchParams }: { searchPar
         ))}
       </Table>
 
-      <Table title="Latest market changes" action={<Link href="/market" className="text-xs text-ink-400 hover:text-ink-100">Feed →</Link>} columns={["Detected", "Type", "Change", "Effective", "Confidence"]} empty={recent.length === 0 ? "None detected yet." : false}>
+      <Table title="Latest market changes" action={<Link href="/market" className="eyebrow hover:!text-ink-100 transition-colors">Feed [→]</Link>} columns={["Detected", "Type", "Change", "Effective", "Confidence"]} empty={recent.length === 0 ? "None detected yet." : false}>
         {recent.map((c) => (
           <tr key={c.id}>
             <td className={`${td} tabular text-ink-400 whitespace-nowrap`}>{fmtDay(c.detectedAt)}</td>

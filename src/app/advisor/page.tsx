@@ -46,7 +46,7 @@ export default async function AdvisorPage() {
           label={diff >= 0 ? "You would save" : "Extra cost"}
           value={`${fmtEur(Math.abs(diff))}/mo`}
           hint={diff >= 0 ? `${fmtEur(diff * 12)} a year` : "Business plans for everyone who uses AI"}
-          tone={diff >= 0 ? "accent" : "signal"}
+          tone={diff >= 0 ? undefined : "signal"}
         />
       </div>
 

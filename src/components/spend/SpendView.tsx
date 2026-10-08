@@ -102,7 +102,7 @@ export default function SpendView({ s, forecast, anomalies, priceChanges }: { s:
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             <AnomalyList anomalies={anomalies} limit={5} />
-            <Panel flush title="Price changes" subtitle="Effect on your AI" action={<Link href="/market" className="text-xs text-ink-400 hover:text-ink-100">All →</Link>}>
+            <Panel flush title="Price changes" subtitle="Effect on your AI" action={<Link href="/market" className="eyebrow hover:!text-ink-100 transition-colors">All [→]</Link>}>
               {priceChanges.length ? (
                 <div className="divide-y divide-line">
                   {priceChanges.slice(0, 5).map((p) => (

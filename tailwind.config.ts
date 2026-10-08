@@ -44,6 +44,14 @@ const config: Config = {
         display: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         brand: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         body: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["var(--font-plex-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
+      },
+      // Angoli più squadrati (stile Exein): pulsanti e campi 4px, card 8px.
+      borderRadius: {
+        md: "3px",
+        lg: "4px",
+        xl: "8px",
+        "2xl": "10px",
       },
       // Testo piccolo un filo più grande e con più interlinea: è il più
       // usato (etichette, descrizioni, tabelle) e il più faticoso da leggere.

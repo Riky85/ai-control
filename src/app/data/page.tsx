@@ -67,7 +67,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
       ) : (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard label="Data categories" value={String(everything.length)} hint={`${sensitive.length} sensitive`} tone="accent" />
+            <StatCard label="Data categories" value={String(everything.length)} hint={`${sensitive.length} sensitive`} />
             <StatCard label="Sensitive data reached" value={`${reached.length}/${sensitive.length}`} hint={reached.length ? "Reached by at least one AI" : "No AI reaches it"} tone={reached.length ? "signal" : undefined} />
             <StatCard label="AI on sensitive data" value={String(aiOnSensitive.size)} hint="Personal, financial, code, confidential" />
             <StatCard label="Without approval" value={String(notApproved.length)} hint={notApproved.length ? "Reach sensitive data, not approved" : "All approved"} tone={notApproved.length ? "alarm" : undefined} href={notApproved.length ? fixHref : undefined} />

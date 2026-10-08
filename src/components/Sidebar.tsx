@@ -248,7 +248,7 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
               </span>
               {!collapsed && <span className="flex-1 sb-fade">{item.label}</span>}
               {!collapsed && badge > 0 && (
-                <span title="AI to review" className="text-[11px] font-semibold text-white bg-accent rounded-full px-1.5 min-w-[20px] text-center tabular">{badge}</span>
+                <span title="AI to review" className="font-mono text-[10px] text-accent border border-accent/45 bg-accent/10 rounded-[2px] px-1.5 min-w-[20px] text-center tabular">{badge}</span>
               )}
               {!collapsed && online && (
                 <span title="Computers online" className="flex items-center gap-1 text-[11px] text-steady tabular">
@@ -356,14 +356,14 @@ function SetupChecklist({
             </div>
             <div className="mt-2.5 flex gap-1" aria-hidden>
               {setup.steps.map((s) => (
-                <span key={s.key} className={`h-1 flex-1 rounded-full ${s.done ? "bg-sb-ink/70" : "bg-sb-ink/[0.1]"}`} />
+                <span key={s.key} className={`h-1 flex-1 rounded-full ${s.done ? "bg-accent" : "bg-sb-ink/[0.1]"}`} />
               ))}
             </div>
           </div>
           <ol className="flex flex-col">
             {setup.steps.map((s) => {
               const mark = (
-                <span className={`h-[18px] w-[18px] shrink-0 rounded-full flex items-center justify-center ${s.done ? "bg-sb-ink text-sidebar" : "border border-sb-ink/25"}`} aria-hidden>
+                <span className={`h-[18px] w-[18px] shrink-0 rounded-full flex items-center justify-center ${s.done ? "bg-accent text-white" : "border border-sb-ink/25"}`} aria-hidden>
                   {s.done && (
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                       <path d="M2.2 5.2l1.9 1.9 3.7-4.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

@@ -48,7 +48,7 @@ export default async function ChangesTab({ q: rawQ, field }: { q?: string; field
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Changes, 30 days" value={String(recent.length)} hint={`${new Set(recent.map((c) => c.aiAssetId)).size} AI affected`} tone="accent" />
+        <StatCard label="Changes, 30 days" value={String(recent.length)} hint={`${new Set(recent.map((c) => c.aiAssetId)).size} AI affected`} />
         <StatCard label="Model changes" value={String(models.length)} hint="New model behind an AI" href="/activity?tab=changes&field=model" />
         <StatCard label="Vendor changes" value={String(vendors.length)} hint="Provider behind an AI changed" href="/activity?tab=changes&field=vendor" />
         <StatCard label="Status changes" value={String(statuses.length)} hint={nowUnapproved.length ? `${nowUnapproved.length} now not allowed` : "Allowed, not allowed, to review"} tone={nowUnapproved.length ? "signal" : undefined} href="/activity?tab=changes&field=status" />

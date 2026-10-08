@@ -62,7 +62,7 @@ export default async function AuditPage({ searchParams }: { searchParams: { q?: 
       {recent.length > 0 && (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard label="Entries, 30 days" value={recent.length.toLocaleString("en-GB")} hint={latest ? `Latest ${fmtAgo(latest.createdAt)}` : "Everything recorded"} tone="accent" />
+            <StatCard label="Entries, 30 days" value={recent.length.toLocaleString("en-GB")} hint={latest ? `Latest ${fmtAgo(latest.createdAt)}` : "Everything recorded"} />
             <StatCard label="People active" value={String(actors)} hint="Signed in or changed something" />
             <StatCard label="Access changes" value={String(changes)} hint="Members, connections, shared links" />
             <StatCard label="Failed sign-ins" value={String(failed.length)} hint={failedWeek.length ? `${failedWeek.length} in the last 7 days` : "None this week"} tone={failedWeek.length >= 5 ? "alarm" : failedWeek.length ? "signal" : undefined} href="/audit?q=login_failed" />

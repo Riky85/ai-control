@@ -35,7 +35,7 @@ export function TopOpportunities({ list, max = 5 }: { list: Opportunity[]; max?:
   const top = list.filter((o) => o.status === "new").slice(0, max);
   if (!top.length) return null;
   return (
-    <Panel title="Top opportunities" flush action={<Link href="/opportunities" className="text-xs text-ink-400 hover:text-ink-100">All →</Link>}>
+    <Panel title="Top opportunities" flush action={<Link href="/opportunities" className="eyebrow hover:!text-ink-100 transition-colors">All [→]</Link>}>
       <div className="divide-y divide-line">
         {top.map((o) => (
           <Link key={o.key} href={`/opportunities?open=${encodeURIComponent(o.key)}`} className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm hover:bg-ink/60 transition-colors">

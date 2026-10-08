@@ -52,7 +52,7 @@ export default async function AlertsPage() {
       {alerts.length > 0 && (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard label="Unread" value={String(unread)} hint={unread ? `of ${alerts.length} alerts` : "You're up to date"} tone={unread ? "accent" : undefined} />
+            <StatCard label="Unread" value={String(unread)} hint={unread ? `of ${alerts.length} alerts` : "You're up to date"} tone={unread ? "warn" : undefined} />
             <StatCard label="Critical, unread" value={String(critical)} hint={critical ? "Decide these first" : "Nothing critical"} tone={critical ? "alarm" : undefined} />
             <StatCard label="This week" value={String(thisWeek)} hint={lastWeek ? `${lastWeek} the week before` : "New in the last 7 days"} />
             <StatCard label="Anomalies now" value={String(anomalies.length)} hint={anomalies.length ? "Spend or usage out of the ordinary" : "Nothing unusual"} tone={anomalies.some((x) => x.severity === "critical") ? "alarm" : anomalies.length ? "signal" : undefined} />

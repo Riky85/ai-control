@@ -84,7 +84,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="AI used" value={String(person.usages.length)} hint={`${active.length} in the last 30 days`} tone="accent" />
+        <StatCard label="AI used" value={String(person.usages.length)} hint={`${active.length} in the last 30 days`} />
         <StatCard label="Last active" value={lastSeen ? fmtAgo(lastSeen) : "—"} hint={lastSeen ? fmtDateTime(lastSeen) : "No usage seen yet"} />
         <StatCard label="AI assets owned" value={String(person.ownedAssets.length)} hint={person.ownedAssets.length ? "Accountable for them" : "Owns none"} />
         <StatCard label="High risk owned" value={String(highRiskOwned)} hint={highRiskOwned > 0 ? "Status: attention" : "Status: good"} tone={highRiskOwned > 0 ? "alarm" : undefined} />

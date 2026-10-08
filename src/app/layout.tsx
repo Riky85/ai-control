@@ -2,6 +2,7 @@ import { currentSession, isPlatformAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
+import localFont from "next/font/local";
 import "./globals.css";
 import Sidebar, { type SidebarWorkspaceProps } from "@/components/Sidebar";
 import AskDocs from "@/components/AskDocs";
@@ -29,6 +30,16 @@ import { THEME_COOKIE, THEME_SCRIPT, parseTheme } from "@/lib/theme";
 // Un solo sans pulito (stile Exa): Geist (licenza OFL, file locali nel pacchetto
 // "geist", niente download da Google) per testo, titoli e marchio.
 const sans = GeistSans;
+// Etichette tecniche (occhielli, colonne, categorie) in mono maiuscolo, stile Exein:
+// IBM Plex Mono (licenza OFL), file locali in src/app/fonts.
+const mono = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ibm-plex-mono-latin-500-normal.woff2", weight: "500", style: "normal" },
+  ],
+  variable: "--font-plex-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "angar",
@@ -56,7 +67,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = currentSession();
   const theme = parseTheme(cookies().get(THEME_COOKIE)?.value);
-  const htmlClass = `${sans.variable}${theme === "dark" ? " dark" : ""}`;
+  const htmlClass = `${sans.variable} ${mono.variable}${theme === "dark" ? " dark" : ""}`;
   const head = (
     <head>
       <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />

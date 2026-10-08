@@ -11,7 +11,7 @@ const KIND_LABEL: Record<Figure["kind"], string> = { actual: "Actual", calculate
 
 /** Pillola neutra della categoria (niente arcobaleno: un solo tono). */
 export function CategoryPill({ category }: { category: Category }) {
-  return <span className="inline-flex items-center rounded-md border border-line px-1.5 py-0.5 text-[11px] font-medium text-ink-400 whitespace-nowrap">{CATEGORY_LABEL[category]}</span>;
+  return <span className={`inline-flex items-center rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] whitespace-nowrap ${category === "FIX" || category === "REDUCE_DEPENDENCY" ? "border-accent/45 text-accent" : "border-line text-ink-400"}`}>{CATEGORY_LABEL[category]}</span>;
 }
 
 export function StatusPill({ status }: { status: Status }) {

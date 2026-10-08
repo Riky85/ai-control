@@ -74,7 +74,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
       {groups.length > 1 && <Tabs items={groups.map((g) => ({ key: g.id, label: g.name, href: `/group?id=${g.id}` }))} active={group.id} />}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Group AI spend" value={t.spend ? `${fmtEur(t.spend)}/mo` : "—"} hint={t.spend ? `${fmtEur(t.spend * 12)} a year` : "No costs yet"} tone="accent" />
+        <StatCard label="Group AI spend" value={t.spend ? `${fmtEur(t.spend)}/mo` : "—"} hint={t.spend ? `${fmtEur(t.spend * 12)} a year` : "No costs yet"} />
         <StatCard label="Saved" value={t.saved ? `${fmtEur(t.saved)}/mo` : "—"} hint={t.saved ? `${fmtEur(t.saved * 12)} a year` : "Nothing done yet"} />
         <StatCard label="Could still save" value={t.save ? `${fmtEur(t.save)}/mo` : "—"} hint={t.save ? `${fmtEur(t.save * 12)} a year` : "Nothing found"} />
         <StatCard label="AI in use" value={String(t.ai)} hint={t.budget ? `Budgets: ${fmtEur(t.budgetSpend)} of ${fmtEur(t.budget)}/mo` : "No team budgets set"} />
