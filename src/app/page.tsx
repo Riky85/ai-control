@@ -3,18 +3,18 @@ import { currentOrgId } from "@/lib/org";
 import { AssetLimitNotice } from "@/components/PlanBanner";
 import { db } from "@/lib/db";
 import CsvDropzone from "@/components/CsvDropzone";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, StatCard } from "@/components/ui";
 import { redirect } from "next/navigation";
 import { computeSavingsCached, monthlyOf, loadAssets } from "@/lib/savings";
 import type { AiFilterParams } from "@/lib/ai-filters";
 import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
-import ScoreCard, { type ScoreCardData } from "@/components/engine/ScoreCard";
 import { computeScoreCached, scoreHistory, scoreActions } from "@/lib/engine/score";
 import MarketChangesBlock from "@/components/market/MarketChangesBlock";
 import { loadOpportunitiesCached } from "@/lib/opportunities";
-import { OverviewMetricsRow, TopOpportunities } from "@/components/overview/TopOpportunities";
+import { OpportunityRow } from "@/components/opportunities/parts";
+import AiTable from "@/components/AiTable";
 import ImportCheckOffer from "@/components/check/ImportCheckOffer";
 import { loadDemoDataAction } from "@/lib/test-data-actions";
 
@@ -28,8 +28,8 @@ function greeting(name?: string | null) {
   return first ? `${part}, ${first}` : "Welcome to angar";
 }
 
-// Home (spec §15): Angar Score, le 6 metriche dell'estate, le opportunità migliori e i cambi di mercato
-// che contano. L'elenco delle AI è in AI Estate (/estate): i vecchi link "/?view=graph", "/?q=…#your-ai" vanno lì.
+// Home: quattro numeri (Score, spesa, risparmi, AI), le prossime azioni e le AI che costano di più,
+// con la stessa grafica di Opportunities e AI Estate. L'elenco delle AI è in AI Estate (/estate): i vecchi link "/?view=graph", "/?q=…#your-ai" vanno lì.
 export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string; spend?: string; view?: string } & AiFilterParams }) {
   if (searchParams.view === "graph") redirect("/estate/graph");
   const moved = new URLSearchParams();
@@ -38,7 +38,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   const orgId = currentOrgId();
   const session = currentSession();
   // Tutto in parallelo; risparmi e computer collegati sono condivisi con il layout (React cache).
-  const [org, { assets }, all, broken, toReview, spendCount] = await Promise.all([
+  const [org, { assets, items }, all, broken, toReview, spendCount] = await Promise.all([
     db.organization.findUnique({ where: { id: orgId } }),
     computeSavingsCached(orgId),
     loadAssets(orgId, { includeRejected: true }),
@@ -47,25 +47,19 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
     db.spendRecord.count({ where: { organizationId: orgId } }),
   ]);
 
-  // Angar Score: solo se c'è almeno un'AI (altrimenti non c'è niente da valutare).
-  let scoreCard: ScoreCardData | null = null;
+  // Angar Score: solo se c'è almeno un'AI (altrimenti non c'è niente da valutare). Sulla home
+  // basta il numero: il dettaglio delle 5 dimensioni è su /score.
+  let score: { value: number; level: string; levelLabel: string; delta: number | null; potential: number | null } | null = null;
   if (all.length > 0) {
-    const [score, history] = await Promise.all([computeScoreCached(orgId), scoreHistory(orgId, 30)]);
-    const plan = scoreActions(score.facts, score);
-    scoreCard = {
-      score: score.score,
-      level: score.level,
-      levelLabel: score.levelLabel,
-      verdict: score.verdict,
-      savingsMonthlyEur: score.savingsMonthlyEur,
-      confidence: score.confidence,
-      confidenceLabel: score.confidenceLabel,
-      // Una dimensione non misurata mostra "—" (conta 60, spiegato su /score).
-      dims: score.dimensions.map((d) => ({ axis: d.axis, label: d.label, value: d.status === "unmeasured" || d.status === "na" ? null : d.value, level: d.level, levelLabel: d.levelLabel })),
-      potential: plan.potential,
-      actions: plan.actions.filter((a) => a.points > 0).length,
+    const [sc, history] = await Promise.all([computeScoreCached(orgId), scoreHistory(orgId, 30)]);
+    const plan = scoreActions(sc.facts, sc);
+    score = {
+      value: sc.score,
+      level: sc.level,
+      levelLabel: sc.levelLabel,
       // Solo fotografie dello stesso metodo: le vecchie (assi diversi) non sono confrontabili.
-      delta: history.length && history[0].day !== history[history.length - 1].day ? { points: score.score - history[0].score, since: history[0].day } : null,
+      delta: history.length && history[0].day !== history[history.length - 1].day ? Math.round((sc.score - history[0].score) * 10) / 10 : null,
+      potential: plan.potential,
     };
   }
 
@@ -76,14 +70,17 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   // Opportunità (stesso totale del motore dei risparmi) e metriche dell'estate.
   const opp = assets.length ? await loadOpportunitiesCached(orgId) : null;
   const em = opp?.estate?.metrics ?? null;
+  // Le prime 4 opportunità nuove e le 6 AI che costano di più (stesse righe delle pagine dedicate).
+  const next = (opp?.list ?? []).filter((o) => o.status === "new").slice(0, 4);
+  const topAi = [...assets].sort((a, b) => (monthlyOf(b)?.eur ?? -1) - (monthlyOf(a)?.eur ?? -1)).slice(0, 6);
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={greeting(session?.name)} subtitle={org?.name ?? "Your AI at a glance"} action={
           assets.length ? (
             <div className="flex items-center gap-2">
-              {spendCount > 0 && <Link href="/report" className="btn btn-ghost btn-sm btn-go">Monthly report</Link>}
-              <Link href="/estate" className="btn btn-ghost btn-sm btn-go">See all AI</Link>
+              {spendCount > 0 && <Link href="/report" className="btn btn-ghost btn-sm">Monthly report</Link>}
+              {score && <Link href="/opportunities?view=score" className="btn btn-primary btn-sm btn-go">Improve my score</Link>}
             </div>
           ) : undefined
         } />
@@ -135,26 +132,43 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         </div>
       ) : (
         <>
-          {scoreCard && <ScoreCard data={scoreCard} />}
+          {/* Stessa grammatica di Opportunities e AI Estate: quattro numeri, poi due elenchi. */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              label="Angar Score"
+              value={score ? `${score.value}/100` : "—"}
+              hint={score ? [score.levelLabel, score.delta ? `${score.delta > 0 ? "+" : ""}${score.delta} this month` : null, score.potential && score.potential > score.value ? `up to ${Math.round(score.potential)}` : null].filter(Boolean).join(" · ") : undefined}
+              tone={score?.level === "weak" ? "warn" : undefined}
+              href="/score"
+            />
+            <StatCard label="Monthly AI spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (estimatedEur >= 1 ? `${fmtEur(estimatedEur)} estimated` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/spend" : "/sources"} />
+            <StatCard label="Potential savings" value={opp && opp.summary.totalMonthly >= 1 ? `${fmtEur(opp.summary.totalMonthly)}/mo` : "—"} hint={opp?.summary.open ? `${opp.summary.open} opportunit${opp.summary.open === 1 ? "y" : "ies"}` : undefined} href="/opportunities" />
+            <StatCard label="AI systems" value={String(em?.systems ?? assets.length)} hint={toReview ? `${toReview} to review` : "All reviewed"} tone={toReview ? "warn" : undefined} href={toReview ? "/review" : "/estate"} />
+          </div>
 
-          <OverviewMetricsRow
-            m={{
-              systems: em?.systems ?? assets.length,
-              toReview,
-              spend,
-              estimatedEur,
-              savingsMonthly: opp?.summary.totalMonthly ?? 0,
-              opportunities: opp?.summary.open ?? 0,
-              concentration: em?.providerConcentration ?? null,
-              unowned: em?.unowned ?? 0,
-              highDependencies: em?.highDependencies ?? 0,
-            }}
+          {next.length > 0 && (
+            <section className="rounded-xl border border-line bg-panel overflow-hidden animate-rise" aria-labelledby="next-title">
+              <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
+                <h2 id="next-title" className="text-sm font-bold text-ink-100">What to do next</h2>
+                <Link href="/opportunities" className="eyebrow hover:!text-ink-100 transition-colors">All {opp?.summary.open ?? next.length} opportunities [→]</Link>
+              </div>
+              <div className="divide-y divide-line">
+                {next.map((o) => (
+                  <OpportunityRow key={o.key} o={o} base="/opportunities" canEdit={session?.role !== "VIEWER"} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          <AiTable
+            title="Your AI"
+            note={`Top ${topAi.length} by cost`}
+            action={<Link href="/estate" className="eyebrow hover:!text-ink-100 transition-colors">All {all.length} AI [→]</Link>}
+            assets={topAi}
+            savings={items}
           />
-          {opp && <TopOpportunities list={opp.list} />}
+
           <MarketChangesBlock orgId={orgId} />
-          <Link href="/estate" className="text-sm text-ink-400 hover:text-ink-100 w-fit">
-            See all {all.length} AI →
-          </Link>
         </>
       )}
     </div>
