@@ -178,7 +178,7 @@ function AppPreview({ company, email }: { company: string; email: string }) {
           <div className="text-[17px] font-semibold">You&apos;re all set</div>
           <div className="text-[11px] text-[#9CA0A8] mt-1 leading-snug">angar is on and runs quietly in the background. It starts by itself — there&apos;s nothing else to do.</div>
         </div>
-        <div className="rounded-lg border border-[#262626] bg-[#000000] px-3 py-2 flex flex-col gap-1.5 text-[11px]">
+        <div className="rounded-lg border border-[#34383D] bg-[#202327] px-3 py-2 flex flex-col gap-1.5 text-[11px]">
           {[
             ["Company", company],
             ["Email", email],

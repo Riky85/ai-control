@@ -43,13 +43,13 @@
 html.dark,
 .force-dark {
   color-scheme: dark;
-  /* Tema scuro: fondo, sidebar e card #000000, bordi sottili. */
-  --c-subtle: 20 20 20; /* #141414 */
+  /* Tema scuro: fondo, sidebar e card #202327, bordi sottili. */
+  --c-subtle: 42 45 50; /* #2A2D32 */
   --c-text: 237 237 237;
   --c-muted: 150 150 150;
-  --c-panel: 0 0 0; /* #000000 */
-  --c-canvas: 0 0 0; /* #000000 */
-  --c-line: 38 38 38; /* #262626 */
+  --c-panel: 32 35 39; /* #202327 */
+  --c-canvas: 32 35 39; /* #202327 */
+  --c-line: 52 56 61; /* #34383D */
   --c-accent-soft: 46 30 20;
   --c-signal: 250 204 21;
   --c-steady: 63 182 122;
@@ -57,18 +57,18 @@ html.dark,
   --c-edge: 64 64 64;
   --c-node-strong: 82 82 82;
   --c-alarm-soft: 52 26 24;
-  /* Sidebar #000000 con bordo, aperta o chiusa. */
-  --c-sidebar: 0 0 0;
-  --c-sidebar-line: 38 38 38;
+  /* Sidebar #202327 con bordo, aperta o chiusa. */
+  --c-sidebar: 32 35 39;
+  --c-sidebar-line: 52 56 61;
   --c-sb-ink: 255 255 255;
   --c-sb-soft: 232 232 232;
   --c-sb-text: 200 200 200;
   --c-sb-muted: 160 160 160;
   --c-sb-faint: 135 135 135;
-  --c-pop: 20 20 20;
+  --c-pop: 42 45 50;
 }
 
-/* Nel tema scuro anche le pagine fuori dall'app hanno lo stesso fondo #000000. */
+/* Nel tema scuro anche le pagine fuori dall'app hanno lo stesso fondo #202327. */
 html.dark body,
 .force-dark {
   background-color: rgb(var(--c-canvas));
