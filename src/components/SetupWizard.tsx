@@ -57,7 +57,7 @@ export default function SetupWizard({ steps, initialHidden = false, primary = tr
       <button
         onClick={() => store(true)}
         aria-label="Hide the setup guide"
-        className="absolute right-3 top-3 z-10 h-8 w-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-ink-100 hover:bg-ink-100/[0.06] transition-colors"
+        className="btn btn-ghost btn-sm btn-icon absolute right-3 top-3 z-10"
       >
         <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M2 2l8 8M10 2l-8 8" /></svg>
       </button>

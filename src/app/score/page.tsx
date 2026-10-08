@@ -1,5 +1,4 @@
 import { currentOrgId } from "@/lib/org";
-import ForecastCard, { loadForecastCard } from "@/components/engine/ForecastCard";
 import ScoreView from "@/components/engine/ScoreView";
 import { computeScoreCached, recordScoreSnapshot, scoreHistoryAll, scoreActions, whatChanged, romeDay, type ScorePoint } from "@/lib/engine/score";
 import { SCORE_METHOD } from "@/lib/engine/score-meta";
@@ -9,7 +8,7 @@ import { EmptyState, PageHeader } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
-// Angar Score (AI spend efficiency): numero, livello, confidenza, andamento, le 5 dimensioni e perché.
+// Angar Score: quattro numeri, le 5 dimensioni col perché, l'andamento.
 export default async function ScorePage() {
   const orgId = currentOrgId();
   // Senza AI e senza costi non c'è niente da valutare: niente numero, solo il primo passo.
@@ -20,23 +19,23 @@ export default async function ScorePage() {
   if (!anyAi && !anySpend)
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="Angar Score" subtitle="AI spend efficiency" />
+        <PageHeader title="Angar Score" subtitle="How well your AI spend is used" />
         <EmptyState
           text={
             <>
               <b className="block text-ink-100 font-bold mb-1">Score needs spend data</b>
-              Drop a bank statement or invoices and angar scores how well your AI spend turns into use.
+              Add a bank statement or invoices to get your score.
             </>
           }
           action={
-            <Link href="/" className="btn btn-primary btn-sm">
+            <Link href="/" className="btn btn-primary">
               Add spend data
             </Link>
           }
         />
       </div>
     );
-  const [result, all, forecast] = await Promise.all([computeScoreCached(orgId), scoreHistoryAll(orgId, 90), loadForecastCard(orgId)]);
+  const [result, all] = await Promise.all([computeScoreCached(orgId), scoreHistoryAll(orgId, 90)]);
 
   // Fotografia di oggi col metodo attuale, se manca (il lavoro giornaliero la aggiorna comunque).
   const today = romeDay();
@@ -51,9 +50,6 @@ export default async function ScorePage() {
   const plan = scoreActions(result.facts, result);
   const changed = await whatChanged(orgId, { score: result.score, monthlySpendEur: result.facts.monthlySpendEur }, current).catch(() => null);
 
-  return (
-    <ScoreView result={result} plan={plan} current={current} changedOn={changedOn} changed={changed}>
-      <ForecastCard {...forecast} />
-    </ScoreView>
-  );
+  // La previsione della spesa sta in Spend: qui solo il punteggio.
+  return <ScoreView result={result} plan={plan} current={current} changedOn={changedOn} changed={changed} />;
 }

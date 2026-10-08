@@ -1,7 +1,7 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { PageHeader, StatCard } from "@/components/ui";
-import { Insight } from "@/components/insight";
+import { EmptyState, BlockHead, PageHeader, StatCard } from "@/components/ui";
 import AnomalyList, { loadAnomalyList } from "@/components/engine/AnomalyList";
 import { fmtAgo } from "@/lib/format";
 import { markAllAlertsReadAction, openAlertAction } from "@/lib/alert-actions";
@@ -44,7 +44,7 @@ export default async function AlertsPage() {
         action={
           unread > 0 ? (
             <form action={markAllAlertsReadAction}>
-              <button className="btn btn-secondary">Mark all as read</button>
+              <button className="btn btn-secondary btn-sm">Mark all as read</button>
             </form>
           ) : undefined
         }
@@ -52,35 +52,38 @@ export default async function AlertsPage() {
       {alerts.length > 0 && (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard label="Unread" value={String(unread)} hint={unread ? `of ${alerts.length} alerts` : "You're up to date"} tone={unread ? "warn" : undefined} />
+            <StatCard
+              label="Unread"
+              value={String(unread)}
+              hint={topKind && topKind[1] >= 2 ? `${topKind[1]} are ${KIND_HREF[topKind[0]].noun}` : unread ? `of ${alerts.length} alerts` : "You're up to date"}
+              tone={unread ? "warn" : undefined}
+              href={topKind && topKind[1] >= 2 ? KIND_HREF[topKind[0]].href : undefined}
+            />
             <StatCard label="Critical, unread" value={String(critical)} hint={critical ? "Decide these first" : "Nothing critical"} tone={critical ? "alarm" : undefined} />
             <StatCard label="This week" value={String(thisWeek)} hint={lastWeek ? `${lastWeek} the week before` : "New in the last 7 days"} />
-            <StatCard label="Anomalies now" value={String(anomalies.length)} hint={anomalies.length ? "Spend or usage out of the ordinary" : "Nothing unusual"} tone={anomalies.some((x) => x.severity === "critical") ? "alarm" : anomalies.length ? "signal" : undefined} />
+            <StatCard label="Anomalies now" value={String(anomalies.length)} hint={anomalies.length ? "Spend or usage out of the ordinary" : "Nothing unusual"} tone={anomalies.some((x) => x.severity === "critical") ? "alarm" : anomalies.length ? "warn" : undefined} />
           </div>
-          {topKind && topKind[1] >= 2 && (
-            <Insight tone="signal" href={KIND_HREF[topKind[0]].href} cta={KIND_HREF[topKind[0]].cta}>
-              {topKind[1]} of your {unread} unread alerts are {KIND_HREF[topKind[0]].noun} — deal with them in one go.
-            </Insight>
-          )}
           {anomalies.length > 0 && <AnomalyList anomalies={anomalies} limit={5} />}
         </>
       )}
       {alerts.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line bg-panel p-10 text-center">
-          <h2 className="text-base font-bold text-ink-100">Nothing needs your attention</h2>
-          <p className="text-sm text-ink-400 mt-1 max-w-lg mx-auto">angar checks every morning for renewals in the next 14 days, budgets over 80%, AI that isn&apos;t allowed being used, and seats nobody needs. Alerts appear here and, if you connect Slack or Teams in Settings, there too.</p>
-        </div>
+        <EmptyState
+          text={
+            <>
+              <b className="block text-ink-100 font-bold mb-1">Nothing needs your attention</b>
+              angar checks renewals, budgets, AI that isn&apos;t allowed and unused seats every morning.
+            </>
+          }
+          action={<Link href="/settings?tab=integrations" className="btn btn-secondary">Send alerts to Slack or Teams</Link>}
+        />
       ) : (
-        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
-          {/* Intestazione: tutti gli avvisi e quanti da leggere (senza fascia grigia). */}
-          <div className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
-            <h2 className="font-bold text-ink-100">All alerts</h2>
-            <span className={`eyebrow tabular ${unread ? "!text-accent" : ""}`}>{unread ? `${unread} unread` : `${alerts.length} read`}</span>
-          </div>
+        <div className="rounded-xl border border-line bg-panel animate-rise overflow-hidden">
+          <BlockHead title="All alerts" note={<span className={unread ? "!text-accent" : ""}>{unread ? `${unread} unread` : `${alerts.length} read`}</span>} />
+          <div className="divide-y divide-line">
           {alerts.map((a) => (
             <form key={a.id} action={openAlertAction}>
               <input type="hidden" name="id" value={a.id} />
-              <button className={`w-full text-left flex items-start gap-4 px-5 py-4 transition-colors hover:bg-ink-100/[0.03] ${a.readAt ? "" : "bg-ink-100/[0.025]"}`}>
+              <button className={`w-full text-left flex items-start gap-4 px-5 py-3 transition-colors hover:bg-ink-100/[0.03] ${a.readAt ? "" : "bg-ink-100/[0.025]"}`}>
                 <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${SEV[a.severity] ?? SEV.info}`} />
                 <span className="flex-1 min-w-0">
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -93,6 +96,7 @@ export default async function AlertsPage() {
               </button>
             </form>
           ))}
+          </div>
         </div>
       )}
     </div>

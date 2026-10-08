@@ -122,7 +122,7 @@ export default function LeadForm({
       )}
       <div className="sm:col-span-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
         <p className="text-xs text-ink-400">{copy.privacy}</p>
-        <button disabled={pending} className="btn btn-primary h-10 px-5 disabled:opacity-60 shrink-0">
+        <button disabled={pending} className="btn btn-primary shrink-0">
           {pending ? copy.sending : submit}
         </button>
       </div>

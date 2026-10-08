@@ -10,7 +10,7 @@ import { PRIVACY_MODES } from "@/lib/privacy";
 import { fmtEur, fmtAgo } from "@/lib/format";
 import { switchWorkspaceAction, createWorkspaceAction } from "@/lib/workspace-actions";
 import { setManagedByMeAction } from "@/lib/partner-actions";
-import { EmptyState, Notice, PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
+import { EmptyState, Notice, PageHeader, StatCard, Table, Tabs, td, Panel } from "@/components/ui";
 import Badge from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +32,12 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
     { spend: 0, save: 0, review: 0 }
   );
   const onlyOwn = clients.length <= 1;
+  const footer = (
+    <span className="text-xs text-ink-400">
+      Only workspaces you&apos;re an active member of. Selling Edge to clients? See{" "}
+      <Link href="/edge" className="underline hover:text-ink-100">angar Edge</Link>.
+    </span>
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,7 +47,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
         action={
           <form action={createWorkspaceAction} className="flex flex-wrap items-center gap-2">
             <input name="name" required placeholder="Client company name" aria-label="Client company name" className="field py-1.5 w-full sm:w-52" />
-            <button className="btn btn-primary">New client workspace</button>
+            <button className="btn btn-primary btn-sm">Create client workspace</button>
           </form>
         }
       />
@@ -63,7 +69,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
           label="Items to review"
           value={String(totals.review)}
           hint={totals.review ? "AI found by scans, not yet decided" : "All clear"}
-          tone={totals.review ? "signal" : undefined}
+          tone={totals.review ? "warn" : undefined}
         />
       </div>
 
@@ -71,17 +77,16 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
         // Stato vuoto standard: una riga e una sola azione.
         <EmptyState
           className="animate-rise"
-          text="No client workspaces yet. Create one for each client with the button above, then add their costs from Sources. Clients never see each other."
+          text="No client workspaces yet. Create one for each client; clients never see each other."
           action={
-            <Link href="/sources" className="btn btn-secondary btn-sm">
-              Open Sources
+            <Link href="/sources" className="btn btn-secondary">
+              Open sources
             </Link>
           }
         />
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Tabs
+      <Tabs
           active={view}
           items={[
             {
@@ -98,16 +103,13 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
             },
           ]}
         />
-        <span className="text-xs text-ink-400">
-          {view === "fleet"
-            ? `${fleetOnline} of ${fleet.length} sensors online · online = check-in within ${EDGE.onlineMinutes} min`
-            : `Sorted by possible savings · Edge: last ${EDGE.onlineMinutes} min online, 7-day totals`}
-        </span>
-      </div>
 
       {view === "clients" ? (
         <>
           <Table
+            title="Clients"
+            note={`By possible savings · Edge online = last ${EDGE.onlineMinutes} min`}
+            footer={footer}
             columns={[
               "Client",
               "Plan",
@@ -170,10 +172,10 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                         <input type="hidden" name="orgId" value={c.id} />
                         <input type="hidden" name="managed" value={c.managedByMe ? "0" : "1"} />
                         <button
-                          className={`text-xs whitespace-nowrap ${c.managedByMe ? "text-steady hover:text-alarm" : "text-ink-400 hover:text-ink-100 underline"}`}
+                          className={`btn btn-ghost btn-sm ${c.managedByMe ? "!text-steady" : ""}`}
                           title={c.managedByMe ? "Stop managing this client" : "Mark as managed by this partner workspace"}
                         >
-                          {c.managedByMe ? "✓ By me" : "Mark"}
+                          {c.managedByMe ? "✓ By me" : "Mark managed"}
                         </button>
                       </form>
                     ) : (
@@ -190,18 +192,10 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
           </Table>
 
           {/* Economia partner: stima, solo clienti gestiti. */}
-          <section className="rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
-            <div className="-mx-4 -mt-4 flex flex-wrap items-baseline justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3 bar-head">
-              <h2 className="text-sm font-bold text-ink-100">
-                Partner economics <span className="eyebrow ml-1">Estimate</span>
-              </h2>
-              <span className="eyebrow">
-                List prices minus your {EDGE.partnerDiscountPct}% partner discount · Edge software free on {planById(EDGE.softwareFromPlan).displayName}+
-              </span>
-            </div>
+          <Panel title="Partner economics" subtitle={`Estimate · list prices minus ${EDGE.partnerDiscountPct}% · Edge software free on ${planById(EDGE.softwareFromPlan).displayName}+`}>
             {econ.rows.length === 0 ? (
               <p className="text-sm text-ink-400">
-                Mark client workspaces as <span className="text-ink-100">managed by me</span> to see your monthly recurring revenue from angar plans and Edge devices.
+                Mark clients as <span className="text-ink-100">managed</span> to see your monthly revenue from angar plans and Edge devices.
               </p>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-start">
@@ -210,7 +204,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                   <Figure label="Your cost" value={`${fmtEur(econ.total.cost)}/mo`} />
                   <Figure label="Your margin" value={`${fmtEur(econ.total.margin)}/mo`} hint={`${fmtEur(econ.total.margin * 12)} a year`} accent />
                 </div>
-                <div className="text-xs divide-y divide-line border border-line rounded-lg">
+                <div className="text-xs divide-y divide-line">
                   {econ.rows.map((r) => (
                     <div key={r.clientId} className="flex items-center gap-3 px-3 py-1.5">
                       <span className="flex-1 truncate text-ink-100">{r.clientName}</span>
@@ -226,16 +220,19 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                 </div>
               </div>
             )}
-          </section>
+          </Panel>
         </>
       ) : (
         <Table
+          title="Edge fleet"
+          note={`${fleetOnline} of ${fleet.length} online · check-in within ${EDGE.onlineMinutes} min`}
+          footer={footer}
           columns={["Client", "Sensor", "Kind", "Status", "Version", { label: "Last seen", className: "text-right" }, ""]}
           empty={
             fleet.length > 0
               ? false
               : clients.length > 1
-                ? "No Edge sensors in your client workspaces yet. Open a client and set one up in Edge → Sensors."
+                ? "No Edge sensors in your client workspaces yet. Open a client and set one up in Edge."
                 : "No Edge sensors yet. Create client workspaces, then set up a sensor in each."
           }
         >
@@ -274,13 +271,6 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
           ))}
         </Table>
       )}
-      <p className="text-xs text-ink-400">
-        Only workspaces you&apos;re an active member of. Selling angar Edge to your clients? See{" "}
-        <Link href="/edge" className="underline hover:text-ink-100">
-          angar Edge
-        </Link>
-        .
-      </p>
     </div>
   );
 }

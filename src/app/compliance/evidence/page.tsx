@@ -28,10 +28,10 @@ export default async function EvidencePackPage() {
         <PageHeader
           crumbs={[{ label: "AI Act", href: "/compliance" }, { label: "AI Act evidence pack" }]}
           title="AI Act evidence pack"
-          subtitle="AI Act and NIS2, one document."
+          subtitle="AI Act and NIS2 in one document"
           action={
             <>
-              {(await featureEnabled(s.orgId, "evidencePack")) ? <><a href="/api/compliance/evidence" className="btn btn-secondary">Download JSON</a><PrintButton label="Print / PDF" /></> : <LockedFeature feature="evidencePack" label="Download evidence pack" />}
+              {(await featureEnabled(s.orgId, "evidencePack")) ? <><a href="/api/compliance/evidence" className="btn btn-ghost btn-sm">Download JSON</a><PrintButton label="Print or save PDF" /></> : <LockedFeature feature="evidencePack" label="Download evidence pack" className="btn btn-secondary btn-sm" />}
             </>
           }
         />
@@ -40,8 +40,9 @@ export default async function EvidencePackPage() {
         <PrivacyNotice mode={pack.organisation.privacyMode} what="The evidence pack" />
       </div>
 
-      <section className="rounded-xl border border-line bg-panel p-5">
-        <h1 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">AI Act / NIS2 evidence pack — {pack.organisation.name}</h1>
+      <section className="rounded-xl border border-line bg-panel animate-rise">
+        <h1 className="bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">AI Act / NIS2 evidence pack · {pack.organisation.name}</h1>
+        <div className="p-5">
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1.5 text-sm">
           <Row label="Organisation" value={pack.organisation.name} />
           <Row label="Country" value={pack.organisation.country ?? "—"} />
@@ -54,10 +55,11 @@ export default async function EvidencePackPage() {
         <p className="mt-3 text-xs text-ink-400 break-all">
           Fingerprint (SHA-256 of this pack&apos;s canonical JSON): <span className="font-mono text-ink-100">{fingerprint}</span>
         </p>
-        <p className="mt-1 text-xs text-ink-400">The JSON download is generated separately and carries its own fingerprint.</p>
+        <p className="mt-1 text-xs text-ink-400">The JSON download carries its own fingerprint.</p>
+        </div>
       </section>
 
-      <Table title="1. AI inventory" note={`${pack.aiInventory.length} AI systems (EU AI Act Art. 26 deployer duties; NIS2 Art. 21 asset management).`} columns={["AI", "Vendor", "Type", "Status", "EU AI Act", "Owner / department", "First seen", "Sources"]} empty={pack.aiInventory.length ? false : "No AI found yet."}>
+      <Table title="1. AI inventory" note={`${pack.aiInventory.length} AI systems · AI Act Art. 26 · NIS2 Art. 21`} columns={["AI", "Vendor", "Type", "Status", "EU AI Act", "Owner / department", "First seen", "Sources"]} empty={pack.aiInventory.length ? false : "No AI found yet."}>
           {pack.aiInventory.map((a) => (
             <tr key={a.name + a.firstSeen}>
               <td className={`${td} font-medium text-ink-100`}>{a.name}</td>
@@ -84,10 +86,10 @@ export default async function EvidencePackPage() {
 
       <Table
         title="3. AI literacy (Art. 4)"
-        note="Training recorded in angar."
+        note="Training recorded in angar"
         footer={pack.policyAcknowledgement.policyVersion ? <span className="text-xs text-ink-400">AI policy {pack.policyAcknowledgement.policyVersion} shared with employees{pack.policyAcknowledgement.trackedPerPerson ? `: ${pack.policyAcknowledgement.acknowledged} of ${pack.policyAcknowledgement.sent} acknowledged (${pack.policyAcknowledgement.acknowledgementRate ?? 0}%)` : `: ${pack.policyAcknowledgement.anonymousCompletions} anonymous acknowledgements`}
             {pack.policyAcknowledgement.averageQuizScore != null && `, average literacy check ${pack.policyAcknowledgement.averageQuizScore}/${pack.policyAcknowledgement.quizQuestions}`}.</span> : undefined}
-        columns={["Date", "Training", "Recorded by"]} empty={pack.aiLiteracy.length ? false : "No AI literacy training recorded — record it on the AI Act page."}
+        columns={["Date", "Training", "Recorded by"]} empty={pack.aiLiteracy.length ? false : "No AI literacy training recorded. Record it on the AI Act page."}
       >
           {pack.aiLiteracy.map((l, i) => (
             <tr key={i}>
@@ -122,7 +124,7 @@ export default async function EvidencePackPage() {
           ))}
         </Table>
 
-      <Table title="6. NIS2 — AI services as ICT third-party providers" note="Supply-chain security (NIS2 Art. 21(2)(d)): every AI vendor, its services and the company data they can reach." columns={["Vendor", "Services", { label: "Allowed", className: "text-right" }, { label: "Not allowed", className: "text-right" }, { label: "To review", className: "text-right" }, "Data access"]} empty={pack.nis2.ictThirdPartyProviders.length ? false : "No AI vendors yet."}>
+      <Table title="6. NIS2 — AI services as ICT third-party providers" note="Supply chain · NIS2 Art. 21(2)(d)" columns={["Vendor", "Services", { label: "Allowed", className: "text-right" }, { label: "Not allowed", className: "text-right" }, { label: "To review", className: "text-right" }, "Data access"]} empty={pack.nis2.ictThirdPartyProviders.length ? false : "No AI vendors yet."}>
           {pack.nis2.ictThirdPartyProviders.map((v) => (
             <tr key={v.vendor}>
               <td className={`${td} font-medium text-ink-100`}>{v.vendor}</td>
@@ -150,7 +152,7 @@ export default async function EvidencePackPage() {
 
       <Table
         title="8. Audit log integrity"
-        note="Every audit entry carries the SHA-256 of the previous one: changing, deleting or inserting an entry breaks the chain."
+        note="Each entry carries the SHA-256 of the previous one"
         toolbar={
         <div className={`rounded-xl px-4 py-3 text-sm ${c.ok ? "bg-steady/10 text-steady" : "bg-alarm/10 text-alarm"}`}>
           {c.ok ? (
@@ -181,7 +183,7 @@ export default async function EvidencePackPage() {
             ))}
       </Table>
 
-      <p className="text-xs text-ink-400">Generated by angar from its database — not legal advice. Confirm high-risk cases and NIS2 scope with your DPO or counsel.</p>
+      <p className="text-xs text-ink-400">Generated by angar from its database. Not legal advice: confirm high-risk cases and NIS2 scope with your DPO or counsel.</p>
     </div>
   );
 }

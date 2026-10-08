@@ -37,12 +37,12 @@ export default function GatewayView(p: GatewayViewProps) {
         title="Gateway"
         action={
           <>
-            <Link href="/gateway?tab=policies#connect" className="btn btn-ghost">
+            <Link href="/gateway?tab=policies#connect" className="btn btn-ghost btn-sm">
               Connection guide
             </Link>
             {editable && (
-              <Link href="/gateway?tab=keys#new-key" className="btn btn-primary">
-                <span aria-hidden>+</span> Create key
+              <Link href="/gateway?tab=keys#new-key" className="btn btn-primary btn-sm">
+                Create key
               </Link>
             )}
           </>
@@ -70,12 +70,13 @@ export default function GatewayView(p: GatewayViewProps) {
       {p.tab === "keys" && p.keys && <KeysTab keys={p.keys.rows} teams={p.keys.teams} canEdit={editable} />}
       {p.tab === "logs" && p.logs && (
         <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-2">
+          {/* Filtri come le categorie di Opportunities: link testuali, attivo evidenziato. */}
+          <div className="flex flex-wrap items-center gap-1.5" aria-label="Result">
             {[undefined, ...RESULTS].map((r) => (
               <Link
                 key={r ?? "all"}
                 href={r ? `/gateway?tab=logs&result=${r}` : "/gateway?tab=logs"}
-                className={`btn btn-sm ${p.logs!.result === r ? "btn-secondary border-ink-400" : "btn-ghost"}`}
+                className={`rounded-[4px] px-3 py-1 text-sm transition-colors ${p.logs!.result === r ? "bg-ink-100/[0.08] text-ink-100" : "text-ink-400 hover:text-ink-100"}`}
               >
                 {r ? r[0].toUpperCase() + r.slice(1) : "All"}
               </Link>
@@ -94,14 +95,14 @@ export default function GatewayView(p: GatewayViewProps) {
                 <span className="flex items-center gap-2">
                   {p.logs.page > 1 && (
                     <Link className="btn btn-secondary btn-sm" href={`/gateway?tab=logs&page=${p.logs.page - 1}${p.logs.result ? `&result=${p.logs.result}` : ""}`}>
-                      ← Newer
+                      Newer
                     </Link>
                   )}
                   <span className="eyebrow tabular">
                     Page {p.logs.page} of {p.logs.pages}
                   </span>
                   {p.logs.page < p.logs.pages && (
-                    <Link className="btn btn-secondary btn-sm btn-go" href={`/gateway?tab=logs&page=${p.logs.page + 1}${p.logs.result ? `&result=${p.logs.result}` : ""}`}>
+                    <Link className="btn btn-secondary btn-sm" href={`/gateway?tab=logs&page=${p.logs.page + 1}${p.logs.result ? `&result=${p.logs.result}` : ""}`}>
                       Older
                     </Link>
                   )}

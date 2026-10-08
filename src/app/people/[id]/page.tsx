@@ -1,6 +1,5 @@
-import { PageHeader, StatCard } from "@/components/ui";
+import { BlockHead, PageHeader, StatCard } from "@/components/ui";
 import { fmtAgo, fmtDateTime } from "@/lib/format";
-import { Insight } from "@/components/insight";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
@@ -65,7 +64,7 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
         subtitle={`${person.email}${person.department ? ` · ${person.department}` : ""}`}
         action={
           <details className="relative">
-            <summary className="btn btn-secondary list-none cursor-pointer">Edit</summary>
+            <summary className="btn btn-secondary btn-sm list-none cursor-pointer">Edit person</summary>
             <form action={updateUserAction} className="absolute left-0 lg:left-auto lg:right-0 z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-line bg-panel p-4 shadow-card flex flex-col gap-3">
               <input type="hidden" name="userId" value={person.id} />
               <label className="flex flex-col gap-1.5 text-xs text-ink-400">
@@ -77,35 +76,31 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
                 <input name="department" defaultValue={person.department ?? ""} placeholder="e.g. Sales" className="field" />
               </label>
               <p className="text-xs text-ink-400">The email comes from the company account and can&apos;t be changed here.</p>
-              <button className="btn btn-primary btn-sm">Save</button>
+              <button className="btn btn-primary">Save changes</button>
             </form>
           </details>
         }
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="AI used" value={String(person.usages.length)} hint={`${active.length} in the last 30 days`} />
+        <StatCard
+          label="AI used"
+          value={String(person.usages.length)}
+          hint={notAllowed.length ? `${notAllowed.length} not allowed: ${notAllowed[0].aiAsset.name}${notAllowed.length > 1 ? "…" : ""}` : dormant.length ? `${active.length} in 30 days · ${dormant.length} unused` : `${active.length} in the last 30 days`}
+          tone={notAllowed.length ? "alarm" : dormant.length ? "warn" : undefined}
+          href={notAllowed.length ? `/estate/${notAllowed[0].aiAssetId}` : dormant.length ? "/usage?view=cleanup" : undefined}
+        />
         <StatCard label="Last active" value={lastSeen ? fmtAgo(lastSeen) : "—"} hint={lastSeen ? fmtDateTime(lastSeen) : "No usage seen yet"} />
         <StatCard label="AI assets owned" value={String(person.ownedAssets.length)} hint={person.ownedAssets.length ? "Accountable for them" : "Owns none"} />
         <StatCard label="High risk owned" value={String(highRiskOwned)} hint={highRiskOwned > 0 ? "Status: attention" : "Status: good"} tone={highRiskOwned > 0 ? "alarm" : undefined} />
       </div>
-      {notAllowed.length > 0 ? (
-        <Insight tone="alarm" href={`/estate/${notAllowed[0].aiAssetId}`} cta={`Open ${notAllowed[0].aiAsset.name}`}>
-          Uses <b className="font-medium">{notAllowed[0].aiAsset.name}</b>
-          {notAllowed.length > 1 ? ` and ${notAllowed.length - 1} more AI` : ""}, which {notAllowed.length > 1 ? "aren't" : "isn't"} allowed — point them to an approved alternative.
-        </Insight>
-      ) : dormant.length > 0 ? (
-        <Insight tone="signal" href="/usage?view=cleanup" cta="Seat clean-up">
-          Hasn&apos;t used <b className="font-medium">{dormant[0].aiAsset.name}</b>
-          {dormant.length > 1 ? ` and ${dormant.length - 1} more AI` : ""} in 30 days — the seat could be freed.
-        </Insight>
-      ) : null}
 
-      <div>
-        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-          <h2 className="px-4 py-3 text-sm font-bold text-ink-100">Assets owned</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <div className="rounded-xl border border-line bg-panel animate-rise">
+          <BlockHead title="AI owned" note={String(person.ownedAssets.length)} />
+          <div className="divide-y divide-line">
           {person.ownedAssets.map((a) => (
-            <Link key={a.id} href={`/estate/${a.id}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
+            <Link key={a.id} href={`/estate/${a.id}`} className="flex items-center justify-between gap-3 px-5 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="font-medium text-ink-100 truncate min-w-0">{a.name}</span>
               <div className="flex items-center gap-3 text-xs">
                 {a.riskAssessments[0] && <Badge>{a.riskAssessments[0].level}</Badge>}
@@ -114,16 +109,16 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
             </Link>
           ))}
           {person.ownedAssets.length === 0 && (
-            <div className="px-4 py-4 text-sm text-ink-400">No assets owned.</div>
+            <div className="px-5 py-8 text-center text-sm text-ink-400">Owns no AI.</div>
           )}
+          </div>
         </div>
-      </div>
 
-      <div>
-        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-          <h2 className="px-4 py-3 text-sm font-bold text-ink-100">Assets used</h2>
+        <div className="rounded-xl border border-line bg-panel animate-rise">
+          <BlockHead title="AI used" note={String(person.usages.length)} />
+          <div className="divide-y divide-line">
           {person.usages.map((u) => (
-            <Link key={u.id} href={`/estate/${u.aiAssetId}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
+            <Link key={u.id} href={`/estate/${u.aiAssetId}`} className="flex items-center justify-between gap-3 px-5 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="font-medium text-ink-100 truncate min-w-0">{u.aiAsset.name}</span>
               <div className="flex items-center gap-3 text-xs shrink-0">
                 <span className="eyebrow tabular">{u.lastSeenAt ? `Last used ${fmtAgo(u.lastSeenAt)}` : "Not seen yet"}</span>
@@ -132,19 +127,20 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
             </Link>
           ))}
           {person.usages.length === 0 && (
-            <div className="px-4 py-4 text-sm text-ink-400">
-              No usage on record — <Link href="/download" className="underline hover:text-ink-100">install the desktop app</Link> to see which AI they use.
+            <div className="px-5 py-8 text-center text-sm text-ink-400">
+              No usage on record. <Link href="/download" className="underline hover:text-ink-100">Install the desktop app</Link> to see it.
             </div>
           )}
+          </div>
         </div>
       </div>
 
       {recentActivity.length > 0 && (
-        <div>
-          <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-            <h2 className="px-4 py-3 text-sm font-bold text-ink-100">Recent activity</h2>
+        <div className="rounded-xl border border-line bg-panel animate-rise">
+          <BlockHead title="Recent activity" note={`Last ${recentActivity.length}`} />
+          <div className="divide-y divide-line">
             {recentActivity.map((a) => (
-              <Link key={a.id} href={`/activity/${a.id}`} className="flex items-center justify-between px-4 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
+              <Link key={a.id} href={`/activity/${a.id}`} className="flex items-center justify-between px-5 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 min-w-0">
                   <span className="eyebrow tabular">{fmtDateTime(a.occurredAt)}</span>
                   <span className="text-ink-100">{a.aiAsset.name}</span>

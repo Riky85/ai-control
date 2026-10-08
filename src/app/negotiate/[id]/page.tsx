@@ -3,12 +3,11 @@ import { notFound } from "next/navigation";
 import { currentOrgId } from "@/lib/org";
 import { currentSession } from "@/lib/auth";
 import { loadDossier } from "@/lib/engine/negotiate";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, StatCard } from "@/components/ui";
 import { VendorBadge } from "@/components/VendorIcon";
 import CopyButton from "@/components/CopyButton";
 import { PriceRangeBar, VerdictPill } from "@/components/engine/PriceIndexCard";
 import { NegotiationStrength, UsageSpark } from "@/components/engine/NegotiationParts";
-import { SeatTrack } from "@/components/usage/cards";
 import { Section, Pill } from "@/components/governance/parts";
 import { fmtDate, fmtEur } from "@/lib/format";
 
@@ -25,8 +24,6 @@ export default async function NegotiatePage({ params }: { params: { id: string }
   if (!d) notFound();
 
   const r = d.renewal;
-  const cell = "bg-panel px-5 py-4 flex flex-col gap-1 min-w-0";
-  const big = "font-display text-[26px] leading-tight font-light tracking-[-0.03em] tabular text-ink-100";
   const deadlineSoon = r.daysToDeadline != null && r.daysToDeadline >= 0 && r.daysToDeadline <= 14;
   const source = d.price.referenceLabel === "market median" ? "peers" : d.price.referenceLabel ? "list" : "none";
 
@@ -68,52 +65,31 @@ export default async function NegotiatePage({ params }: { params: { id: string }
         </div>
       </section>
 
-      {/* Date, costo, posti */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-xl border border-line bg-line animate-rise" aria-label="Renewal summary">
-        <div className={cell}>
-          <span className="eyebrow">{r.autoRenew === false ? "Contract ends" : "Renews"}</span>
-          <span className={big}>{r.date ? fmtDate(r.date) : "—"}</span>
-          <span className="text-xs text-ink-400 truncate">
-            {r.date ? `${days(r.daysToRenewal!)} · ${r.source === "contract" ? "from the contract" : "from your bills"}` : "Add contract dates on the AI's page"}
-          </span>
-        </div>
-        <div className={cell}>
-          <span className={`eyebrow flex items-center justify-between gap-2 ${deadlineSoon ? "!text-accent" : ""}`}>
-            Notice deadline
-            {deadlineSoon && <Pill tone="accent">Soon</Pill>}
-          </span>
-          <span className={`${big} ${deadlineSoon ? "!text-accent" : ""}`}>{r.deadline ? fmtDate(r.deadline) : "—"}</span>
-          <span className="text-xs text-ink-400 truncate">
-            {r.deadline ? `${days(r.daysToDeadline!)}${r.noticeDays ? ` · ${r.noticeDays} days' notice` : ""}` : "No notice period recorded"}
-          </span>
-        </div>
-        <div className={cell}>
-          <span className="eyebrow">Cost</span>
-          <span className={big}>{d.cost.monthlyEur != null ? fmtEur(d.cost.monthlyEur) : "—"}</span>
-          <span className="text-xs text-ink-400 truncate">
-            {d.cost.monthlyEur != null ? `a month · ${fmtEur(d.cost.yearlyEur!)} a year · ${d.cost.annual ? "yearly" : "monthly"} billing` : "No cost yet"}
-          </span>
-        </div>
-        <div className={cell}>
-          <span className="eyebrow flex items-center justify-between gap-2">
-            Seats used
-            {d.seats.unused > 0 && <Pill tone="accent">{d.seats.unused} unused</Pill>}
-          </span>
-          <span className={big}>
-            {d.seats.paid != null && d.seats.known > 0 ? (
-              <>
-                {d.seats.active}
-                <span className="text-sm tracking-normal text-ink-400"> / {d.seats.paid}</span>
-              </>
-            ) : d.seats.paid != null ? (
-              d.seats.paid
-            ) : (
-              "—"
-            )}
-          </span>
-          {d.seats.paid != null && d.seats.known > 0 ? <SeatTrack used={d.seats.active} paid={d.seats.paid} /> : <span className="text-xs text-ink-400">{d.seats.paid ? "Users unknown" : "No seat plan"}</span>}
-        </div>
-      </section>
+      {/* Date, costo, posti: la stessa riga di card delle altre pagine. */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          label={r.autoRenew === false ? "Contract ends" : "Renews"}
+          value={r.date ? fmtDate(r.date) : "—"}
+          hint={r.date ? `${days(r.daysToRenewal!)} · ${r.source === "contract" ? "from the contract" : "from your bills"}` : "Add contract dates on the AI's page"}
+        />
+        <StatCard
+          label="Notice deadline"
+          value={r.deadline ? fmtDate(r.deadline) : "—"}
+          hint={r.deadline ? `${days(r.daysToDeadline!)}${r.noticeDays ? ` · ${r.noticeDays} days' notice` : ""}` : "No notice period recorded"}
+          tone={deadlineSoon ? "warn" : undefined}
+        />
+        <StatCard
+          label="Cost"
+          value={d.cost.monthlyEur != null ? `${fmtEur(d.cost.monthlyEur)}/mo` : "—"}
+          hint={d.cost.monthlyEur != null ? `${fmtEur(d.cost.yearlyEur!)} a year · ${d.cost.annual ? "yearly" : "monthly"} billing` : "No cost yet"}
+        />
+        <StatCard
+          label="Seats used"
+          value={d.seats.paid != null && d.seats.known > 0 ? `${d.seats.active} / ${d.seats.paid}` : d.seats.paid != null ? String(d.seats.paid) : "—"}
+          hint={d.seats.unused > 0 ? `${d.seats.unused} unused` : d.seats.paid != null && d.seats.known > 0 ? "Active / paid" : d.seats.paid ? "Users unknown" : "No seat plan"}
+          tone={d.seats.unused > 0 ? "warn" : undefined}
+        />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Prezzo di un posto */}
@@ -141,7 +117,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
               )}
             </div>
             <PriceRangeBar row={{ peers: d.price.peers, listSeatEur: d.price.listSeatEur, yourSeatEur: d.price.yourSeatEur, verdict: d.price.verdict }} />
-            <p className="text-xs text-ink-400">{d.price.peers ? `Median of ${d.price.peers.count} companies on angar · anonymous.` : "Not enough companies for a market price yet — list price shown."}</p>
+            <p className="text-xs text-ink-400">{d.price.peers ? `Median of ${d.price.peers.count} companies on angar · anonymous.` : "Not enough companies for a market price yet. List price shown."}</p>
           </div>
         </Section>
 
@@ -167,7 +143,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
       {/* Leve e alternative */}
       <Section
         title="Levers"
-        meta={d.levers.length ? `${fmtEur(d.target.saveYearlyEur)} a year in total` : "Nothing to cut — ask for flexibility instead"}
+        meta={d.levers.length ? `${fmtEur(d.target.saveYearlyEur)} a year in total` : "Nothing to cut: ask for flexibility instead"}
         footer={
           d.alternatives.length > 0 ? (
             <span className="text-ink-400">
@@ -206,7 +182,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
         meta={d.email.subject}
         action={
           <>
-            <CopyButton text={`${d.email.subject}\n\n${d.email.body}`} label="Copy" />
+            <CopyButton text={`${d.email.subject}\n\n${d.email.body}`} label="Copy email" className="btn btn-ghost btn-sm" />
             <a href={d.email.mailto} className="btn btn-primary btn-sm">
               Open in email
             </a>

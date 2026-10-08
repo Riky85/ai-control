@@ -70,22 +70,22 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
       <PageHeader subtitle="Your plan and invoices" title="Plan & billing" />
 
       {searchParams.checkout === "success" && (
-        <Notice tone="success">Payment received — your plan updates as soon as Stripe confirms it (usually a few seconds).</Notice>
+        <Notice tone="success">Payment received. Your plan updates once Stripe confirms it, usually in seconds.</Notice>
       )}
       {searchParams.checkout === "edge" && (
-        <Notice tone="success">Edge order received — we&apos;ll email tracking details when your devices ship.</Notice>
+        <Notice tone="success">Edge order received. We&apos;ll email tracking details when your devices ship.</Notice>
       )}
       {searchParams.checkout === "addon" && (
-        <Notice tone="success">Add-on payment received — it switches on as soon as Stripe confirms it.</Notice>
+        <Notice tone="success">Add-on payment received. It switches on once Stripe confirms it.</Notice>
       )}
-      {searchParams.checkout === "cancelled" && <Notice>Checkout cancelled — nothing was charged.</Notice>}
-      {!payments && <Notice>Online payments aren&apos;t set up on this deployment — plans can be compared, not bought.</Notice>}
+      {searchParams.checkout === "cancelled" && <Notice>Checkout cancelled. Nothing was charged.</Notice>}
+      {!payments && <Notice>Online payments aren&apos;t set up on this deployment: plans can be compared, not bought.</Notice>}
 
       <Section title="Your plan">
         <Row title={<span className="flex items-center gap-2">{planTitle} <Badge>{statusLabel}</Badge></span>} hint={planSubtitle}>
           {org.stripeCustomerId && (
             <form action={openBillingPortalAction}>
-              <button className="btn btn-secondary btn-sm">Invoices & payment method</button>
+              <button className="btn btn-secondary btn-sm">Manage invoices and payment</button>
             </form>
           )}
         </Row>
@@ -153,7 +153,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
           </div>
         </div>
       </Section>
-      <p className="text-xs text-ink-400 px-1">Payments by Stripe — angar never sees your card details.</p>
+      <p className="text-xs text-ink-400 px-1">Payments by Stripe. angar never sees your card details.</p>
     </div>
   );
 }

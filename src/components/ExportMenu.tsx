@@ -17,16 +17,16 @@ export default function ExportMenu({ dataset, csv, label = "Export" }: { dataset
 
   return (
     <div ref={ref} className="relative print:hidden">
-      <button onClick={() => setOpen((v) => !v)} className="btn btn-secondary">
+      <button onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} className="btn btn-secondary">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
           <path d="M8 2v8m0 0L5 7m3 3l3-3M3 12v1.5h10V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         {label}
       </button>
       {open && (
-        <div className="absolute left-0 lg:left-auto lg:right-0 mt-1.5 w-56 z-30 rounded-xl border border-line bg-panel shadow-lg p-1.5 text-sm">
+        <div role="menu" className="menu absolute left-0 lg:left-auto lg:right-0 mt-1.5 w-56 z-30">
           {dataset && (
-            <a href={`/api/export/${dataset}`} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-ink-100 hover:bg-ink-100/[0.04] transition-colors">
+            <a href={`/api/export/${dataset}`} onClick={() => setOpen(false)} role="menuitem" className="menu-item">
               <span className="h-6 w-6 rounded-md bg-steady text-white text-[10px] font-bold flex items-center justify-center">XLS</span>
               <span>
                 <span className="block">Excel</span>
@@ -35,7 +35,7 @@ export default function ExportMenu({ dataset, csv, label = "Export" }: { dataset
             </a>
           )}
           {csv && (
-            <a href={csv} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-ink-100 hover:bg-ink-100/[0.04] transition-colors">
+            <a href={csv} onClick={() => setOpen(false)} role="menuitem" className="menu-item">
               <span className="h-6 w-6 rounded-md bg-ink-100 text-panel text-[10px] font-bold flex items-center justify-center">CSV</span>
               <span>
                 <span className="block">CSV</span>
@@ -48,7 +48,8 @@ export default function ExportMenu({ dataset, csv, label = "Export" }: { dataset
               setOpen(false);
               setTimeout(() => window.print(), 50);
             }}
-            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left text-ink-100 hover:bg-ink-100/[0.04] transition-colors"
+            role="menuitem"
+            className="menu-item"
           >
             <span className="h-6 w-6 rounded-md bg-alarm text-white text-[10px] font-bold flex items-center justify-center">PDF</span>
             <span>

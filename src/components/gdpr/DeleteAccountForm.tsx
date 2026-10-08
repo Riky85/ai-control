@@ -1,14 +1,15 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormState } from "react-dom";
+import SubmitButton from "@/components/SubmitButton";
 import { deleteAccountAction, type GdprFormState } from "@/lib/gdpr-actions";
 
+// Invio con rotella mentre la cancellazione è in corso.
 function Submit({ disabled }: { disabled: boolean }) {
-  const { pending } = useFormStatus();
   return (
-    <button className="btn btn-danger btn-sm" disabled={pending || disabled}>
-      {pending ? "Deleting…" : "Delete account"}
-    </button>
+    <SubmitButton className="btn btn-danger btn-sm" pendingLabel="Deleting…" disabled={disabled}>
+      Delete account
+    </SubmitButton>
   );
 }
 

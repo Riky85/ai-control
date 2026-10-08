@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { PageHeader } from "@/components/ui";
-import { LevelPill } from "@/components/engine/ScoreCard";
+import { PageHeader, BlockHead, StatCard } from "@/components/ui";
 import type { FullScore } from "@/lib/engine/score";
 import type { ActionPlan, ScoreAction } from "@/lib/engine/score-model";
 import { AXIS_LABEL, LEVEL_STYLE, CONFIDENCE_TEXT } from "@/lib/engine/score-meta";
@@ -25,40 +24,23 @@ export default function ImproveView({ result, plan, embedded = false }: { result
   const sumPts = scored.reduce((s, a) => s + a.points, 0);
   const together = plan.potential - result.score;
   const investigate = plan.actions.filter((a) => a.certainty === "investigate").reduce((t, a) => t + (a.monthlyEur ?? 0), 0);
-  const cell = "bg-panel px-5 py-4 flex flex-col gap-1.5 min-w-0";
-  const big = "font-display text-[30px] leading-none font-light tracking-[-0.03em] tabular text-ink-100";
 
   return (
     <div className="flex flex-col gap-6">
       {!embedded && <PageHeader subtitle="Actions that raise your score" title="Improve your score" crumbs={[{ label: "Angar Score", href: "/score" }, { label: "Improve" }]} />}
 
-      {/* Riepilogo: punteggio attuale, potenziale, risparmi */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line animate-rise">
-        <div className={cell}>
-          <span className="eyebrow">Score</span>
-          <span className="flex items-end gap-2">
-            <span className={big}>{result.score}</span>
-            <LevelPill level={result.level} label={result.levelLabel} className="mb-0.5" />
-          </span>
+      {/* Riepilogo: da sola la pagina ha la sua riga di card; dentro Opportunities (che ha già le sue) basta la nota sopra le azioni. */}
+      {!embedded && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <StatCard label="Score" value={`${result.score}/100`} hint={result.levelLabel} tone={result.level === "weak" ? "warn" : undefined} />
+          <StatCard label="Potential" value={String(plan.potential)} hint={scored.length ? `${scored.length} ${scored.length === 1 ? "action" : "actions"}` : "Nothing to raise"} />
+          <StatCard label="Savings" value={`${eur(plan.potentialSavingsEur)}/mo`} hint={`${eur(plan.potentialSavingsEur * 12)} a year`} />
         </div>
-        <div className={cell} title={together !== sumPts ? `Done together the actions add +${together}, not +${sumPts}: the score stops at 100.` : undefined}>
-          <span className="eyebrow">Potential</span>
-          <span className={big}>{plan.potential}</span>
-          <span className="text-xs text-ink-400">{scored.length ? `${scored.length} ${scored.length === 1 ? "action" : "actions"}` : "Nothing to raise"}</span>
-        </div>
-        <div className={cell} title={investigate >= 1 ? `${eur(investigate)} a month needs investigation first` : undefined}>
-          <span className="eyebrow">Savings</span>
-          <span className={big}>
-            {eur(plan.potentialSavingsEur)}
-            <span className="text-sm tracking-normal text-ink-400"> a month</span>
-          </span>
-          <span className="text-xs text-ink-400 tabular">{eur(plan.potentialSavingsEur * 12)} a year</span>
-        </div>
-      </section>
+      )}
 
       {result.confidence === "provisional" && (
-        <div className="rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink-100 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span className="flex-1 min-w-0" title={CONFIDENCE_TEXT.provisional}>No usage data yet.</span>
+        <div className="rounded-xl border border-line bg-panel px-5 py-3 text-sm text-ink-100 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="flex-1 min-w-0" title={CONFIDENCE_TEXT.provisional}>No usage data yet: the score is provisional.</span>
           <Link href="/download" className="btn btn-secondary btn-sm">
             Get the desktop app
           </Link>
@@ -67,13 +49,19 @@ export default function ImproveView({ result, plan, embedded = false }: { result
 
       {/* Le azioni, la migliore per prima (l'unico pulsante arancio) */}
       <section className="rounded-xl border border-line bg-panel animate-rise" aria-labelledby="actions-title">
-        <div className="px-5 pt-5 pb-2">
-          <h2 id="actions-title" className="text-sm font-bold text-ink-100" title="Ordered by certainty × saving × points">
-            Actions
-          </h2>
-        </div>
+        <BlockHead
+          id="actions-title"
+          title="Actions"
+          note={
+            <span title={together !== sumPts ? `Done together the actions add +${together}, not +${sumPts}: the score stops at 100.` : undefined}>
+              Score {result.score} · up to {plan.potential}
+              {plan.potentialSavingsEur >= 1 ? ` · ${eur(plan.potentialSavingsEur)}/mo` : ""}
+              {investigate >= 1 ? ` (${eur(investigate)} to investigate)` : ""}
+            </span>
+          }
+        />
         {plan.actions.length === 0 ? (
-          <p className="px-5 pb-5 text-sm text-ink-400">Nothing to do.</p>
+          <p className="px-5 py-8 text-center text-sm text-ink-400">Nothing to do.</p>
         ) : (
           <ol className="divide-y divide-line">
             {(best ? [best, ...rest] : rest).map((a, i) => (

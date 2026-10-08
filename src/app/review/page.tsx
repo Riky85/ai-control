@@ -1,4 +1,4 @@
-import { EmptyState, PageHeader, Notice, StatCard } from "@/components/ui";
+import { BlockHead, EmptyState, PageHeader, Notice, StatCard } from "@/components/ui";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
@@ -72,14 +72,12 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
       {!canDecide && queue.length > 0 && <Notice>View only.</Notice>}
 
       {queue.length > 0 && (
-        <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard label="To decide" value={String(queue.length)} hint={candidates ? `${candidates} possible AI` : undefined} />
-            <StatCard label="High risk" value={String(risky.length)} hint={risky.length ? "Decide first" : undefined} tone={risky.length ? "alarm" : undefined} />
-            <StatCard label="New this week" value={String(newThisWeek)} />
-            <StatCard label="Decided" value={`${decided}%`} hint={`${reviewedCount} AI`} href="/estate" />
-          </div>
-        </>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard label="To decide" value={String(queue.length)} hint={candidates ? `${candidates} possible AI` : undefined} tone="warn" />
+          <StatCard label="High risk" value={String(risky.length)} hint={risky.length ? "Decide first" : undefined} tone={risky.length ? "alarm" : undefined} />
+          <StatCard label="New this week" value={String(newThisWeek)} />
+          <StatCard label="Decided" value={`${decided}%`} hint={`${reviewedCount} AI`} href="/estate" />
+        </div>
       )}
 
       {queue.length === 0 ? (
@@ -88,12 +86,14 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
           action={reviewedCount ? <Link href="/estate" className="btn btn-secondary">See your AI</Link> : <Link href="/connect" className="btn btn-primary">Connect a source</Link>}
         />
       ) : (
-        <ul className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
+        <div className="rounded-xl border border-line bg-panel animate-rise">
+        <BlockHead title="Queue" note="Highest risk first" />
+        <ul className="divide-y divide-line">
           {queue.map((a) => {
             const lvl = a.riskAssessments[0]?.level;
             const candidate = a.externalId?.startsWith("net:cand");
             return (
-              <li key={a.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 px-4 py-3">
+              <li key={a.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 px-5 py-3">
                 <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={30} />
                 <Link href={`/estate/${a.id}`} className="flex-1 min-w-0 hover:underline">
                   <span className="flex items-center gap-2 text-sm font-medium text-ink-100 truncate">
@@ -108,8 +108,8 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
                 {canDecide && (
                   <form action={reviewAssetAction} className="flex items-center gap-2 shrink-0">
                     <input type="hidden" name="assetId" value={a.id} />
-                    <button name="decision" value="notai" className="text-xs text-ink-400 hover:text-ink-100 underline mr-1">Not AI</button>
-                    <button name="decision" value="reject" className="btn btn-ghost btn-sm">Not allowed</button>
+                    <button name="decision" value="notai" className="btn btn-ghost btn-sm">Not AI</button>
+                    <button name="decision" value="reject" className="btn btn-danger btn-sm">Not allowed</button>
                     <button name="decision" value="approve" className="btn btn-secondary btn-sm">Approve</button>
                   </form>
                 )}
@@ -117,6 +117,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
             );
           })}
         </ul>
+        </div>
       )}
       {/* Cosa fa "Not allowed" qui, prima di sceglierlo. */}
       {canDecide && queue.length > 0 && <NotAllowedEnforcement orgId={orgId} />}

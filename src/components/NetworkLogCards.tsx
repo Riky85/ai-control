@@ -5,6 +5,7 @@ import { syncConnectorAction, disconnectConnectorAction } from "@/lib/actions";
 import { connectCloudflareGatewayAction, connectCiscoUmbrellaAction } from "@/lib/network-log-actions";
 import { uploadNetworkLogAction } from "@/lib/discovery-actions";
 import { fmtDateTime } from "@/lib/format";
+import SubmitButton from "@/components/SubmitButton";
 
 // Log di rete che l'azienda ha già (senza il box angar Edge): Cloudflare Gateway e
 // Cisco Umbrella via API, e il caricamento di file per Zscaler, Fortinet e i server DNS.
@@ -98,7 +99,7 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
                   <div className="flex items-center gap-2">
                     <form action={syncConnectorAction}>
                       <input type="hidden" name="provider" value={p.provider} />
-                      <button className="btn btn-secondary btn-sm">Sync now</button>
+                      <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Syncing…">Sync now</SubmitButton>
                     </form>
                     <form action={disconnectConnectorAction}>
                       <input type="hidden" name="provider" value={p.provider} />
@@ -124,7 +125,7 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
                         {p.hint}{" "}
                         <a href={p.docsUrl} target="_blank" rel="noreferrer" className="underline hover:text-ink-100">Open console ↗</a>
                       </p>
-                      <button className="btn btn-secondary btn-sm">Test & connect</button>
+                      <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Testing…">Test &amp; connect</SubmitButton>
                     </div>
                     {err && <p className="text-xs text-alarm">{err}</p>}
                   </form>
@@ -153,7 +154,7 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
                 <p className="text-xs text-ink-400 min-w-0 flex-1" title="Zscaler NSS web logs, FortiGate or FortiAnalyzer logs, BIND, Windows DNS debug, Pi-hole, pfSense or OPNsense, Umbrella and Cloudflare exports, or any CSV with a domain column.">
                   Up to 50 MB.
                 </p>
-                <button className="btn btn-secondary btn-sm">Find AI</button>
+                <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Reading logs…">Find AI</SubmitButton>
               </div>
               {uploadError && <p className="text-xs text-alarm">{uploadError}</p>}
             </form>

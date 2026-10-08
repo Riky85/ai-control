@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Switch } from "@/components/ui";
 import { simulate, EMPTY_SCENARIO, type Scenario, type SimModel } from "@/lib/engine/simulate";
 import { AXES, AXIS_LABEL, type Axis } from "@/lib/engine/score-meta";
 
@@ -23,16 +24,7 @@ const AXIS_WHY: Record<Axis, string> = {
 function Toggle({ on, onChange, label, hint, disabled }: { on: boolean; onChange: (v: boolean) => void; label: string; hint: string; disabled?: boolean }) {
   return (
     <label className={`flex items-start gap-3 px-5 py-3 ${disabled ? "opacity-50" : "cursor-pointer hover:bg-ink-100/[0.02]"}`}>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={on}
-        disabled={disabled}
-        onClick={() => onChange(!on)}
-        className={`mt-0.5 relative h-5 w-9 shrink-0 rounded-full transition-colors ${on ? "bg-ink-100" : "bg-ink-100/15"}`}
-      >
-        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-panel shadow transition-all ${on ? "left-[18px]" : "left-0.5"}`} />
-      </button>
+      <Switch on={on} type="button" disabled={disabled} onClick={() => onChange(!on)} className="mt-0.5" />
       <span className="min-w-0">
         <span className="block text-sm text-ink-100">{label}</span>
         <span className="block text-xs text-ink-400">{hint}</span>

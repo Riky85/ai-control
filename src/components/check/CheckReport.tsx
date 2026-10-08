@@ -38,7 +38,7 @@ export default function CheckReport() {
       <div className="no-print max-w-[820px] mx-auto mb-4 flex flex-wrap items-center justify-between gap-3">
         <a href="/check" className="text-sm text-ink-400 hover:text-ink-100">← Back to the check</a>
         <div className="flex items-center gap-2">
-          <a href="/signup" className="btn btn-secondary btn-sm">Create free account</a>
+          <a href="/signup" className="btn btn-secondary btn-sm">Create a free account</a>
           <button type="button" onClick={() => window.print()} className="btn btn-primary btn-sm">Save as PDF</button>
         </div>
       </div>
@@ -143,7 +143,7 @@ export default function CheckReport() {
               <div className="font-semibold">Keep this report up to date — automatically</div>
               <div className="text-sm text-white/70 mt-0.5">Create a free angar account: connect your bank or invoices, see real usage for each person and get alerts before renewals.</div>
             </div>
-            <a href="/signup" className="shrink-0 btn btn-primary">Create a free account →</a>
+            <a href="/signup" className="shrink-0 btn btn-primary btn-go">Create a free account</a>
           </div>
         </section>
 

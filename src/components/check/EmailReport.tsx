@@ -45,7 +45,7 @@ export default function EmailReport({ snapshot, compact }: { snapshot: CheckSnap
       <div className={`flex gap-2 ${compact ? "flex-col" : ""}`}>
         <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" aria-label="Work email" className="field flex-1 min-w-0" />
         <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company (optional)" aria-label="Company" className="field flex-1 min-w-0" />
-        <button disabled={state === "sending"} className="btn btn-secondary shrink-0 disabled:opacity-60">{state === "sending" ? "Sending…" : "Email me this report"}</button>
+        <button disabled={state === "sending"} className="btn btn-secondary shrink-0">{state === "sending" ? "Sending…" : "Email me this report"}</button>
       </div>
       {state === "error" && <div className="text-xs text-alarm">{msg}</div>}
       <div className="text-xs text-ink-400">We keep only your email and the totals above — never the statement.</div>

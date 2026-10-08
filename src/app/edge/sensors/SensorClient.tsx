@@ -205,7 +205,7 @@ export function RotateToken({ sensorId, name, kind, appUrl, edgeImage }: { senso
 }
 
 /** Pulsante con conferma (eliminare un sensore cancella anche i suoi dati). */
-export function ConfirmSubmit({ label, message, className = "btn btn-ghost btn-sm text-alarm" }: { label: string; message: string; className?: string }) {
+export function ConfirmSubmit({ label, message, className = "btn btn-danger btn-sm" }: { label: string; message: string; className?: string }) {
   return (
     <button
       type="submit"

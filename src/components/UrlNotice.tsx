@@ -67,7 +67,7 @@ export default function UrlNotice() {
         )}
       </svg>
       <span className="flex-1 min-w-0 break-words">{msg.text}</span>
-      <button type="button" onClick={() => setMsg(null)} aria-label="Dismiss" className="shrink-0 -mr-1 rounded p-0.5 text-ink-400 hover:text-ink-100">
+      <button type="button" onClick={() => setMsg(null)} aria-label="Dismiss" className="btn btn-ghost btn-sm btn-icon shrink-0 -my-1.5 -mr-2">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
           <path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>

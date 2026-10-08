@@ -8,6 +8,7 @@ import { createProcessAction, createApplicationAction, linkDependencyAction, rev
 import { SURFACE_LABEL } from "@/lib/estate/portability";
 import type { SystemRow } from "@/lib/estate/assess";
 import type { Replaceability } from "@/lib/estate/replaceability";
+import SubmitButton from "@/components/SubmitButton";
 
 /** Link all'Impact Simulator per questo AI system. */
 function impactLinkFor(row: SystemRow, repl: Replaceability): string {
@@ -113,7 +114,7 @@ export function DependenciesPanel({ est, assetId, admin }: { est: EstateData; as
                   <select name="from" className={INPUT} aria-label="Existing">
                     {linkable.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
                   </select>
-                  <button className="btn btn-secondary btn-sm">Link existing</button>
+                  <SubmitButton className="btn btn-secondary btn-sm">Link existing</SubmitButton>
                 </form>
               )}
               <form action={createProcessAction} className="flex flex-col gap-2">
@@ -123,7 +124,7 @@ export function DependenciesPanel({ est, assetId, admin }: { est: EstateData; as
                 <select name="criticality" defaultValue="medium" className={INPUT} aria-label="Criticality">
                   {["low", "medium", "high", "critical"].map((c) => <option key={c} value={c}>{c[0].toUpperCase() + c.slice(1)} criticality</option>)}
                 </select>
-                <button className="btn btn-secondary btn-sm">Add process</button>
+                <SubmitButton className="btn btn-secondary btn-sm">Add process</SubmitButton>
               </form>
               <form action={createApplicationAction} className="flex flex-col gap-2">
                 <input type="hidden" name="back" value={back} />
@@ -133,7 +134,7 @@ export function DependenciesPanel({ est, assetId, admin }: { est: EstateData; as
                   <option value="saas">SaaS</option>
                   <option value="internal">Internal</option>
                 </select>
-                <button className="btn btn-secondary btn-sm">Add application</button>
+                <SubmitButton className="btn btn-secondary btn-sm">Add application</SubmitButton>
               </form>
             </div>
           </details>
@@ -228,7 +229,7 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
                       <select name="export" defaultValue={p?.dataExport == null ? "" : p.dataExport ? "yes" : "no"} className={INPUT}><option value="">Not known</option><option value="yes">Available</option><option value="no">Not available</option></select>
                     </label>
                   </div>
-                  <button className="btn btn-secondary btn-sm">Save requirements</button>
+                  <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Saving…">Save requirements</SubmitButton>
                 </form>
                 {candidates.length > 0 && (
                   <form action={recordEvaluationAction} className="flex flex-col gap-2 text-xs text-ink-400">
@@ -247,7 +248,7 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
                       <select name="method" className={INPUT} aria-label="Method"><option value="eval suite">Eval suite</option><option value="shadow traffic">Shadow traffic</option><option value="pilot">Pilot</option></select>
                       <select name="passed" className={INPUT} aria-label="Result"><option value="yes">Good enough</option><option value="no">Not good enough</option></select>
                     </div>
-                    <button className="btn btn-secondary btn-sm">Record test</button>
+                    <SubmitButton className="btn btn-secondary btn-sm">Record test</SubmitButton>
                   </form>
                 )}
               </div>

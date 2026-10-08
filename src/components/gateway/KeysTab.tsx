@@ -3,6 +3,7 @@ import type { GwKeyRow } from "@/lib/gateway/data";
 import { revokeGatewayKeyAction, updateGatewayKeyAction } from "@/lib/gateway-actions";
 import KeyCreate from "./KeyCreate";
 import { keyHint } from "./shared";
+import SubmitButton from "@/components/SubmitButton";
 
 const PROVIDER: Record<string, string> = { any: "OpenAI, Anthropic", openai: "OpenAI", anthropic: "Anthropic" };
 const tri = (v: boolean | null) => (v === null ? "" : v ? "on" : "off");
@@ -71,7 +72,7 @@ export default function KeysTab({ keys, teams, canEdit }: { keys: GwKeyRow[]; te
                   <td className="px-5 py-3 align-top text-right">
                     {canEdit && !k.revokedAt && (
                       <details className="relative inline-block text-left">
-                        <summary className="btn btn-secondary btn-sm list-none cursor-pointer">Edit</summary>
+                        <summary className="btn btn-secondary btn-sm list-none cursor-pointer [&::-webkit-details-marker]:hidden">Edit</summary>
                         <div className="absolute right-0 z-20 mt-2 w-[320px] max-w-[calc(100vw-2rem)] rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
                           <form action={updateGatewayKeyAction} className="flex flex-col gap-2.5">
                             <input type="hidden" name="id" value={k.id} />
@@ -109,12 +110,12 @@ export default function KeysTab({ keys, teams, canEdit }: { keys: GwKeyRow[]; te
                                 </select>
                               </label>
                             </div>
-                            <button className="btn btn-secondary btn-sm self-start">Save</button>
+                            <SubmitButton className="btn btn-secondary btn-sm self-start" pendingLabel="Saving…">Save changes</SubmitButton>
                           </form>
                           <form action={revokeGatewayKeyAction} className="border-t border-line pt-3 flex items-center justify-between gap-2">
                             <input type="hidden" name="id" value={k.id} />
                             <span className="text-xs text-ink-400">Apps using it stop working at once.</span>
-                            <button className="btn btn-danger btn-sm">Revoke</button>
+                            <SubmitButton className="btn btn-danger btn-sm" pendingLabel="Revoking…">Revoke</SubmitButton>
                           </form>
                         </div>
                       </details>

@@ -2,7 +2,6 @@ import { fmtAgo, fmtDateTime, fmtEur } from "@/lib/format";
 import { db } from "@/lib/db";
 import { requirePlatformAdmin } from "@/lib/auth";
 import { PageHeader, Panel, StatCard, Table, Tabs, td } from "@/components/ui";
-import { Insight } from "@/components/insight";
 import Badge from "@/components/Badge";
 import { emailEnabled, emailTransport } from "@/lib/mail";
 import { euOnlyDeployment } from "@/lib/eu-only";
@@ -69,23 +68,14 @@ export default async function SystemPage({ searchParams }: { searchParams: { lea
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="System" subtitle="Platform admins only." action={<a href="/system/catalog" className="btn btn-ghost btn-sm btn-go">Catalog freshness</a>} />
+      <PageHeader title="System" subtitle="Platform admins only" action={<a href="/system/catalog" className="btn btn-ghost btn-sm">Catalog freshness</a>} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Checks passing" value={`${okCount}/${checks.length}`} hint={okCount === checks.length ? "Everything set up" : `${checks.length - okCount} need setup`} tone={critical ? "alarm" : okCount < checks.length ? "signal" : undefined} />
-        <StatCard label="Errors, 24 h" value={String(errors24h)} hint={errors[0] ? `Last ${fmtAgo(errors[0].createdAt)}` : "None recorded"} tone={errors24h >= 10 ? "alarm" : errors24h ? "signal" : undefined} />
+        <StatCard label="Checks passing" value={`${okCount}/${checks.length}`} hint={critical ? `${critical[0]} needs setup` : okCount === checks.length ? "Everything set up" : `${checks.length - okCount} need setup`} tone={critical ? "alarm" : okCount < checks.length ? "warn" : undefined} />
+        <StatCard label="Errors, 24 h" value={String(errors24h)} hint={errors[0] ? `Last ${fmtAgo(errors[0].createdAt)}${errors[0].path ? ` on ${errors[0].path}` : ""}` : "None recorded"} tone={errors24h >= 10 ? "alarm" : errors24h ? "warn" : undefined} />
         <StatCard label="Last good backup" value={lastOkBackup ? fmtAgo(lastOkBackup.startedAt) : "—"} hint={lastOkBackup ? `${lastOkBackup.rows.toLocaleString()} rows` : "No successful backup yet"} tone={backupFresh ? undefined : "alarm"} />
         <StatCard label="Leads, 7 days" value={String(leads7)} hint={LEAD_KINDS.map((k) => `${leadCount(k.key)} ${k.label.toLowerCase()}`).join(" · ")} />
       </div>
-      {critical ? (
-        <Insight tone="alarm">
-          <b className="font-medium">{critical[0]}</b>: {critical[2]}.
-        </Insight>
-      ) : errors24h >= 10 && errors[0] ? (
-        <Insight tone="signal">
-          {errors24h} errors in 24 h — latest on {errors[0].path ?? "an unknown page"}: {errors[0].message.slice(0, 120)}
-        </Insight>
-      ) : null}
 
       <Panel flush title="Status">
         <div className="divide-y divide-line">
@@ -99,7 +89,7 @@ export default async function SystemPage({ searchParams }: { searchParams: { lea
         </div>
       </Panel>
 
-      <Table title="Backups" note="Full export of every table. It contains all workspaces' data — keep downloaded files somewhere safe." action={<a href="/api/backup/download" className="btn btn-secondary btn-sm">Download full backup</a>} columns={["Started", "Status", "Tables", "Rows", "Size", "Location"]} empty={backups.length === 0 ? "No backups have run yet." : false}>
+      <Table title="Backups" note="All workspaces' data: store downloads safely" action={<a href="/api/backup/download" className="btn btn-secondary btn-sm">Download full backup</a>} columns={["Started", "Status", "Tables", "Rows", "Size", "Location"]} empty={backups.length === 0 ? "No backups have run yet." : false}>
           {backups.map((b) => (
             <tr key={b.id}>
               <td className={`${td} tabular text-ink-400`}>{fmtDateTime(b.startedAt)}</td>
@@ -112,7 +102,7 @@ export default async function SystemPage({ searchParams }: { searchParams: { lea
           ))}
         </Table>
 
-      <Table title="angar devices" note={`${DEVICE_STATUSES.map((st) => `${devCount(st)} ${st}`).join(" · ")}${process.env.EDGE_FACTORY_TOKEN ? " · factory API on" : " · factory API off (EDGE_FACTORY_TOKEN)"}`} action={<DeviceBatchForm />} columns={["Serial", "Model", "Status", "Workspace", "Sensor", "Claimed", { label: "", className: "w-[1%]" }]} empty={devices.length === 0 ? "No devices yet — create a batch for the next shipment." : false}>
+      <Table title="angar devices" note={`${DEVICE_STATUSES.map((st) => `${devCount(st)} ${st}`).join(" · ")}${process.env.EDGE_FACTORY_TOKEN ? " · factory API on" : " · factory API off (EDGE_FACTORY_TOKEN)"}`} action={<DeviceBatchForm />} columns={["Serial", "Model", "Status", "Workspace", "Sensor", "Claimed", { label: "", className: "w-[1%]" }]} empty={devices.length === 0 ? "No devices yet. Create a batch for the next shipment." : false}>
           {devices.map((d) => (
             <tr key={d.id}>
               <td className={`${td} font-mono text-ink-100 whitespace-nowrap`}>
@@ -137,7 +127,7 @@ export default async function SystemPage({ searchParams }: { searchParams: { lea
                     <form key={st} action={setDeviceStatusAction}>
                       <input type="hidden" name="deviceId" value={d.id} />
                       <input type="hidden" name="status" value={st} />
-                      <button className={`btn btn-ghost btn-sm ${st === "retired" ? "text-alarm" : ""}`}>{label}</button>
+                      <button className={`btn btn-sm ${st === "retired" ? "btn-danger" : "btn-ghost"}`}>{label}</button>
                     </form>
                   ))}
                 </div>
@@ -149,14 +139,14 @@ export default async function SystemPage({ searchParams }: { searchParams: { lea
       <Table
         id="leads"
         title="Leads"
-        note={leadKind === "check" ? "From the free AI Spend Check (/check)." : leadKind === "partner" ? "Applications from /partners — accountants, tax advisers, MSPs." : "Applications from /pilot — companies for the 60-day pilot."}
+        note={leadKind === "check" ? "From /check" : leadKind === "partner" ? "From /partners" : "From /pilot"}
         action={<Tabs active={leadKind} items={LEAD_KINDS.map((k) => ({ key: k.key, label: k.label, count: leadCount(k.key), href: `/system?leads=${k.key}#leads` }))} />}
         columns={
           leadKind === "check"
             ? ["When", "Email", "Company", { label: "AI", className: "text-right" }, { label: "Yearly spend", className: "text-right" }, { label: "Yearly savings", className: "text-right" }]
             : ["When", "Name", leadKind === "partner" ? "Firm" : "Company", "Email", "Country", ...(leadKind === "partner" ? [{ label: "Clients", className: "text-right" }] : []), "Phone", "Message"]
         }
-        empty={leads.length === 0 ? (leadKind === "check" ? "No leads yet — share /check." : `No applications yet — share /${leadKind === "partner" ? "partners" : "pilot"}.`) : false}
+        empty={leads.length === 0 ? (leadKind === "check" ? "No leads yet. Share /check." : `No applications yet. Share /${leadKind === "partner" ? "partners" : "pilot"}.`) : false}
       >
           {leads.map((l) =>
             leadKind === "check" ? (

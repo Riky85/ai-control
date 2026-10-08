@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { fmtEur } from "@/lib/format";
 import { currentOrgId } from "@/lib/org";
-import { PageHeader, StatCard, Table, td } from "@/components/ui";
+import { EmptyState, PageHeader, StatCard, Table, td } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import { VendorBadge } from "@/components/VendorIcon";
 import { computeSavingsCached, monthlyOf } from "@/lib/savings";
 import { savingsByAsset } from "@/components/AiTable";
 import PriceIndexCard, { loadPriceIndexCard } from "@/components/engine/PriceIndexCard";
-import { EmptyState, Insight } from "@/components/insight";
 import ProviderDependencies from "@/components/estate/ProviderDependencies";
 
 export const dynamic = "force-dynamic";
@@ -38,14 +37,12 @@ export default async function ProvidersPage() {
   const top = rows[0];
   const topShare = total && top ? Math.round((top.spend / total) * 100) : 0;
   const totalSave = rows.reduce((t, r) => t + r.couldSave, 0);
-  // Dall'indice prezzi: le AI per cui paghi un posto più del mercato (o del listino).
-  const above = priceIndex.rows.filter((r) => r.verdict === "above");
 
   if (assets.length === 0)
     return (
       <div className="flex flex-col gap-6">
         <PageHeader subtitle="Who you depend on" title="Providers" />
-        <EmptyState title="No providers yet" text="Drop a bank statement or invoices — angar finds every AI provider you pay." href="/sources" cta="Add costs" />
+        <EmptyState text="No providers yet." action={<Link href="/sources" className="btn btn-primary">Add costs</Link>} />
       </div>
     );
 
@@ -61,17 +58,11 @@ export default async function ProvidersPage() {
           label="Largest share"
           value={top ? `${topShare}%` : "—"}
           hint={top ? top.vendor : undefined}
-          tone={topShare >= 60 ? "signal" : undefined}
+          tone={topShare >= 60 ? "warn" : undefined}
         />
         <StatCard href="/opportunities" label="Could save" value={totalSave >= 1 ? `${fmtEur(totalSave)}/mo` : "—"} hint={totalSave >= 1 ? `${fmtEur(totalSave * 12)} a year` : undefined} />
       </div>
 
-      {above.length > 0 && (
-        <Insight tone="signal" href={`/estate/${above[0].assetIds[0]}`} cta={`Open ${above[0].name}`}>
-          Above {priceIndex.networkCompanies ? "market" : "list price"}: {above.slice(0, 2).map((r) => r.name).join(", ")}
-          {above.length > 2 ? ` +${above.length - 2}` : ""}
-        </Insight>
-      )}
       <Table
         columns={["Provider", "AI", { label: "Share", className: "w-56" }, { label: "Monthly", className: "text-right" }, { label: "Save", className: "text-right" }]}
         empty={rows.length === 0 && "No AI yet."}

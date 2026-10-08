@@ -2,8 +2,7 @@ import Link from "next/link";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import type { DataSensitivity } from "@prisma/client";
-import { PageHeader, StatCard } from "@/components/ui";
-import { EmptyState, Insight } from "@/components/insight";
+import { BlockHead, EmptyState, PageHeader, StatCard } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import FilterBar from "@/components/FilterBar";
 
@@ -63,25 +62,15 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
       />
 
       {everything.length === 0 ? (
-        <EmptyState title="No data categories yet" text="They appear when a connected AI declares which company data it can reach." href="/connect" cta="Connect a source" />
+        <EmptyState text="No data categories yet." action={<Link href="/connect" className="btn btn-primary">Connect a source</Link>} />
       ) : (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard label="Data categories" value={String(everything.length)} hint={`${sensitive.length} sensitive`} />
-            <StatCard label="Sensitive data reached" value={`${reached.length}/${sensitive.length}`} hint={reached.length ? "Reached by at least one AI" : "No AI reaches it"} tone={reached.length ? "signal" : undefined} />
+            <StatCard label="Sensitive data reached" value={`${reached.length}/${sensitive.length}`} hint={reached.length ? "Reached by at least one AI" : "No AI reaches it"} tone={reached.length ? "warn" : undefined} />
             <StatCard label="AI on sensitive data" value={String(aiOnSensitive.size)} hint="Personal, financial, code, confidential" />
-            <StatCard label="Without approval" value={String(notApproved.length)} hint={notApproved.length ? "Reach sensitive data, not approved" : "All approved"} tone={notApproved.length ? "alarm" : undefined} href={notApproved.length ? fixHref : undefined} />
+            <StatCard label="Without approval" value={String(notApproved.length)} hint={notApproved.length ? (notApprovedPii.length ? `${notApprovedPii.length} on personal data` : "Reach sensitive data") : "All approved"} tone={notApproved.length ? "alarm" : undefined} href={notApproved.length ? fixHref : undefined} />
           </div>
-          {notApproved.length > 0 ? (
-            <Insight tone="alarm" href={fixHref} cta={fixHref === "/review" ? "Review them" : `Open ${notApproved[0].name}`}>
-              {notApprovedPii.length
-                ? `${notApprovedPii.length} AI reach${notApprovedPii.length === 1 ? "es" : ""} personal data without approval`
-                : `${notApproved.length} AI reach${notApproved.length === 1 ? "es" : ""} sensitive data without approval`}
-              {" — "}decide whether {notApproved.length === 1 ? "it's" : "they're"} allowed.
-            </Insight>
-          ) : reached.length > 0 ? (
-            <Insight tone="steady">Every AI that reaches sensitive data is approved.</Insight>
-          ) : null}
         </>
       )}
 
@@ -92,10 +81,11 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
             filters={[{ param: "sensitivity", label: "Sensitivity", options: Object.entries(SENSITIVITY_LABEL).map(([value, label]) => ({ value, label })) }]}
             right={`${dataAssets.length} data categor${dataAssets.length === 1 ? "y" : "ies"}`}
           />
-          <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
-            <h2 className="px-5 py-3 text-sm font-bold text-ink-100">Data and the AI that reach it</h2>
+          <div className="rounded-xl border border-line bg-panel animate-rise">
+            <BlockHead title="Data and the AI that reach it" />
+            <div className="divide-y divide-line">
             {dataAssets.map((d) => (
-              <div key={d.id} className="px-5 py-4">
+              <div key={d.id} className="px-5 py-3">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span
                     className={`h-1.5 w-1.5 shrink-0 rounded-full ${
@@ -121,15 +111,14 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-ink-400 mt-1.5">No AI asset currently declared as accessing this.</p>
+                  <p className="text-xs text-ink-400 mt-1.5">No AI declared on it.</p>
                 )}
               </div>
             ))}
             {dataAssets.length === 0 && everything.length > 0 && (
-              <div className="px-5 py-6 text-sm text-ink-400">
-                No data matches these filters.
-              </div>
+              <div className="px-5 py-8 text-center text-sm text-ink-400">No data matches these filters.</div>
             )}
+            </div>
           </div>
         </>
       )}

@@ -83,7 +83,7 @@ export default function MfaPanel({
               {confirmState.error && <p className="text-sm text-alarm">{confirmState.error}</p>}
             </form>
             <form action={cancelMfaEnrolAction}>
-              <button className="text-xs text-ink-400 hover:text-ink-100 underline">Cancel</button>
+              <button className="btn btn-ghost btn-sm">Cancel</button>
             </form>
           </div>
         </div>

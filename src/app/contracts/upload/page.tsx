@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { Notice, PageHeader } from "@/components/ui";
+import { PageHeader, EmptyState } from "@/components/ui";
 import { PLANS } from "@/lib/pricing/catalog";
 import ContractReader from "./ContractReader";
 
@@ -21,12 +21,10 @@ export default async function ContractUploadPage({ searchParams }: { searchParam
       <PageHeader
         crumbs={[{ label: "Opportunities", href: "/opportunities" }, { label: "Contracts", href: "/opportunities?view=contracts" }]}
         title="Read a contract"
-        subtitle="Contract, order form or invoice (PDF)."
+        subtitle="Contract, order form or invoice in PDF"
       />
       {assets.length === 0 ? (
-        <Notice>
-          No AI in your list yet — a contract is attached to an AI. <Link href="/sources" className="underline">Add costs or connect a source</Link> first.
-        </Notice>
+        <EmptyState text="No AI in your list yet. A contract is attached to an AI." action={<Link href="/sources" className="btn btn-primary">Add costs</Link>} />
       ) : (
       <ContractReader assets={assets.map((a) => ({ id: a.id, label: a.vendor ? `${a.name} · ${a.vendor}` : a.name }))} plans={PLANS.map((p) => ({ id: p.id, name: p.name }))} />
       )}

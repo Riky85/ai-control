@@ -269,20 +269,20 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
         <div ref={menuRef} className="relative">
           {menuOpen && (
             <div className={`absolute bottom-full mb-2 z-30 w-56 rounded-xl border border-sb-ink/[0.12] bg-pop p-1.5 shadow-xl ${collapsed ? "left-0" : "left-0 right-0 w-auto"}`}>
-              {userEmail && <div className="px-3 pt-1.5 pb-2 text-xs text-sb-muted truncate border-b border-sb-ink/[0.08] mb-1">{userEmail}</div>}
+              {userEmail && <div className="px-2.5 pt-1.5 pb-2 text-xs text-sb-muted truncate border-b border-sb-ink/[0.08] mb-1">{userEmail}</div>}
               {[
                 ...((workspace?.workspaces.length ?? 0) > 1 ? [{ href: "/partner", label: "Partner console", icon: "partner" }, { href: "/group", label: "Group view", icon: "budget" }] : []),
                 ...MENU_ITEMS.filter((m) => !(onprem && m.href === "/billing")),
                 ...(platformAdmin ? [{ href: "/system", label: "System", icon: "assurance" }] : []),
               ].map((item) => (
-                <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive(item.href) ? "text-sb-ink bg-sb-ink/[0.09]" : "text-sb-text hover:text-sb-ink hover:bg-sb-ink/[0.06]"}`}>
+                <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className={`sb-menu-item ${isActive(item.href) ? "!text-sb-ink !bg-sb-ink/[0.09]" : ""}`}>
                   <Icon name={item.icon} />
                   {item.label}
                 </Link>
               ))}
               <div className="my-1 border-t border-sb-ink/[0.08]" />
               <form action={signOutAction}>
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sb-text hover:text-sb-ink hover:bg-sb-ink/[0.06] transition-colors">
+                <button className="sb-menu-item">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0"><path d="M6 3H3.5v10H6M10.5 5.5 13 8l-2.5 2.5M13 8H6.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   Sign out
                 </button>

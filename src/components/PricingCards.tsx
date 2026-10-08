@@ -118,7 +118,7 @@ export default function PricingCards({
                 <form action={startCheckoutAction}>
                   <input type="hidden" name="plan" value={p.id} />
                   <input type="hidden" name="interval" value={interval} />
-                  <button disabled={!payments} className={`btn w-full ${upgrade && (highlight || current) ? "btn-primary" : "btn-secondary"} disabled:opacity-50 disabled:cursor-not-allowed`}>
+                  <button disabled={!payments} className={`btn w-full ${upgrade && (highlight || current) ? "btn-primary" : "btn-secondary"}`}>
                     {current ? (upgrade ? `Upgrade to ${p.displayName}` : `Switch to ${p.displayName}`) : `Choose ${p.displayName}`}
                   </button>
                 </form>
@@ -180,7 +180,7 @@ export default function PricingCards({
                   <form action={startAddonCheckoutAction}>
                     <input type="hidden" name="addon" value={a.id} />
                     <input type="hidden" name="interval" value={interval} />
-                    <button disabled={!payments} className="btn btn-secondary btn-sm disabled:opacity-50 disabled:cursor-not-allowed">Add {a.name}</button>
+                    <button disabled={!payments} className="btn btn-secondary btn-sm">Add {a.name}</button>
                   </form>
                 ))}
             </div>

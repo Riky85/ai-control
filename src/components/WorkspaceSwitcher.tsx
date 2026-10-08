@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { switchWorkspaceAction, createWorkspaceAction } from "@/lib/workspace-actions";
 import { PLANS } from "@/lib/plans";
+import SubmitButton from "@/components/SubmitButton";
 
 export interface WorkspaceOption {
   id: string;
@@ -58,7 +59,7 @@ export default function WorkspaceSwitcher({
           {workspaces.map((w) => (
             <form key={w.id} action={switchWorkspaceAction}>
               <input type="hidden" name="orgId" value={w.id} />
-              <button className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-sb-soft hover:bg-sb-ink/[0.06] transition-colors">
+              <button className="sb-menu-item">
                 <span className="h-5 w-5 rounded bg-sb-ink/[0.1] text-[11px] font-semibold flex items-center justify-center shrink-0">{w.name.charAt(0).toUpperCase()}</span>
                 <span className="flex-1 truncate">{w.name}</span>
                 {w.id === current?.id && (
@@ -82,16 +83,16 @@ export default function WorkspaceSwitcher({
                   placeholder="Workspace name"
                   className="flex-1 min-w-0 rounded-lg bg-sb-ink/[0.06] border border-sb-ink/[0.12] px-2.5 py-1.5 text-sb-ink placeholder:text-sb-faint outline-none focus:border-sb-ink/30"
                 />
-                <button className="btn btn-primary btn-sm">Create</button>
+                <SubmitButton className="btn btn-primary btn-sm">Create</SubmitButton>
               </form>
             ) : (
-              <button onClick={() => setCreating(true)} className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-sb-soft hover:bg-sb-ink/[0.06] transition-colors">
+              <button onClick={() => setCreating(true)} className="sb-menu-item">
                 <span className="h-5 w-5 flex items-center justify-center text-sb-muted">+</span>
                 Create workspace
               </button>
             )
           ) : (
-            <Link href="/billing" className="flex items-start gap-2 px-2.5 py-2 rounded-lg text-sb-muted hover:bg-sb-ink/[0.06] transition-colors">
+            <Link href="/billing" className="sb-menu-item !items-start !text-sb-muted">
               <span className="h-5 w-5 flex items-center justify-center">+</span>
               <span>
                 <span className="block text-sb-soft">Create workspace</span>
@@ -101,7 +102,7 @@ export default function WorkspaceSwitcher({
               </span>
             </Link>
           )}
-          <Link href="/workspace?tab=workspaces" className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-sb-soft hover:bg-sb-ink/[0.06] transition-colors">
+          <Link href="/workspace?tab=workspaces" className="sb-menu-item">
             <span className="h-5 w-5 flex items-center justify-center text-sb-muted">⚙</span>
             Manage workspaces
           </Link>

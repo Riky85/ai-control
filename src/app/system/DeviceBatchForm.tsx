@@ -43,7 +43,7 @@ export default function DeviceBatchForm() {
         <option value="pi5">Pi 5</option>
       </select>
       <input value={batch} onChange={(e) => setBatch(e.target.value)} placeholder="Batch, e.g. 2026-10 N100" maxLength={60} className="field w-48" aria-label="Batch name" />
-      <button className="btn btn-primary btn-sm" disabled={pending}>{pending ? "Creating…" : "Create + download CSV"}</button>
+      <button className="btn btn-primary btn-sm" disabled={pending}>{pending ? "Creating…" : "Create batch and CSV"}</button>
       {msg && <span className={`text-xs w-full ${msg.ok ? "text-steady" : "text-alarm"}`}>{msg.text}</span>}
     </form>
   );

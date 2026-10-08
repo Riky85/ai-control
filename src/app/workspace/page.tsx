@@ -54,7 +54,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
       {searchParams.invited && (
         <Notice>
           <div className="flex flex-col gap-2">
-            <span>{searchParams.emailSent === "1" ? "Member added — invitation email sent." : "Member added. Send them this sign-up link:"}</span>
+            <span>{searchParams.emailSent === "1" ? "Member added. Invitation email sent." : "Member added. Send them this sign-up link:"}</span>
             {searchParams.emailSent !== "1" && searchParams.inviteLink && <CopyField value={searchParams.inviteLink} />}
           </div>
         </Notice>
@@ -62,12 +62,12 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
       {searchParams.resetLink && (
         <Notice>
           <div className="flex flex-col gap-2">
-            <span>Password reset link for <b>{searchParams.resetFor}</b> — works once, expires in 1 hour. Send it only to them.</span>
+            <span>Password reset link for <b>{searchParams.resetFor}</b>. Works once, expires in 1 hour.</span>
             <CopyField value={searchParams.resetLink} />
           </div>
         </Notice>
       )}
-      {searchParams.shared && <Notice tone="success">Link created — copy it below.</Notice>}
+      {searchParams.shared && <Notice tone="success">Link created. Copy it below.</Notice>}
 
       {tab === "members" && (
         <>
@@ -81,7 +81,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                     <option key={r} value={r}>{roleLabel(r)} — {help}</option>
                   ))}
                 </select>
-                <button className="btn btn-secondary btn-sm justify-self-start sm:justify-self-end">Invite</button>
+                <button className="btn btn-secondary btn-sm justify-self-start sm:justify-self-end">Invite member</button>
               </form>
             </Row>
             {members.map((m) => (
@@ -106,16 +106,16 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                 {m.status === "active" && (
                   <form action={createMemberResetLinkAction}>
                     <input type="hidden" name="email" value={m.email} />
-                    <button className="btn btn-secondary btn-sm">Reset link</button>
+                    <button className="btn btn-ghost btn-sm">Create reset link</button>
                   </form>
                 )}
                 <form action={removeMemberAction}>
                   <input type="hidden" name="memberId" value={m.id} />
-                  <button className="btn btn-secondary btn-sm">Remove</button>
+                  <button className="btn btn-danger btn-sm">Remove</button>
                 </form>
               </Row>
             ))}
-            {members.length === 0 && <EmptyRow>No members yet — invite yourself first as Owner.</EmptyRow>}
+            {members.length === 0 && <EmptyRow>No members yet. Invite yourself first as Owner.</EmptyRow>}
           </Section>
         </>
       )}
@@ -157,7 +157,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                         </div>
                         <form action={revokeShareLinkAction}>
                           <input type="hidden" name="linkId" value={l.id} />
-                          <button className="btn btn-secondary btn-sm">Revoke</button>
+                          <button className="btn btn-danger btn-sm">Revoke</button>
                         </form>
                       </>
                     )}
@@ -177,12 +177,12 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
               {plan.limits.workspaces === null || allWorkspaces.length < plan.limits.workspaces ? (
                 <form action={createWorkspaceAction} className="flex gap-2 w-full max-w-md">
                   <input name="name" required placeholder="Workspace name" aria-label="Workspace name" className={`${input} flex-1 min-w-0`} />
-                  <button className="btn btn-secondary btn-sm">Create</button>
+                  <button className="btn btn-secondary btn-sm">Create workspace</button>
                 </form>
               ) : (
                 <>
                   <span className="eyebrow !text-accent">Limit reached</span>
-                  <Link href="/billing" className="btn btn-secondary btn-sm btn-go">See plans</Link>
+                  <Link href="/billing" className="btn btn-secondary btn-sm">See plans</Link>
                 </>
               )}
             </Row>

@@ -3,6 +3,7 @@ import { VendorBadge } from "@/components/VendorIcon";
 import { syncConnectorAction, disconnectConnectorAction } from "@/lib/actions";
 import { connectCloudAiAction } from "@/lib/connectors/cloud-ai-actions";
 import { fmtDateTime } from "@/lib/format";
+import SubmitButton from "@/components/SubmitButton";
 
 // Piattaforme cloud AI (Azure OpenAI, Bedrock, Vertex): una riga ciascuna come Okta/GitHub;
 // il modulo con le credenziali si apre solo quando serve. Le credenziali non tornano mai nella pagina.
@@ -86,7 +87,7 @@ export default function CloudAiCards({ rows, errorFor, error }: { rows: Map<Conn
                   <div className="flex items-center gap-2">
                     <form action={syncConnectorAction}>
                       <input type="hidden" name="provider" value={p.provider} />
-                      <button className="btn btn-secondary btn-sm">Sync now</button>
+                      <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Syncing…">Sync now</SubmitButton>
                     </form>
                     <form action={disconnectConnectorAction}>
                       <input type="hidden" name="provider" value={p.provider} />
@@ -117,7 +118,7 @@ export default function CloudAiCards({ rows, errorFor, error }: { rows: Map<Conn
                         {p.hint}{" "}
                         <a href={p.docsUrl} target="_blank" rel="noreferrer" className="underline hover:text-ink-100">Open console ↗</a>
                       </p>
-                      <button className="btn btn-secondary btn-sm">Test & connect</button>
+                      <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Testing…">Test &amp; connect</SubmitButton>
                     </div>
                     {err && <p className="text-xs text-alarm">{err}</p>}
                   </form>

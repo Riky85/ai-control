@@ -364,10 +364,10 @@ export function Switch({
       type={type}
       role="switch"
       aria-checked={on}
-      className={`relative inline-block shrink-0 h-5 w-9 rounded-full transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 ${track} ${className}`}
+      className={`relative inline-block shrink-0 h-5 w-9 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 ${track} ${className}`}
       {...rest}
     >
-      <span aria-hidden className={`absolute top-0.5 h-4 w-4 rounded-full bg-panel shadow-card transition-all ${on ? "left-[18px]" : "left-0.5"}`} />
+      <span aria-hidden className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-card transition-all ${on ? "left-[18px]" : "left-0.5"}`} />
     </button>
   );
 }

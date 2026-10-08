@@ -45,12 +45,12 @@ export default function CommandReply({ reply, onNavigate, tone = "dark" }: { rep
         )}
         {reply.href && (
           <Link href={reply.href} onClick={onNavigate} className={btn}>
-            {reply.hrefLabel ?? "Open"} →
+            {reply.hrefLabel ?? "Open"}
           </Link>
         )}
         {reply.sources?.map((s) => (
           <Link key={s.slug} href={`/docs/${s.slug}`} onClick={onNavigate} className={btn}>
-            {s.title} →
+            {s.title}
           </Link>
         ))}
       </div>

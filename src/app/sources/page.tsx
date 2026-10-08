@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { Notice, PageHeader, Switch } from "@/components/ui";
+import { BlockHead, Notice, PageHeader, Switch } from "@/components/ui";
 import CsvDropzone from "@/components/CsvDropzone";
 import { uploadSpendAction, syncFattureInCloudAction, syncBankAction, syncAccountingAction } from "@/lib/spend-actions";
 import { fmtDate } from "@/lib/format";
@@ -52,7 +52,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
           </div>
           <div className="flex items-center justify-between gap-3">
             <button className="btn btn-primary">Find my AI spend</button>
-            <a href="/api/spend/sample" className="text-xs text-ink-400 hover:text-ink-100 underline">Try a sample</a>
+            <a href="/api/spend/sample" className="text-xs text-ink-400 hover:text-ink-100 underline">Download a sample</a>
           </div>
         </form>
         {/* Contratti, order form e fatture in PDF: lettura dei campi del contratto. */}
@@ -65,8 +65,9 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
       </Card>
 
       <section id="accounts" className="scroll-mt-6">
-        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">
-          <h2 className="px-4 py-3 text-sm font-bold text-ink-100">Accounts</h2>
+        <div className="rounded-xl border border-line bg-panel animate-rise">
+          <BlockHead title="Accounts" note="Who uses which AI, and what it costs" />
+          <div className="divide-y divide-line">
           {workplace.providers.map((p) => {
             // Storico email (mittenti dei servizi AI): riga sotto l'account collegato.
             const row = p.connected ? connectors.find((c) => c.provider === p.id) : undefined;
@@ -94,6 +95,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
           <AutoRow label="Bank account" state={bankState} connectHref="/sources/bank" syncAction={syncBankAction} />
           <AutoRow label="Accounting software" hint="DATEV, Pennylane, Exact, Sage, Xero…" state={accountingState} connectHref="/api/connectors/accounting/connect" syncAction={syncAccountingAction} />
           <AutoRow label="Fatture in Cloud" hint="Italian e-invoices" state={ficState} connectHref="/api/connectors/fattureincloud/connect" syncAction={syncFattureInCloudAction} />
+          </div>
         </div>
       </section>
     </div>
@@ -115,7 +117,7 @@ function Card({ title, status, children }: { title: string; status: string | nul
 
 function SourceRow({ label, hint, detail, children }: { label: string; hint?: string; detail?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="px-4 py-2.5">
+    <div className="px-5 py-3">
       <div className="flex items-center justify-between gap-3">
         <span className="min-w-0">
           <span className="block text-sm text-ink-100" title={hint}>{label}</span>

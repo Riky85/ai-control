@@ -13,7 +13,8 @@ import type { Status } from "@/lib/opportunities/types";
 
 const safeBack = (v: FormDataEntryValue | null) => {
   const b = String(v ?? "").slice(0, 300);
-  return b.startsWith("/opportunities") ? b : "/opportunities";
+  // Anche la home ("/"): l'interruttore di "What to do next" torna lì.
+  return b.startsWith("/opportunities") || b === "/" || b.startsWith("/?") ? b : "/opportunities";
 };
 /** Stesso percorso con un parametro in più o in meno (il cassetto dei dettagli si chiude dopo l'azione). */
 function edit(path: string, set: Record<string, string | null>) {

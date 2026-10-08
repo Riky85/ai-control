@@ -49,7 +49,7 @@ export default async function MarketChangesPage() {
               <td className={`${td} text-ink-100`}>{impactLine(r)}</td>
               <td className={`${td} whitespace-nowrap`}>
                 <div className="flex gap-1 justify-end">
-                  <Link href={`/market/${r.change.id}`} className="btn btn-ghost btn-sm">Systems</Link>
+                  <Link href={`/market/${r.change.id}`} className="btn btn-ghost btn-sm">See systems</Link>
                   {sim && <Link href={sim} className="btn btn-ghost btn-sm">Simulate</Link>}
                 </div>
               </td>

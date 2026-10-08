@@ -57,7 +57,7 @@ export default function JoinConnect({ company, token, defaultEmail, chromeUrl, e
                 type="button"
                 disabled={!installed || !valid}
                 onClick={() => window.postMessage({ type: "angar-connect", token, email: email.trim().toLowerCase() }, window.location.origin)}
-                className="btn btn-primary disabled:opacity-50"
+                className="btn btn-primary"
               >
                 Connect
               </button>

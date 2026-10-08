@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PageHeader, Panel, Table, td, BlockHead } from "@/components/ui";
+import { PageHeader, Panel, Table, td, BlockHead, EmptyState, Notice } from "@/components/ui";
 import { SCENARIOS, scenarioQuery } from "@/lib/impact/params";
 import { money } from "@/lib/impact/engine";
 import type { ImpactOptions, Opt } from "@/lib/impact/options";
@@ -165,7 +165,7 @@ export default function ImpactView({
           </Link>
         }
       />
-      {notice && <div className="rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink-100">{notice}</div>}
+      {notice && <Notice>{notice}</Notice>}
 
       <div className="grid lg:grid-cols-[240px_minmax(0,1fr)] gap-6 items-start">
         <nav className="rounded-xl border border-line bg-panel animate-rise" aria-label="Scenarios">
@@ -222,7 +222,7 @@ export default function ImpactView({
               <div className="p-5 grid sm:grid-cols-2 xl:grid-cols-4 gap-4 items-end">
                 <Fields kind={active.kind} raw={raw} o={options} />
                 <div className="flex items-end">
-                  <button className="btn btn-primary btn-go w-full sm:w-auto">Simulate</button>
+                  <button className="btn btn-primary w-full sm:w-auto">Simulate</button>
                 </div>
               </div>
             </form>
@@ -270,10 +270,15 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
 
   if (r.empty)
     return (
-      <div className="rounded-xl border border-line bg-panel px-5 py-8 text-center text-sm text-ink-400 animate-rise">
-        <div className="font-bold text-ink-100 mb-1">{r.title}</div>
-        {r.empty}
-      </div>
+      <EmptyState
+        className="animate-rise"
+        text={
+          <>
+            <b className="block text-ink-100 font-bold mb-1">{r.title}</b>
+            {r.empty}
+          </>
+        }
+      />
     );
 
   return (

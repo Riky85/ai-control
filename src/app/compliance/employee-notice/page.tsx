@@ -63,10 +63,10 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
           action={
             (await featureEnabled(orgId, "employeeNotice")) ? (
               <>
-                <CopyButton text={text} label="Copy" className="btn btn-secondary" />
+                <CopyButton text={text} label="Copy text" className="btn btn-ghost btn-sm" />
                 <PrintButton label="Print" />
               </>
-            ) : <LockedFeature feature="employeeNotice" label="Copy & print" />
+            ) : <LockedFeature feature="employeeNotice" label="Copy and print" className="btn btn-secondary btn-sm" />
           }
         />
 
@@ -83,12 +83,12 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
             Contact (controller / DPO)
             <input name="contact" defaultValue={contact ?? ""} placeholder="e.g. Acme S.p.A., Via Roma 1, Milano — privacy@acme.com" className="field" />
           </label>
-          <button className="btn btn-secondary">Update</button>
+          <button className="btn btn-secondary">Update notice</button>
         </form>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-400">
           <span>
-            Privacy mode: <span className="text-ink-100">{privacyModeLabel(mode)}</span> — <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">change</Link>
+            Privacy mode: <span className="text-ink-100">{privacyModeLabel(mode)}</span> · <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">change</Link>
           </span>
           {hasPlaceholders && <span className="text-accent">Fill in the highlighted parts before you hand it out.</span>}
         </div>
@@ -113,7 +113,7 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
         </div>
       </article>
       <p className="text-xs text-ink-400 print:hidden max-w-3xl">
-        A template, not legal advice — have it checked by your DPO or counsel. In Italy, Germany, France and Spain, involve the workers&apos; representatives before rolling angar out — templates for each country are in the{" "}
+        A template, not legal advice. In Italy, Germany, France and Spain, involve workers&apos; representatives first. Country templates are in the{" "}
         <Link href="/trust#documents" className="underline hover:text-ink-100">Trust Center</Link>.
       </p>
     </div>

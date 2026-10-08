@@ -3,6 +3,7 @@ import { currentSession } from "@/lib/auth";
 import { fmtEur } from "@/lib/format";
 import { autopilotSummary, autopilotTasks, syncAutopilot, type AutopilotMode, type AutopilotStep, type AutopilotSummary, type TaskStatus } from "@/lib/engine/autopilot";
 import { approveAutopilotAction, dismissAutopilotAction, markAutopilotStepAction, retryAutopilotAction, setAutopilotModeAction } from "@/lib/engine/autopilot-actions";
+import SubmitButton from "@/components/SubmitButton";
 
 export interface AutopilotTaskView {
   id: string;
@@ -167,13 +168,13 @@ function TaskRow({ t, canEdit }: { t: AutopilotTaskView; canEdit: boolean }) {
             {t.needsApproval && (
               <form action={approveAutopilotAction}>
                 <input type="hidden" name="id" value={t.id} />
-                <button className="btn btn-secondary btn-sm">Approve</button>
+                <SubmitButton className="btn btn-secondary btn-sm">Approve</SubmitButton>
               </form>
             )}
             {t.status === "failed" && (
               <form action={retryAutopilotAction}>
                 <input type="hidden" name="id" value={t.id} />
-                <button className="btn btn-secondary btn-sm">Retry</button>
+                <SubmitButton className="btn btn-secondary btn-sm">Retry</SubmitButton>
               </form>
             )}
             {(t.status === "proposed" || t.status === "failed") && (

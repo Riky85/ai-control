@@ -2,6 +2,7 @@ import { currentSession } from "@/lib/auth";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 import { seatRemovalSupport } from "@/lib/seat-removal";
 import { removeSeatAction } from "@/lib/savings-actions";
+import SubmitButton from "@/components/SubmitButton";
 
 /**
  * "Remove seat" per una persona su un'AI: via API del fornitore quando angar
@@ -26,7 +27,7 @@ export default async function SeatRemoveButton({ assetId, email, back = "people"
 
   return (
     <details className="relative inline-block text-left">
-      <summary className="btn btn-secondary btn-sm list-none cursor-pointer select-none">Remove seat</summary>
+      <summary className="btn btn-secondary btn-sm list-none cursor-pointer [&::-webkit-details-marker]:hidden">Remove seat</summary>
       <div className="absolute right-0 z-30 mt-1.5 w-72 rounded-xl border border-line bg-panel p-4 shadow-lg flex flex-col gap-3">
         <p className="text-sm text-ink-100">
           Remove the seat of <span className="font-medium break-all">{email}</span> in {support.label}?
@@ -36,7 +37,7 @@ export default async function SeatRemoveButton({ assetId, email, back = "people"
           <input type="hidden" name="assetId" value={assetId} />
           <input type="hidden" name="email" value={email} />
           <input type="hidden" name="back" value={back} />
-          <button className="btn btn-danger btn-sm w-full">Yes, remove the seat</button>
+          <SubmitButton className="btn btn-danger btn-sm w-full" pendingLabel="Removing…">Yes, remove the seat</SubmitButton>
         </form>
       </div>
     </details>

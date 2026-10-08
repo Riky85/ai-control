@@ -17,7 +17,7 @@ export interface PriceChangeRow {
 
 /** Barre orizzontali neutre: etichetta, barra, valore (≈ se in parte stimato). */
 function Bars({ rows, total, max = 6, more }: { rows: SpendBar[]; total: number; max?: number; more?: string }) {
-  if (!rows.length) return <p className="px-5 py-4 text-sm text-ink-400">No costs yet.</p>;
+  if (!rows.length) return <p className="px-5 py-8 text-center text-sm text-ink-400">No costs yet.</p>;
   const top = rows[0]?.eur || 1;
   return (
     <div className="divide-y divide-line">
@@ -60,7 +60,7 @@ export default function SpendView({ s, forecast, anomalies, priceChanges }: { s:
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard label="Monthly AI spend" value={fmtEur(s.total)} hint={`${fmtEur(s.total * 12)} a year · ${s.aiCount} AI`} />
             <StatCard label="Actual" value={fmtEur(s.actual)} hint={`${pct(s.actual)} from bills and invoices`} />
-            <StatCard label="Estimated" value={s.estimated >= 1 ? `≈ ${fmtEur(s.estimated)}` : "—"} hint={s.estimated >= 1 ? `${pct(s.estimated)} from list prices` : "Nothing estimated"} tone={s.estimated / s.total >= 0.3 ? "signal" : undefined} href={s.estimated >= 1 ? "/sources" : undefined} />
+            <StatCard label="Estimated" value={s.estimated >= 1 ? `≈ ${fmtEur(s.estimated)}` : "—"} hint={s.estimated >= 1 ? `${pct(s.estimated)} from list prices` : "Nothing estimated"} tone={s.estimated / s.total >= 0.3 ? "warn" : undefined} href={s.estimated >= 1 ? "/sources" : undefined} />
             <StatCard label="Usage-based" value={fmtEur(s.usage)} hint={`${pct(s.usage)} · fixed ${fmtEur(s.fixed)}`} />
           </div>
 
@@ -111,12 +111,12 @@ export default function SpendView({ s, forecast, anomalies, priceChanges }: { s:
                         <span className="block text-ink-100 truncate">{p.title}</span>
                         <span className="block text-xs text-ink-400 mt-0.5">{p.impact}</span>
                       </Link>
-                      {p.simulateHref && <Link href={p.simulateHref} className="btn btn-ghost btn-sm shrink-0">Simulate</Link>}
+                      {p.simulateHref && <Link href={p.simulateHref} className="btn btn-ghost btn-sm shrink-0">Simulate impact</Link>}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="px-5 py-4 text-sm text-ink-400">No price change affects your AI right now.</p>
+                <p className="px-5 py-8 text-center text-sm text-ink-400">No price change affects your AI right now.</p>
               )}
             </Panel>
           </div>

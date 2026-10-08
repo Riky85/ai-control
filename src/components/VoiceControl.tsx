@@ -270,8 +270,10 @@ function VoiceControlActive({ initialMode }: { initialMode: VoiceMode }) {
           <div className="flex items-center gap-2 mb-2">
             <span className={`h-2 w-2 rounded-full ${hot ? "bg-accent animate-pulse" : busy ? "bg-signal animate-pulse" : "bg-steady"}`} />
             <span className="text-xs text-ink-400 flex-1">{hot ? "Listening…" : busy ? "Thinking…" : error ? "Voice" : "angar"}</span>
-            <button type="button" onClick={() => { setReply(null); setError(null); setArmed(false); armedUntil.current = 0; if (mode === "push") stopRec(); }} aria-label="Close" className="text-ink-400 hover:text-ink-100 text-xs">
-              ✕
+            <button type="button" onClick={() => { setReply(null); setError(null); setArmed(false); armedUntil.current = 0; if (mode === "push") stopRec(); }} aria-label="Close" className="btn btn-ghost btn-sm btn-icon -my-1.5 -mr-2">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                <path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
             </button>
           </div>
           {error ? (

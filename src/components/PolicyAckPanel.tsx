@@ -9,6 +9,7 @@ import { policyAckStats, genericToken, ackLink } from "@/lib/policy-ack";
 import { sendPolicyAckAction, publishPolicyAction, remindPolicyAckAction } from "@/lib/policy-ack-actions";
 import { QUIZ_TOTAL } from "@/lib/literacy";
 import { fmtDate } from "@/lib/format";
+import SubmitButton from "@/components/SubmitButton";
 
 /**
  * Governance → AI literacy e conferme della policy: invio della policy AI ai
@@ -55,18 +56,18 @@ export default async function PolicyAckPanel({
         <>
           {s.personal ? (
             <form action={sendPolicyAckAction}>
-              <button className="btn btn-primary btn-sm">{s.version && !s.changed ? "Send to new people" : "Send to employees"}</button>
+              <SubmitButton className="btn btn-primary btn-sm" pendingLabel="Sending…">{s.version && !s.changed ? "Send to new people" : "Send to employees"}</SubmitButton>
             </form>
           ) : (
             (!s.version || s.changed) && (
               <form action={publishPolicyAction}>
-                <button className="btn btn-secondary btn-sm">{s.version ? "Publish new version" : "Create link"}</button>
+                <SubmitButton className="btn btn-secondary btn-sm">{s.version ? "Publish new version" : "Create link"}</SubmitButton>
               </form>
             )
           )}
           {s.personal && s.pending > 0 && emailOn && (
             <form action={remindPolicyAckAction}>
-              <button className="btn btn-secondary btn-sm">Remind</button>
+              <SubmitButton className="btn btn-secondary btn-sm">Remind</SubmitButton>
             </form>
           )}
         </>

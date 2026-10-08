@@ -19,15 +19,15 @@ export function EstateViewBody({ est, admin }: { est: EstateData; admin: boolean
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <StatCard label="Provider concentration" value={m.providerConcentration ? `${Math.round(m.providerConcentration.share * 100)}%` : "—"} hint={m.providerConcentration ? m.providerConcentration.label : undefined} tone={m.providerConcentration && m.providerConcentration.share >= 0.6 ? "signal" : undefined} href="/providers" />
-        <StatCard label="No owner" value={String(m.unowned)} />
-        <StatCard label="High dependencies" value={String(m.highDependencies)} hint={m.highDependencies ? "Not ready to exit" : undefined} tone={m.highDependencies ? "signal" : undefined} />
+        <StatCard label="Provider concentration" value={m.providerConcentration ? `${Math.round(m.providerConcentration.share * 100)}%` : "—"} hint={m.providerConcentration ? m.providerConcentration.label : undefined} tone={m.providerConcentration && m.providerConcentration.share >= 0.6 ? "warn" : undefined} href="/providers" />
+        <StatCard label="No owner" value={String(m.unowned)} hint={m.unowned ? "AI without an owner" : "Every AI has an owner"} tone={m.unowned ? "warn" : undefined} />
+        <StatCard label="High dependencies" value={String(m.highDependencies)} hint={m.highDependencies ? "Not ready to exit" : undefined} tone={m.highDependencies ? "warn" : undefined} />
       </div>
 
       <EstateGraphView parts={toParts(est.graph)} concentration={m.providerConcentration} />
 
       {admin && est.pending.length > 0 && (
-        <Panel flush title="Links to check" subtitle={`${est.pending.length}`}>
+        <Panel flush title="Links to check" subtitle={`${est.pending.length} found`}>
           <ul className="divide-y divide-line">
             {est.pending.slice(0, 20).map((p) => (
               <li key={p.table + p.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5 text-sm">
@@ -41,7 +41,7 @@ export function EstateViewBody({ est, admin }: { est: EstateData; admin: boolean
                     <input type="hidden" name="id" value={p.id} />
                     <input type="hidden" name="decision" value={d} />
                     <input type="hidden" name="back" value={back} />
-                    <button className="btn btn-ghost btn-sm">{d === "confirm" ? "Confirm" : "Reject"}</button>
+                    <button className={`btn btn-sm ${d === "confirm" ? "btn-secondary" : "btn-ghost"}`}>{d === "confirm" ? "Confirm" : "Reject"}</button>
                   </form>
                 ))}
               </li>
@@ -65,7 +65,7 @@ export function EstateViewBody({ est, admin }: { est: EstateData; admin: boolean
                 {est.applications.map((a) => <option key={a.id} value={`application:${a.id}`}>Application · {a.name}</option>)}
                 {systems.map((s) => <option key={s.id} value={`system:${s.id}`}>AI · {s.name}</option>)}
               </select>
-              <button className="btn btn-secondary btn-sm">Add process</button>
+              <button className="btn btn-secondary">Add process</button>
             </form>
             <form action={createApplicationAction} className="flex flex-col gap-2">
               <input type="hidden" name="back" value={back} />
@@ -79,7 +79,7 @@ export function EstateViewBody({ est, admin }: { est: EstateData; admin: boolean
                 <option value="">Uses AI… (optional)</option>
                 {systems.map((s) => <option key={s.id} value={`system:${s.id}`}>{s.name}</option>)}
               </select>
-              <button className="btn btn-secondary btn-sm">Add application</button>
+              <button className="btn btn-secondary">Add application</button>
             </form>
           </div>
         </details>

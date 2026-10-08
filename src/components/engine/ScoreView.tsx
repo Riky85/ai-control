@@ -1,12 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { PageHeader } from "@/components/ui";
-import { LevelPill, ScoreBar, scoreSentence } from "@/components/engine/ScoreCard";
+import { PageHeader, Panel, StatCard, Table, td } from "@/components/ui";
+import { LevelPill, ScoreBar } from "@/components/engine/ScoreCard";
 import type { ScorePoint, FullScore } from "@/lib/engine/score";
 import type { Dimension, ActionPlan } from "@/lib/engine/score-model";
-import { AXIS_HINT, AXIS_WEIGHT, CONFIDENCE_TEXT, UNMEASURED_CAP, LEVEL_STYLE } from "@/lib/engine/score-meta";
+import { AXIS_HINT, AXIS_WEIGHT, CONFIDENCE_TEXT, UNMEASURED_CAP } from "@/lib/engine/score-meta";
+import { fmtEur } from "@/lib/format";
 
-const eur = (n: number) => "€" + Math.round(n).toLocaleString("en-GB");
 const fmtDay = (day: string) => new Date(day + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 const minus = (n: number) => (n < 0 ? `−${Math.abs(n)}` : n > 0 ? `+${n}` : "0");
 
@@ -22,170 +22,127 @@ export interface ScoreViewProps {
 }
 
 /**
- * Pagina /score (solo presentazione, dati dal server): testata con numero,
- * livello, confidenza e andamento; le 5 dimensioni; "Why is my score X?".
+ * Pagina /score (solo presentazione, dati dal server), stessa grammatica della home:
+ * intestazione, quattro numeri, la tabella delle dimensioni (con il "perché") e l'andamento.
  */
 export default function ScoreView({ result, plan, current, changedOn, changed, children }: ScoreViewProps) {
   const first = current[0];
-  const delta = current.length >= 2 ? result.score - first.score : null;
+  // Variazione: prima quella di "what changed" (con i risparmi), altrimenti dalla prima fotografia.
+  const moved = changed && changed.to !== changed.from ? { d: changed.to - changed.from, since: changed.since } : current.length >= 2 && result.score !== first.score ? { d: result.score - first.score, since: first.day } : null;
+  const scoreHint = [result.levelLabel, moved ? `${moved.d > 0 ? "▲" : "▼"} ${Math.abs(moved.d)} since ${fmtDay(moved.since)}` : null].filter(Boolean).join(" · ");
+  const actions = plan.actions.length;
+  const gap = result.gaps[0];
+  const lost = result.drivers.reduce((s, d) => s + d.points, 0);
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader subtitle="How well your AI spend is used"
+      <PageHeader
         title="Angar Score"
+        subtitle="How well your AI spend is used"
         action={
-          <Link href="/impact?view=score" className="btn btn-ghost btn-sm">
-            What if…
-          </Link>
+          <>
+            <Link href="/impact?view=score" className="btn btn-ghost btn-sm">What if</Link>
+            <Link href="/opportunities?view=score" className="btn btn-primary btn-sm btn-go">Improve my score</Link>
+          </>
         }
       />
 
-      {/* Testata: numero, livello, confidenza, frase, andamento */}
-      <section className="rounded-xl border border-line bg-panel animate-rise">
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-8 p-5 sm:p-7">
-          <div className="flex flex-col min-w-0">
-            <div className="flex flex-wrap items-center gap-2 eyebrow">
-              <span className="inline-flex items-center gap-1.5 rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-100">
-                <span title={CONFIDENCE_TEXT[result.confidence]} className={`h-1.5 w-1.5 rounded-full ${result.confidence === "high" || result.confidence === "measured" ? LEVEL_STYLE.strong.dot : result.confidence === "early" ? LEVEL_STYLE.fair.dot : LEVEL_STYLE.none.dot}`} aria-hidden />
-                {result.confidenceLabel}
-              </span>
-              {delta != null && delta !== 0 && !(changed && changed.to !== changed.from) && (
-                <span className="tabular">
-                  {delta > 0 ? "▲" : "▼"} {Math.abs(delta)} since {fmtDay(first.day)}
-                </span>
-              )}
-            </div>
-            <div className="flex items-end gap-3 mt-4">
-              <span className="font-display text-[60px] leading-[0.85] font-light tracking-[-0.04em] tabular text-ink-100">
-                {result.score}
-                <span className="text-[20px] tracking-normal text-ink-400 ml-1">/100</span>
-              </span>
-              <LevelPill level={result.level} label={result.levelLabel} className="mb-2" />
-            </div>
-            <ScoreBar value={result.score} className="mt-5 max-w-md" />
-            <p className="text-[15px] text-ink-100 mt-4 leading-snug max-w-lg">{scoreSentence(result)}</p>
-            {changed && changed.to !== changed.from && (
-              <p className="text-sm text-ink-100 mt-2 tabular">
-                {changed.from} → {changed.to}
-                {changed.savedMonthlyEur >= 1 && ` · ${eur(changed.savedMonthlyEur)} a month saved`}
-                <span className="eyebrow ml-1.5">since {fmtDay(changed.since)}</span>
-              </p>
-            )}
-            <div className="flex flex-wrap items-center gap-2 mt-5">
-              <Link href="/opportunities?view=score" className="btn btn-primary btn-go">
-                Improve my score
-              </Link>
-              {plan.potential > result.score && (
-                <span className="text-sm text-ink-400 tabular">
-                  Potential <b className="text-ink-100 font-normal">{plan.potential}</b>
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col gap-3 min-w-0 justify-center">
-            <Trend points={current} />
-            {result.gaps.length > 0 && (
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                {result.gaps.map((g) => (
-                  <Link key={g.label} href={g.href} className="eyebrow !text-accent hover:!text-ink-100 transition-colors">
-                    {g.label} [→]
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Le 5 dimensioni */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {result.dimensions.map((d) => (
-          <DimensionCard key={d.axis} d={d} />
-        ))}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard label="Score" value={`${result.score}/100`} hint={scoreHint} tone={result.level === "weak" ? "warn" : undefined} />
+        <StatCard
+          label="Potential"
+          value={plan.potential > result.score ? `up to ${plan.potential}` : "—"}
+          hint={actions ? `with ${actions} action${actions === 1 ? "" : "s"}` : "Nothing to improve"}
+          href="/opportunities?view=score"
+        />
+        <StatCard
+          label="Savings found"
+          value={result.savingsMonthlyEur >= 1 ? `${fmtEur(result.savingsMonthlyEur)}/mo` : "—"}
+          hint={changed && changed.savedMonthlyEur >= 1 ? `${fmtEur(changed.savedMonthlyEur)}/mo saved since ${fmtDay(changed.since)}` : result.savingsMonthlyEur >= 1 ? `${fmtEur(result.savingsMonthlyEur * 12)} a year` : undefined}
+          href="/opportunities"
+        />
+        <StatCard label="Confidence" value={result.confidenceLabel} hint={gap ? gap.label : CONFIDENCE_TEXT[result.confidence]} href={gap?.href} />
       </div>
 
-      <WhySection result={result} />
+      <Table
+        id="why"
+        title="Dimensions"
+        note={lost < 0 ? `${minus(lost)} points lost` : "Nothing holds it back"}
+        columns={["Dimension", "Value", "Level", "Why", { label: "", className: "w-px" }]}
+        footer={
+          result.capPoints > 0 || result.gaps.length > 1 ? (
+            <>
+              {result.capPoints > 0 && <span className="text-ink-400">No usage data <span className="tabular text-accent ml-1">{minus(-result.capPoints)}</span></span>}
+              {result.gaps.map((g) => (
+                <Link key={g.label} href={g.href} className="eyebrow hover:!text-ink-100 transition-colors">{g.label} [→]</Link>
+              ))}
+            </>
+          ) : undefined
+        }
+      >
+        {result.dimensions.map((d) => (
+          <DimensionRow key={d.axis} d={d} />
+        ))}
+      </Table>
 
-      {/* angar Engine: previsione e anomalie (passata dalla pagina) */}
+      <Panel title="Score history" subtitle={changedOn ? `Method changed ${fmtDay(changedOn)}` : current.length >= 2 ? `Since ${fmtDay(current[0].day)}` : undefined}>
+        <Trend points={current} />
+      </Panel>
+
       {children}
     </div>
   );
 }
 
-function DimensionCard({ d }: { d: Dimension }) {
+/** Riga di una dimensione: nome, barra sottile, valore, livello, il motivo principale e il link per sistemarlo. */
+function DimensionRow({ d }: { d: Dimension }) {
   const unmeasured = d.status === "unmeasured" || d.status === "na";
-  // Spiegazione e peso nel tooltip: la card mostra solo nome, numero e stato.
   const weight =
     d.status === "na"
       ? "Not counted: no data for this dimension."
       : d.status === "unmeasured"
         ? `Counts as ${UNMEASURED_CAP} until measured · ${Math.round(d.weight * 100)}% of the score`
         : `${Math.round(d.weight * 100)}% of the score${Math.round(d.weight * 100) !== Math.round(AXIS_WEIGHT[d.axis] * 100) ? ` (${Math.round(AXIS_WEIGHT[d.axis] * 100)}% base)` : ""}`;
+  const reasons = d.drivers.filter((r) => r.points < 0).sort((a, b) => a.points - b.points);
+  const top = reasons[0];
   return (
-    <section id={`axis-${d.axis}`} title={`${AXIS_HINT[d.axis]} · ${weight}`} className={`scroll-mt-6 rounded-xl border border-line bg-panel animate-rise flex flex-col min-w-0 p-4 gap-3 target:border-ink-400 ${d.level === "weak" ? "tile-warn" : ""}`}>
-      <h3 className={`eyebrow truncate ${d.level === "weak" ? "!text-accent" : ""}`}>{d.label}</h3>
-      <div className="flex items-center justify-between gap-2">
-        <span className={`font-display text-[30px] leading-none font-light tracking-[-0.03em] tabular ${d.level === "weak" ? "text-accent" : "text-ink-100"}`}>{unmeasured ? "—" : d.value}</span>
-        <LevelPill level={d.level} label={d.levelLabel} />
-      </div>
-      <ScoreBar value={unmeasured ? 0 : d.value ?? 0} />
-    </section>
-  );
-}
-
-/** "Why is my score X?": cosa lo tiene giù, per dimensione e motivo per motivo. Somma = 100 − punteggio. */
-function WhySection({ result }: { result: FullScore }) {
-  const limits = result.dimensions.filter((d) => d.points < 0).sort((a, b) => a.points - b.points);
-  const total = result.drivers.reduce((s, d) => s + d.points, 0);
-  return (
-    <section id="why" className="scroll-mt-6 rounded-xl border border-line bg-panel animate-rise p-5 sm:p-6">
-      <h2 className="text-sm font-bold text-ink-100" title={`The reasons add up to exactly ${minus(total)}.`}>Why {result.score}?</h2>
-      {result.drivers.length === 0 ? (
-        <p className="text-sm text-ink-100 mt-4">Nothing holds it back.</p>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-6 lg:gap-10 mt-5">
-          <div className="min-w-0">
-            <h3 className="eyebrow mb-1">By dimension</h3>
-            <ul className="divide-y divide-line">
-              {limits.map((d) => (
-                <li key={d.axis}>
-                  <a href={`#axis-${d.axis}`} className="flex items-baseline justify-between gap-3 py-2 text-sm group">
-                    <span className="text-ink-100 group-hover:underline">{d.label}</span>
-                    <span className="tabular text-accent">{minus(d.points)}</span>
-                  </a>
-                </li>
-              ))}
-              {result.capPoints > 0 && (
-                <li className="flex items-baseline justify-between gap-3 py-2 text-sm">
-                  <span className="text-ink-100">No usage data</span>
-                  <span className="tabular text-accent">{minus(-result.capPoints)}</span>
-                </li>
-              )}
-            </ul>
-          </div>
-          <div className="min-w-0">
-            <h3 className="eyebrow mb-1">Reasons</h3>
-            <ul className="divide-y divide-line">
-              {result.drivers
-                .filter((d) => d.points < 0)
-                .map((d) => (
-                  <li key={`${d.axis}:${d.label}`}>
-                    <Link href={d.href} className="flex items-start gap-3 py-2 text-sm group" title={d.missingData ? "Missing data" : undefined}>
-                      <span className="w-8 shrink-0 tabular text-accent">{minus(d.points)}</span>
-                      <span className="flex-1 min-w-0 leading-snug text-ink-100 group-hover:underline">{d.label}</span>
-                    </Link>
-                  </li>
-                ))}
-            </ul>
-          </div>
+    <tr id={`axis-${d.axis}`} className="scroll-mt-20 target:bg-ink-100/[0.04]">
+      <td className={`${td} min-w-[160px]`}>
+        <div className="text-ink-100" title={AXIS_HINT[d.axis]}>{d.label}</div>
+        <div className="eyebrow mt-0.5">{weight}</div>
+      </td>
+      <td className={`${td} whitespace-nowrap`}>
+        <div className="flex items-center gap-3">
+          <ScoreBar value={unmeasured ? 0 : d.value ?? 0} className="w-20" />
+          <span className={`tabular ${d.level === "weak" ? "text-accent" : "text-ink-100"}`}>{unmeasured ? "—" : d.value}</span>
         </div>
-      )}
-    </section>
+      </td>
+      <td className={td}>
+        <LevelPill level={d.level} label={d.levelLabel} />
+      </td>
+      <td className={`${td} text-ink-400 min-w-[220px]`}>
+        {top ? (
+          <span title={reasons.map((r) => `${minus(r.points)} ${r.label}`).join("\n")}>
+            <span className="tabular text-accent mr-1.5">{minus(d.points)}</span>
+            {top.label}
+            {reasons.length > 1 && <span className="eyebrow ml-1.5">+{reasons.length - 1} more</span>}
+          </span>
+        ) : (
+          AXIS_HINT[d.axis]
+        )}
+      </td>
+      <td className={`${td} text-right`}>
+        {top && (
+          <Link href={top.href} className="btn btn-ghost btn-sm">{top.missingData ? "Connect" : "Fix"}</Link>
+        )}
+      </td>
+    </tr>
   );
 }
 
 /** Andamento del punteggio (solo il metodo attuale), linea grigia. Con meno di due giorni non c'è ancora una linea. */
 function Trend({ points }: { points: ScorePoint[] }) {
-  if (points.length < 2) return <div className="eyebrow">Trend starts tomorrow.</div>;
+  if (points.length < 2) return <p className="text-sm text-ink-400">Trend starts tomorrow.</p>;
   const W = 480;
   const H = 72;
   const vals = points.map((p) => p.score);
@@ -196,7 +153,6 @@ function Trend({ points }: { points: ScorePoint[] }) {
   const line = vals.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   return (
     <div className="w-full">
-      <div className="eyebrow mb-2">Trend</div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-[72px] text-ink-400" preserveAspectRatio="none" aria-label={`Score trend, from ${vals[0]} to ${vals[vals.length - 1]}`}>
         <path d={line} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
       </svg>

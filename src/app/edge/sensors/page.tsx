@@ -8,7 +8,7 @@ import { privacyModeOf, PRIVACY_MODES } from "@/lib/privacy";
 import { EDGE_IMAGE } from "@/lib/edge/install-script";
 import { CAND_PREFIX } from "@/lib/edge/config";
 import { fmtAgo, fmtDate } from "@/lib/format";
-import { PageHeader, Table, td, Tabs, Notice, StatCard } from "@/components/ui";
+import { PageHeader, Panel, Table, td, Tabs, Notice, StatCard } from "@/components/ui";
 import { toggleSensorAction, renameSensorAction, deleteSensorAction, setUploadAlertAction, replaceDeviceAction, returnDeviceAction } from "@/lib/edge-actions";
 import { MODEL_LABEL } from "@/lib/edge/device-id";
 import { AddSensor, RotateToken, ConfirmSubmit } from "./SensorClient";
@@ -110,8 +110,8 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }, { label: "angar Edge", href: "/edge" }]}
         title="Sensors"
-        subtitle="Never content or URLs."
-        action={<Link href="/edge" className="btn btn-secondary btn-sm">About angar Edge</Link>}
+        subtitle="AI seen on your network, never content or URLs"
+        action={<Link href="/edge" className="btn btn-ghost btn-sm">About angar Edge</Link>}
       />
       {searchParams.notice && <Notice tone="success">{searchParams.notice}</Notice>}
       {!(await featureEnabled(orgId, "edgeSensors")) && <Notice><span className="inline-flex flex-wrap items-center gap-x-2">New software and cloud-log sensors need the Save plan; angar devices work on any plan. <LockedNote feature="edgeSensors" /></span></Notice>}
@@ -127,7 +127,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
 
       {view === "sensors" && (
         <>
-          <Table columns={["Sensor", "Status", "Last report", { label: "Settings", className: "lg:w-[330px]" }, { label: "", className: "w-[1%]" }]} empty={sensors.length ? false : "No sensors yet. Add one below — it takes a few minutes."}>
+          <Table columns={["Sensor", "Status", "Last report", { label: "Settings", className: "lg:w-[330px]" }, { label: "", className: "w-[1%]" }]} empty={sensors.length ? false : "No sensors yet. Add one below."}>
             {sensors.map((x) => {
               const st = (x.stats ?? {}) as Stats;
               const on = isOnline(x);
@@ -197,7 +197,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                   <td className={td}>
                     {canEdit && (
                       <details>
-                        <summary className="btn btn-ghost btn-sm list-none cursor-pointer select-none">⋯</summary>
+                        <summary className="btn btn-ghost btn-sm btn-icon list-none cursor-pointer select-none" aria-label={`Options for ${x.name}`}>⋯</summary>
                         <div className="mt-2 w-72 max-w-[80vw] rounded-xl border border-line bg-ink p-3 flex flex-col gap-2">
                           <form action={renameSensorAction} className="flex gap-2">
                             <input type="hidden" name="sensorId" value={x.id} />
@@ -243,16 +243,14 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
             <AddSensor appUrl={base} edgeImage={EDGE_IMAGE} canEdit={canEdit} />
-            <section className="rounded-xl border border-line bg-panel p-5">
-              <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">Upload alert</h2>
-              <p className="text-sm text-ink-400 mb-3">Alert when a device sends more than this to an AI that isn&apos;t approved, in one day. 0 turns it off.</p>
+            <Panel title="Upload alert" footer={<span className="text-xs text-ink-400">Needs firewall or cloud logs. 0 turns it off.</span>}>
+              <p className="text-sm text-ink-400 mb-3">A device sends more than this to a non-approved AI in one day.</p>
               <form action={setUploadAlertAction} className="flex items-center gap-2">
                 <input name="uploadAlertMb" type="number" min={0} max={100000} step={1} defaultValue={org?.uploadAlertMb ?? 100} className="field w-24 tabular" disabled={!canEdit} aria-label="Upload alert threshold in MB" />
                 <span className="text-sm text-ink-400">MB / day</span>
-                <button className="btn btn-secondary btn-sm" disabled={!canEdit}>Save</button>
+                <button className="btn btn-secondary" disabled={!canEdit}>Save</button>
               </form>
-              <p className="text-xs text-ink-400 mt-2">Needs firewall or cloud logs — DNS can&apos;t see bytes.</p>
-            </section>
+            </Panel>
           </div>
         </>
       )}
@@ -280,11 +278,8 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
 
       {view === "invisible" && (
         <>
-          <Notice>
-            Calls to AI <span className="font-medium">APIs</span> don&apos;t come from people in a browser — they come from scripts, automations and AI agents, sometimes paid with a personal API key outside company billing. Find out who runs them.
-          </Notice>
           {people ? (
-            <Table columns={["API", "Device", { label: "Requests", className: "text-right" }, { label: "MB sent", className: "text-right" }, "Last seen"]} empty={api.length ? false : "No API calls seen in the last 30 days."}>
+            <Table title="API calls" note="Scripts, automations and agents" columns={["API", "Device", { label: "Requests", className: "text-right" }, { label: "MB sent", className: "text-right" }, "Last seen"]} empty={api.length ? false : "No API calls seen in the last 30 days."}>
               {group(api, (e) => `${e.serviceId}|${e.client}`)
                 .sort((a, b) => b.hits - a.hits)
                 .slice(0, 100)
@@ -299,7 +294,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                 ))}
             </Table>
           ) : (
-            <Table columns={["API", { label: "Devices", className: "text-right" }, { label: "Requests", className: "text-right" }, "Last seen"]} empty={api.length ? false : "No API calls seen in the last 30 days."}>
+            <Table title="API calls" note="Scripts, automations and agents" columns={["API", { label: "Devices", className: "text-right" }, { label: "Requests", className: "text-right" }, "Last seen"]} empty={api.length ? false : "No API calls seen in the last 30 days."}>
               {group(api, (e) => e.serviceId)
                 .sort((a, b) => b.hits - a.hits)
                 .map((g) => (
@@ -320,7 +315,10 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
 
       {view === "uploads" && (
         <>
-          <Table columns={["AI", ...(people ? ["Device"] : []), { label: "MB sent", className: "text-right" }, { label: "Requests", className: "text-right" }, "Status", "Last seen"]} empty={uploads.length ? false : "No uploads seen. Bytes sent come from firewall or cloud logs (e.g. Fortinet sentbyte, Zscaler reqsize) — DNS can't see them."}>
+          <Table
+            columns={["AI", ...(people ? ["Device"] : []), { label: "MB sent", className: "text-right" }, { label: "Requests", className: "text-right" }, "Status", "Last seen"]}
+            footer={<span className="text-xs text-ink-400">Top 20, last 30 days. Alert: {org?.uploadAlertMb ? `${org.uploadAlertMb} MB/day to non-approved AI` : "off"}. <Link href="/edge/sensors" className="underline hover:text-ink-100">Change</Link></span>}
+            empty={uploads.length ? false : "No uploads seen. Bytes sent come from firewall or cloud logs (e.g. Fortinet sentbyte, Zscaler reqsize) — DNS can't see them."}>
             {uploads.map((g) => {
               const st = assetFor.get(g.first.serviceId)?.status;
               return (
@@ -337,13 +335,15 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
               );
             })}
           </Table>
-          <p className="text-xs text-ink-400">Top 20 over the last 30 days. Alert threshold: {org?.uploadAlertMb ? `${org.uploadAlertMb} MB/day to AI that isn't approved` : "off"} — <Link href="/edge/sensors" className="underline hover:text-ink-100">change</Link>.</p>
         </>
       )}
 
       {view === "new" && (
         <>
-          <Table columns={["Domain", { label: "Devices", className: "text-right" }, { label: "Requests", className: "text-right" }, "Last seen", { label: "", className: "w-[1%]" }]} empty={cands.length ? false : "No unknown AI seen. Domains that look like AI but aren't in the catalog show up here."}>
+          <Table
+            columns={["Domain", { label: "Devices", className: "text-right" }, { label: "Requests", className: "text-right" }, "Last seen", { label: "", className: "w-[1%]" }]}
+            footer={cands.length ? <span className="text-xs text-ink-400">Looks like AI but isn&apos;t in the angar catalog yet. Approve, block or dismiss it from its page.</span> : undefined}
+            empty={cands.length ? false : "No unknown AI seen. Domains that look like AI but aren't in the catalog show up here."}>
             {cands.sort((a, b) => b.hits - a.hits).map((g) => {
               const a = assetFor.get(g.key);
               return (
@@ -359,7 +359,6 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
               );
             })}
           </Table>
-          <p className="text-xs text-ink-400">Looks like AI (name or firewall category) but isn&apos;t in the angar catalog yet. Approve it, block it or dismiss it from its page.</p>
         </>
       )}
     </div>
@@ -383,7 +382,10 @@ function LocalModels({
   const rows = group(local, (e) => `${e.serviceId}|${e.client}`).sort((a, b) => (a.last < b.last ? 1 : -1));
   return (
     <>
-      <Table columns={["Runtime", ...(people ? ["Server"] : []), "Models", "Last seen"]} empty={rows.length ? false : "No local model servers found. Turn on “LAN scan” on a sensor to look for Ollama and LM Studio (every 6 hours)."}>
+      <Table
+        columns={["Runtime", ...(people ? ["Server"] : []), "Models", "Last seen"]}
+        footer={rows.length ? <span className="text-xs text-ink-400">Local models run outside any provider&apos;s controls.</span> : undefined}
+        empty={rows.length ? false : "No local model servers found. Turn on “LAN scan” on a sensor to look for Ollama and LM Studio (every 6 hours)."}>
         {rows.map((g) => (
           <tr key={g.key}>
             <td className={`${td} font-medium text-ink-100`}>{g.name}</td>
@@ -393,7 +395,6 @@ function LocalModels({
           </tr>
         ))}
       </Table>
-      <p className="text-xs text-ink-400">Local models run on your own machines, outside any provider&apos;s controls — check who uses them and with what data.</p>
     </>
   );
 }

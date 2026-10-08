@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { PageHeader } from "@/components/ui";
-import EdgeBox from "@/components/EdgeBox";
-import { BankPreview, AccountsPreview, DesktopPreview, GatewayPreview } from "@/components/ConnectPreviews";
+import { BlockFoot, BlockHead, PageHeader } from "@/components/ui";
 import { workplaceStatus } from "@/lib/connectors/workplace";
 import { desktopDeviceCounts } from "@/lib/discovery/devices";
 
@@ -11,8 +9,8 @@ export const dynamic = "force-dynamic";
 
 type Key = "bank" | "accounts" | "desktop" | "edge" | "gateway";
 
-// Connect: il punto di partenza. Cinque riquadri grandi (costi, account aziendali,
-// app desktop, angar Edge, Gateway) e sopra il "prossimo passo" più utile tra quelli mancanti.
+// Connect: il punto di partenza. Un elenco di cinque fonti (costi, account aziendali,
+// app desktop, angar Edge, Gateway) con il "prossimo passo" più utile segnato.
 export default async function ConnectPage() {
   const orgId = currentOrgId();
   const since = new Date(Date.now() - 24 * 3600 * 1000);
@@ -38,7 +36,7 @@ export default async function ConnectPage() {
   // Ordine di priorità: prima i costi, poi l'uso (app o account), poi la rete.
   const next: Key | null = !spendCount ? "bank" : !accounts && !devices.total ? "desktop" : !accounts ? "accounts" : !sensors ? "edge" : null;
 
-  const cards: { key: Key; title: string; text: string; status: string | null; href: string; cta: string; art: React.ReactNode }[] = [
+  const cards: { key: Key; title: string; text: string; status: string | null; href: string; cta: string }[] = [
     {
       key: "bank",
       title: "Bank & invoices",
@@ -46,7 +44,6 @@ export default async function ConnectPage() {
       status: spendCount ? `${spendCount} AI charge${spendCount === 1 ? "" : "s"}` : null,
       href: "/sources",
       cta: spendCount ? "Add more" : "Upload",
-      art: <BankPreview />,
     },
     {
       key: "accounts",
@@ -55,7 +52,6 @@ export default async function ConnectPage() {
       status: accounts ? workplace.connected.map((l) => l.split(" /")[0]).join(" · ") : null,
       href: "/sources#accounts",
       cta: accounts ? "Manage" : "Connect",
-      art: <AccountsPreview />,
     },
     {
       key: "desktop",
@@ -64,7 +60,6 @@ export default async function ConnectPage() {
       status: devices.total ? `${devices.online} of ${devices.total} computer${devices.total === 1 ? "" : "s"} online` : null,
       href: "/download",
       cta: devices.total ? "Open" : "Get the app",
-      art: <DesktopPreview />,
     },
     {
       key: "edge",
@@ -73,7 +68,6 @@ export default async function ConnectPage() {
       status: sensors ? `${sensors} sensor${sensors === 1 ? "" : "s"}` : null,
       href: "/edge/sensors",
       cta: sensors ? "Open" : "Set up",
-      art: <EdgeBox width={210} className="-mb-6" />,
     },
     {
       key: "gateway",
@@ -82,50 +76,41 @@ export default async function ConnectPage() {
       status: gatewayKeys ? `${gatewayKeys} key${gatewayKeys === 1 ? "" : "s"} · ${gatewayToday.toLocaleString("en-GB")} today` : null,
       href: "/gateway",
       cta: gatewayKeys ? "Open" : "Set up",
-      art: <GatewayPreview />,
     },
   ];
 
+  const done = cards.filter((c) => c.status).length;
   return (
     <div className="flex flex-col gap-6">
       <PageHeader subtitle="Where angar gets its data" title="Connect" />
 
-      {/* Il prossimo passo è segnato sulla sua scheda ("Start here" + pulsante primario): niente doppione sopra. */}
-      {!next && (
-        <section className="rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink-100">
-          <span className="text-steady">✓</span> All connected.
-        </section>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {cards.map((c) => (
-          <section key={c.key} className="overflow-hidden rounded-xl border border-line bg-panel flex flex-col">
-            <div className="p-5 flex flex-col gap-1">
-              <h2 className="text-sm font-bold text-ink-100 flex items-center gap-2">
-                {c.title}
-                {c.key === next && <span className="rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] border-accent/45 text-accent">Start here</span>}
-              </h2>
-              <p className="text-sm text-ink-400">{c.text}</p>
-            </div>
-            <div className="mt-auto flex items-end justify-center px-6 pt-2 h-[176px] overflow-hidden">{c.art}</div>
-            {/* Piede del riquadro: stato e azione */}
-            <div className="relative flex items-center gap-3 border-t border-line bg-ink px-5 py-3 text-sm bar-foot">
-              <span className="flex-1 min-w-0 truncate text-xs">
+      {/* Un solo elenco: ogni fonte con stato e azione; solo il passo consigliato usa il pulsante primario. */}
+      <div className="rounded-xl border border-line bg-panel animate-rise">
+        <BlockHead title="Sources" note={next ? `${done} of ${cards.length} connected` : "All connected"} />
+        <div className="divide-y divide-line">
+          {cards.map((c) => (
+            <div key={c.key} className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-2 px-5 py-3.5">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 text-sm font-medium text-ink-100">
+                  {c.title}
+                  {c.key === next && <span className="rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] border-accent/45 text-accent">Start here</span>}
+                </div>
+                <div className="text-sm text-ink-400">{c.text}</div>
+              </div>
+              <span className="sm:w-64 min-w-0 truncate text-xs">
                 {c.status ? <span className="text-ink-100"><span className="text-steady">✓</span> {c.status}</span> : <span className="eyebrow">Not connected</span>}
               </span>
-              {/* Solo il passo consigliato usa il pulsante primario */}
               <Link href={c.href} className={`btn btn-sm shrink-0 ${c.key === next ? "btn-primary" : "btn-secondary"}`}>{c.cta}</Link>
             </div>
-          </section>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-400">
-        <span>Also:</span>
-        <Link href="/connectors" className="hover:text-ink-100 underline">AI provider keys{keyCount ? ` (${keyCount})` : ""}</Link>
-        <Link href="/connectors#import" className="hover:text-ink-100 underline">Import a list</Link>
-        <Link href="/connectors#network-logs" className="hover:text-ink-100 underline">Network logs</Link>
-        <Link href="/connect/other" className="hover:text-ink-100 underline">Browser extension &amp; one-off scan</Link>
+          ))}
+        </div>
+        <BlockFoot>
+          <span className="text-xs text-ink-400">Also:</span>
+          <Link href="/connectors" className="text-xs text-ink-400 hover:text-ink-100 underline">AI provider keys{keyCount ? ` (${keyCount})` : ""}</Link>
+          <Link href="/connectors#import" className="text-xs text-ink-400 hover:text-ink-100 underline">Import a list</Link>
+          <Link href="/connectors#network-logs" className="text-xs text-ink-400 hover:text-ink-100 underline">Network logs</Link>
+          <Link href="/connect/other" className="text-xs text-ink-400 hover:text-ink-100 underline">Browser extension &amp; one-off scan</Link>
+        </BlockFoot>
       </div>
     </div>
   );

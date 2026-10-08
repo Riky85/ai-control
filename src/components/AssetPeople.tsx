@@ -10,6 +10,7 @@ import { currentSession } from "@/lib/auth";
 import { seatRemovalSupport } from "@/lib/seat-removal";
 import { setAutoRemoveSeatsAction } from "@/lib/savings-actions";
 import SeatRemoveButton from "@/components/SeatRemoveButton";
+import SubmitButton from "@/components/SubmitButton";
 
 const DAY = 86400000;
 
@@ -69,7 +70,7 @@ export default async function AssetPeople({
             </a>
             <form action={remindInactiveAction}>
               <input type="hidden" name="assetId" value={asset.id} />
-              <button className="btn btn-primary btn-sm">Ask them</button>
+              <SubmitButton className="btn btn-primary btn-sm" pendingLabel="Sending…">Ask them</SubmitButton>
             </form>
           </div>
         )}

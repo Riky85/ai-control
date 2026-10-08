@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { emailEnabled } from "@/lib/mail";
 import { resendVerificationAction } from "@/lib/auth-actions";
+import SubmitButton from "@/components/SubmitButton";
 
 // Piccolo promemoria finché l'email non è confermata (solo se le email sono attive):
 // una pillola fissa in basso, così non spinge giù la barra del titolo.
@@ -16,7 +17,7 @@ export default async function VerifyEmailBanner() {
       <span className="h-2 w-2 rounded-full bg-signal shrink-0" />
       <span className="flex-1 min-w-0">Confirm your email — we sent a link to {account.email}.</span>
       <form action={resendVerificationAction}>
-        <button className="text-sm text-ink-400 hover:text-ink-100 underline">Resend</button>
+        <SubmitButton className="btn-link text-sm" pendingLabel="Sending…">Resend</SubmitButton>
       </form>
     </div>
   );

@@ -88,12 +88,12 @@ export default async function SubscriptionEditorPage({ params }: { params: { id:
   return (
     <div className="flex flex-col gap-6 [&>*:not(.page-bar)]:max-w-4xl">
       <PageHeader
-        crumbs={[{ label: "Overview", href: "/" }, { label: asset.name, href: `/estate/${asset.id}` }]}
+        crumbs={[{ label: "AI Estate", href: "/estate" }, { label: asset.name, href: `/estate/${asset.id}` }]}
         title={manual ? "Edit subscription" : "Add subscription"}
         subtitle={
           manual
             ? manualSourceLabel(manual.enteredByName ?? manual.enteredByEmail, manual.enteredAt)
-            : "Record the real subscription. What you type here counts as the actual cost, and the daily job never overwrites it."
+            : "The real cost, never overwritten by the daily job"
         }
       />
       <SubscriptionForm assetId={asset.id} options={catalogOptions()} currencies={SUBSCRIPTION_CURRENCIES} eurPerUnit={eurPerUnit} initial={initial} editing={!!manual} observedActive={observedActive} />

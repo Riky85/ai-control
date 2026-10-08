@@ -19,7 +19,7 @@ export default function EdgeOrder({
 }) {
   const [n, setN] = useState(1);
   const set = (v: number) => setN(Math.max(1, Math.min(max, Math.round(v) || 1)));
-  const step = "h-9 w-9 rounded-lg border border-line text-ink-100 text-lg leading-none flex items-center justify-center hover:bg-ink-100/[0.05] disabled:opacity-40 disabled:cursor-not-allowed transition-colors";
+  const step = "btn btn-secondary btn-icon text-lg";
   return (
     <form action={payments ? checkoutAction : requestAction} className="flex flex-col gap-2 mt-auto">
       <input type="hidden" name="quantity" value={n} />

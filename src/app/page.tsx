@@ -13,7 +13,7 @@ import { currentSession } from "@/lib/auth";
 import { computeScoreCached, scoreHistory, scoreActions } from "@/lib/engine/score";
 import MarketChangesBlock from "@/components/market/MarketChangesBlock";
 import { loadOpportunitiesCached } from "@/lib/opportunities";
-import { OpportunityRow } from "@/components/opportunities/parts";
+import NextActions from "@/components/overview/NextActions";
 import AiTable from "@/components/AiTable";
 import ImportCheckOffer from "@/components/check/ImportCheckOffer";
 import { loadDemoDataAction } from "@/lib/test-data-actions";
@@ -70,8 +70,8 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
   // Opportunità (stesso totale del motore dei risparmi) e metriche dell'estate.
   const opp = assets.length ? await loadOpportunitiesCached(orgId) : null;
   const em = opp?.estate?.metrics ?? null;
-  // Le prime 4 opportunità nuove e le 6 AI che costano di più (stesse righe delle pagine dedicate).
-  const next = (opp?.list ?? []).filter((o) => o.status === "new").slice(0, 4);
+  // Le prime 5 opportunità aperte (anche quelle già pianificate, con l'interruttore acceso) e le 6 AI che costano di più (stesse righe delle pagine dedicate).
+  const next = (opp?.list ?? []).filter((o) => o.status === "new" || o.status === "accepted" || o.status === "in_progress").slice(0, 5);
   const topAi = [...assets].sort((a, b) => (monthlyOf(b)?.eur ?? -1) - (monthlyOf(a)?.eur ?? -1)).slice(0, 6);
 
   return (
@@ -146,19 +146,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <StatCard label="AI systems" value={String(em?.systems ?? assets.length)} hint={toReview ? `${toReview} to review` : "All reviewed"} tone={toReview ? "warn" : undefined} href={toReview ? "/review" : "/estate"} />
           </div>
 
-          {next.length > 0 && (
-            <section className="rounded-xl border border-line bg-panel overflow-hidden animate-rise" aria-labelledby="next-title">
-              <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
-                <h2 id="next-title" className="text-sm font-bold text-ink-100">What to do next</h2>
-                <Link href="/opportunities" className="eyebrow hover:!text-ink-100 transition-colors">All {opp?.summary.open ?? next.length} opportunities [→]</Link>
-              </div>
-              <div className="divide-y divide-line">
-                {next.map((o) => (
-                  <OpportunityRow key={o.key} o={o} base="/opportunities" canEdit={session?.role !== "VIEWER"} />
-                ))}
-              </div>
-            </section>
-          )}
+          <NextActions list={next} total={opp?.summary.open ?? next.length} canEdit={session?.role !== "VIEWER"} />
 
           <AiTable
             title="Your AI"

@@ -168,9 +168,9 @@ function QueueCard({ r, p, back, nudge }: { r: RequestRow; p: RequestPreview | u
         <input type="hidden" name="back" value={back} />
         <input name="note" maxLength={1000} placeholder="Note to the requester (needed to reject or ask for info)" className="field flex-1 min-w-0 h-8 py-1" />
         <span className="flex items-center gap-1.5 shrink-0">
-          <button name="decision" value="needs_info" className="btn btn-ghost btn-sm">Needs info</button>
-          <button name="decision" value="reject" className="btn btn-ghost btn-sm">Reject</button>
-          <button name="decision" value="approve" className="btn btn-secondary btn-sm btn-go">Approve</button>
+          <button name="decision" value="needs_info" className="btn btn-ghost btn-sm">Ask for info</button>
+          <button name="decision" value="reject" className="btn btn-danger btn-sm">Reject</button>
+          <button name="decision" value="approve" className="btn btn-secondary btn-sm">Approve</button>
         </span>
       </form>
     </section>
@@ -178,9 +178,9 @@ function QueueCard({ r, p, back, nudge }: { r: RequestRow; p: RequestPreview | u
 }
 
 const DECIDED_NOTE: Record<string, string> = {
-  approve: "Approved — the AI system is now in your estate as Approved, and the requester has an email.",
-  reject: "Rejected — the requester has an email with your note.",
-  needs_info: "Asked for more information — the requester has an email with your question.",
+  approve: "Approved. It is now in your estate and the requester has an email.",
+  reject: "Rejected. The requester has an email with your note.",
+  needs_info: "Asked for more information. The requester has an email with your question.",
 };
 
 /**
@@ -225,7 +225,7 @@ export default function RequestsView({
         }
       />
       {error && <Notice tone="error">{error}</Notice>}
-      {sent && <Notice tone="success">Request sent — you&apos;ll get an email when it&apos;s decided.</Notice>}
+      {sent && <Notice tone="success">Request sent. You&apos;ll get an email when it&apos;s decided.</Notice>}
       {decidedKey && DECIDED_NOTE[decidedKey] && (
         <Notice tone="success">
           {DECIDED_NOTE[decidedKey]}

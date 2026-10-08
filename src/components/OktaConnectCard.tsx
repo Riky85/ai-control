@@ -4,6 +4,7 @@ import { syncConnectorAction, disconnectConnectorAction } from "@/lib/actions";
 import { connectOktaAction } from "@/lib/connectors/okta-actions";
 import { decryptJson } from "@/lib/crypto";
 import { fmtDateTime } from "@/lib/format";
+import SubmitButton from "@/components/SubmitButton";
 
 // Okta: una riga come GitHub; il modulo (dominio + API token) si apre solo quando serve.
 export const oktaConnected = (row?: Connector) => row?.status !== "DISCONNECTED" && Boolean(row?.credentialsEncrypted);
@@ -32,7 +33,7 @@ export default function OktaConnectCard({ row, error }: { row?: Connector; error
             <div className="flex items-center gap-2">
               <form action={syncConnectorAction}>
                 <input type="hidden" name="provider" value="OKTA" />
-                <button className="btn btn-secondary btn-sm">Sync now</button>
+                <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Syncing…">Sync now</SubmitButton>
               </form>
               <form action={disconnectConnectorAction}>
                 <input type="hidden" name="provider" value="OKTA" />
@@ -51,7 +52,7 @@ export default function OktaConnectCard({ row, error }: { row?: Connector; error
               <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr_auto] gap-2">
                 <input name="domain" required autoComplete="off" spellCheck={false} placeholder="acme.okta.com" className="field w-full" />
                 <input name="apiToken" type="password" required autoComplete="off" placeholder="API token" className="field w-full" />
-                <button className="btn btn-secondary btn-sm">Test & connect</button>
+                <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Testing…">Test &amp; connect</SubmitButton>
               </div>
               <p className="text-xs text-ink-400">
                 Signed in as a Read-Only Administrator, open Security → API → Tokens in the Okta Admin Console and create a token.

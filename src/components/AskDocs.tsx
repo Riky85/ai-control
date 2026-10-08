@@ -99,7 +99,7 @@ export default function AskDocs() {
                 <div className="text-sm font-semibold text-ink-100">angar help</div>
                 <div className="text-xs text-ink-400">Answers from your data and the documentation</div>
               </div>
-              <button onClick={() => setOpen(false)} aria-label="Close" className="h-7 w-7 rounded-lg text-ink-400 hover:text-ink-100 hover:bg-ink-100/[0.04] flex items-center justify-center">
+              <button onClick={() => setOpen(false)} aria-label="Close" className="btn btn-ghost btn-sm btn-icon">
                 ✕
               </button>
             </div>
@@ -154,7 +154,7 @@ export default function AskDocs() {
                   className="flex-1 min-w-0 border border-line rounded-lg px-3 py-2 text-sm text-ink-100 placeholder:text-ink-400 outline-none focus:border-ink-400"
                 />
                 <MicButton voice={voice} className="!h-auto self-stretch w-9 border border-line !text-ink-400 hover:!text-ink-100" />
-                <button disabled={loading || !input.trim()} className="btn btn-primary disabled:opacity-50">Send</button>
+                <button disabled={loading || !input.trim()} className="btn btn-primary">Send</button>
               </form>
             </>
           ) : (

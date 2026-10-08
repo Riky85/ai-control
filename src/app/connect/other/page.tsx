@@ -16,7 +16,7 @@ export default async function OtherWaysPage({ searchParams }: { searchParams: { 
   const error = searchParams.error ?? searchParams.logerror;
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader crumbs={[{ label: "Connect", href: "/connect" }]} title="Other ways to find AI" subtitle="Browser extension, one-off scan, network logs." />
+      <PageHeader crumbs={[{ label: "Connect", href: "/connect" }]} title="Other ways to find AI" subtitle="Browser extension, one-off scan, network logs" />
       {error && <Notice tone="error">{error}</Notice>}
       <OtherWaysView orgId={s.orgId} base={base} token={token} joinUrl={`${base}/join/${joinCode}`} canEdit={s.role !== "VIEWER"} canAdmin={s.role === "ADMIN" || s.role === "OWNER"} />
     </div>

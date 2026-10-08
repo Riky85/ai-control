@@ -39,8 +39,8 @@ export default async function ActMenu({ o, back, ctx, align = "right" }: { o: Op
       <summary className="btn btn-secondary btn-sm list-none cursor-pointer select-none [&::-webkit-details-marker]:hidden" title="Do it now: the right next step for this opportunity">
         Act
       </summary>
-      <div className={`absolute ${align === "right" ? "right-0" : "left-0"} z-40 mt-1.5 w-72 rounded-xl border border-line bg-panel py-1.5 shadow-lg`} role="menu">
-        <div className="eyebrow px-4 pt-1.5 pb-2">Act on this</div>
+      <div className={`menu absolute ${align === "right" ? "right-0" : "left-0"} z-40 mt-1.5 w-72`} role="menu">
+        <div className="eyebrow px-2.5 pt-1 pb-1.5">Act on this</div>
         {options.map((x) => (
           <form key={x.act} action={actOnOpportunityAction}>
             <input type="hidden" name="key" value={o.key} />
@@ -50,14 +50,14 @@ export default async function ActMenu({ o, back, ctx, align = "right" }: { o: Op
               role="menuitem"
               disabled={!!x.disabled}
               title={x.disabled ?? x.hint}
-              className="w-full text-left px-4 py-2 flex flex-col gap-0.5 hover:bg-ink-100/[0.05] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+              className="menu-item !flex-col !items-start !gap-0.5"
             >
               <span className="text-sm text-ink-100">{x.label}</span>
-              <span className="text-xs text-ink-400 truncate">{x.disabled ?? x.hint}</span>
+              <span className="w-full text-xs text-ink-400 truncate">{x.disabled ?? x.hint}</span>
             </button>
           </form>
         ))}
-        <p className="px-4 pt-2 pb-1 mt-1 border-t border-line text-[11px] text-ink-400">Acting marks it accepted and goes in the audit log.</p>
+        <p className="-mx-1.5 px-4 pt-2 pb-0.5 mt-1 border-t border-line text-[11px] text-ink-400">Acting marks it accepted and goes in the audit log.</p>
       </div>
     </details>
   );

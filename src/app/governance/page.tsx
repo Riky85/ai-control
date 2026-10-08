@@ -1,7 +1,7 @@
 import { currentOrgId } from "@/lib/org";
 import { currentSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { PageHeader, Tabs } from "@/components/ui";
+import { PageHeader, Tabs, StatCard } from "@/components/ui";
 import { vendorRiskFor, vendorFlags, planTier, trainsOnYourData } from "@/lib/vendor-risk";
 import { PLANS } from "@/lib/pricing/catalog";
 import { listExposedKeys } from "@/lib/secrets-scan";
@@ -12,7 +12,7 @@ import { VendorRiskFlags } from "@/components/VendorRiskCard";
 import { readiness, timeline } from "@/lib/compliance";
 import { computeScoreCached } from "@/lib/engine/score";
 import { featureEnabled } from "@/lib/plan-gate";
-import { GovernanceHeader, DecisionsCard, AiActCard, RecordsCard, RegisterCard, type Holdback, type TierKey } from "@/components/governance/cards";
+import { DecisionsCard, AiActCard, RecordsCard, RegisterCard, type Holdback, type TierKey } from "@/components/governance/cards";
 import { loadRegister } from "@/lib/compliance/register";
 import PoliciesSection from "@/components/governance/PoliciesSection";
 import AssuranceView from "@/components/governance/AssuranceView";
@@ -150,6 +150,26 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
     <div className="flex flex-col gap-6">
       <PageHeader subtitle="Owners, rules and risk" title="Governance" action={<ExportMenu dataset="assets" />} />
 
+      {/* Stessa grammatica della home: una riga di numeri (prima era il riquadro "Governance readiness"), poi le schede. */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          label="Governance"
+          value={score ? `${Math.round(score.control.governance)}/100` : "—"}
+          hint={holds[0] ? `${holds[0].label} · +${holds[0].pts}` : "Nothing to fix"}
+          href={holds[0]?.href}
+          tone={score && score.control.governance < 50 ? "warn" : undefined}
+        />
+        <StatCard label="AI Act readiness" value={`${r.score}/100`} hint={r.missingOwners ? `${r.missingOwners} missing owners` : "Owners assigned"} href="/compliance" tone={r.score < 50 ? "warn" : undefined} />
+        <StatCard label="To review" value={String(decisions.review)} hint={`${decisions.allowed} allowed · ${decisions.notAllowed} not allowed`} href={decisions.review ? "/review" : undefined} tone={decisions.review ? "warn" : undefined} />
+        <StatCard
+          label="Not allowed, still used"
+          value={String(decisions.blockedInUse)}
+          hint={decisions.blockedInUse ? "Last 30 days" : "None in 30 days"}
+          href={decisions.blockedInUse ? "/estate?status=UNAPPROVED" : undefined}
+          tone={decisions.blockedInUse ? "alarm" : undefined}
+        />
+      </div>
+
       <Tabs
         active={assurance ? "assurance" : "overview"}
         items={[
@@ -157,8 +177,6 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
           { key: "assurance", label: "Assurance checks", href: "/governance?tab=assurance" },
         ]}
       />
-
-      <GovernanceHeader governance={score ? score.control.governance : null} readiness={r.score} holds={holds} />
 
       {assurance ? (
         <AssuranceView orgId={orgId} />

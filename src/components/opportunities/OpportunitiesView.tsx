@@ -134,7 +134,7 @@ export default function OpportunitiesView({
                 <span>Total counts each AI once, up to its cost. Estimates are marked ≈.</span>
                 {hidden > 0 && canEdit && (
                   <form action={restoreOpportunitiesAction}>
-                    <button className="underline hover:text-ink-100">Show {hidden} hidden</button>
+                    <button className="btn-link text-xs">Show {hidden} hidden</button>
                   </form>
                 )}
               </div>

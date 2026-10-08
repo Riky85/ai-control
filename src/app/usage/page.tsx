@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { PageHeader, Table, td, Notice } from "@/components/ui";
+import { EmptyState, PageHeader, Table, td, Notice } from "@/components/ui";
 import FilterBar from "@/components/FilterBar";
 import { VendorBadge } from "@/components/VendorIcon";
 import { fmtDate, fmtDateTime, fmtEur } from "@/lib/format";
@@ -209,10 +209,10 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Usage"
-        subtitle="Last 30 days."
+        subtitle="Who uses which AI, last 30 days"
         action={
           // Una sola riga di schede (sotto): la rubrica delle persone è una pagina a parte, non una scheda.
-          <Link href="/people" className="btn btn-ghost btn-sm btn-go">
+          <Link href="/people" className="btn btn-ghost btn-sm">
             People directory
           </Link>
         }
@@ -220,14 +220,14 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
       <PrivacyNotice mode={mode} what="Usage" />
 
       {!hasData && (
-        <div className="rounded-xl border border-line bg-panel p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-          <p className="flex-1 text-sm text-ink-400">
-            No usage data yet.
-          </p>
-          <Link href="/download" className={`btn ${view === "cleanup" ? "btn-secondary" : "btn-primary"}`}>
-            Get the desktop app
-          </Link>
-        </div>
+        <EmptyState
+          text="No usage data yet. The desktop app shows which AI people use."
+          action={
+            <Link href="/download" className={`btn ${view === "cleanup" ? "btn-secondary" : "btn-primary"}`}>
+              Get the desktop app
+            </Link>
+          }
+        />
       )}
 
       <UsageSummary

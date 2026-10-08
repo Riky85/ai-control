@@ -88,14 +88,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
               </form>
             </Row>
             <Row title="People">
-              <Link href="/people" className="btn btn-secondary btn-sm btn-go">{userCount} {userCount === 1 ? "person" : "people"}</Link>
+              <Link href="/people" className="btn btn-ghost btn-sm">{userCount} {userCount === 1 ? "person" : "people"}</Link>
               <details className="relative">
                 <summary className="btn btn-secondary btn-sm list-none cursor-pointer">Add by hand</summary>
                 <form action={addUserAction} className="absolute left-0 md:left-auto md:right-0 z-20 mt-2 w-72 max-w-[calc(100vw-3rem)] rounded-xl border border-line bg-panel p-3 shadow-card flex flex-col gap-2">
                   <input name="email" type="email" required placeholder="Email" className="field" />
                   <input name="name" placeholder="Name" className="field" />
                   <input name="department" placeholder="Department" className="field" />
-                  <button className="btn btn-secondary btn-sm">Add</button>
+                  <button className="btn btn-secondary btn-sm">Add person</button>
                 </form>
               </details>
             </Row>
@@ -156,10 +156,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
               </form>
             </Row>
             <Row title="Employee notice" hint="EN · IT · DE · FR · ES">
-              <Link href="/compliance/employee-notice" className="btn btn-secondary btn-sm btn-go">Open</Link>
+              <Link href="/compliance/employee-notice" className="btn btn-ghost btn-sm">Open</Link>
             </Row>
             <Row title="Trust Center">
-              <Link href="/trust" className="btn btn-secondary btn-sm btn-go">Open</Link>
+              <Link href="/trust" className="btn btn-ghost btn-sm">Open</Link>
             </Row>
             {!showsPeople(privacy) && role === "OWNER" && (
               <Row title="Past data" hint="Can't be undone.">
@@ -183,7 +183,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
               <Status on yes="Read-only" />
             </Row>
             <Row title="Audit log" hint="Every change, tamper-evident.">
-              <Link href="/activity?tab=audit" className="btn btn-secondary btn-sm btn-go">Open</Link>
+              <Link href="/activity?tab=audit" className="btn btn-ghost btn-sm">Open</Link>
             </Row>
           </Section>
         </>
@@ -204,7 +204,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
                   <VendorBadge vendor={c.provider} size={22} />
                 </span>
               ))}
-              <Link href="/sources" className="btn btn-secondary btn-sm btn-go">{connectors.length ? "Manage" : "Connect"}</Link>
+              <Link href="/sources" className="btn btn-ghost btn-sm">{connectors.length ? "Manage" : "Connect"}</Link>
             </Row>
             <Row
               title="Slack or Teams"
@@ -222,7 +222,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
               <form action={setChatWebhookAction} className="flex gap-2 w-full max-w-md">
                 <input name="url" type="url" aria-label="Webhook URL" placeholder={org?.chatWebhookEncrypted ? "Connected — paste a new URL" : "Incoming webhook URL"} className="field flex-1 min-w-0" />
                 <button className="btn btn-secondary btn-sm">{org?.chatWebhookEncrypted ? "Update" : "Connect"}</button>
-                {org?.chatWebhookEncrypted && <button name="url" value="" formNoValidate className="btn btn-secondary btn-sm">Disconnect</button>}
+                {org?.chatWebhookEncrypted && <button name="url" value="" formNoValidate className="btn btn-danger btn-sm">Disconnect</button>}
               </form>
             </Row>
           </Section>
@@ -247,7 +247,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
             <Row title="Reset workspace" hint="Owners only. Keeps members, plan, audit log.">
               <form action={resetWorkspaceDataAction} className="flex gap-2 w-full max-w-md">
                 <input name="confirm" required autoComplete="off" aria-label="Organization name" placeholder={`Type "${org?.name ?? ""}"`} className="field flex-1 min-w-0 focus:border-alarm" />
-                <button className="btn btn-danger btn-sm">Reset</button>
+                <button className="btn btn-danger btn-sm">Reset workspace</button>
               </form>
             </Row>
           </Section>
@@ -282,7 +282,7 @@ function TicketsSection({ isAdmin, jira, snow }: { isAdmin: boolean; jira: Ticke
       </form>
       <form action={disconnectTicketingAction}>
         <input type="hidden" name="provider" value={provider} />
-        <button className="btn btn-secondary btn-sm" disabled={!isAdmin}>Disconnect</button>
+        <button className="btn btn-danger btn-sm" disabled={!isAdmin}>Disconnect</button>
       </form>
     </>
   );

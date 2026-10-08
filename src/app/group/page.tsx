@@ -6,7 +6,6 @@ import { switchWorkspaceAction } from "@/lib/workspace-actions";
 import { currentMonth, monthLabel, recentMonths } from "@/lib/chargeback";
 import { EmptyState, PageHeader, StatCard, Table, Tabs, td } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
-import { Insight } from "@/components/insight";
 
 export const dynamic = "force-dynamic";
 
@@ -21,13 +20,13 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
   if (!group)
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="Group view" subtitle="All your companies." />
+        <PageHeader title="Group view" subtitle="All your companies" />
         {/* Stato vuoto standard: una riga e una sola azione. */}
         <EmptyState
           className="animate-rise"
           text={
             current
-              ? "No group yet. A group adds up your companies' workspaces: AI spend, savings, budgets and an intercompany chargeback file."
+              ? "No group yet. A group adds up spend, savings and budgets across your companies."
               : "No group yet. You need to be an owner or admin of this workspace to create one."
           }
           action={
@@ -47,7 +46,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
     (a, r) => ({ spend: a.spend + r.monthlySpend, save: a.save + r.canSave, saved: a.saved + r.savedMonthly, ai: a.ai + r.aiCount, budget: a.budget + r.budget, budgetSpend: a.budgetSpend + r.budgetSpend }),
     { spend: 0, save: 0, saved: 0, ai: 0, budget: 0, budgetSpend: 0 }
   );
-  // Una frase per il gruppo: budget sforati prima, poi dove si concentra il risparmio.
+  // Budget sforati e dove si concentra il risparmio: finiscono negli hint delle card.
   const over = rows.filter((r) => r.teamsOver > 0);
   const bestSave = [...rows].sort((a, b) => b.canSave - a.canSave)[0];
   const bestShare = bestSave && t.save ? Math.round((bestSave.canSave / t.save) * 100) : 0;
@@ -55,6 +54,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
   const biggestShare = biggest && t.spend ? Math.round((biggest.monthlySpend / t.spend) * 100) : 0;
   const addable = orgs.filter((o) => o.groupId !== group.id && !o.groupId);
   const months = recentMonths(12);
+  const teamsOver = over.reduce((n, r) => n + r.teamsOver, 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -69,34 +69,49 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
                 <option key={m} value={m}>{monthLabel(m)}</option>
               ))}
             </select>
-            <button className="btn btn-secondary">Intercompany CSV</button>
+            <button className="btn btn-secondary btn-sm">Export intercompany CSV</button>
           </form>
         }
       />
       {groups.length > 1 && <Tabs items={groups.map((g) => ({ key: g.id, label: g.name, href: `/group?id=${g.id}` }))} active={group.id} />}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Group AI spend" value={t.spend ? `${fmtEur(t.spend)}/mo` : "—"} hint={t.spend ? `${fmtEur(t.spend * 12)} a year` : "No costs yet"} />
+        <StatCard label="Group AI spend" value={t.spend ? `${fmtEur(t.spend)}/mo` : "—"} hint={t.spend ? (biggest && rows.length > 1 ? `${biggest.name}: ${biggestShare}%` : `${fmtEur(t.spend * 12)} a year`) : "No costs yet"} />
         <StatCard label="Saved" value={t.saved ? `${fmtEur(t.saved)}/mo` : "—"} hint={t.saved ? `${fmtEur(t.saved * 12)} a year` : "Nothing done yet"} />
-        <StatCard label="Could still save" value={t.save ? `${fmtEur(t.save)}/mo` : "—"} hint={t.save ? `${fmtEur(t.save * 12)} a year` : "Nothing found"} />
-        <StatCard label="AI in use" value={String(t.ai)} hint={t.budget ? `Budgets: ${fmtEur(t.budgetSpend)} of ${fmtEur(t.budget)}/mo` : "No team budgets set"} />
+        <StatCard label="Could still save" value={t.save ? `${fmtEur(t.save)}/mo` : "—"} hint={t.save ? (bestSave && rows.length > 1 ? `${bestShare}% in ${bestSave.name}` : `${fmtEur(t.save * 12)} a year`) : "Nothing found"} href={t.save && bestSave?.id === s.orgId ? "/opportunities" : undefined} />
+        <StatCard
+          label="AI in use"
+          value={String(t.ai)}
+          hint={over.length ? `${teamsOver} team budget${teamsOver === 1 ? "" : "s"} over, in ${over.map((r) => r.name).join(", ")}` : t.budget ? `Budgets: ${fmtEur(t.budgetSpend)} of ${fmtEur(t.budget)}/mo` : "No team budgets set"}
+          tone={over.length ? "alarm" : undefined}
+          href={over.some((r) => r.id === s.orgId) ? "/budgets" : undefined}
+        />
       </div>
 
-      {over.length > 0 ? (
-        <Insight tone="alarm" href={over.some((r) => r.id === s.orgId) ? "/budgets" : undefined} cta="Open budgets">
-          {over.reduce((n, r) => n + r.teamsOver, 0)} team budget{over.reduce((n, r) => n + r.teamsOver, 0) === 1 ? " is" : "s are"} over this month, in {over.map((r) => r.name).join(", ")}.
-        </Insight>
-      ) : bestSave && t.save >= 1 && rows.length > 1 ? (
-        <Insight href={bestSave.id === s.orgId ? "/opportunities" : undefined} cta="Open opportunities">
-          <b className="font-medium">{bestSave.name}</b> holds {bestShare}% of the group&apos;s possible savings ({fmtEur(bestSave.canSave)}/mo) — start there.
-        </Insight>
-      ) : biggest && t.spend > 0 && rows.length > 1 ? (
-        <Insight>
-          <b className="font-medium">{biggest.name}</b> is {biggestShare}% of the group&apos;s AI spend.
-        </Insight>
-      ) : null}
 
       <Table
+        title="Companies"
+        note="Workspaces you own or administer"
+        footer={
+          <>
+        {addable.length > 0 && (
+          <form action={addToGroupAction} className="flex flex-wrap items-center gap-2">
+            <input type="hidden" name="groupId" value={group.id} />
+            <select name="orgId" className="field py-1.5" aria-label="Workspace to add" required>
+              {addable.map((o) => (
+                <option key={o.id} value={o.id}>{o.name}</option>
+              ))}
+            </select>
+            <button className="btn btn-secondary btn-sm">Add to group</button>
+          </form>
+        )}
+        <form action={renameGroupAction} className="flex flex-wrap items-center gap-2">
+          <input type="hidden" name="groupId" value={group.id} />
+          <input name="name" defaultValue={group.name} required maxLength={100} className="field py-1.5 w-52" aria-label="Group name" />
+          <button className="btn btn-ghost btn-sm">Rename</button>
+        </form>
+          </>
+        }
         columns={[
           "Company",
           { label: "AI", className: "text-right" },
@@ -146,7 +161,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
                   <form action={removeFromGroupAction}>
                     <input type="hidden" name="groupId" value={group.id} />
                     <input type="hidden" name="orgId" value={r.id} />
-                    <button className="btn btn-ghost btn-sm" title={`Remove ${r.name} from the group`} aria-label={`Remove ${r.name} from the group`}>✕</button>
+                    <button className="btn btn-ghost btn-sm btn-icon" title={`Remove ${r.name} from the group`} aria-label={`Remove ${r.name} from the group`}>✕</button>
                   </form>
                 </div>
               </td>
@@ -155,28 +170,6 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
         })}
       </Table>
 
-      <div className="flex flex-wrap items-center gap-4">
-        {addable.length > 0 && (
-          <form action={addToGroupAction} className="flex flex-wrap items-center gap-2">
-            <input type="hidden" name="groupId" value={group.id} />
-            <select name="orgId" className="field py-1.5" aria-label="Workspace to add" required>
-              {addable.map((o) => (
-                <option key={o.id} value={o.id}>{o.name}</option>
-              ))}
-            </select>
-            <button className="btn btn-secondary btn-sm">Add to group</button>
-          </form>
-        )}
-        <form action={renameGroupAction} className="flex flex-wrap items-center gap-2">
-          <input type="hidden" name="groupId" value={group.id} />
-          <input name="name" defaultValue={group.name} required maxLength={100} className="field py-1.5 w-52" aria-label="Group name" />
-          <button className="btn btn-ghost btn-sm">Rename</button>
-        </form>
-      </div>
-      <p className="text-xs text-ink-400">
-        Only workspaces where you are an owner or admin are shown and added up. The intercompany CSV lists each company&apos;s AI cost for the month (real charges, plus the
-        current monthly cost where charges aren&apos;t tracked).
-      </p>
     </div>
   );
 }

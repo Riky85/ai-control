@@ -9,8 +9,8 @@ import Link from "next/link";
 import Badge from "@/components/Badge";
 import StatusDot from "@/components/StatusDot";
 import ExportMenu from "@/components/ExportMenu";
-import { Table, td, PageHeader, Tabs, StatCard } from "@/components/ui";
-import { EmptyState, Insight, TrendPanel, dailySeries, pctChange, trendWord } from "@/components/insight";
+import { BlockHead, EmptyState, Table, td, PageHeader, Tabs, StatCard } from "@/components/ui";
+import { Insight, TrendPanel, dailySeries, pctChange, trendWord } from "@/components/insight";
 import { VendorBadge } from "@/components/VendorIcon";
 import { orgPrivacyMode, showsPeople } from "@/lib/privacy";
 import { displayableRef } from "@/lib/discovery/pseudonym";
@@ -76,25 +76,22 @@ async function EventsSummary({ orgId }: { orgId: string }) {
   const { values, labels } = dailySeries(in30.map((e) => e.occurredAt));
   const stale = now - last.occurredAt.getTime() > 7 * DAY;
 
+  const quiet = Math.floor((now - last.occurredAt.getTime()) / DAY);
+  // Niente frase a parte: l'AI più attiva e il silenzio dei connettori stanno nelle card.
   return (
     <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Events, 30 days" value={in30.length.toLocaleString("en-GB")} hint={change30 != null ? `${trendWord(change30)} vs the 30 days before` : "First month of data"} />
-        <StatCard label="AI with activity" value={String(aiActive)} hint={`of ${assetCount} AI on record`} href="/estate" />
+        <StatCard
+          label="AI with activity"
+          value={String(aiActive)}
+          hint={top ? `Busiest: ${top[1].name}, ${topShare}%${changeWeek != null ? ` · ${trendWord(changeWeek)} this week` : ""}` : `of ${assetCount} AI on record`}
+          href={top ? `/estate/${top[0]}` : "/estate"}
+        />
         <StatCard label="Sources reporting" value={String(sources.length)} hint={sources.join(", ") || "None in 30 days"} href="/sources" />
-        <StatCard label="Last event" value={fmtAgo(last.occurredAt)} hint={fmtDateTime(last.occurredAt)} tone={stale ? "signal" : undefined} />
+        <StatCard label="Last event" value={fmtAgo(last.occurredAt)} hint={stale ? `Nothing new in ${quiet} days` : fmtDateTime(last.occurredAt)} tone={stale ? "warn" : undefined} href={stale ? "/sources" : undefined} />
       </div>
       <TrendPanel title="Events each day" note="Last 30 days" values={values} labels={labels} unit=" events" />
-      {stale ? (
-        <Insight tone="signal" href="/sources" cta="Check sources">
-          No new events in {Math.floor((now - last.occurredAt.getTime()) / DAY)} days — a connector may have stopped syncing.
-        </Insight>
-      ) : top && (
-        <Insight tone={changeWeek != null && changeWeek >= 40 ? "signal" : "accent"} href={`/estate/${top[0]}`} cta={`Open ${top[1].name}`}>
-          {changeWeek != null ? `Activity is ${trendWord(changeWeek)} vs last week. ` : ""}
-          <b className="font-medium">{top[1].name}</b> is the busiest AI — {topShare}% of events {week.length ? "this week" : "this month"}.
-        </Insight>
-      )}
     </>
   );
 }
@@ -159,7 +156,7 @@ async function EventsTab({ q }: { q?: string }) {
   });
 
   if (!query && activities.length === 0)
-    return <EmptyState title="No activity yet" text="Events appear here after the first sync of Microsoft 365, Google Workspace, GitHub or an AI provider key." href="/connect" cta="Connect a source" />;
+    return <EmptyState text="No activity yet." action={<Link href="/connect" className="btn btn-primary">Connect a source</Link>} />;
 
   return (
     <div className="flex flex-col gap-6">
@@ -168,7 +165,7 @@ async function EventsTab({ q }: { q?: string }) {
 
       <Table
         columns={["System", "Event", "Actor", "Risk", "Source", "When"]}
-        empty={activities.length === 0 && (query ? "No events match your search." : "No activity imported yet. Sync a connector to populate this.")}
+        empty={activities.length === 0 && (query ? "No events match your search." : "No activity imported yet.")}
       >
         {activities.map((a) => {
           const risk = a.aiAsset.riskAssessments[0];
@@ -216,63 +213,52 @@ async function EvidenceTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-xs text-ink-400 max-w-lg">
-        Every control, its status, and where that status comes from — this is the record you'd hand to an auditor.
-      </p>
       {worst ? (
         <Insight tone="alarm" href={`/estate/${worst.firstAsset}`} cta="Fix the first one">
-          <b className="font-medium">{worst.label}</b> fails on {worst.n} AI — the control to fix first.
+          <b className="font-medium">{worst.label}</b> fails on {worst.n} AI. Fix this control first.
         </Insight>
       ) : withReport.length > 0 ? (
         <Insight tone="steady" href="/compliance/evidence" cta="Evidence pack">No control is failing on any AI.</Insight>
       ) : null}
 
-      <div className="flex flex-col gap-6">
-        {withReport.map((asset) => {
+      {withReport.length === 0 ? (
+        <EmptyState text="No assurance reports yet. They appear after the first connector sync." />
+      ) : (
+        withReport.map((asset) => {
           const checks = (asset.assuranceReports[0].checks as unknown as CheckRow[] | null) ?? [];
           return (
-            <div key={asset.id} className="flex flex-col gap-2">
-              <div className="px-1 flex items-center justify-between">
-                <Link href={`/estate/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
-                  {asset.name}
-                </Link>
-                <span className="eyebrow">{checks.length} controls</span>
-              </div>
-              <Table columns={["Control", { label: "Status", className: "w-20" }, "Evidence"]}>
-                  {checks.map((c) => (
-                    <tr key={c.key}>
-                      <td className="px-5 py-3 text-ink-100">{c.label}</td>
-                      <td className="px-5 py-3"><StatusDot status={c.status} /></td>
-                      <td className="px-5 py-3 text-ink-400">{c.detail}</td>
-                    </tr>
-                  ))}
-                </Table>
-            </div>
+            <Table
+              key={asset.id}
+              title={<Link href={`/estate/${asset.id}`} className="hover:underline">{asset.name}</Link>}
+              note={`${checks.length} controls`}
+              columns={["Control", { label: "Status", className: "w-20" }, "Evidence"]}
+            >
+              {checks.map((c) => (
+                <tr key={c.key}>
+                  <td className={`${td} text-ink-100`}>{c.label}</td>
+                  <td className={td}><StatusDot status={c.status} /></td>
+                  <td className={`${td} text-ink-400`}>{c.detail}</td>
+                </tr>
+              ))}
+            </Table>
           );
-        })}
-        {withReport.length === 0 && (
-          <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400">
-            No assurance reports yet — evidence appears automatically after the first connector sync.
-          </div>
-        )}
-      </div>
+        })
+      )}
 
-      <div>
-        <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-          <h2 className="px-5 py-3 text-sm font-bold text-ink-100">Inventory history</h2>
-          {snapshots.length === 0 && (
-            <div className="p-5 text-sm text-ink-400">No snapshots yet. One is recorded automatically the first time a connector syncs.</div>
-          )}
+      <div className="rounded-xl border border-line bg-panel animate-rise">
+        <BlockHead title="Inventory history" note={snapshots.length ? `Last ${snapshots.length}` : undefined} />
+        <div className="divide-y divide-line">
+          {snapshots.length === 0 && <div className="px-5 py-8 text-center text-sm text-ink-400">No snapshots yet. One is recorded at the first connector sync.</div>}
           {snapshots.map((s) => {
             const p = s.payload as unknown as SnapshotPayload;
             return (
-              <div key={s.id} className="px-5 py-4">
+              <div key={s.id} className="px-5 py-3">
                 <div className="flex items-start justify-between gap-3">
                   <span className="text-sm text-ink-100 min-w-0">{s.summary}</span>
                   <span className="eyebrow tabular shrink-0">{fmtDateTime(s.createdAt)}</span>
                 </div>
                 {p?.highRiskCount > 0 && (
-                  <div className="text-xs text-alarm mt-1">{p.highRiskCount} asset{p.highRiskCount === 1 ? "" : "s"} at high or critical risk at this point in time.</div>
+                  <div className="text-xs text-alarm mt-1">{p.highRiskCount} asset{p.highRiskCount === 1 ? "" : "s"} at high or critical risk at that time.</div>
                 )}
               </div>
             );

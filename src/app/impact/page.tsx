@@ -23,7 +23,7 @@ export default async function ImpactPage({ searchParams }: { searchParams: Recor
         <PageHeader
           crumbs={[{ label: "Impact", href: "/impact" }, { label: "Score what if" }]}
           title="Score what if"
-          subtitle="Nothing is applied."
+          subtitle="Try changes on your score, nothing is applied"
           action={
             <Link href="/score" className="btn btn-ghost btn-sm">
               Angar Score

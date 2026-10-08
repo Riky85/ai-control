@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requirePlatformAdmin } from "@/lib/auth";
-import { PageHeader, Panel, Table, Tabs, td } from "@/components/ui";
-import { Insight } from "@/components/insight";
+import { PageHeader, Panel, Table, Tabs, td, Notice } from "@/components/ui";
 import { freshnessReport, STALE_DAYS } from "@/lib/market/freshness";
 import { markSourceVerifiedAction, addPriceVersionAction } from "@/lib/market-actions";
 import { catalog, fmtDay, fmtMoney, providerNameOf } from "@/lib/pricing/service";
@@ -31,10 +30,10 @@ export default async function CatalogFreshnessPage({ searchParams }: { searchPar
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader crumbs={[{ label: "System", href: "/system" }, { label: "Catalog" }]} title="Catalog freshness" subtitle="Platform admins only." />
-      {searchParams.error && <Insight tone="alarm">{searchParams.error}</Insight>}
-      {searchParams.saved && <Insight tone="steady">Price version saved. Market change detected.</Insight>}
-      {searchParams.verified && <Insight tone="steady">Source marked as verified today.</Insight>}
+      <PageHeader crumbs={[{ label: "System", href: "/system" }, { label: "Catalog" }]} title="Catalog freshness" subtitle="Platform admins only" />
+      {searchParams.error && <Notice tone="error">{searchParams.error}</Notice>}
+      {searchParams.saved && <Notice tone="success">Price version saved. Market change detected.</Notice>}
+      {searchParams.verified && <Notice tone="success">Source marked as verified today.</Notice>}
 
       <Table
         title="Sources to re-verify"
@@ -62,7 +61,7 @@ export default async function CatalogFreshnessPage({ searchParams }: { searchPar
                   <input type="hidden" name="area" value={s.area} />
                   <input type="hidden" name="url" value={s.url} />
                   <input type="hidden" name="providerId" value={s.providerId ?? ""} />
-                  <button className="btn btn-ghost btn-sm">Verified today</button>
+                  <button className="btn btn-ghost btn-sm">Mark verified</button>
                 </form>
               )}
             </td>
@@ -116,7 +115,7 @@ export default async function CatalogFreshnessPage({ searchParams }: { searchPar
           <input type="hidden" name="contextAbove" value="0" />
           <div className="sm:col-span-2 lg:col-span-4 flex items-center gap-3">
             <button className="btn btn-primary">Save version</button>
-            <span className="text-xs text-ink-400">Market changes and their impact use it right away. Cost estimates use it once it is added to the catalog in code with the same date.</span>
+            <span className="text-xs text-ink-400">Market changes use it now; cost estimates once it is in the code catalog.</span>
           </div>
         </form>
       </Panel>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { currentOrgId } from "@/lib/org";
 import { currentSession } from "@/lib/auth";
 import { buildReport } from "@/lib/report";
-import { Notice, PageHeader, StatCard, Panel } from "@/components/ui";
+import { EmptyState, Notice, PageHeader, StatCard, Panel } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
 import { sendReportNowAction } from "@/lib/spend-actions";
 import { emailEnabled } from "@/lib/mail";
@@ -10,7 +10,7 @@ import PrintButton from "@/components/PrintButton";
 import BenchmarkCard from "@/components/BenchmarkCard";
 import ForecastCard, { loadForecastCard } from "@/components/engine/ForecastCard";
 import { monthLabel } from "@/lib/engine/forecast";
-import { EmptyState, Insight, pctChange, trendWord } from "@/components/insight";
+import { pctChange, trendWord } from "@/components/insight";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
   const r = await buildReport(orgId);
   const me = currentSession();
   const forecast = r.spend > 0 ? await loadForecastCard(orgId) : null;
-  // Una frase utile: variazione dell'ultimo mese chiuso, altrimenti il peso della voce più cara.
+  // Variazione dell'ultimo mese chiuso e peso della voce più cara: negli hint delle card.
   const h = forecast?.history ?? [];
   const lastM = h[h.length - 1];
   const prevM = h[h.length - 2];
@@ -30,15 +30,15 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={`AI report — ${r.month}`}
-        subtitle={r.org?.name ?? undefined}
+        title="Monthly report"
+        subtitle={[r.month, r.org?.name].filter(Boolean).join(" · ")}
         action={
           <div className="flex flex-wrap items-center gap-2">
             <form action={sendReportNowAction}>
-              <button className="btn btn-ghost" title={`Sent every month to owners and admins${emailEnabled() ? "" : " once email is set up"}`}>Email it to me</button>
+              <button className="btn btn-ghost btn-sm" title={`Sent every month to owners and admins${emailEnabled() ? "" : " once email is set up"}`}>Email it to me</button>
             </form>
             <PrintButton />
-            <Link href="/report/board" className={`btn ${r.assets.length ? "btn-primary" : "btn-secondary"}`} title="Quarterly board report: Angar Score, 12-month forecast, verified savings and top risks — ready to print as PDF">Board report</Link>
+            <Link href="/report/board" className={`btn btn-sm ${r.assets.length ? "btn-primary" : "btn-secondary"}`} title="Quarterly board report: score, forecast, verified savings and top risks">Board report</Link>
           </div>
         }
       />
@@ -46,26 +46,16 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
 
       {r.assets.length === 0 && (
         <div className="print:hidden">
-          <EmptyState title="Nothing to report yet" text="Drop a bank statement or invoices — the report fills in from your AI costs." href="/sources" cta="Add costs" />
+          <EmptyState text="Nothing to report yet." action={<Link href="/sources" className="btn btn-primary">Add costs</Link>} />
         </div>
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard href="/estate" label="AI in use" value={String(r.assets.length)} />
-        <StatCard href="/estate?paid=yes" label="Monthly spend" value={r.spend ? fmtEur(r.spend) : "—"} hint={r.spend ? `${fmtEur(r.spend * 12)} a year` : undefined} />
+        <StatCard href={topCost && topShare >= 30 ? `/estate/${topCost.a.id}` : "/estate"} label="AI in use" value={String(r.assets.length)} hint={topCost && topShare >= 30 ? `${topCost.a.name}: ${topShare}% of spend` : undefined} />
+        <StatCard href="/estate?paid=yes" label="Monthly spend" value={r.spend ? fmtEur(r.spend) : "—"} hint={mom != null && Math.abs(mom) >= 5 && lastM ? `Spend ${trendWord(mom)} in ${monthLabel(lastM.month)}` : r.spend ? `${fmtEur(r.spend * 12)} a year` : undefined} tone={mom != null && mom >= 5 ? "warn" : undefined} />
         <StatCard href="/opportunities" label="You could save" value={r.canSave ? `${fmtEur(r.canSave)}/mo` : "—"} hint={r.canSave ? `${fmtEur(r.canSave * 12)} a year` : undefined} />
         <StatCard href="/opportunities?view=progress" label="Saved so far" value={r.saved.monthly >= 1 ? `${fmtEur(r.saved.monthly)}/mo` : "—"} hint={r.saved.verified >= 1 ? `${fmtEur(r.saved.verified)}/mo confirmed` : r.saved.monthly >= 1 ? `${fmtEur(r.saved.monthly * 12)} a year` : undefined} />
       </div>
-
-      {mom != null && Math.abs(mom) >= 5 && lastM && prevM ? (
-        <Insight tone={mom > 0 ? "signal" : "steady"} href={mom > 0 ? "/opportunities" : undefined} cta="See opportunities">
-          Spend {trendWord(mom)} in {monthLabel(lastM.month)}: {fmtEur(lastM.eur)} vs {fmtEur(prevM.eur)}
-        </Insight>
-      ) : topCost && topShare >= 30 ? (
-        <Insight href={`/estate/${topCost.a.id}`} cta={`Open ${topCost.a.name}`}>
-          <b className="font-medium">{topCost.a.name}</b> is {topShare}% of spend
-        </Insight>
-      ) : null}
 
       {forecast && <ForecastCard {...forecast} />}
 
@@ -94,14 +84,14 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
         </Panel>
       </div>
       <BenchmarkCard orgId={currentOrgId()} variant="section" />
-      <Panel title="What changed">
-        <ul className="flex flex-col gap-2 text-sm">
+      <Panel flush title="What changed">
+        <ul className="divide-y divide-line text-sm">
           {r.events.map((e, i) => (
-            <li key={i} className="text-ink-100">
+            <li key={i} className="px-5 py-2.5 text-ink-100">
               <span title={e.detail}>{e.title}</span>
             </li>
           ))}
-          {r.events.length === 0 && <li className="text-ink-400">Nothing new.</li>}
+          {r.events.length === 0 && <li className="px-5 py-3 text-ink-400">Nothing new.</li>}
         </ul>
       </Panel>
     </div>

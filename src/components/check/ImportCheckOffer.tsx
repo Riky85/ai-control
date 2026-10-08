@@ -34,7 +34,7 @@ export default function ImportCheckOffer({ className = "" }: { className?: strin
         <button
           type="button"
           disabled={pending}
-          className="btn btn-secondary btn-sm disabled:opacity-60"
+          className="btn btn-secondary btn-sm"
           onClick={() =>
             start(async () => {
               const r = await importCheckSnapshotAction(charges);
@@ -53,7 +53,7 @@ export default function ImportCheckOffer({ className = "" }: { className?: strin
         </button>
         <button
           type="button"
-          className="text-xs text-ink-400 hover:text-ink-100 underline"
+          className="btn-link text-xs"
           onClick={() => {
             clearSnapshot();
             setCharges(null);

@@ -59,7 +59,7 @@ export default function RequestForm({ back = "/estate/requests/new", compact = f
       </div>
       <div className="bg-ink border-t border-line rounded-b-xl px-5 py-3 bar-foot flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs text-ink-400">Your name and email go with the request.</span>
-        <button className="btn btn-primary btn-sm btn-go">Send request</button>
+        <button className="btn btn-primary">Send request</button>
       </div>
     </form>
   );

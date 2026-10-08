@@ -47,7 +47,7 @@ export default async function MarketChangePage({ params }: { params: { id: strin
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader crumbs={[{ label: "Price changes", href: "/market" }, { label: h.subject }]} title={`${h.subject}: ${h.change}`} subtitle={h.provider} action={sim ? <Link href={sim} className="btn btn-primary">Simulate</Link> : undefined} />
+      <PageHeader crumbs={[{ label: "Price changes", href: "/market" }, { label: h.subject }]} title={`${h.subject}: ${h.change}`} subtitle={h.provider} action={sim ? <Link href={sim} className="btn btn-primary btn-sm">Simulate impact</Link> : undefined} />
 
       <Panel title="Change" flush>
         <div className="divide-y divide-line">

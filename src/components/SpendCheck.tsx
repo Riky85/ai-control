@@ -64,7 +64,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
             className="absolute inset-0 opacity-0 cursor-pointer"
           />
         </label>
-        <button disabled={pending} className="btn btn-primary disabled:opacity-60">{pending ? "Reading…" : "Check my AI spend"}</button>
+        <button disabled={pending} className="btn btn-primary">{pending ? "Reading…" : "Check my AI spend"}</button>
         <p className="text-xs text-ink-400">Bank or card exports, or e-invoices (FatturaPA, Peppol/UBL, XRechnung, ZUGFeRD, Factur-X, Facturae).</p>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-ink-400">
           <span>Only AI lines are looked at. Nothing is saved on our servers.</span>
@@ -133,7 +133,7 @@ export default function SpendCheck({ signedIn }: { signedIn: boolean }) {
               </div>
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn btn-secondary"
                 onClick={() => {
                   saveSnapshot(snapshot);
                   window.open("/check/report", "_blank");

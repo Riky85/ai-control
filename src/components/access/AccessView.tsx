@@ -120,12 +120,12 @@ export default function AccessView({
     <div className="flex flex-col gap-6">
       <PageHeader
         title="App access"
-        subtitle="Third-party apps that can reach company mail, files and calendars"
+        subtitle="Apps that can reach company mail, files and calendars"
         action={
           canRefresh && connected.length > 0 ? (
             <form action={refreshAccessAction}>
               <input type="hidden" name="back" value={back} />
-              <button className="btn btn-secondary btn-sm">Refresh</button>
+              <button className="btn btn-secondary btn-sm">Refresh list</button>
             </form>
           ) : undefined
         }
@@ -135,8 +135,8 @@ export default function AccessView({
 
       {connected.length === 0 ? (
         <EmptyState
-          text="See which apps people have allowed into company accounts — and which of them are AI — by connecting your workplace accounts."
-          action={<Link href="/connect" className="btn btn-secondary btn-go">Connect Microsoft 365 or Google Workspace</Link>}
+          text="Connect your workplace accounts to see which apps, and which AI, people let into them."
+          action={<Link href="/connect" className="btn btn-primary">Connect Microsoft 365 or Google Workspace</Link>}
         />
       ) : (
         <>
@@ -147,8 +147,8 @@ export default function AccessView({
                   <span className="font-medium">{PROVIDER_LABEL[p]}:</span> {caps[p]!.readWhy}
                 </span>
                 {isAdmin && (
-                  <a href={CONNECT_URL[p]} className="btn btn-secondary btn-sm btn-go">
-                    Reconnect to grant access to app permissions
+                  <a href={CONNECT_URL[p]} className="btn btn-secondary btn-sm">
+                    Reconnect
                   </a>
                 )}
               </span>
@@ -171,10 +171,10 @@ export default function AccessView({
 
           {shown.length === 0 ? (
             <EmptyState
-              text={grants.length === 0 ? (missing.length ? "Nothing to show until the permission is granted." : "No app list yet — press Refresh to read it now.") : "No AI app has access to company accounts."}
+              text={grants.length === 0 ? (missing.length ? "Nothing to show until the permission is granted." : "No app list yet. Refresh to read it now.") : "No AI app has access to company accounts."}
               action={
                 view === "ai" && grants.length > 0 ? (
-                  <Link href="/estate/access?view=all" className="btn btn-secondary btn-sm">
+                  <Link href="/estate/access?view=all" className="btn btn-secondary">
                     See all apps
                   </Link>
                 ) : undefined

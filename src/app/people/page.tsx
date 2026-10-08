@@ -1,13 +1,12 @@
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Badge from "@/components/Badge";
-import { PageHeader, Table } from "@/components/ui";
+import { EmptyState, PageHeader, Table } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
 import FilterBar from "@/components/FilterBar";
 import Link from "next/link";
 import PrivacyNotice from "@/components/PrivacyNotice";
 import { StatCard, td } from "@/components/ui";
-import { EmptyState, Insight } from "@/components/insight";
 import { groupByDepartment, maskCount, orgPrivacyMode, showsPeople, MIN_GROUP, type PrivacyMode } from "@/lib/privacy";
 
 export const dynamic = "force-dynamic";
@@ -68,33 +67,21 @@ export default async function PeoplePage({ searchParams }: { searchParams: { q?:
     return (
       <div className="flex flex-col gap-6">
         <PageHeader subtitle="Who uses AI" title="People" />
-        <EmptyState title="Nobody here yet" text="People appear when Microsoft 365, Google Workspace, an AI provider key or the desktop app is connected." href="/connect" cta="Connect a source" />
+        <EmptyState text="Nobody here yet." action={<Link href="/connect" className="btn btn-primary">Connect a source</Link>} />
       </div>
     );
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader subtitle="Who uses AI"
-        title="People"
-       
-        action={<ExportMenu dataset="people" />}
-      />
+      <PageHeader title="People" subtitle="Who uses AI" action={<ExportMenu dataset="people" />} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="People" value={String(everyone.length)} hint={deptStats.size ? `${deptStats.size} department${deptStats.size === 1 ? "" : "s"}` : "No departments set"} />
+        <StatCard label="People" value={String(everyone.length)} hint={topDept ? `${deptStats.size} departments · most active: ${topDept[0]}` : deptStats.size ? `${deptStats.size} department${deptStats.size === 1 ? "" : "s"}` : "No departments set"} href={topDept ? `/people?department=${encodeURIComponent(topDept[0])}` : undefined} />
         <StatCard label="Using AI" value={String(activeCount)} hint={`${Math.round((activeCount / everyone.length) * 100)}% active in the last 30 days`} href="/usage?view=people" />
-        <StatCard label="Own an AI" value={String(owners)} hint={unowned ? `${unowned} AI without an owner` : "Every AI has an owner"} tone={unowned ? "signal" : undefined} href={unowned ? "/compliance" : undefined} />
+        <StatCard label="Own an AI" value={String(owners)} hint={unowned ? `${unowned} AI without an owner` : "Every AI has an owner"} tone={unowned ? "warn" : undefined} href={unowned ? "/compliance" : undefined} />
         <StatCard label="Need attention" value={String(riskyOwners)} hint={riskyOwners ? "Own a high-risk AI" : "No high-risk AI owned"} tone={riskyOwners ? "alarm" : undefined} />
       </div>
-      {unowned > 0 ? (
-        <Insight tone="signal" href="/compliance" cta="Assign owners">
-          {unowned} AI {unowned === 1 ? "has" : "have"} no owner — the AI Act expects someone accountable for each one.
-        </Insight>
-      ) : topDept ? (
-        <Insight href={`/people?department=${encodeURIComponent(topDept[0])}`} cta={`See ${topDept[0]}`}>
-          <b className="font-medium">{topDept[0]}</b> uses AI the most: {topDept[1].active} of {topDept[1].n} people active in the last 30 days.
-        </Insight>
-      ) : null}
+
 
       <FilterBar
         search={{ placeholder: "Search people…" }}
@@ -154,23 +141,17 @@ async function PeopleAggregate({ mode }: { mode: PrivacyMode }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="People" subtitle="No names" action={<ExportMenu dataset="people" />} />
+      <PageHeader title="People" subtitle="Who uses AI, without names" action={<ExportMenu dataset="people" />} />
       <PrivacyNotice mode={mode} what="People" />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard label="People known" value={String(users.length)} hint="From company accounts and provider keys" />
         <StatCard label="Using AI" value={maskCount(usingAi)} hint="Active in the last 30 days" />
-        <StatCard label="AI systems used" value={String(all.length)} hint="By at least one person" />
+        <StatCard label="AI systems used" value={String(all.length)} hint={all[0] ? `Most used: ${all[0][0]} (${maskCount(all[0][1])})` : "By at least one person"} href="/usage" />
       </div>
-      {all[0] && (
-        <Insight href="/usage" cta="See usage">
-          <b className="font-medium">{all[0][0]}</b> is the most used AI — {maskCount(all[0][1])} people
-          {all[1] ? `, then ${all[1][0]} (${maskCount(all[1][1])})` : ""}.
-        </Insight>
-      )}
 
       {mode === "department" ? (
-        <Table columns={["Department", { label: "People", className: "text-right" }, { label: "Using AI (30 days)", className: "text-right" }, "Most used AI"]} empty={users.length === 0 && "Nobody yet — people appear when Microsoft 365, Google Workspace or an Admin key is connected."} footer={<span className="eyebrow">Counts under {MIN_GROUP} are shown as &ldquo;&lt;{MIN_GROUP}&rdquo; so nobody can be singled out.</span>}>
+        <Table columns={["Department", { label: "People", className: "text-right" }, { label: "Using AI (30 days)", className: "text-right" }, "Most used AI"]} empty={users.length === 0 && "Nobody yet. Connect Microsoft 365, Google Workspace or an admin key."} footer={<span className="eyebrow">Counts under {MIN_GROUP} are shown as &ldquo;&lt;{MIN_GROUP}&rdquo; so nobody can be singled out.</span>}>
           {groupByDepartment(users, (u) => u.id, (u) => u.department).map((g) =>
             g.suppressed ? (
               <tr key="suppressed">

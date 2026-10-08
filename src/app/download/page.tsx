@@ -2,11 +2,10 @@ import { desktopServerTag } from "@/lib/edition";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
-import { PageHeader, Tabs } from "@/components/ui";
+import { PageHeader, Panel, Tabs } from "@/components/ui";
 import ComputersView from "./ComputersView";
 import { redirect } from "next/navigation";
 import CopyButton from "@/components/CopyButton";
-import { Wordmark } from "@/components/Logo";
 import { ensureWorkspaceToken } from "@/lib/discovery/ingest";
 import { DESKTOP_OS_LABEL, DESKTOP_VERSION, osFromUserAgent, type DesktopOs } from "@/lib/desktop";
 
@@ -53,7 +52,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }]}
         title="Desktop app"
-        subtitle="Never pages or prompts."
+        subtitle="Which AI people use, never pages or prompts"
       />
       <Tabs active={view} items={VIEWS.map((v) => ({ key: v.key, label: v.label, href: v.key === "download" ? "/download" : `/download?view=${v.key}` }))} />
     </>
@@ -70,57 +69,44 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
     <div className="flex flex-col gap-6">
       {header}
 
-      {/* Download principale + anteprima dell'app */}
-      <section className="relative overflow-hidden rounded-2xl border border-line bg-panel grid grid-cols-1 lg:grid-cols-[1fr_auto]">
-        <div className="relative p-5 sm:p-7 lg:p-9 flex flex-col gap-5 min-w-0">
-          <div className="flex items-center gap-2 text-xs text-ink-400">
-            <span className="rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-100 tabular">v{DESKTOP_VERSION}</span>
-            <span>Linked to {company} automatically</span>
-          </div>
-          <div>
-            <h2 className="font-display text-[26px] leading-tight font-semibold tracking-tight text-ink-100">angar for {DESKTOP_OS_LABEL[detected]}</h2>
-            <p className="text-sm text-ink-400 mt-1.5 max-w-md">Install once, type your work email, done.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <a href={href(detected)} className="btn btn-primary h-11 px-5 text-[15px]">
+      {/* Download principale: un pannello semplice, il sistema rilevato per primo. */}
+      <Panel title={`angar for ${DESKTOP_OS_LABEL[detected]}`} subtitle={`v${DESKTOP_VERSION} · linked to ${company}`} footer={<span className="text-xs text-ink-400">{firstRun[detected]}. Windows 10+, macOS 12+, Linux x64.</span>}>
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-ink-400">Install once, type your work email, done.</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <a href={href(detected)} className="btn btn-primary">
               <OsIcon os={detected} />
               Download for {DESKTOP_OS_LABEL[detected]}
             </a>
             {others.map((o) => (
-              <a key={o} href={href(o)} className="btn btn-secondary h-11">
+              <a key={o} href={href(o)} className="btn btn-secondary">
                 <OsIcon os={o} />
                 {DESKTOP_OS_LABEL[o]}
               </a>
             ))}
           </div>
         </div>
-        <div className="relative hidden lg:flex items-end justify-center px-9 pt-8">
-          <AppPreview company={company} email={s.email} />
-        </div>
-        {/* Barra grigia in basso: primo avvio e requisiti. */}
-        <p className="relative lg:col-span-2 bg-ink border-t border-line rounded-b-2xl px-5 py-3 text-xs text-ink-400 bar-foot">{firstRun[detected]}. Windows 10+, macOS 12+, Linux x64.</p>
-      </section>
+      </Panel>
 
       {/* Tutta l'azienda: un link da mandare a tutti */}
-      <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
-        <h2 className="bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">Send the link to everyone</h2>
-        <div className="flex flex-wrap sm:flex-nowrap min-w-0 items-center gap-2 px-5 py-4">
+      <Panel title="Send the link to everyone">
+        <div className="flex flex-wrap sm:flex-nowrap min-w-0 items-center gap-2">
           <code className="basis-full sm:basis-auto flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100">{joinUrl}</code>
-          <CopyButton text={joinUrl} label="Copy" />
+          <CopyButton text={joinUrl} label="Copy link" />
           <CopyButton
             text={`Hi! We use angar to see which AI tools we use and stop paying for seats nobody needs. It takes a minute: open ${joinUrl}, download the app and type your work email. Only the names of AI tools and the time spent are shared — never pages, prompts or anything you write. Thanks!`}
             label="Copy message"
             className="btn btn-ghost btn-sm shrink-0"
           />
         </div>
-      </section>
+      </Panel>
 
       <details className="group">
         <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 inline-flex items-center gap-1.5 select-none">
           <span className="transition-transform group-open:rotate-90">›</span> For IT (silent install)
         </summary>
         <div className="mt-3 rounded-xl border border-line bg-panel p-5 flex flex-col gap-2">
-          <p className="text-xs text-ink-400">Intune, Jamf, GPO or scripts — run as the signed-in user.</p>
+          <p className="text-xs text-ink-400">Intune, Jamf, GPO or scripts. Run as the signed-in user.</p>
           {it.map((x) => (
             <div key={x.os} className="flex items-center gap-2">
               <span className="w-16 shrink-0 eyebrow">{x.os}</span>
@@ -152,44 +138,5 @@ function OsIcon({ os }: { os: DesktopOs }) {
     <svg width="15" height="14" viewBox="0 0 15 14" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
       <rect x="0.75" y="0.75" width="13.5" height="12.5" rx="1.5" /><path d="M3.5 5l2 2-2 2M7.5 9.5h3.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
-  );
-}
-
-/** Anteprima dell'app desktop (stessa grafica della finestra vera, schermata "You're all set"). */
-// Colori da token: il riquadro è force-dark, quindi i token danno i valori scuri.
-function AppPreview({ company, email }: { company: string; email: string }) {
-  return (
-    <div className="force-dark w-[300px] rounded-t-xl border border-b-0 border-line bg-panel shadow-[0_-8px_32px_rgba(20,20,24,0.12)] dark:shadow-[0_-10px_60px_rgba(0,0,0,0.45)] text-ink-100 select-none" aria-hidden>
-      <div className="flex items-center h-10 px-4 border-b border-line">
-        <Wordmark size={13} />
-        <span className="ml-auto text-ink-400 text-sm leading-none">×</span>
-      </div>
-      <div className="px-5 pt-5 pb-6 flex flex-col gap-3">
-        <span className="h-10 w-10 rounded-full border border-steady/50 bg-steady/15 text-steady flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 8.5l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        </span>
-        <div>
-          <div className="text-[17px] font-semibold">You&apos;re all set</div>
-          <div className="text-[11px] text-ink-400 mt-1 leading-snug">angar is on and runs quietly in the background. It starts by itself — there&apos;s nothing else to do.</div>
-        </div>
-        <div className="rounded-lg border border-line bg-ink px-3 py-2 flex flex-col gap-1.5 text-[11px]">
-          {[
-            ["Company", company],
-            ["Email", email],
-          ].map(([k, v]) => (
-            <div key={k} className="flex gap-2">
-              <span className="w-14 shrink-0 text-ink-400">{k}</span>
-              <span className="truncate font-medium">{v}</span>
-            </div>
-          ))}
-          <div className="flex gap-2 items-center">
-            <span className="w-14 shrink-0 text-ink-400">Status</span>
-            <span className="h-1.5 w-1.5 rounded-full bg-steady" />
-            <span className="font-medium">Running in the background</span>
-          </div>
-        </div>
-        <div className="mt-2 h-8 rounded-lg bg-accent text-white text-xs font-semibold flex items-center justify-center">Done</div>
-      </div>
-    </div>
   );
 }

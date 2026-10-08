@@ -1,15 +1,14 @@
 import Link from "next/link";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, Panel, StatCard, Table, td } from "@/components/ui";
 import { EDGE, planById } from "@/lib/plans";
-import EdgeBox from "@/components/EdgeBox";
 import CopyButton from "@/components/CopyButton";
 import { appUrl } from "@/lib/alerts";
 import { isOnPrem } from "@/lib/edition";
 
 export const dynamic = "force-dynamic";
 
-// Pagina prodotto di angar Edge: cos'è, i tre modi di installarlo, cosa fa (e
-// cosa mai), come si affianca all'app desktop, prezzo. Compatta: griglie strette.
+// Pagina prodotto di angar Edge, nella grammatica della home: quattro numeri, i modi di
+// installarlo, cosa fa rispetto all'app desktop, l'opzione on-premises.
 export default function EdgePage() {
   const salesEmail = process.env.SALES_EMAIL;
   const requestHref = salesEmail ? `mailto:${salesEmail}?subject=${encodeURIComponent("angar Edge — request a device")}` : "/billing#edge";
@@ -20,10 +19,10 @@ export default function EdgePage() {
       <PageHeader
         crumbs={[{ label: "Connect", href: "/connect" }]}
         title="angar Edge"
-        subtitle="Every AI on your network."
+        subtitle="Every AI on your network"
         action={
           <div className="flex items-center gap-2">
-            <a href={requestHref} className="btn btn-secondary btn-sm">
+            <a href={requestHref} className="btn btn-ghost btn-sm">
               Request a device
             </a>
             <Link href="/edge/sensors" className="btn btn-primary btn-sm">
@@ -33,147 +32,63 @@ export default function EdgePage() {
         }
       />
 
-      {/* Hero */}
-      <section className="rounded-xl border border-line bg-panel p-5 md:p-6 grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-6 overflow-hidden">
-        <div className="flex flex-col gap-3 max-w-xl">
-          <span className="self-start text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em]">Software · cloud logs · device</span>
-          <p className="text-[16px] text-ink-100 leading-relaxed">
-            One sensor on your network — as a DNS resolver or reading your firewall logs — sees every AI in use on <span className="font-medium">every device</span>:
-            laptops, phones, servers, and the scripts and agents nobody told you about.
-          </p>
-          <p className="text-sm text-ink-400">Only AI service names, counts and upload sizes. Never URLs, prompts, messages or files.</p>
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-ink-400">
-            <span>
-              <span className="text-[17px] font-light tracking-[-0.03em] tabular text-ink-100">10 min</span> to install
-            </span>
-            <span>
-              <span className="text-[17px] font-light tracking-[-0.03em] tabular text-ink-100">0</span> installs on computers
-            </span>
-            <span>
-              <span className="text-[17px] font-light tracking-[-0.03em] text-ink-100">Included</span> from {fromPlan}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 pt-1">
-            <Link href="/edge/sensors" className="btn btn-secondary">
-              Set up a sensor
-            </Link>
-            <a href={requestHref} className="text-sm text-ink-400 hover:text-ink-100 underline">
-              or request a plug &amp; play device
-            </a>
-          </div>
-        </div>
-        <div className="justify-self-center">
-          <EdgeBox width={280} />
-        </div>
-      </section>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard label="Install" value="10 min" hint="One sensor for each network" />
+        <StatCard label="On computers" value="0 installs" hint="Phones, servers and scripts too" />
+        <StatCard label="Software" value="Included" hint={`From ${fromPlan}, any number of sensors`} />
+        <StatCard label="angar device" value={`€${EDGE.pricePerDevice}/mo`} hint={`${EDGE.minMonths}-month minimum, shipping included`} />
+      </div>
 
-      {/* Tre modi di installarlo */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Table
+        title="Ways to install"
+        note="Only AI names, counts and upload sizes"
+        columns={["Option", "How", "Works with", { label: "Price", className: "text-right" }]}
+        footer={
+          <span className="text-xs text-ink-400">
+            MSPs and resellers get {EDGE.partnerDiscountPct}% off. See the <Link href="/partner" className="underline hover:text-ink-100">partner console</Link>.
+          </span>
+        }
+      >
         {[
-          {
-            t: "Software",
-            tag: `Included from ${fromPlan}`,
-            d: "Docker image or Linux binary on any always-on server, VM or Raspberry Pi. Acts as the network's DNS resolver and/or receives firewall syslog.",
-            foot: "Fortinet · Sophos · Palo Alto · Meraki · UniFi · pfSense",
-          },
-          {
-            t: "Cloud logs",
-            tag: "No install",
-            d: "Already on a secure web gateway? Push its logs to angar and we do the rest — nothing runs in your network.",
-            foot: "Cloudflare Gateway · Zscaler · Cisco Umbrella",
-          },
-          {
-            t: "angar device",
-            tag: `€${EDGE.pricePerDevice}/device·mo`,
-            d: "Pre-configured, plug & play box for sites without IT or servers. Plug into the LAN, scan the QR code, done. Replaced free if it fails.",
-            foot: `${EDGE.minMonths}-month minimum · shipping included`,
-          },
+          { t: "Software", d: "Docker image or Linux binary on any always-on server, VM or Raspberry Pi, as DNS resolver or firewall syslog receiver.", w: "Fortinet · Sophos · Palo Alto · Meraki · UniFi · pfSense", p: `Included from ${fromPlan}` },
+          { t: "Cloud logs", d: "Push your secure web gateway logs to angar. Nothing runs in your network.", w: "Cloudflare Gateway · Zscaler · Cisco Umbrella", p: "Included" },
+          { t: "angar device", d: "Plug & play box for sites without IT. Plug into the LAN, scan the QR code. Replaced free if it fails.", w: "Any network", p: `€${EDGE.pricePerDevice} a month` },
         ].map((x) => (
-          <div key={x.t} className="rounded-xl border border-line bg-panel flex flex-col">
-            <div className="flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3 bar-head">
-              <span className="text-sm font-bold text-ink-100">{x.t}</span>
-              <span className="text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] whitespace-nowrap">{x.tag}</span>
-            </div>
-            <p className="flex-1 px-4 py-3 text-sm text-ink-400">{x.d}</p>
-            <p className="bg-ink border-t border-line rounded-b-xl px-4 py-2.5 eyebrow bar-foot">{x.foot}</p>
-          </div>
+          <tr key={x.t}>
+            <td className={`${td} font-medium text-ink-100 whitespace-nowrap`}>{x.t}</td>
+            <td className={`${td} text-ink-400 min-w-[260px]`}>{x.d}</td>
+            <td className={`${td} eyebrow`}>{x.w}</td>
+            <td className={`${td} text-right text-ink-100 whitespace-nowrap`}>{x.p}</td>
+          </tr>
         ))}
-      </section>
+      </Table>
 
-      {/* Cosa fa */}
-      <section className="rounded-xl border border-line bg-panel p-5">
-        <h2 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">What it does</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3">
-          {[
-            ["Discover", "Every AI reached from the network, 24/7 — incl. phones, servers and BYOD."],
-            ["Block + suggest", "Stops non-approved AI at DNS level. The desktop app tells the person which approved AI to use instead."],
-            ["Invisible AI", "Servers, scripts and agents calling OpenAI, Anthropic & co. directly — often on personal API keys."],
-            ["Local models", "Finds Ollama and LM Studio servers on the LAN (opt-in scan)."],
-            ["Large uploads", "Alerts when a device sends lots of data to a non-approved AI — from firewall byte counts, never content."],
-            ["Privacy modes", "By person, by department (groups ≥ 5) or company totals only — for Statuto dei lavoratori art. 4 and the Betriebsrat."],
-            ["AI Act / NIS2 evidence", "Tamper-evident evidence pack of what AI runs where, and what was blocked."],
-            ["Feeds angar", "Your AI, Savings, alerts and the monthly report update themselves."],
-          ].map(([t, d]) => (
-            <div key={t} className="flex gap-2">
-              <Tick />
-              <div>
-                <div className="text-sm font-medium text-ink-100">{t}</div>
-                <p className="text-xs text-ink-400 leading-relaxed">{d}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Cosa mai + Edge vs app desktop */}
-      <section className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-6">
-        <div className="rounded-xl border border-line bg-panel p-4">
-          <h3 className="-mx-4 -mt-4 mb-3 bg-ink border-b border-line rounded-t-xl px-4 py-3 text-sm font-bold text-ink-100 bar-head">What it never does</h3>
-          <ul className="flex flex-col gap-1.5 text-sm text-ink-400">
-            {[
-              "Read content — no URLs, prompts, messages or files",
-              "Decrypt traffic or sit in the data path (DNS answers only)",
-              "Send non-AI domains anywhere — matching happens on the sensor",
-              "Show names when privacy mode says otherwise",
-              "Cover home networks — that's the desktop app's job",
-            ].map((t) => (
-              <li key={t} className="flex gap-2">
-                <Dash />
-                {t}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="rounded-xl border border-line bg-panel overflow-hidden">
-          <div className="grid grid-cols-[6rem_1fr_1fr] text-xs">
-            <div className="px-3 py-2.5 bg-ink border-b border-line bar-head" />
-            <div className="px-3 py-2.5 bg-ink border-b border-line font-semibold text-ink-100 text-sm bar-head">angar Edge</div>
-            <div className="px-3 py-2.5 bg-ink border-b border-line font-semibold text-ink-100 text-sm bar-head">Desktop app</div>
-            {[
-              ["Install", "One sensor for each network, or cloud logs", "One download on each computer, no admin rights"],
-              ["Covers", "Whole network: phones, servers, scripts", "That computer, anywhere it goes"],
-              ["Blocks", "Yes, at DNS for everyone", "Shows the person the approved AI"],
-              ["By person", "Via hostname, AD/DHCP or the app", "Yes, tied to the work email"],
-              ["Best for", "Invisible AI, unmanaged devices, NIS2", "Who uses what, unused seats, remote work"],
-            ].map(([k, a, b]) => (
-              <Row key={k} k={k} a={a} b={b} />
-            ))}
-          </div>
-          <p className="px-3 py-2.5 text-xs text-ink-400">Most companies use both: Edge for the network, the app for people.</p>
-        </div>
-      </section>
+      <Table
+        title="What it does"
+        columns={["", "Edge", "Desktop app"]}
+        footer={<span className="text-xs text-ink-400">Never reads content (URLs, prompts, messages, files), never decrypts traffic, never sends non-AI domains anywhere.</span>}
+      >
+        {[
+          ["Covers", "Whole network: phones, servers, scripts and agents", "That computer, anywhere it goes"],
+          ["Blocks", "Non-approved AI at DNS, for everyone", "Shows the person the approved AI"],
+          ["By person", "Via hostname, AD/DHCP or the app, as privacy mode allows", "Yes, tied to the work email"],
+          ["Also finds", "Local models (Ollama, LM Studio), large uploads to non-approved AI", "Unused seats, who uses what"],
+          ["Evidence", "Tamper-evident AI Act / NIS2 pack", "Feeds the same pack"],
+          ["Best for", "Invisible AI, unmanaged devices, NIS2", "Remote work, seat cleanup"],
+        ].map(([k, a, b]) => (
+          <tr key={k}>
+            <td className={`${td} eyebrow whitespace-nowrap`}>{k}</td>
+            <td className={`${td} text-ink-100`}>{a}</td>
+            <td className={`${td} text-ink-100`}>{b}</td>
+          </tr>
+        ))}
+      </Table>
 
       {/* Tutto in azienda: angar intero sul server del cliente o sul dispositivo Edge. */}
       {!isOnPrem() && (
-        <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-3">
-          <div className="-mx-5 -mt-5 mb-1 flex items-center gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
-            <h2 className="text-sm font-bold text-ink-100">Keep every piece of data in your company</h2>
-            <span className="text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em]">Enterprise</span>
-          </div>
-          <p className="text-sm text-ink-400 max-w-3xl">
-            Run the whole of angar on your own server or on the angar device. Computers, sensors, people and costs all stay on your network — nothing is sent to
-            angar&apos;s cloud. One command on any Linux server with internet access for updates:
-          </p>
+        <Panel title="Keep all data in your company" subtitle="Enterprise">
+          <div className="flex flex-col gap-3">
+          <p className="text-sm text-ink-400 max-w-3xl">Run all of angar on your own Linux server or on the angar device. Nothing is sent to angar&apos;s cloud.</p>
           <div className="flex items-start gap-2 max-w-3xl">
             <code className="flex-1 min-w-0 rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100 font-mono break-all select-all">{`curl -fsSL ${appUrl()}/api/onprem/install.sh | sudo sh`}</code>
             <CopyButton text={`curl -fsSL ${appUrl()}/api/onprem/install.sh | sudo sh`} />
@@ -182,58 +97,9 @@ export default function EdgePage() {
             Then open the address it prints and create your account.{" "}
             <Link href="/docs/on-premises" className="underline hover:text-ink-100">How it works</Link>
           </p>
-        </section>
+          </div>
+        </Panel>
       )}
-
-      {/* Prezzo */}
-      <section className="rounded-xl border border-line bg-panel p-4 flex flex-col md:flex-row md:items-center gap-4">
-        <div className="flex-1 text-sm text-ink-400">
-          <span className="text-ink-100 font-medium">Software and cloud logs are included from {fromPlan}</span> — as many sensors as you need. Prefer hardware? The angar
-          device is <span className="text-ink-100">€{EDGE.pricePerDevice}</span> a month for each device, {EDGE.minMonths}-month minimum, shipping and replacement included.
-          MSPs and resellers get {EDGE.partnerDiscountPct}% off — see the{" "}
-          <Link href="/partner" className="underline hover:text-ink-100">
-            partner console
-          </Link>
-          .
-        </div>
-        <div className="flex items-baseline gap-1 shrink-0">
-          <span className="text-[28px] font-light tracking-[-0.03em] tabular text-ink-100">€{EDGE.pricePerDevice}</span>
-          <span className="text-sm text-ink-400">/device·mo</span>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          <Link href="/edge/sensors" className="btn btn-secondary">
-            Set up a sensor
-          </Link>
-          <a href={requestHref} className="btn btn-secondary">
-            Request a device
-          </a>
-        </div>
-      </section>
     </div>
-  );
-}
-
-function Row({ k, a, b }: { k: string; a: string; b: string }) {
-  return (
-    <>
-      <div className="px-3 py-1.5 border-b border-line eyebrow">{k}</div>
-      <div className="px-3 py-1.5 border-b border-line text-ink-100 text-sm">{a}</div>
-      <div className="px-3 py-1.5 border-b border-line text-ink-100 text-sm">{b}</div>
-    </>
-  );
-}
-
-function Tick() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="mt-0.5 shrink-0 text-steady">
-      <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function Dash() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="mt-0.5 shrink-0 text-ink-400">
-      <path d="M4 8h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
   );
 }

@@ -181,7 +181,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
         action={
           <>
             {manage && (
-              <a href={manage} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" title="Change seats, plan or cancel on the provider's site">
+              <a href={manage} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" title="Change seats, plan or cancel on the provider's site">
                 Manage plan ↗
               </a>
             )}
@@ -232,11 +232,11 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                       <div className="text-[17px] font-light tracking-[-0.03em] text-ink-100 tabular shrink-0">{fmtEur(i.monthlyEur)}<span className="text-xs tracking-normal text-ink-400">/mo</span></div>
                       <form action={dismissSavingAction}>
                         <input type="hidden" name="key" value={i.key} />
-                        <button className="btn btn-ghost btn-sm" title="Not for us — hide">Hide</button>
+                        <button className="btn btn-ghost btn-sm" title="Not for us">Hide</button>
                       </form>
                     </div>
                   ))}
-                  {mine.length === 0 && <p className="px-5 py-4 text-sm text-ink-400">Nothing to save.</p>}
+                  {mine.length === 0 && <p className="px-5 py-8 text-center text-sm text-ink-400">Nothing to save.</p>}
                 </div>
               </Panel>
               <Panel title="Details">
@@ -342,10 +342,10 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 flush
                 title="Assurance checks"
                 subtitle={assurance ? `${assurance.passedCount} passed · ${assurance.warningCount} warn · ${assurance.failedCount} failed` : undefined}
-                action={<Link href="/activity?tab=evidence" className="btn btn-secondary btn-sm">Activity evidence</Link>}
+                action={<Link href="/activity?tab=evidence" className="btn btn-ghost btn-sm">Activity evidence</Link>}
               >
                 {!assurance ? (
-                  <p className="px-5 py-4 text-sm text-ink-400">Not assessed yet.</p>
+                  <p className="px-5 py-8 text-center text-sm text-ink-400">Not assessed yet.</p>
                 ) : (
                 <div className="divide-y divide-line">
                   {((assurance?.checks as unknown as { key: string; label: string; status: "PASSED" | "WARNING" | "FAILED"; detail: string }[] | undefined) ?? []).map((ch) => (

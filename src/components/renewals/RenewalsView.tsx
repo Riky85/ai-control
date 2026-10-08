@@ -49,8 +49,8 @@ export default function RenewalsView({
 
       {months.length === 0 ? (
         <EmptyState
-          text="No renewal in the next 12 months. Add contract dates or connect billing to see them here."
-          action={<Link href="/opportunities?view=contracts" className="btn btn-secondary btn-go">Add contract dates</Link>}
+          text="No renewal in the next 12 months."
+          action={<Link href="/opportunities?view=contracts" className="btn btn-secondary">Add contract dates</Link>}
         />
       ) : (
         months.map((m) => (
@@ -94,7 +94,7 @@ export default function RenewalsView({
                     <a href={`/spend/renewals/calendar.ics?asset=${encodeURIComponent(r.assetId)}`} className="btn btn-ghost btn-sm" title="Add a calendar reminder a week before the notice deadline (or the renewal)">
                       Set reminder
                     </a>
-                    <Link href={`/negotiate/${encodeURIComponent(r.assetId)}`} className="btn btn-secondary btn-sm btn-go">Negotiate</Link>
+                    <Link href={`/negotiate/${encodeURIComponent(r.assetId)}`} className="btn btn-secondary btn-sm">Negotiate</Link>
                   </span>
                 </td>
               </tr>

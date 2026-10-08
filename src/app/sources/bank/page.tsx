@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { currentOrgId } from "@/lib/org";
-import { Notice, PageHeader } from "@/components/ui";
+import { Notice, PageHeader, EmptyState, Tabs } from "@/components/ui";
 import FilterBar from "@/components/FilterBar";
 import { bankConfigured, listBanks, type Bank } from "@/lib/connectors/bank";
 import { startBankAuthAction } from "@/lib/spend-actions";
@@ -36,24 +36,18 @@ export default async function BankPage({ searchParams }: { searchParams: { count
       <PageHeader
         crumbs={[{ label: "Sources", href: "/sources" }]}
         title="Connect your bank"
-        subtitle="Read-only, 90 days. AI charges only."
+        subtitle="Read-only, 90 days, AI charges only"
       />
       {!bankConfigured() && (
         <Notice>
-          Bank connections aren&apos;t enabled on this deployment yet. Meanwhile, <Link href="/sources" className="underline">upload a statement</Link> — it takes a minute.
+          Bank connections aren&apos;t enabled on this deployment yet. Meanwhile, <Link href="/sources" className="underline">upload a statement</Link>.
         </Notice>
       )}
       {error && <Notice tone="error">{error}</Notice>}
       {bankConfigured() && (
         <>
-          <div className="flex items-center gap-2 flex-wrap">
-            {COUNTRIES.map(([code, name]) => (
-              <Link key={code} href={`/sources/bank?country=${code}`} className={`btn btn-sm ${code === country ? "btn-secondary" : "btn-ghost"}`}>
-                {name}
-              </Link>
-            ))}
-          </div>
-          <FilterBar search={{ placeholder: "Find your bank" }} right={shown.length > MAX_SHOWN ? `Showing ${MAX_SHOWN} of ${shown.length} banks — search to find yours` : `${shown.length} bank${shown.length === 1 ? "" : "s"}`} />
+          <Tabs active={country} items={COUNTRIES.map(([code, name]) => ({ key: code, label: name, href: `/sources/bank?country=${code}` }))} />
+          <FilterBar search={{ placeholder: "Find your bank" }} right={shown.length > MAX_SHOWN ? `${MAX_SHOWN} of ${shown.length} banks, search to find yours` : `${shown.length} bank${shown.length === 1 ? "" : "s"}`} />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {shown.slice(0, MAX_SHOWN).map((b) => (
               <form key={b.name} action={startBankAuthAction}>
@@ -71,7 +65,7 @@ export default async function BankPage({ searchParams }: { searchParams: { count
               </form>
             ))}
           </div>
-          {shown.length === 0 && <p className="text-sm text-ink-400">No bank matches — try another country or name.</p>}
+          {shown.length === 0 && <EmptyState text="No bank matches. Try another country or name." />}
         </>
       )}
     </div>

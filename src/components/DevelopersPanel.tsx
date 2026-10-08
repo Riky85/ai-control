@@ -7,6 +7,8 @@ import { revokeApiKeyAction, toggleWebhookAction, deleteWebhookAction, testWebho
 import { NewApiKey, NewWebhook } from "@/components/DevelopersPanelClient";
 import CopyButton from "@/components/CopyButton";
 import { Row, Section } from "@/components/SettingsRows";
+import ConfirmAction from "@/components/ConfirmAction";
+import SubmitButton from "@/components/SubmitButton";
 
 /** Settings → Developers: chiavi dell'API REST (sola lettura) e webhook in uscita. */
 export default async function DevelopersPanel({ orgId, canEdit, webhookStatus }: { orgId: string; canEdit: boolean; webhookStatus?: string }) {
@@ -33,10 +35,15 @@ export default async function DevelopersPanel({ orgId, canEdit, webhookStatus }:
         {keys.map((k) => (
           <Row key={k.id} title={<span className="font-normal">{k.name}</span>} hint={<span className="font-mono">{k.hint} · {k.lastUsedAt ? `used ${fmtAgo(k.lastUsedAt)}` : `created ${fmtDate(k.createdAt)}`}</span>}>
             {canEdit && (
-              <form action={revokeApiKeyAction}>
-                <input type="hidden" name="id" value={k.id} />
-                <button className="btn btn-secondary btn-sm">Revoke</button>
-              </form>
+              <ConfirmAction
+                label="Revoke"
+                question={<>Revoke the key <span className="font-medium">{k.name}</span>?</>}
+                detail="Apps using it stop working at once. This can't be undone."
+                confirmLabel="Yes, revoke the key"
+                pendingLabel="Revoking…"
+                action={revokeApiKeyAction}
+                fields={{ id: k.id }}
+              />
             )}
           </Row>
         ))}
@@ -58,9 +65,17 @@ export default async function DevelopersPanel({ orgId, canEdit, webhookStatus }:
           >
             {canEdit && (
               <>
-                <form action={testWebhookAction}><input type="hidden" name="id" value={h.id} /><button className="btn btn-secondary btn-sm">Send test</button></form>
+                <form action={testWebhookAction}><input type="hidden" name="id" value={h.id} /><SubmitButton className="btn btn-secondary btn-sm">Send test</SubmitButton></form>
                 <form action={toggleWebhookAction}><input type="hidden" name="id" value={h.id} /><button className="btn btn-secondary btn-sm">{h.active ? "Pause" : "Resume"}</button></form>
-                <form action={deleteWebhookAction}><input type="hidden" name="id" value={h.id} /><button className="btn btn-secondary btn-sm">Delete</button></form>
+                <ConfirmAction
+                  label="Delete"
+                  question="Delete this webhook?"
+                  detail={<span className="break-all">{h.url} stops receiving events. This can&apos;t be undone.</span>}
+                  confirmLabel="Yes, delete the webhook"
+                  pendingLabel="Deleting…"
+                  action={deleteWebhookAction}
+                  fields={{ id: h.id }}
+                />
               </>
             )}
           </Row>

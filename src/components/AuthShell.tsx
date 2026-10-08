@@ -92,9 +92,9 @@ function Showcase() {
   );
 }
 
-export const authInput = "field w-full !h-11 !rounded-xl !bg-sidebar !text-[15px] focus:!border-accent/70";
-export const authButton = "btn btn-primary w-full !h-11 !rounded-xl text-[15px]";
-const ssoButton = "btn btn-secondary w-full !h-11 !rounded-xl !bg-sidebar text-[15px] gap-2.5 justify-center";
+export const authInput = "field w-full !h-11 !bg-sidebar !text-[15px] focus:!border-accent/70";
+export const authButton = "btn btn-primary w-full !h-11 text-[15px]";
+const ssoButton = "btn btn-secondary w-full !h-11 !bg-sidebar text-[15px] gap-2.5";
 
 // Accesso con Microsoft / Google: solo i provider configurati; niente se nessuno lo è.
 export function SsoButtons({ next, email }: { next?: string; email?: string }) {

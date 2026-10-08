@@ -85,7 +85,7 @@ export default function FilterBar({
             setQ("");
             push(Object.fromEntries([sp, ...filters.map((f) => f.param)].map((k) => [k, null])));
           }}
-          className="h-9 px-2 eyebrow hover:!text-ink-100 transition-colors"
+          className="btn btn-ghost"
         >
           Clear all
         </button>

@@ -1,5 +1,8 @@
 import { Pill, Section, NextStep, Chevron } from "./parts";
+import { Switch } from "@/components/ui";
 import { createPolicyAction, addPolicyFromLibraryAction, togglePolicyAction, deletePolicyAction } from "@/lib/actions";
+import SubmitButton from "@/components/SubmitButton";
+import ConfirmAction from "@/components/ConfirmAction";
 
 /**
  * Governance → Policies: le policy dell'azienda in un'unica lista (categoria
@@ -74,25 +77,21 @@ export default function PoliciesSection({ policies, templates, canEdit, libraryT
                   <form action={togglePolicyAction}>
                     <input type="hidden" name="policyId" value={p.id} />
                     <input type="hidden" name="enabled" value={String(p.enabled)} />
-                    <button
-                      type="submit"
-                      role="switch"
-                      aria-checked={p.enabled}
-                      title={p.enabled ? "Enabled — click to turn off" : "Disabled — click to turn on"}
-                      className="flex items-center gap-2 rounded-md px-1.5 py-1 text-xs text-ink-400 hover:text-ink-100"
-                    >
-                      <span className={`relative inline-block h-4 w-7 rounded-full transition-colors ${p.enabled ? "bg-steady/70" : "bg-ink-400/30"}`} aria-hidden>
-                        <span className={`absolute top-0.5 h-3 w-3 rounded-full bg-panel shadow transition-all ${p.enabled ? "left-3.5" : "left-0.5"}`} />
-                      </span>
+                    <label className="flex items-center gap-2 px-1.5 py-1 text-xs text-ink-400 hover:text-ink-100 cursor-pointer">
+                      <Switch on={p.enabled} aria-label={p.name} title={p.enabled ? "Enabled — click to turn off" : "Disabled — click to turn on"} />
                       <span className="hidden sm:inline w-[3.25rem] text-left">{p.enabled ? "Enabled" : "Disabled"}</span>
-                    </button>
+                    </label>
                   </form>
-                  <form action={deletePolicyAction}>
-                    <input type="hidden" name="policyId" value={p.id} />
-                    <button type="submit" className="btn btn-ghost btn-sm">
-                      Remove
-                    </button>
-                  </form>
+                  <ConfirmAction
+                    label="Remove"
+                    triggerClassName="btn btn-ghost btn-sm"
+                    question={<>Remove the policy <span className="font-medium">{p.name}</span>?</>}
+                    detail="It stops applying at once. You can add it again later."
+                    confirmLabel="Yes, remove the policy"
+                    pendingLabel="Removing…"
+                    action={deletePolicyAction}
+                    fields={{ policyId: p.id }}
+                  />
                 </div>
               )}
             </li>
@@ -158,9 +157,9 @@ export default function PoliciesSection({ policies, templates, canEdit, libraryT
                     <option value="other">Other</option>
                   </select>
                 </div>
-                <button type="submit" className="btn btn-secondary">
+                <SubmitButton className="btn btn-secondary" pendingLabel="Adding…">
                   Add policy
-                </button>
+                </SubmitButton>
               </div>
             </form>
           </details>

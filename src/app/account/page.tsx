@@ -59,7 +59,7 @@ export default async function AccountPage({ searchParams }: { searchParams: { sa
             <form action={changePasswordAction} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] items-center gap-2 w-full max-w-lg">
               <input name="current" type="password" required autoComplete="current-password" placeholder="Current password" aria-label="Current password" className="field w-full min-w-0" />
               <input name="password" type="password" required minLength={10} autoComplete="new-password" placeholder="New password" aria-label="New password" className="field w-full min-w-0" />
-              <button className="btn btn-secondary btn-sm justify-self-start">Change</button>
+              <button className="btn btn-secondary btn-sm justify-self-start">Change password</button>
             </form>
           )}
         </Row>
@@ -72,7 +72,7 @@ export default async function AccountPage({ searchParams }: { searchParams: { sa
           </form>
         </Row>
       </Section>
-      <p className="text-xs text-ink-400 px-1">Lost a device? Change your password or sign out — both sign out your other browsers too.</p>
+      <p className="text-xs text-ink-400 px-1">Lost a device? Changing your password or signing out also signs out your other browsers.</p>
       {/* GDPR: cancellazione del proprio account. */}
       <Section title="Delete account" id="delete-account">
         <Row

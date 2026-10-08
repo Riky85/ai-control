@@ -2,7 +2,7 @@ import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import { VendorBadge } from "@/components/VendorIcon";
 import Badge from "@/components/Badge";
-import { Notice, PageHeader } from "@/components/ui";
+import { BlockHead, Notice, PageHeader } from "@/components/ui";
 import { syncConnectorAction, connectWithApiKeyAction, disconnectConnectorAction, addManualAssetAction, importCsvAction, connectGithubTokenAction } from "@/lib/actions";
 import { fmtDateTime } from "@/lib/format";
 import { decryptJson } from "@/lib/crypto";
@@ -136,7 +136,7 @@ export default async function ConnectorsPage({
       {/* Codice: una riga sola, il modulo si apre solo quando serve. */}
       <section id="GITHUB" className="scroll-mt-6">
         <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
-          <h2 className="bg-ink border-b border-line px-4 py-3 text-sm font-bold text-ink-100 bar-head">Code</h2>
+          <h2 className="bg-ink border-b border-line px-5 py-3 text-sm font-bold text-ink-100 bar-head">Code</h2>
           <div className="flex flex-wrap items-center gap-3 px-4 py-3">
             <VendorBadge vendor="GitHub" size={32} />
             <div className="flex-1 min-w-0">
@@ -158,7 +158,7 @@ export default async function ConnectorsPage({
                 </form>
                 <form action={disconnectConnectorAction}>
                   <input type="hidden" name="provider" value="GITHUB" />
-                  <button className="btn btn-ghost btn-sm">Disconnect</button>
+                  <button className="btn btn-danger btn-sm">Disconnect</button>
                 </form>
               </div>
             ) : githubReady ? (
@@ -210,22 +210,28 @@ export default async function ConnectorsPage({
           <form action={addManualAssetAction} className="flex flex-col gap-2">
             <input name="name" required placeholder="Name, e.g. Support chatbot" className={input} />
             <input name="vendor" placeholder="Vendor (optional)" className={input} />
-            <button className={`${btnSecondary} w-full`}>+ Add AI system</button>
+            <button className={`${btnSecondary} w-full`}>Add AI system</button>
           </form>
         </div>
       </Section>
 
-      {COMING_SOON.map((g) => (
-        <Section key={g.group} title={g.group} subtitle="">
-          {g.items.map((i) => (
-            <div key={i.label} className="rounded-xl border border-dashed border-line bg-panel p-4 flex items-center gap-3">
-              <VendorBadge vendor={i.vendor} name={i.label} size={32} />
-              <span className="text-sm text-ink-400 flex-1">{i.label}</span>
-              <span className="text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em]">Soon</span>
+      {/* In arrivo: un solo elenco compatto invece di una griglia di card tratteggiate. */}
+      <div className="rounded-xl border border-line bg-panel animate-rise">
+        <BlockHead title="Coming soon" />
+        <div className="divide-y divide-line">
+          {COMING_SOON.map((g) => (
+            <div key={g.group} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3">
+              <span className="eyebrow w-40 shrink-0">{g.group}</span>
+              {g.items.map((i) => (
+                <span key={i.label} className="flex items-center gap-2 text-sm text-ink-400">
+                  <VendorBadge vendor={i.vendor} name={i.label} size={20} />
+                  {i.label}
+                </span>
+              ))}
             </div>
           ))}
-        </Section>
-      ))}
+        </div>
+      </div>
     </div>
   );
 }

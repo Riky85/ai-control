@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/ui";
+import { PageHeader, BlockHead, EmptyState } from "@/components/ui";
 import { currentOrgId } from "@/lib/org";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -44,7 +44,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Search" subtitle={q ? `Results for "${q}"` : "Press Ctrl-K anywhere for instant search."} />
+      <PageHeader title="Search" subtitle={q ? `Results for "${q}"` : "Press Ctrl-K anywhere for instant search"} />
 
       <form action="/search" method="get" className="flex items-center gap-2">
         <input name="q" defaultValue={q} placeholder="Search AI, people, pages…" aria-label="Search" className="field flex-1 min-w-0 max-w-xl" />
@@ -52,15 +52,13 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       </form>
 
       {q && empty && (
-        <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400">
-          No matches for &ldquo;{q}&rdquo; — try a provider name, or browse <Link href="/estate" className="underline hover:text-ink-100">all your AI</Link>.
-        </div>
+        <EmptyState text={<>No matches for &ldquo;{q}&rdquo;. Try a provider name.</>} action={<Link href="/estate" className="btn btn-secondary">Browse all your AI</Link>} />
       )}
 
       {quick.length > 0 && (
         <Group title="Jump to">
           {quick.map((p) => (
-            <Link key={p.href} href={p.href} className="flex items-center justify-between px-4 py-3 text-sm text-ink-100 hover:bg-ink-100/[0.02] transition-colors">
+            <Link key={p.href} href={p.href} className="flex items-center justify-between px-5 py-3 text-sm text-ink-100 hover:bg-ink-100/[0.02] transition-colors">
               {p.label}
               <span className="font-mono text-[12px] text-ink-400" aria-hidden>[→]</span>
             </Link>
@@ -71,7 +69,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       {ai.length > 0 && (
         <Group title="AI systems">
           {ai.map(({ a }) => (
-            <Link key={a.id} href={`/estate/${a.id}`} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.02] transition-colors">
+            <Link key={a.id} href={`/estate/${a.id}`} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-ink-100/[0.02] transition-colors">
               <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={26} />
               <span className="font-medium text-ink-100 truncate min-w-0">{a.name}</span>
               {a.vendor && <span className="text-ink-400 truncate min-w-0">· {a.vendor}</span>}
@@ -82,7 +80,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       {persons.length > 0 && (
         <Group title="People">
           {persons.map(({ u }) => (
-            <Link key={u.id} href={`/people/${u.id}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-ink-100/[0.02] transition-colors">
+            <Link key={u.id} href={`/people/${u.id}`} className="flex items-center justify-between gap-3 px-5 py-3 text-sm hover:bg-ink-100/[0.02] transition-colors">
               <span className="font-medium text-ink-100 truncate min-w-0">{u.name ?? u.email}</span>
               <span className="text-ink-400 truncate min-w-0 shrink">{u.department ?? u.email}</span>
             </Link>
@@ -92,7 +90,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       {pages.length > 0 && (
         <Group title="Pages">
           {pages.map(({ p }) => (
-            <Link key={p.href} href={p.href} className="flex items-center px-4 py-3 text-sm text-ink-100 hover:bg-ink-100/[0.02] transition-colors">
+            <Link key={p.href} href={p.href} className="flex items-center px-5 py-3 text-sm text-ink-100 hover:bg-ink-100/[0.02] transition-colors">
               {p.label}
             </Link>
           ))}
@@ -104,9 +102,9 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div>
-      <div className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden">
-        <h2 className="px-5 py-3 text-sm font-bold text-ink-100">{title}</h2>{children}</div>
+    <div className="rounded-xl border border-line bg-panel animate-rise overflow-hidden">
+      <BlockHead title={title} rounded="" />
+      <div className="divide-y divide-line">{children}</div>
     </div>
   );
 }

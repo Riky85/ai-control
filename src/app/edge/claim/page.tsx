@@ -31,14 +31,14 @@ export default async function ClaimDevicePage({ searchParams }: { searchParams: 
       <PageHeader
         crumbs={[{ label: "angar Edge", href: "/edge" }, { label: "Sensors", href: "/edge/sensors" }, { label: "Link a device" }]}
         title="Link an angar device"
-        subtitle="The box starts reporting to this workspace as soon as it's plugged into your network."
+        subtitle="It reports to this workspace once plugged in"
       />
       {problem && <Notice tone="error">{problem}</Notice>}
 
       {!serial || problem ? (
         <form action="/edge/claim" method="get" className="rounded-xl border border-line bg-panel p-5 flex flex-wrap items-center gap-2">
           <input name="serial" defaultValue={searchParams.serial ?? ""} placeholder="AE-XXXX-XXXX" className="field w-48 font-mono uppercase" maxLength={20} required aria-label="Device serial" />
-          <button className="btn btn-primary btn-sm">Continue</button>
+          <button className="btn btn-primary">Continue</button>
           <span className="-mx-5 -mb-5 mt-3 w-[calc(100%+2.5rem)] bg-ink border-t border-line rounded-b-xl px-5 py-3 text-xs text-ink-400 bar-foot">The serial is on the label under the device, next to the QR code.</span>
         </form>
       ) : mine ? (
@@ -66,7 +66,7 @@ export default async function ClaimDevicePage({ searchParams }: { searchParams: 
             </p>
           )}
           <div className="-mx-5 -mb-5 flex items-center gap-3 bg-ink border-t border-line rounded-b-xl px-5 py-3 bar-foot">
-            <button className="btn btn-primary btn-sm" disabled={!canEdit}>Link to {ws}</button>
+            <button className="btn btn-primary" disabled={!canEdit}>Link to {ws}</button>
             {!canEdit && <span className="text-xs text-ink-400">Only admins of {ws} can link devices.</span>}
           </div>
         </form>
