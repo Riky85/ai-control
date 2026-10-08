@@ -25,6 +25,7 @@ import { THEME_COOKIE, parseTheme } from "@/lib/theme";
 import VoiceSetting from "@/components/VoiceSetting";
 import { VOICE_COOKIE, parseVoiceMode } from "@/lib/voice";
 import DeleteWorkspaceForm from "@/components/gdpr/DeleteWorkspaceForm";
+import ConfirmAction from "@/components/ConfirmAction";
 
 export const dynamic = "force-dynamic";
 
@@ -219,11 +220,25 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
                 </details>
               }
             >
-              <form action={setChatWebhookAction} className="flex gap-2 w-full max-w-md">
-                <input name="url" type="url" aria-label="Webhook URL" placeholder={org?.chatWebhookEncrypted ? "Connected — paste a new URL" : "Incoming webhook URL"} className="field flex-1 min-w-0" />
-                <button className="btn btn-secondary btn-sm">{org?.chatWebhookEncrypted ? "Update" : "Connect"}</button>
-                {org?.chatWebhookEncrypted && <button name="url" value="" formNoValidate className="btn btn-danger btn-sm">Disconnect</button>}
-              </form>
+              <div className="flex gap-2 w-full max-w-md">
+                <form action={setChatWebhookAction} className="flex gap-2 flex-1 min-w-0">
+                  <input name="url" type="url" aria-label="Webhook URL" placeholder={org?.chatWebhookEncrypted ? "Connected — paste a new URL" : "Incoming webhook URL"} className="field flex-1 min-w-0" />
+                  <button className="btn btn-secondary btn-sm">{org?.chatWebhookEncrypted ? "Update" : "Connect"}</button>
+                </form>
+                {/* Scollega in un form a sé: stessa action con url vuoto, dietro conferma. */}
+                {org?.chatWebhookEncrypted && (
+                  <ConfirmAction
+                    label="Disconnect"
+                    question="Disconnect Slack or Teams?"
+                    detail="The stored webhook URL is removed. The weekly summary and alerts stop until you connect again."
+                    confirmLabel="Yes, disconnect"
+                    pendingLabel="Disconnecting…"
+                    action={setChatWebhookAction}
+                    fields={{ url: "" }}
+                    triggerClassName="btn btn-danger btn-sm"
+                  />
+                )}
+              </div>
             </Row>
           </Section>
           <TicketsSection
@@ -280,10 +295,20 @@ function TicketsSection({ isAdmin, jira, snow }: { isAdmin: boolean; jira: Ticke
         <input type="hidden" name="provider" value={provider} />
         <button className="btn btn-secondary btn-sm" disabled={!isAdmin}>Send test ticket</button>
       </form>
-      <form action={disconnectTicketingAction}>
-        <input type="hidden" name="provider" value={provider} />
-        <button className="btn btn-danger btn-sm" disabled={!isAdmin}>Disconnect</button>
-      </form>
+      {isAdmin ? (
+        <ConfirmAction
+          label="Disconnect"
+          question={`Disconnect ${provider === "JIRA" ? "Jira" : "ServiceNow"}?`}
+          detail="The stored connection details are removed and no new tickets are opened. Tickets already created stay where they are."
+          confirmLabel="Yes, disconnect"
+          pendingLabel="Disconnecting…"
+          action={disconnectTicketingAction}
+          fields={{ provider }}
+          triggerClassName="btn btn-danger btn-sm"
+        />
+      ) : (
+        <button type="button" className="btn btn-danger btn-sm" disabled>Disconnect</button>
+      )}
     </>
   );
   const panel = "absolute left-0 md:left-auto md:right-0 z-20 mt-2 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-line bg-panel p-3 shadow-card flex flex-col gap-2";

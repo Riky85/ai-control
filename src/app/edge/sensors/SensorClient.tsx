@@ -173,9 +173,11 @@ export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edge
   );
 }
 
-/** Token perso: se ne genera uno nuovo (il vecchio smette di funzionare). */
+/** Token perso: se ne genera uno nuovo (il vecchio smette di funzionare). Conferma in due passi, niente window.confirm. */
 export function RotateToken({ sensorId, name, kind, appUrl, edgeImage }: { sensorId: string; name: string; kind: string; appUrl: string; edgeImage: string }) {
   const [created, setCreated] = useState<Created | null>(null);
+  const [asking, setAsking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   if (created) {
     return (
@@ -185,36 +187,42 @@ export function RotateToken({ sensorId, name, kind, appUrl, edgeImage }: { senso
       </div>
     );
   }
+  if (asking) {
+    return (
+      <div role="group" aria-label="Confirm new token" className="flex flex-col gap-2 max-w-sm">
+        <span className="text-xs text-ink-100">Create a new token for {name}? The current one stops working right away.</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="btn btn-danger btn-sm"
+            disabled={pending}
+            onClick={() => {
+              setError(null);
+              start(async () => {
+                const r = await rotateSensorTokenAction(sensorId);
+                if ("token" in r) setCreated({ name, kind, token: r.token });
+                else {
+                  setError(r.error);
+                  setAsking(false);
+                }
+              });
+            }}
+          >
+            {pending ? "Creating…" : "Yes, new token"}
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm" disabled={pending} onClick={() => setAsking(false)}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
-    <button
-      type="button"
-      className="btn btn-ghost btn-sm"
-      disabled={pending}
-      onClick={() => {
-        if (!confirm(`Create a new token for ${name}? The current one stops working right away.`)) return;
-        start(async () => {
-          const r = await rotateSensorTokenAction(sensorId);
-          if ("token" in r) setCreated({ name, kind, token: r.token });
-          else alert(r.error);
-        });
-      }}
-    >
-      New token
-    </button>
-  );
-}
-
-/** Pulsante con conferma (eliminare un sensore cancella anche i suoi dati). */
-export function ConfirmSubmit({ label, message, className = "btn btn-danger btn-sm" }: { label: string; message: string; className?: string }) {
-  return (
-    <button
-      type="submit"
-      className={className}
-      onClick={(e) => {
-        if (!confirm(message)) e.preventDefault();
-      }}
-    >
-      {label}
-    </button>
+    <div className="flex flex-col gap-1">
+      <button type="button" className="btn btn-ghost btn-sm self-start" onClick={() => setAsking(true)}>
+        New token
+      </button>
+      {error && <span className="text-xs text-alarm">{error}</span>}
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import { connectOktaAction } from "@/lib/connectors/okta-actions";
 import { decryptJson } from "@/lib/crypto";
 import { fmtDateTime } from "@/lib/format";
 import SubmitButton from "@/components/SubmitButton";
+import ConfirmAction from "@/components/ConfirmAction";
 
 // Okta: una riga come GitHub; il modulo (dominio + API token) si apre solo quando serve.
 export const oktaConnected = (row?: Connector) => row?.status !== "DISCONNECTED" && Boolean(row?.credentialsEncrypted);
@@ -35,10 +36,16 @@ export default function OktaConnectCard({ row, error }: { row?: Connector; error
                 <input type="hidden" name="provider" value="OKTA" />
                 <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Syncing…">Sync now</SubmitButton>
               </form>
-              <form action={disconnectConnectorAction}>
-                <input type="hidden" name="provider" value="OKTA" />
-                <button className="btn btn-ghost btn-sm">Disconnect</button>
-              </form>
+              <ConfirmAction
+                label="Disconnect"
+                question="Disconnect Okta?"
+                detail="The stored API token is removed and syncing stops. Data already imported stays."
+                confirmLabel="Yes, disconnect"
+                pendingLabel="Disconnecting…"
+                action={disconnectConnectorAction}
+                fields={{ provider: "OKTA" }}
+                triggerClassName="btn btn-ghost btn-sm"
+              />
             </div>
           )}
         </div>

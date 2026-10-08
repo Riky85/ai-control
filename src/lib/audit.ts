@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
+import { clientIp } from "@/lib/rate-limit";
 
 /**
  * Registro di audit a prova di manomissione (AI Act / NIS2): ogni riga di
@@ -111,7 +112,9 @@ export async function audit(action: string, target?: string, meta?: Record<strin
     const s = currentSession();
     let ip: string | null = null;
     try {
-      ip = headers().get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+      // Stessa regola del rate limit: ultima voce di x-forwarded-for (quella del proxy), poi x-real-ip.
+      const found = clientIp(headers());
+      ip = found === "unknown" ? null : found;
     } catch {
       // fuori da una richiesta (es. webhook): nessun IP
     }

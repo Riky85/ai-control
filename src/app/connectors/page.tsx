@@ -10,6 +10,7 @@ import CsvDropzone from "@/components/CsvDropzone";
 import OktaConnectCard, { oktaConnected } from "@/components/OktaConnectCard";
 import CloudAiCards, { CLOUD_AI, cloudAiConnected } from "@/components/CloudAiCards";
 import NetworkLogCards from "@/components/NetworkLogCards";
+import ConfirmAction from "@/components/ConfirmAction";
 import type { Connector, ConnectorProvider } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -107,10 +108,16 @@ export default async function ConnectorsPage({
                     <input type="hidden" name="provider" value={p.provider} />
                     <button className={`${btnSecondary} w-full`}>Sync now</button>
                   </form>
-                  <form action={disconnectConnectorAction}>
-                    <input type="hidden" name="provider" value={p.provider} />
-                    <button className="btn btn-danger">Disconnect</button>
-                  </form>
+                  <ConfirmAction
+                    label="Disconnect"
+                    question={`Disconnect ${p.label}?`}
+                    detail="The stored API key is removed and syncing stops. Data already imported stays."
+                    confirmLabel="Yes, disconnect"
+                    pendingLabel="Disconnecting…"
+                    action={disconnectConnectorAction}
+                    fields={{ provider: p.provider }}
+                    triggerClassName="btn btn-danger"
+                  />
                 </div>
               ) : (
                 <details className="group mt-auto" open={Boolean(error)}>
@@ -156,10 +163,16 @@ export default async function ConnectorsPage({
                   <input type="hidden" name="provider" value="GITHUB" />
                   <button className="btn btn-secondary btn-sm">Scan again</button>
                 </form>
-                <form action={disconnectConnectorAction}>
-                  <input type="hidden" name="provider" value="GITHUB" />
-                  <button className="btn btn-danger btn-sm">Disconnect</button>
-                </form>
+                <ConfirmAction
+                  label="Disconnect"
+                  question="Disconnect GitHub?"
+                  detail="Stored access is removed and code scans stop. Data already imported stays."
+                  confirmLabel="Yes, disconnect"
+                  pendingLabel="Disconnecting…"
+                  action={disconnectConnectorAction}
+                  fields={{ provider: "GITHUB" }}
+                  triggerClassName="btn btn-danger btn-sm"
+                />
               </div>
             ) : githubReady ? (
               <a href="/api/connectors/github/install" className="btn btn-secondary btn-sm">Connect</a>

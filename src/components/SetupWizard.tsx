@@ -36,7 +36,6 @@ export default function SetupWizard({ steps, initialHidden = false, primary = tr
   if (hidden)
     return (
       <section className="relative overflow-hidden rounded-xl border border-line bg-panel flex items-center gap-4 pl-4 pr-3 py-3">
-        <div aria-hidden className="pointer-events-none absolute -left-16 -top-20 h-40 w-40 rounded-full bg-accent/15 blur-3xl hidden dark:block" />
         <Ring done={doneCount} total={steps.length} />
         <div className="relative flex-1 min-w-0">
           <div className="text-sm font-medium text-ink-100">Setup guide · {doneCount} of {steps.length} done</div>
@@ -53,7 +52,6 @@ export default function SetupWizard({ steps, initialHidden = false, primary = tr
 
   return (
     <section className="relative overflow-hidden rounded-xl border border-line bg-panel grid grid-cols-1 lg:grid-cols-[1fr_auto]">
-      <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent/20 blur-3xl hidden dark:block" />
       <button
         onClick={() => store(true)}
         aria-label="Hide the setup guide"

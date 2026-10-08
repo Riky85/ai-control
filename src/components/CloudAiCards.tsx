@@ -4,6 +4,7 @@ import { syncConnectorAction, disconnectConnectorAction } from "@/lib/actions";
 import { connectCloudAiAction } from "@/lib/connectors/cloud-ai-actions";
 import { fmtDateTime } from "@/lib/format";
 import SubmitButton from "@/components/SubmitButton";
+import ConfirmAction from "@/components/ConfirmAction";
 
 // Piattaforme cloud AI (Azure OpenAI, Bedrock, Vertex): una riga ciascuna come Okta/GitHub;
 // il modulo con le credenziali si apre solo quando serve. Le credenziali non tornano mai nella pagina.
@@ -89,10 +90,16 @@ export default function CloudAiCards({ rows, errorFor, error }: { rows: Map<Conn
                       <input type="hidden" name="provider" value={p.provider} />
                       <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Syncing…">Sync now</SubmitButton>
                     </form>
-                    <form action={disconnectConnectorAction}>
-                      <input type="hidden" name="provider" value={p.provider} />
-                      <button className="btn btn-ghost btn-sm">Disconnect</button>
-                    </form>
+                    <ConfirmAction
+                      label="Disconnect"
+                      question={`Disconnect ${p.label}?`}
+                      detail="Stored credentials are removed and daily syncing stops. Data already imported stays."
+                      confirmLabel="Yes, disconnect"
+                      pendingLabel="Disconnecting…"
+                      action={disconnectConnectorAction}
+                      fields={{ provider: p.provider }}
+                      triggerClassName="btn btn-ghost btn-sm"
+                    />
                   </div>
                 )}
               </div>

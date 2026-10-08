@@ -11,7 +11,8 @@ import { fmtAgo, fmtDate } from "@/lib/format";
 import { PageHeader, Panel, Table, td, Tabs, Notice, StatCard } from "@/components/ui";
 import { toggleSensorAction, renameSensorAction, deleteSensorAction, setUploadAlertAction, replaceDeviceAction, returnDeviceAction } from "@/lib/edge-actions";
 import { MODEL_LABEL } from "@/lib/edge/device-id";
-import { AddSensor, RotateToken, ConfirmSubmit } from "./SensorClient";
+import { AddSensor, RotateToken } from "./SensorClient";
+import ConfirmAction from "@/components/ConfirmAction";
 
 export const dynamic = "force-dynamic";
 
@@ -217,20 +218,33 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                           <div className="flex items-center justify-between">
                             {dev ? (
                               x.device ? (
-                                <form action={returnDeviceAction}>
-                                  <input type="hidden" name="sensorId" value={x.id} />
-                                  <ConfirmSubmit label="Return device" className="btn btn-ghost btn-sm" message={`Unlink ${x.device.serial} to send it back? ${x.name} keeps its history but stops receiving data.`} />
-                                </form>
+                                <ConfirmAction
+                                  label="Return device"
+                                  question={`Unlink ${x.device.serial} to send it back?`}
+                                  detail={`${x.name} keeps its history but stops receiving data.`}
+                                  confirmLabel="Yes, unlink it"
+                                  pendingLabel="Unlinking…"
+                                  action={returnDeviceAction}
+                                  fields={{ sensorId: x.id }}
+                                  triggerClassName="btn btn-ghost btn-sm"
+                                  align="left"
+                                />
                               ) : (
                                 <span />
                               )
                             ) : (
                               imported ? <span /> : <RotateToken sensorId={x.id} name={x.name} kind={x.kind} appUrl={base} edgeImage={EDGE_IMAGE} />
                             )}
-                            <form action={deleteSensorAction}>
-                              <input type="hidden" name="sensorId" value={x.id} />
-                              <ConfirmSubmit label="Delete" message={`Delete ${x.name}? It stops working and its history is removed.${x.device ? " The device is marked for return." : ""}`} />
-                            </form>
+                            <ConfirmAction
+                              label="Delete"
+                              question={`Delete ${x.name}?`}
+                              detail={`It stops working and its history is removed.${x.device ? " The device is marked for return." : ""}`}
+                              confirmLabel="Yes, delete"
+                              pendingLabel="Deleting…"
+                              action={deleteSensorAction}
+                              fields={{ sensorId: x.id }}
+                              triggerClassName="btn btn-danger btn-sm"
+                            />
                           </div>
                         </div>
                       </details>

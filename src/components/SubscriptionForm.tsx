@@ -88,6 +88,9 @@ export default function SubscriptionForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  // Conferma in due passi per l'eliminazione (niente window.confirm).
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const product = options.find((p) => p.id === productId) ?? null;
   const plan = product?.plans.find((p) => p.id === planId) ?? null;
@@ -191,11 +194,15 @@ export default function SubscriptionForm({
   }
 
   function remove() {
-    if (!window.confirm("Delete this subscription? angar goes back to the one it works out from bills and seats.")) return;
     setError(null);
+    setDeleting(true);
     start(async () => {
       const res = await deleteManualSubscriptionAction(assetId);
-      if (res?.error) setError(res.error);
+      if (res?.error) {
+        setError(res.error);
+        setConfirmDelete(false);
+      }
+      setDeleting(false);
     });
   }
 
@@ -419,15 +426,26 @@ export default function SubscriptionForm({
       )}
       <div className="flex flex-wrap items-center gap-2">
         <button type="submit" className="btn btn-primary" disabled={pending}>
-          {pending ? "Saving…" : "Save subscription"}
+          {pending && !deleting ? "Saving…" : "Save subscription"}
         </button>
         <Link href={`/estate/${assetId}`} className="btn btn-ghost">
           Cancel
         </Link>
-        {editing && (
-          <button type="button" onClick={remove} className="btn btn-danger ml-auto" disabled={pending}>
+        {editing && !confirmDelete && (
+          <button type="button" onClick={() => setConfirmDelete(true)} className="btn btn-danger ml-auto" disabled={pending}>
             Delete subscription
           </button>
+        )}
+        {editing && confirmDelete && (
+          <div role="group" aria-label="Confirm delete" className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            <span className="text-sm text-ink-100">Delete subscription? angar goes back to the one it works out from bills and seats.</span>
+            <button type="button" onClick={remove} className="btn btn-danger" disabled={pending}>
+              {deleting ? "Deleting…" : "Yes, delete"}
+            </button>
+            <button type="button" onClick={() => setConfirmDelete(false)} className="btn btn-ghost" disabled={pending}>
+              Cancel
+            </button>
+          </div>
         )}
       </div>
     </form>

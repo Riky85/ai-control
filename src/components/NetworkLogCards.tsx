@@ -6,6 +6,7 @@ import { connectCloudflareGatewayAction, connectCiscoUmbrellaAction } from "@/li
 import { uploadNetworkLogAction } from "@/lib/discovery-actions";
 import { fmtDateTime } from "@/lib/format";
 import SubmitButton from "@/components/SubmitButton";
+import ConfirmAction from "@/components/ConfirmAction";
 
 // Log di rete che l'azienda ha già (senza il box angar Edge): Cloudflare Gateway e
 // Cisco Umbrella via API, e il caricamento di file per Zscaler, Fortinet e i server DNS.
@@ -101,10 +102,16 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
                       <input type="hidden" name="provider" value={p.provider} />
                       <SubmitButton className="btn btn-secondary btn-sm" pendingLabel="Syncing…">Sync now</SubmitButton>
                     </form>
-                    <form action={disconnectConnectorAction}>
-                      <input type="hidden" name="provider" value={p.provider} />
-                      <button className="btn btn-ghost btn-sm">Disconnect</button>
-                    </form>
+                    <ConfirmAction
+                      label="Disconnect"
+                      question={`Disconnect ${p.label}?`}
+                      detail="Stored credentials are removed and daily syncing stops. Data already imported stays."
+                      confirmLabel="Yes, disconnect"
+                      pendingLabel="Disconnecting…"
+                      action={disconnectConnectorAction}
+                      fields={{ provider: p.provider }}
+                      triggerClassName="btn btn-ghost btn-sm"
+                    />
                   </div>
                 )}
               </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { setAssetStatusAction } from "@/lib/actions";
 import { Pill } from "./parts";
+import SubmitButton from "@/components/SubmitButton";
 
 /** Server MCP trovati dall'app desktop: cosa possono raggiungere, dove sono, decisione. */
 export interface McpRow {
@@ -82,19 +83,23 @@ export default function McpServers({ rows, canDecide, newAppComputers }: { rows:
                 <div className="flex items-center gap-2 shrink-0">
                   {!(canDecide && pending) && <Pill tone={st.tone}>{st.label}</Pill>}
                   {canDecide && (
-                    <form action={setAssetStatusAction} className="flex items-center gap-2">
-                      <input type="hidden" name="assetId" value={r.id} />
+                    // Un form a decisione: ognuno con il suo stato "in corso".
+                    <div className="flex items-center gap-2">
                       {r.status !== "UNAPPROVED" && (
-                        <button name="status" value="UNAPPROVED" className="btn btn-ghost btn-sm">
-                          Not allowed
-                        </button>
+                        <form action={setAssetStatusAction}>
+                          <input type="hidden" name="assetId" value={r.id} />
+                          <input type="hidden" name="status" value="UNAPPROVED" />
+                          <SubmitButton className="btn btn-ghost btn-sm">Not allowed</SubmitButton>
+                        </form>
                       )}
                       {r.status !== "APPROVED" && (
-                        <button name="status" value="APPROVED" className="btn btn-secondary btn-sm">
-                          Approve
-                        </button>
+                        <form action={setAssetStatusAction}>
+                          <input type="hidden" name="assetId" value={r.id} />
+                          <input type="hidden" name="status" value="APPROVED" />
+                          <SubmitButton className="btn btn-secondary btn-sm">Approve</SubmitButton>
+                        </form>
                       )}
-                    </form>
+                    </div>
                   )}
                 </div>
               </li>

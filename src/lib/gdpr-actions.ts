@@ -71,9 +71,25 @@ export async function deleteWorkspaceAction(_prev: GdprFormState, formData: Form
   return {};
 }
 
-/** Righe dell'account: inviti e appartenenze, token e l'account stesso. */
-async function deleteAccountRows(accountId: string, email: string) {
+/**
+ * Righe dell'account: inviti e appartenenze, token e l'account stesso.
+ * keptOrgIds: workspace che restano (con altri membri). Lì i campi che legano una riga
+ * alla persona vengono anonimizzati nella stessa transazione: richieste AI (requesterEmail
+ * è obbligatoria, quindi "deleted-user"), stato delle opportunità e chi ha inserito un
+ * abbonamento a mano. Il registro di audit tiene l'email (responsabilità delle azioni),
+ * come gli altri campi "chi ha deciso/creato" delle configurazioni.
+ */
+async function deleteAccountRows(accountId: string, email: string, keptOrgIds: string[] = []) {
+  const who = { equals: email, mode: "insensitive" as const };
+  const inKept = { in: keptOrgIds };
   await db.$transaction([
+    ...(keptOrgIds.length
+      ? [
+          db.aiRequest.updateMany({ where: { organizationId: inKept, requesterEmail: who }, data: { requesterEmail: "deleted-user" } }),
+          db.opportunityState.updateMany({ where: { organizationId: inKept, updatedBy: who }, data: { updatedBy: null } }),
+          db.customerSubscription.updateMany({ where: { organizationId: inKept, enteredByEmail: who }, data: { enteredByEmail: null, enteredByName: null } }),
+        ]
+      : []),
     db.workspaceMember.deleteMany({ where: { email } }),
     db.passwordResetToken.deleteMany({ where: { accountId } }),
     db.emailVerificationToken.deleteMany({ where: { accountId } }),
@@ -113,7 +129,8 @@ export async function deleteAccountAction(_prev: GdprFormState, formData: FormDa
     if (!alone.includes(m.organizationId)) await audit("member.account_deleted", account.email, undefined, { orgId: m.organizationId, actorEmail: account.email });
   }
   for (const orgId of alone) await purgeOrganization(orgId);
-  await deleteAccountRows(account.id, account.email);
+  const keptOrgIds = memberships.map((m) => m.organizationId).filter((id) => !alone.includes(id));
+  await deleteAccountRows(account.id, account.email, keptOrgIds);
   console.log(`[gdpr] account ${account.id} deleted (${alone.length} workspace(s) removed with it)`);
   cookies().delete(SESSION_COOKIE);
   redirect(`/login?error=${encodeURIComponent("Your account was deleted.")}`);

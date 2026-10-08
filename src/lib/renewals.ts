@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { lastRenewal } from "@/lib/engine/forecast";
 
 export interface Renewal {
   assetId: string;
@@ -34,19 +35,35 @@ export async function upcomingRenewals(organizationId: string, withinDays = 60):
     include: { cost: true, spendRecords: { orderBy: { date: "desc" }, take: 1 } },
   });
   const now = Date.now();
+  // Annuali: importo = addebito più grande del mese di rinnovo (lastRenewal), non l'ultima
+  // riga (posti aggiunti, rimborsi). 25 mesi bastano: oltre, il rinnovo è comunque scaduto.
+  const annualIds = assets.filter((a) => a.cost?.annualBilling).map((a) => a.id);
+  const history = new Map<string, { date: Date; eur: number }[]>();
+  if (annualIds.length) {
+    const rows = await db.spendRecord.findMany({
+      where: { organizationId, aiAssetId: { in: annualIds }, date: { gte: addMonthsClamped(new Date(now), -25) } },
+      select: { aiAssetId: true, date: true, amountEur: true },
+      orderBy: { date: "asc" },
+    });
+    for (const r of rows) if (r.aiAssetId) history.set(r.aiAssetId, [...(history.get(r.aiAssetId) ?? []), { date: r.date, eur: r.amountEur }]);
+  }
   const out: Renewal[] = [];
   for (const a of assets) {
     const last = a.spendRecords[0];
     if (!last) continue;
     const annual = Boolean(a.cost?.annualBilling);
+    const charges = annual ? history.get(a.id) : undefined;
+    const amountEur = charges?.length ? lastRenewal(charges).eur : last.amountEur;
     const step = annual ? 12 : 1;
     let k = 1;
     let next = addMonthsClamped(last.date, step);
+    // La data resta ancorata all'ultimo addebito come prima: il mese (e quindi la chiave
+    // dell'opportunità "renewal:<asset>:<mese>") non cambia.
     // Se la data è passata da tanto, l'abbonamento potrebbe essere già finito.
     if (next.getTime() < now - 20 * DAY) continue;
     // Fine mese limitata all'ultimo giorno del mese: il mese (e la chiave dell'opportunità) resta giusto.
     while (next.getTime() < now - DAY) next = addMonthsClamped(last.date, step * ++k);
-    if (next.getTime() - now <= withinDays * DAY) out.push({ assetId: a.id, name: a.name, vendor: a.vendor, date: next, amountEur: last.amountEur, annual });
+    if (next.getTime() - now <= withinDays * DAY) out.push({ assetId: a.id, name: a.name, vendor: a.vendor, date: next, amountEur, annual });
   }
   return out.sort((x, y) => x.date.getTime() - y.date.getTime());
 }

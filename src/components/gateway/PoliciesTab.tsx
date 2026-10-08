@@ -5,6 +5,7 @@ import type { GwPolicyView } from "@/lib/gateway/data";
 import { saveGatewayPolicyAction, saveGatewayUpstreamAction, saveTeamCapAction, toggleGatewayRuleAction } from "@/lib/gateway-actions";
 import ConnectSnippets from "./ConnectSnippets";
 import { Switch } from "@/components/ui";
+import ConfirmAction from "@/components/ConfirmAction";
 
 const card = "rounded-xl border border-line bg-panel animate-rise";
 const head = "bar-head rounded-t-xl border-b border-line px-5 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1";
@@ -185,24 +186,39 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
           </div>
           <div className="divide-y divide-line">
             {view.upstreams.map((u) => (
-              <form key={u.provider} action={saveGatewayUpstreamAction} className="p-5 flex flex-col gap-3">
-                <input type="hidden" name="provider" value={u.provider} />
+              <div key={u.provider} className="p-5 flex flex-col gap-3">
                 <div className="flex items-baseline justify-between gap-3">
                   <div className="text-sm font-bold text-ink-100">{u.provider === "openai" ? "OpenAI" : "Anthropic"}</div>
-                  <div className="text-xs text-ink-400">
-                    {u.keyLast4 ? (
-                      <>
-                        Key <span className="font-mono">…{u.keyLast4}</span>
-                        {u.fromConnector ? " from AI provider keys" : ""}
-                      </>
-                    ) : (
-                      <span className="text-alarm">No key yet</span>
+                  <div className="flex items-center gap-2">
+                    <div className="text-xs text-ink-400">
+                      {u.keyLast4 ? (
+                        <>
+                          Key <span className="font-mono">…{u.keyLast4}</span>
+                          {u.fromConnector ? " from AI provider keys" : ""}
+                        </>
+                      ) : (
+                        <span className="text-alarm">No key yet</span>
+                      )}
+                      {u.baseUrl ? (u.euHosted ? " · EU endpoint" : " · custom endpoint") : " · US endpoint"}
+                    </div>
+                    {/* Rimuovi chiave: form a sé verso la stessa action, con endpoint e flag EU già salvati così non cambiano. */}
+                    {canEdit && u.keyLast4 && !u.fromConnector && (
+                      <ConfirmAction
+                        label="Remove key"
+                        question="Remove the stored key?"
+                        detail="Gateway requests to this provider fail until you paste a new key. The endpoint setting stays."
+                        confirmLabel="Yes, remove it"
+                        pendingLabel="Removing…"
+                        action={saveGatewayUpstreamAction}
+                        fields={{ provider: u.provider, clearKey: "1", baseUrl: u.baseUrl ?? "", euHosted: u.euHosted ? "on" : "" }}
+                        triggerClassName="btn btn-ghost btn-sm"
+                      />
                     )}
-                    {u.baseUrl ? (u.euHosted ? " · EU endpoint" : " · custom endpoint") : " · US endpoint"}
                   </div>
                 </div>
                 {canEdit && (
-                  <>
+                  <form action={saveGatewayUpstreamAction} className="flex flex-col gap-3">
+                    <input type="hidden" name="provider" value={u.provider} />
                     <input name="apiKey" type="password" autoComplete="off" placeholder={u.keyLast4 ? "Paste a new key to replace it" : u.provider === "openai" ? "sk-…" : "sk-ant-…"} className="field w-full font-mono text-xs" />
                     <input name="baseUrl" type="url" defaultValue={u.baseUrl ?? ""} placeholder={u.provider === "openai" ? "Optional: https://<resource>.openai.azure.com/openai/v1" : "Optional: an Anthropic-compatible EU endpoint"} className="field w-full font-mono text-xs" />
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -210,18 +226,11 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
                         <input type="checkbox" name="euHosted" defaultChecked={u.euHosted} className="accent-accent" />
                         This endpoint is hosted in the EU
                       </label>
-                      <div className="flex gap-2">
-                        {u.keyLast4 && !u.fromConnector && (
-                          <button name="clearKey" value="1" className="btn btn-ghost btn-sm">
-                            Remove key
-                          </button>
-                        )}
-                        <button className="btn btn-secondary btn-sm">Save</button>
-                      </div>
+                      <button className="btn btn-secondary btn-sm">Save</button>
                     </div>
-                  </>
+                  </form>
                 )}
-              </form>
+              </div>
             ))}
           </div>
         </section>
