@@ -9,7 +9,7 @@ import { computeSavingsCached, categoryOf, monthlyOf, type AssetForSavings } fro
 import { loadEstateCached } from "@/lib/estate/graph";
 import type { EstateData } from "@/lib/estate/assemble";
 import { departmentSpend, type DepartmentSpend } from "@/lib/budgets";
-import { modelById, resolveModel } from "@/lib/pricing/service";
+import { modelById, providerNameOf, resolveModel } from "@/lib/pricing/service";
 
 export interface SpendBar {
   key: string;
@@ -19,6 +19,9 @@ export interface SpendBar {
   estimatedEur: number;
   href?: string;
   note?: string;
+  /** Per l'icona dell'AI: fornitore e nome (team: nessuna icona). */
+  vendor?: string;
+  iconName?: string;
 }
 
 export interface SpendOverview {
@@ -35,7 +38,7 @@ export interface SpendOverview {
   bySystem: SpendBar[];
   byTeam: SpendBar[];
   /** AI con un costo reale E uno stimato: lo scarto (spec §7). */
-  variance: { id: string; name: string; actual: number; estimated: number; pct: number; source: string; basis: string }[];
+  variance: { id: string; name: string; vendor: string | null; actual: number; estimated: number; pct: number; source: string; basis: string }[];
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -61,11 +64,11 @@ export function buildSpendOverview(assets: AssetForSavings[], estate: EstateData
     if (isUsageBased(a)) usage += m.eur;
     else fixed += m.eur;
     const vendor = a.vendor ?? "Unknown";
-    const p = providers.get(vendor) ?? { key: vendor, label: vendor, eur: 0, estimatedEur: 0, href: `/estate?q=${encodeURIComponent(vendor)}` };
+    const p = providers.get(vendor) ?? { key: vendor, label: vendor, eur: 0, estimatedEur: 0, href: `/estate?q=${encodeURIComponent(vendor)}`, vendor };
     p.eur += m.eur;
     if (m.estimated) p.estimatedEur += m.eur;
     providers.set(vendor, p);
-    systems.push({ key: a.id, label: a.name, eur: m.eur, estimatedEur: m.estimated ? m.eur : 0, href: `/estate/${a.id}`, note: isUsageBased(a) ? "Usage-based" : "Subscription" });
+    systems.push({ key: a.id, label: a.name, eur: m.eur, estimatedEur: m.estimated ? m.eur : 0, href: `/estate/${a.id}`, note: isUsageBased(a) ? "Usage-based" : "Subscription", vendor: a.vendor ?? "", iconName: a.name });
   }
 
   // Per modello: costo di ogni AI system ripartito sui modelli che usa (quota d'uso; senza quota, in parti uguali).
@@ -84,8 +87,9 @@ export function buildSpendOverview(assets: AssetForSavings[], estate: EstateData
     for (const u of r.uses) {
       const share = known.length === r.uses.length && sumShare > 0 ? (u.share ?? 0) / sumShare : 1 / r.uses.length;
       const id = u.modelId ?? resolveModel(u.rawModel)?.model.id ?? `raw:${u.rawModel}`;
-      const label = modelById(id)?.name ?? u.rawModel;
-      const b = models.get(id) ?? { key: id, label, eur: 0, estimatedEur: 0, note: known.length === r.uses.length ? "Split by observed share" : "Split evenly: share not known" };
+      const cm = modelById(id);
+      const label = cm?.name ?? u.rawModel;
+      const b = models.get(id) ?? { key: id, label, eur: 0, estimatedEur: 0, vendor: cm ? providerNameOf(cm.providerId) : r.vendor ?? "", iconName: label, note: known.length === r.uses.length ? "Split by observed share" : "Split evenly: share not known" };
       b.eur += cost * share;
       if (isEst) b.estimatedEur += cost * share;
       models.set(id, b);
@@ -95,7 +99,7 @@ export function buildSpendOverview(assets: AssetForSavings[], estate: EstateData
   const sort = (l: SpendBar[]) => l.map((b) => ({ ...b, eur: r2(b.eur), estimatedEur: r2(b.estimatedEur) })).sort((a, b) => b.eur - a.eur || a.label.localeCompare(b.label));
   const variance = (estate?.rows ?? [])
     .filter((r) => r.cost.actualEur != null && r.cost.estimatedEur != null && r.cost.estimatedEur > 0)
-    .map((r) => ({ id: r.id, name: r.name, actual: r2(r.cost.actualEur!), estimated: r2(r.cost.estimatedEur!), pct: (r.cost.actualEur! - r.cost.estimatedEur!) / r.cost.estimatedEur!, source: r.cost.actualSource ?? "Billed", basis: r.cost.estimatedBasis ?? "List price" }))
+    .map((r) => ({ id: r.id, name: r.name, vendor: r.vendor, actual: r2(r.cost.actualEur!), estimated: r2(r.cost.estimatedEur!), pct: (r.cost.actualEur! - r.cost.estimatedEur!) / r.cost.estimatedEur!, source: r.cost.actualSource ?? "Billed", basis: r.cost.estimatedBasis ?? "List price" }))
     .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct));
   return {
     total: r2(total),

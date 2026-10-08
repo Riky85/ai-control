@@ -10,74 +10,68 @@ import { TRIAL_PLAN, planLabel } from "@/lib/plans";
 import WorkspaceSwitcher, { type WorkspaceOption } from "./WorkspaceSwitcher";
 import { AREAS, locate } from "@/lib/areas";
 
-// Icone minimali, un solo stroke-width, coerenti tra loro — niente set di
-// icone eterogeneo preso da librerie diverse.
+// Set di icone unico (forme in stile Lucide, licenza ISC): griglia 24, un solo
+// spessore di linea, angoli arrotondati. Il colore arriva da currentColor.
 function Icon({ name }: { name: string }) {
-  const common = { width: 18, height: 18, viewBox: "0 0 18 18", fill: "none" as const };
-  const stroke = { stroke: "currentColor", strokeWidth: 1.4, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const common = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
   switch (name) {
-    case "score":
-      return <svg {...common}><path {...stroke} d="M3.2 13.2a6.5 6.5 0 1 1 11.6 0" /><path {...stroke} d="M9 9.5l2.6-2.6" /><circle cx="9" cy="9.5" r="1" fill="currentColor" /></svg>;
     case "home":
-      return <svg {...common}><rect {...stroke} x="2.5" y="2.5" width="13" height="13" rx="1.5" /><path {...stroke} d="M2.5 7h13" /><path {...stroke} d="M7 7v8.5" /></svg>;
+      return <svg {...common}><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>;
+    case "score":
+      return <svg {...common}><path d="m12 14 4-4" /><path d="M3.34 19a10 10 0 1 1 17.32 0" /></svg>;
     case "assets":
-      return <svg {...common}><rect {...stroke} x="2.5" y="2.5" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="10" y="2.5" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="2.5" y="10" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="10" y="10" width="5.5" height="5.5" rx="1" /></svg>;
-    case "account":
-      return <svg {...common}><circle {...stroke} cx="9" cy="6.5" r="2.8" /><path {...stroke} d="M3.5 15.5c.6-2.8 2.8-4.5 5.5-4.5s4.9 1.7 5.5 4.5" /></svg>;
-    case "people":
-      return <svg {...common}><circle {...stroke} cx="7" cy="6" r="2.3" /><path {...stroke} d="M2.5 15c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" /><circle {...stroke} cx="13" cy="5.5" r="1.8" /><path {...stroke} d="M11.5 8.2c1.9.3 3 1.5 3 3.8" /></svg>;
-    case "data":
-      return <svg {...common}><ellipse {...stroke} cx="9" cy="4" rx="5.5" ry="1.8" /><path {...stroke} d="M3.5 4v10c0 1 2.5 1.8 5.5 1.8s5.5-.8 5.5-1.8V4" /><path {...stroke} d="M3.5 9c0 1 2.5 1.8 5.5 1.8s5.5-.8 5.5-1.8" /></svg>;
-    case "savings":
-      // Segno di percentuale: sconto / spesa che scende. Inequivocabile.
-      return <svg {...common}><path {...stroke} d="M4 14L14 4" /><circle {...stroke} cx="5.2" cy="5.2" r="1.6" /><circle {...stroke} cx="12.8" cy="12.8" r="1.6" /></svg>;
-    case "computer":
-      return <svg {...common}><rect {...stroke} x="2" y="3" width="14" height="9" rx="1.5" /><path {...stroke} d="M6.5 15h5M9 12v3" /></svg>;
-    case "download":
-      return <svg {...common}><path {...stroke} d="M9 2.8v8.4M5.6 7.9L9 11.2l3.4-3.3" /><path {...stroke} d="M3 12.8v1.4c0 .8.6 1.3 1.3 1.3h9.4c.7 0 1.3-.5 1.3-1.3v-1.4" /></svg>;
-    case "advisor":
-      // Scintilla: suggerimenti intelligenti.
-      return <svg {...common}><path {...stroke} d="M9 2.5l1.6 4.4 4.4 1.6-4.4 1.6L9 14.5l-1.6-4.4L3 8.5l4.4-1.6L9 2.5z" /><path {...stroke} d="M14.5 13v3M13 14.5h3" /></svg>;
-    case "budget":
-      // Salvadanaio stilizzato: cerchio con fessura e tacca.
-      return <svg {...common}><circle {...stroke} cx="9" cy="9.5" r="5.5" /><path {...stroke} d="M7 7.2h4M9 9.5v3" /><path {...stroke} d="M9 2.2v1.8" /></svg>;
-    case "partner":
-      return <svg {...common}><rect {...stroke} x="2.5" y="3" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="10" y="3" width="5.5" height="5.5" rx="1" /><rect {...stroke} x="6.2" y="10" width="5.5" height="5.5" rx="1" /></svg>;
-    case "edge":
-      // Scatolina di rete con led: il dispositivo angar Edge.
-      return <svg {...common}><rect {...stroke} x="2" y="6" width="14" height="7.5" rx="1.8" /><path {...stroke} d="M5 9.8h2.5" /><circle cx="12.5" cy="9.8" r="1" fill="currentColor" /><path {...stroke} d="M6 6V4.2M12 6V4.2" /></svg>;
-    case "review":
-      // Occhio: "guarda / rivedi ciò che abbiamo trovato".
-      return <svg {...common}><path {...stroke} d="M1.8 9S4.4 4.3 9 4.3 16.2 9 16.2 9 13.6 13.7 9 13.7 1.8 9 1.8 9z" /><circle {...stroke} cx="9" cy="9" r="2.1" /></svg>;
+      return <svg {...common}><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" /></svg>;
     case "report":
-      return <svg {...common}><rect {...stroke} x="3" y="2.5" width="12" height="13" rx="1.5" /><path {...stroke} d="M6 12.5v-2.5M9 12.5V7.5M12 12.5v-4" /></svg>;
-    case "billing":
-      return <svg {...common}><rect {...stroke} x="2" y="4" width="14" height="10" rx="1.5" /><path {...stroke} d="M2 7.5h14" /><path {...stroke} d="M5 11h3" /></svg>;
-    case "more":
-      return <svg {...common}><circle cx="4.5" cy="9" r="1.2" fill="currentColor" /><circle cx="9" cy="9" r="1.2" fill="currentColor" /><circle cx="13.5" cy="9" r="1.2" fill="currentColor" /></svg>;
-    case "usage":
-      return <svg {...common}><circle {...stroke} cx="6.5" cy="6" r="2.3" /><path {...stroke} d="M2.5 15c0-2.3 1.8-4 4-4s4 1.7 4 4" /><path {...stroke} d="M12 15v-3M14.5 15V8.5" /></svg>;
-    case "providers":
-      return <svg {...common}><circle {...stroke} cx="9" cy="3.5" r="1.8" /><circle {...stroke} cx="4" cy="14" r="1.8" /><circle {...stroke} cx="14" cy="14" r="1.8" /><path {...stroke} d="M9 5.3v3.2M9 8.5L5 12.5M9 8.5l4 4" /></svg>;
-    case "changes":
-      return <svg {...common}><path {...stroke} d="M4 5h7a3 3 0 013 3v.5" /><path {...stroke} d="M9.5 5.5L7 8 9.5 10.5" transform="translate(-2,0)" /><path {...stroke} d="M14 13H7a3 3 0 01-3-3v-.5" /><path {...stroke} d="M8.5 12.5L11 10l-2.5-2.5" transform="translate(2,0)" /></svg>;
-    case "assurance":
-      return <svg {...common}><path {...stroke} d="M9 2.2l5.5 2v4c0 4-2.5 6.5-5.5 7.6-3-1.1-5.5-3.6-5.5-7.6v-4l5.5-2z" /><path {...stroke} d="M6.3 9l1.8 1.8L11.7 7" /></svg>;
-    case "approvals":
-      return <svg {...common}><rect {...stroke} x="3" y="2.5" width="12" height="13" rx="1.5" /><path {...stroke} d="M6 9l2 2 4-4.5" /></svg>;
-    case "policies":
-      return <svg {...common}><path {...stroke} d="M9 2.5l6 2v4c0 4-2.5 6.7-6 8-3.5-1.3-6-4-6-8v-4l6-2z" /></svg>;
-    case "activity":
-      return <svg {...common}><path {...stroke} d="M2.5 10h3l1.5-4 2.5 7 1.5-3h4" /></svg>;
-    case "evidence":
-      return <svg {...common}><rect {...stroke} x="3.5" y="2" width="11" height="14" rx="1.2" /><path {...stroke} d="M6.5 6h5M6.5 9h5M6.5 12h3" /></svg>;
+      return <svg {...common}><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" /><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" /></svg>;
+    case "savings":
+      return <svg {...common}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></svg>;
     case "connectors":
-      return <svg {...common}><circle {...stroke} cx="4.5" cy="9" r="2" /><circle {...stroke} cx="13.5" cy="9" r="2" /><path {...stroke} d="M6.5 9h5" /></svg>;
-    case "rocket":
-      // Razzo: primi passi / avvio.
-      return <svg {...common}><path {...stroke} d="M10.6 3.2c1.6-.8 3.3-.9 4.2-.7.2.9.1 2.6-.7 4.2-.9 1.8-2.7 3.4-4.6 4.5L6.8 8.5c1.1-1.9 2.7-3.7 3.8-5.3z" /><circle {...stroke} cx="11.6" cy="6.4" r="1.2" /><path {...stroke} d="M6.8 8.5L4.2 8.2 2.8 9.6l3 .9M9.5 11.2l.3 2.6-1.4 1.4-.9-3" /><path {...stroke} d="M4.6 12.4c-.8.3-1.4 1.2-1.6 2.6 1.4-.2 2.3-.8 2.6-1.6" /></svg>;
+      return <svg {...common}><path d="M12 22v-5" /><path d="M9 8V2" /><path d="M15 8V2" /><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z" /></svg>;
+    case "assurance":
+      return <svg {...common}><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="m9 12 2 2 4-4" /></svg>;
     case "settings":
-      return <svg {...common}><circle {...stroke} cx="9" cy="9" r="2.6" /><path {...stroke} d="M9 2.8v2M9 13.2v2M14.2 9h2M1.8 9h2M12.7 5.3l1.4-1.4M3.9 14.1l1.4-1.4M12.7 12.7l1.4 1.4M3.9 3.9l1.4 1.4" /></svg>;
+      return <svg {...common}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>;
+    case "people":
+      return <svg {...common}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
+    case "account":
+      return <svg {...common}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
+    case "billing":
+      return <svg {...common}><rect width="20" height="14" x="2" y="5" rx="2" /><path d="M2 10h20" /></svg>;
+    case "evidence":
+      return <svg {...common}><path d="M12 7v14" /><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" /></svg>;
+    case "rocket":
+      // Checklist della guida di avvio.
+      return <svg {...common}><path d="m3 17 2 2 4-4" /><path d="m3 7 2 2 4-4" /><path d="M13 6h8" /><path d="M13 12h8" /><path d="M13 18h8" /></svg>;
+    case "partner":
+      return <svg {...common}><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /><rect width="20" height="14" x="2" y="6" rx="2" /></svg>;
+    case "computer":
+      return <svg {...common}><rect width="20" height="14" x="2" y="3" rx="2" /><path d="M8 21h8" /><path d="M12 17v4" /></svg>;
+    case "download":
+      return <svg {...common}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" /><path d="M12 15V3" /></svg>;
+    case "edge":
+      return <svg {...common}><rect width="20" height="8" x="2" y="14" rx="2" /><path d="M6.01 18H6" /><path d="M10.01 18H10" /><path d="M15 10v4" /><path d="M17.84 7.17a4 4 0 0 0-5.66 0" /><path d="M20.66 4.34a8 8 0 0 0-11.31 0" /></svg>;
+    case "review":
+      return <svg {...common}><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" /><circle cx="12" cy="12" r="3" /></svg>;
+    case "data":
+      return <svg {...common}><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5V19A9 3 0 0 0 21 19V5" /><path d="M3 12A9 3 0 0 0 21 12" /></svg>;
+    case "usage":
+      return <svg {...common}><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>;
+    case "activity":
+      return <svg {...common}><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" /></svg>;
+    case "approvals":
+      return <svg {...common}><rect width="8" height="4" x="8" y="2" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="m9 14 2 2 4-4" /></svg>;
+    case "policies":
+      return <svg {...common}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M16 13H8" /><path d="M16 17H8" /><path d="M10 9H8" /></svg>;
+    case "providers":
+      return <svg {...common}><rect width="6" height="6" x="16" y="16" rx="1" /><rect width="6" height="6" x="2" y="16" rx="1" /><rect width="6" height="6" x="9" y="2" rx="1" /><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" /><path d="M12 12V8" /></svg>;
+    case "changes":
+      return <svg {...common}><path d="M8 3 4 7l4 4" /><path d="M4 7h16" /><path d="m16 21 4-4-4-4" /><path d="M20 17H4" /></svg>;
+    case "advisor":
+      return <svg {...common}><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /></svg>;
+    case "budget":
+      return <svg {...common}><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>;
+    case "more":
+      return <svg {...common}><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>;
     default:
       return null;
   }
@@ -394,7 +388,7 @@ function SetupChecklist({
           <div className="mt-1 border-t border-sb-ink/[0.08] px-3 pt-2.5 pb-1.5 flex items-center justify-between gap-3 text-xs">
             <span className="text-sb-muted">Not sure where to start?</span>
             <Link href="/onboarding" onClick={() => setOpen(false)} className="font-medium text-sb-ink hover:underline">
-              Get started →
+              Get started
             </Link>
           </div>
         </div>
@@ -409,7 +403,9 @@ function SetupChecklist({
       >
         <span className="relative shrink-0">
           <Icon name="rocket" />
-          {collapsed && <span className="absolute -top-2 -right-2.5 ring-2 ring-sidebar rounded-full flex">{count}</span>}
+          {collapsed && (
+            <span className="absolute -top-2 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-sb-ink text-sidebar text-[9px] font-semibold leading-4 text-center tabular ring-2 ring-sidebar">{left}</span>
+          )}
         </span>
         {!collapsed && <span className="flex-1 text-left sb-fade">Setup</span>}
         {!collapsed && <span className="sb-fade flex">{count}</span>}

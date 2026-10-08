@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { EmptyState, PageHeader, Panel, StatCard, Table, td } from "@/components/ui";
 import ExportMenu from "@/components/ExportMenu";
+import { VendorBadge } from "@/components/VendorIcon";
 import ForecastCard, { type ForecastCardProps } from "@/components/engine/ForecastCard";
 import AnomalyList from "@/components/engine/AnomalyList";
 import type { Anomaly } from "@/lib/engine/forecast";
@@ -22,9 +23,11 @@ function Bars({ rows, total, max = 6, more }: { rows: SpendBar[]; total: number;
   return (
     <div className="divide-y divide-line">
       {rows.slice(0, max).map((r) => {
+        // Icona dell'AI (fornitore o prodotto) accanto al nome; i team non ne hanno.
         const label = (
-          <span className="block text-sm text-ink-100 truncate" title={r.note}>
-            {r.label}
+          <span className="flex items-center gap-2.5 min-w-0" title={r.note}>
+            {r.vendor !== undefined && <VendorBadge vendor={r.vendor} name={r.iconName ?? r.label} size={24} />}
+            <span className="text-sm text-ink-100 truncate">{r.label}</span>
           </span>
         );
         return (
@@ -86,8 +89,13 @@ export default function SpendView({ s, forecast, anomalies, priceChanges }: { s:
               {s.variance.slice(0, 8).map((v) => (
                 <tr key={v.id}>
                   <td className={td}>
-                    <Link href={`/estate/${v.id}`} className="text-ink-100 hover:underline">{v.name}</Link>
-                    <span className="block eyebrow mt-0.5 truncate max-w-md" title={`${v.source} · ${v.basis}`}>{v.source}</span>
+                    <Link href={`/estate/${v.id}`} className="flex items-center gap-3 group min-w-0">
+                      <VendorBadge vendor={v.vendor ?? ""} name={v.name} size={28} />
+                      <span className="min-w-0">
+                        <span className="block text-ink-100 group-hover:underline truncate">{v.name}</span>
+                        <span className="block eyebrow mt-0.5 truncate max-w-md" title={`${v.source} · ${v.basis}`}>{v.source}</span>
+                      </span>
+                    </Link>
                   </td>
                   <td className={`${td} text-right tabular text-ink-100`}>{fmtEur(v.actual)}</td>
                   <td className={`${td} text-right tabular text-ink-400`}>{fmtEur(v.estimated)}</td>
