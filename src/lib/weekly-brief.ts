@@ -104,7 +104,7 @@ export function savingCandidates(items: Pick<Saving, "key" | "title" | "detail" 
       title: `Save ${eur(s.monthlyEur)} a month: ${s.title}`,
       detail: s.detail,
       value: s.monthlyEur * (VALUE.confidence[s.confidence] ?? 0.5),
-      href: s.href || "/savings",
+      href: s.href || "/opportunities",
     }));
 }
 
@@ -220,7 +220,7 @@ export function withButtons(
         ],
       };
     case "saving":
-      return { ...d, buttons: [{ label: "Accept saving", url: link("accept_saving", d.target!), style: "primary" }, { ...open, url: `${base}/savings` }] };
+      return { ...d, buttons: [{ label: "Accept saving", url: link("accept_saving", d.target!), style: "primary" }, { ...open, url: `${base}/opportunities` }] };
     default:
       return { ...d, buttons: [open] };
   }

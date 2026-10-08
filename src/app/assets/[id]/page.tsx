@@ -202,7 +202,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
           value={asset.usages.length ? (seats ? `${active} / ${seats}` : String(asset.usages.length)) : seats ? `? / ${seats}` : "—"}
           hint={asset.usages.length ? (seats ? "Active / seats" : undefined) : "Not connected"}
         />
-        <StatCard href="/savings" label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : undefined} />
+        <StatCard href="/opportunities" label="Could save" value={canSave >= 1 ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave >= 1 ? `${fmtEur(canSave * 12)} a year` : undefined} />
       </div>
       <AssetLimitNotice orgId={orgId} assetId={asset.id} />
       <ModelLifecycleNotice orgId={orgId} assetId={asset.id} />

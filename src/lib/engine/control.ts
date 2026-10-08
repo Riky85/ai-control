@@ -65,7 +65,7 @@ function risk(f: ControlFacts): ControlDriver[] {
   const d: ControlDriver[] = [];
   if (f.aiCount === 0) return [{ axis: "risk", label: "No AI found yet", impact: -NEUTRAL, href: "/connect", missingData: true }];
   if (f.unapprovedInUse > 0)
-    d.push({ axis: "risk", label: `${plural(f.unapprovedInUse, "AI", "AI")} not allowed but still used`, impact: -Math.min(35, f.unapprovedInUse * 12), href: "/?status=UNAPPROVED#your-ai" });
+    d.push({ axis: "risk", label: `${plural(f.unapprovedInUse, "AI", "AI")} not allowed but still used`, impact: -Math.min(35, f.unapprovedInUse * 12), href: "/estate?status=UNAPPROVED" });
   if (f.highRiskCount > 0)
     d.push({ axis: "risk", label: `${plural(f.highRiskCount, "AI", "AI")} at high risk`, impact: -Math.min(25, Math.max(3, Math.round(50 * (f.highRiskCount / f.aiCount)))), href: "/governance" });
   if (f.sensitiveExposed > 0)
@@ -73,7 +73,7 @@ function risk(f: ControlFacts): ControlDriver[] {
   // Le AI non pagate dall'azienda contano solo se angar conosce i costi.
   if (f.costKnown && f.shadowCount > 0 && f.activeAiCount > 0) {
     const p = Math.min(20, Math.round(40 * (f.shadowCount / f.activeAiCount)));
-    if (p > 0) d.push({ axis: "risk", label: `${plural(f.shadowCount, "AI", "AI")} on personal or free accounts`, impact: -p, href: "/?paid=no#your-ai" });
+    if (p > 0) d.push({ axis: "risk", label: `${plural(f.shadowCount, "AI", "AI")} on personal or free accounts`, impact: -p, href: "/estate?paid=no" });
   }
   // Fornitori che addestrano sui vostri dati di default: −3 per AI, massimo −9, mai oltre lo spazio rimasto.
   const trains = f.trainsOnDataCount;

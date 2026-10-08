@@ -52,7 +52,13 @@ const PAGES: { href: string; label: string; words: RegExp }[] = [
   { href: "/simulate", label: "Simulator", words: /\b(simula\w*|simulat\w*|what if|e se|scenari\w*)\b/ },
   { href: "/report/board", label: "Board report", words: /\b(board|consiglio|cda|board report)\b/ },
   { href: "/contracts/upload", label: "Read a contract", words: /\b(contratt\w*|contract\w*|pdf)\b/ },
-  { href: "/savings", label: "Savings", words: /\b(savings?|risparmi\w*)\b/ },
+  { href: "/impact", label: "Impact simulator", words: /\b(impact|impatto|simulatore d'impatto)\b/ },
+  { href: "/opportunities", label: "Opportunities", words: /\b(opportunit\w*|savings?|risparmi\w*|decision\w*|decision[ei]|cosa cambiare)\b/ },
+  { href: "/estate/graph", label: "AI Estate graph", words: /\b(graph|grafo|dipendenz\w*|dependenc\w*)\b/ },
+  { href: "/estate", label: "AI Estate", words: /\b(estate|ai estate|inventar\w*|inventory|le nostre ai|your ai)\b/ },
+  { href: "/market", label: "AI market changes", words: /\b(market|mercato|deprecat\w*|ritir\w*)\b/ },
+  { href: "/spend", label: "Spend", words: /\b(spend|spesa|spese|costi|costs?)\b/ },
+  { href: "/catalog", label: "AI price list", words: /\b(price list|listino|catalog\w*)\b/ },
   { href: "/usage", label: "Usage", words: /\b(usage|utilizzo|uso)\b/ },
   { href: "/review", label: "To review", words: /\b(review|da rivedere)\b/ },
   { href: "/budgets", label: "Budgets", words: /\b(budgets?)\b/ },
@@ -202,8 +208,8 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
       answer: top
         ? L(`You could save about ${fmtEur(s.totalMonthly)} a month (${fmtEur(s.totalMonthly * 12)} a year). Start with: ${top.title} — ${fmtEur(top.monthlyEur)} a month.`, `Potete risparmiare circa ${fmtEur(s.totalMonthly)} al mese (${fmtEur(s.totalMonthly * 12)} all'anno). Iniziate da: ${top.title} — ${fmtEur(top.monthlyEur)} al mese.`)
         : L("Nothing to save right now. Add a bank statement if angar doesn't know your costs yet.", "Niente da risparmiare al momento. Se angar non conosce ancora i costi, aggiungete un estratto conto."),
-      href: "/savings",
-      hrefLabel: L("Open Savings", "Apri Savings"),
+      href: "/opportunities",
+      hrefLabel: L("Open Opportunities", "Apri Opportunities"),
     };
   }
 
@@ -229,8 +235,8 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
       answer: fresh.length
         ? L(`${fresh.length} new AI in the last 30 days: ${fresh.slice(0, 5).map((a) => a.name).join(", ")}${fresh.length > 5 ? "…" : "."}`, `${fresh.length} nuove AI negli ultimi 30 giorni: ${fresh.slice(0, 5).map((a) => a.name).join(", ")}${fresh.length > 5 ? "…" : "."}`)
         : L("No new AI in the last 30 days.", "Nessuna nuova AI negli ultimi 30 giorni."),
-      href: "/",
-      hrefLabel: "Overview",
+      href: "/estate",
+      hrefLabel: "AI Estate",
     };
   }
 
@@ -245,8 +251,8 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
       answer: rows.length
         ? L(`About ${fmtEur(total)} a month on AI (${fmtEur(total * 12)} a year) across ${rows.length} ${rows.length === 1 ? "tool" : "tools"}. Biggest: ${top}.`, `Circa ${fmtEur(total)} al mese in AI (${fmtEur(total * 12)} all'anno) su ${rows.length} ${rows.length === 1 ? "strumento" : "strumenti"}. I più cari: ${top}.`)
         : L("angar doesn't know your AI costs yet — drop a bank statement in Sources.", "angar non conosce ancora i costi dell'AI: caricate un estratto conto in Sources."),
-      href: rows.length ? "/report" : "/sources",
-      hrefLabel: rows.length ? L("Open the report", "Apri il report") : L("Add costs", "Aggiungi i costi"),
+      href: rows.length ? "/spend" : "/sources",
+      hrefLabel: rows.length ? L("Open Spend", "Apri Spend") : L("Add costs", "Aggiungi i costi"),
     };
   }
 
@@ -256,8 +262,8 @@ export async function runCommand(orgId: string, text: string): Promise<CommandRe
     return {
       handled: true,
       answer: L(`${live.length} AI in use, ${unpaid} of them not paid by the company.`, `${live.length} AI in uso, di cui ${unpaid} non ${unpaid === 1 ? "pagata" : "pagate"} dall'azienda.`),
-      href: "/",
-      hrefLabel: "Overview",
+      href: "/estate",
+      hrefLabel: "AI Estate",
     };
   }
 

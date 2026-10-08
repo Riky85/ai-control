@@ -469,7 +469,7 @@ export async function addAlternativeAction(formData: FormData) {
     },
   });
   revalidatePath(`/assets/${assetId}`);
-  revalidatePath("/savings");
+  revalidatePath("/opportunities");
 }
 
 export async function deleteAlternativeAction(formData: FormData) {
@@ -478,7 +478,7 @@ export async function deleteAlternativeAction(formData: FormData) {
   const assetId = formData.get("assetId") as string;
   await db.modelAlternative.delete({ where: { id } });
   revalidatePath(`/assets/${assetId}`);
-  revalidatePath("/savings");
+  revalidatePath("/opportunities");
 }
 
 export async function createPolicyAction(formData: FormData) {

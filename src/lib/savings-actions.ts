@@ -17,12 +17,12 @@ const back = (path: string, params: Record<string, string>) => {
 
 /** "Accept" (o "Mark done" direttamente) su un suggerimento: titolo e importo si ricalcolano qui, mai dal form. */
 export async function acceptSavingAction(formData: FormData) {
-  const s = await requireRole("EDITOR", "/savings");
+  const s = await requireRole("EDITOR", "/opportunities");
   const key = String(formData.get("key") ?? "").slice(0, 500);
   const done = formData.get("done") === "1";
   const { items } = await computeSavings(s.orgId);
   const item = items.find((i) => i.key === key);
-  if (!item) redirect(back("/savings", { error: "That suggestion isn't there any more — it may have changed with new data." }));
+  if (!item) redirect(back("/opportunities", { error: "That suggestion isn't there any more — it may have changed with new data." }));
   const existing = await db.savingAction.findFirst({ where: { organizationId: s.orgId, savingKey: key, status: { not: "failed" } } });
   if (!existing) {
     const now = new Date();
@@ -43,16 +43,16 @@ export async function acceptSavingAction(formData: FormData) {
     await audit(done ? "saving.done" : "saving.accepted", item!.title, { key, monthlyEur: item!.monthlyEur });
   }
   revalidatePath("/", "layout");
-  redirect(done ? "/savings?view=progress" : "/savings");
+  redirect(done ? "/opportunities?view=progress" : "/opportunities");
 }
 
 /** Cambia lo stato di un'azione del registro: done, failed ("didn't work") o annulla. */
 export async function updateSavingActionAction(formData: FormData) {
-  const s = await requireRole("EDITOR", "/savings?view=progress");
+  const s = await requireRole("EDITOR", "/opportunities?view=progress");
   const id = String(formData.get("id") ?? "");
   const to = String(formData.get("to") ?? "");
   const a = await db.savingAction.findFirst({ where: { id, organizationId: s.orgId } });
-  if (!a) redirect("/savings?view=progress");
+  if (!a) redirect("/opportunities?view=progress");
   if (to === "done" && a!.status === "accepted") {
     await db.savingAction.update({ where: { id: a!.id }, data: { status: "done", doneAt: new Date() } });
   } else if (to === "failed" && (a!.status === "accepted" || a!.status === "done")) {
@@ -60,11 +60,11 @@ export async function updateSavingActionAction(formData: FormData) {
   } else if (to === "undo" && a!.status === "accepted") {
     await db.savingAction.delete({ where: { id: a!.id } });
   } else {
-    redirect("/savings?view=progress");
+    redirect("/opportunities?view=progress");
   }
   await audit(`saving.${to}`, a!.title, { id: a!.id });
   revalidatePath("/", "layout");
-  redirect("/savings?view=progress");
+  redirect("/opportunities?view=progress");
 }
 
 // ── Posti: rimozione con un clic ───────────────────────────────────────────

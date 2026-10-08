@@ -25,7 +25,7 @@ export default async function SavedSoFar({ orgId }: { orgId: string }) {
       title="Saved so far"
       value={<>{fmtEur(s.savedMonthly)}<span className="text-xs text-ink-400 font-normal">/mo</span></>}
       text={text}
-      href="/savings?view=progress"
+      href="/opportunities?view=progress"
     />
   );
 }

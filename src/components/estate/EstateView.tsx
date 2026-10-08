@@ -12,7 +12,7 @@ export default async function EstateView({ orgId }: { orgId: string }) {
 
 /** Corpo della vista (dati già caricati). */
 export function EstateViewBody({ est, admin }: { est: EstateData; admin: boolean }) {
-  const back = "/?view=graph#your-ai";
+  const back = "/estate/graph";
   const m = est.metrics;
   const systems = est.rows.map((r) => ({ id: r.id, name: r.name }));
 

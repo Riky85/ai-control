@@ -24,22 +24,22 @@ export const DOCS: DocArticle[] = [
     keywords: ["overview", "intro", "what", "how it works"],
     body: `angar answers three questions without asking you to type anything: which AI does the company use, how much does it cost, and where can we save.
 ## The sidebar, top to bottom
-- Overview — every AI you use or pay for, with cost and status.
-- To review — new AI angar found: allow it or not, in one click.
-- Savings — what to change to pay less.
-- Usage — who uses which AI, and the seats nobody uses.
-- Budgets — monthly AI cost for each team.
-- Governance — policies, EU AI Act and the records auditors ask for.
-- Connect — where the data comes from: bank and invoices, company accounts, provider keys, the desktop app and angar Edge.`,
+- Overview — angar Score, the key numbers of your AI estate, the top opportunities and the market changes that affect you.
+- Score — how efficiently you spend on AI, and how to improve it.
+- AI Estate — every AI you use or pay for (List and Graph), Providers, To review and AI market changes.
+- Spend — what your AI costs and why: by provider, model, AI and team, forecast, Budgets, Usage, Subscriptions and the AI price list.
+- Opportunities — what to change and what it's worth, goals with a ranked plan, and the Impact simulator.
+- Connect — where the data comes from: bank and invoices, company accounts, provider keys, the desktop app and angar Edge.
+- Governance — policies, EU AI Act and the records auditors ask for.`,
   },
   {
     slug: "first-10-minutes",
     section: "Getting started",
     title: "Your first 10 minutes",
-    summary: "Drop a bank statement, look at Savings, then connect more when you want.",
+    summary: "Drop a bank statement, look at Opportunities, then connect more when you want.",
     keywords: ["start", "setup", "onboarding", "quick", "first"],
     body: `1. On Overview, drop a bank or card statement (CSV or Excel) or your e-invoices. angar finds every AI subscription with plan, seats and monthly cost.
-2. Open Savings: suggestions are already calculated.
+2. Open Opportunities: suggestions are already calculated.
 3. When you're ready, open Connect: add Microsoft 365 or Google Workspace to see who uses what, and the desktop app to find AI nobody pays for.
 Nothing else is required: no costs to type, no owners to assign. Invite colleagues later from Settings → Workspace.`,
   },
@@ -221,17 +221,20 @@ Internet is used only to download updates and the desktop app. Bank, Microsoft 3
     summary: "Overview lists every AI with its cost; To review is where you decide about new AI in one click.",
     keywords: ["overview", "review", "approve", "allowed", "not allowed", "passport", "status", "owner"],
     body: `## Overview
-Every AI you use or pay for, with monthly cost, users and status. Click one to open its page: cost, seats, who uses it, the data it touches, risk and how to save. Set the status (Approved, Needs review, Not allowed) next to the title.
+angar Score, six numbers about your AI estate (AI systems, monthly spend, potential savings, provider concentration, unowned AI, high dependencies), the top opportunities and the market changes that affect you.
+## AI Estate
+Every AI you use or pay for, with monthly cost, users and status (AI Estate → List; the Graph tab shows what depends on what). Click one to open its page: cost, seats, who uses it, the data it touches, risk and how to save. Set the status (Approved, Needs review, Not allowed) next to the title.
 ## To review
-New AI found by any source lands here. For each one choose Allow or Not allowed — or approve everything at once. The number next to To review in the sidebar is what's still waiting.`,
+New AI found by any source lands here. For each one choose Allow or Not allowed — or approve everything at once. It is a tab of AI Estate; the number next to AI Estate in the sidebar is what's still waiting.`,
   },
   {
     slug: "savings",
     section: "Using angar",
-    title: "Savings",
-    summary: "angar calculates savings by itself from your bills, seats, usage and list prices.",
-    keywords: ["savings", "save", "cost", "cheaper", "alternative", "optimize", "spend", "seats", "annual", "advisor", "stack"],
-    body: `Nothing to enter: savings are calculated from what you pay and how the AI is used.
+    title: "Opportunities and savings",
+    summary: "Opportunities lists what to change — savings, consolidation, switches, dependencies, fixes — with evidence and calculation. Savings are calculated by themselves from your bills, seats, usage and list prices.",
+    keywords: ["opportunities", "goal", "decision", "savings", "save", "cost", "cheaper", "alternative", "optimize", "spend", "seats", "annual", "advisor", "stack"],
+    body: `Opportunities (formerly Savings) gathers every recommendation in one list: Save, Consolidate, Switch, Remove, Reduce dependency, Fix and Review. Click one to see the evidence, the reason and the calculation; Simulate opens the Impact simulator. The total counts each AI once, up to its cost; estimates that are not certain are shown but not added. Pick a goal at the top (save an amount a year, reduce dependency on a provider, go EU-only, prepare for a deprecation, which AI can we migrate) for a ranked plan.
+Nothing to enter: savings are calculated from what you pay and how the AI is used.
 ## What angar looks for
 - Yearly billing where it's cheaper than monthly.
 - Seats nobody used in the last 30 days.

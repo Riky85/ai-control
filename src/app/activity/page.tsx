@@ -78,7 +78,7 @@ async function EventsSummary({ orgId }: { orgId: string }) {
     <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Events, 30 days" value={in30.length.toLocaleString("en-GB")} hint={change30 != null ? `${trendWord(change30)} vs the 30 days before` : "First month of data"} tone="accent" />
-        <StatCard label="AI with activity" value={String(aiActive)} hint={`of ${assetCount} AI on record`} href="/#your-ai" />
+        <StatCard label="AI with activity" value={String(aiActive)} hint={`of ${assetCount} AI on record`} href="/estate" />
         <StatCard label="Sources reporting" value={String(sources.length)} hint={sources.join(", ") || "None in 30 days"} href="/sources" />
         <StatCard label="Last event" value={fmtAgo(last.occurredAt)} hint={fmtDateTime(last.occurredAt)} tone={stale ? "signal" : undefined} />
       </div>

@@ -261,6 +261,8 @@ export async function computeSavings(organizationId: string) {
   let total = 0;
   // Ripartizione per tipo di leva, che somma esattamente al totale (stesso cap).
   const byKind = new Map<Saving["kind"], { monthly: number; count: number }>();
+  // Quota di ogni suggerimento davvero sommata al totale (dopo il tetto): la usano le Opportunities per non contare due volte.
+  const counted = new Map<string, number>();
   const addKind = (k: Saving["kind"], eur: number) => {
     const cur = byKind.get(k) ?? { monthly: 0, count: 0 };
     byKind.set(k, { monthly: cur.monthly + eur, count: cur.count + 1 });
@@ -269,6 +271,7 @@ export async function computeSavings(organizationId: string) {
     if (s.kind === "duplicate") {
       total += s.monthlyEur;
       addKind(s.kind, s.monthlyEur);
+      counted.set(s.key, s.monthlyEur);
       continue;
     }
     const id = s.assets[0]?.id ?? s.key;
@@ -279,8 +282,9 @@ export async function computeSavings(organizationId: string) {
     cap.set(id, used + add);
     total += add;
     addKind(s.kind, add);
+    counted.set(s.key, add);
   }
-  return { items, totalMonthly: total, assets, byKind, inProgress };
+  return { items, totalMonthly: total, assets, byKind, inProgress, counted };
 }
 
 /** computeSavings una volta sola per richiesta (layout, pagina e componenti la condividono). */

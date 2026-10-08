@@ -1638,3 +1638,21 @@ model ImpactScenario {
 
   @@index([organizationId, createdAt])
 }
+
+// Opportunities (motore decisionale): stato delle opportunità che NON nascono dal motore dei
+// risparmi (quelle usano SavingAction / SavingDismissal). Chiave = chiave deterministica
+// dell'opportunità ("dep:<assetId>", "mkt:<changeKey>"…); il contenuto si ricalcola sempre.
+model OpportunityState {
+  id             String   @id @default(cuid())
+  organizationId String
+  key            String
+  status         String   // "new" | "accepted" | "in_progress" | "done" | "dismissed"
+  title          String?  // titolo al momento del cambio di stato (per l'elenco "In progress")
+  note           String?
+  updatedBy      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, key])
+  @@index([organizationId, status])
+}

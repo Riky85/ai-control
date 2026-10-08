@@ -39,7 +39,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
 
   const empty = ai.length === 0 && persons.length === 0 && pages.length === 0;
   // Senza ricerca: le pagine più usate, per partire da qualcosa.
-  const QUICK = ["/savings", "/usage", "/review", "/providers", "/report", "/compliance"];
+  const QUICK = ["/opportunities", "/estate", "/spend", "/review", "/impact", "/compliance"];
   const quick = q ? [] : QUICK.map((h) => NAV_PAGES.find((p) => p.href === h)).filter((p): p is (typeof NAV_PAGES)[number] => !!p);
 
   return (
@@ -53,7 +53,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
 
       {q && empty && (
         <div className="rounded-xl border border-line bg-panel p-5 text-sm text-ink-400">
-          No matches for &ldquo;{q}&rdquo; — try a provider name, or browse <Link href="/#your-ai" className="underline hover:text-ink-100">all your AI</Link>.
+          No matches for &ldquo;{q}&rdquo; — try a provider name, or browse <Link href="/estate" className="underline hover:text-ink-100">all your AI</Link>.
         </div>
       )}
 

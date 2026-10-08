@@ -92,7 +92,7 @@ function PanelToggleIcon() {
   );
 }
 
-// 8 aree (le schede di ogni area stanno in alto nella pagina, vedi AreaTabs).
+// Aree da AREAS (le schede di ogni area stanno in alto nella pagina, vedi AreaTabs).
 // Le impostazioni (Settings, Workspace, Plan & billing, Account) nel menu utente.
 const MENU_ITEMS = [
   { href: "/settings", label: "Settings", icon: "settings" },
@@ -229,7 +229,8 @@ export default function Sidebar({ initialCollapsed = false, orgName, workspace, 
 
       <nav className={`flex flex-col gap-0.5 overflow-x-hidden flex-1 min-h-0 whitespace-nowrap ${animating ? "overflow-y-hidden" : "overflow-y-auto"} ${collapsed ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "[scrollbar-width:thin]"}`}>
         {AREAS.map((item) => {
-          const badge = item.key === "review" && reviewCount > 0 ? reviewCount : 0;
+          // AI da rivedere: il numero sta su AI Estate (To review è una sua scheda).
+          const badge = item.key === "estate" && reviewCount > 0 ? reviewCount : 0;
           const online = item.key === "connect" && connectedComputers > 0;
           return (
             <div key={item.href} className="flex flex-col gap-0.5">

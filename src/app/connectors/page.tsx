@@ -70,12 +70,12 @@ export default async function ConnectorsPage({
 
       {searchParams.connected && (
         <Notice>
-          <b>Connected.</b> <a href="/#your-ai" className="underline">See Your AI</a>
+          <b>Connected.</b> <a href="/estate" className="underline">See Your AI</a>
         </Notice>
       )}
       {searchParams.imported && (
         <Notice>
-          <b>{searchParams.imported} AI imported.</b> <a href="/#your-ai" className="underline">See Your AI</a>
+          <b>{searchParams.imported} AI imported.</b> <a href="/estate" className="underline">See Your AI</a>
         </Notice>
       )}
       {/* Errore di una connessione: resta accanto a quella connessione, non nel toast globale. */}

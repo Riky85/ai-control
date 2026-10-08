@@ -1,6 +1,8 @@
 /**
- * Le 7 voci della piattaforma (+ impostazioni): una voce, una pagina — niente
- * sotto-schede (le pagine di dettaglio si raggiungono dai link nella pagina). Unica fonte per sidebar e schede.
+ * Le voci della piattaforma (spec §14, adattata a ciò che esiste): Overview, Score, AI Estate,
+ * Spend, Opportunities, Connect, poi Governance (secondaria). Le aree con più pagine mostrano le
+ * schede sotto la barra del titolo (AreaTabs); le vecchie pagine restano dov'erano, come schede.
+ * Unica fonte per sidebar e schede.
  */
 export interface AreaTab {
   href: string;
@@ -23,12 +25,48 @@ export interface Area {
 }
 
 export const AREAS: Area[] = [
-  { key: "overview", label: "Overview", href: "/", icon: "home", tabs: [{ href: "/", label: "Overview", match: ["/assets", "/report", "/alerts", "/group", "/market"] }] },
+  { key: "overview", label: "Overview", href: "/", icon: "home", tabs: [{ href: "/", label: "Overview", match: ["/alerts", "/group"] }] },
+  // La metrica chiave del proprietario: resta una voce a sé.
   { key: "score", label: "Score", href: "/score", icon: "score", tabs: [{ href: "/score", label: "Score", match: ["/score"] }] },
-  { key: "review", label: "To review", href: "/review", icon: "review", tabs: [{ href: "/review", label: "To review", match: ["/review"] }] },
-  { key: "savings", label: "Savings", href: "/savings", icon: "savings", tabs: [{ href: "/savings", label: "Savings", match: ["/savings", "/providers", "/advisor", "/simulate", "/negotiate", "/catalog"] }] },
-  { key: "usage", label: "Usage", href: "/usage", icon: "usage", tabs: [{ href: "/usage", label: "Usage", match: ["/usage", "/people"] }] },
-  { key: "budgets", label: "Budgets", href: "/budgets", icon: "budget", tabs: [{ href: "/budgets", label: "Budgets", match: ["/budgets"] }] },
+  // AI Estate: l'elenco delle AI (prima nell'Overview) e ciò che descrive l'estate. Il numero "da rivedere" sta su questa voce.
+  {
+    key: "estate",
+    label: "AI Estate",
+    href: "/estate",
+    icon: "assets",
+    tabs: [
+      { href: "/estate", label: "List", match: ["/assets"] },
+      { href: "/estate/graph", label: "Graph", match: [] },
+      { href: "/providers", label: "Providers", match: [] },
+      { href: "/review", label: "To review", match: [] },
+      { href: "/market", label: "Market changes", match: [] },
+    ],
+  },
+  // Spend: quanto costa e perché (spec §16). Budget, uso, abbonamenti e listino come schede.
+  {
+    key: "spend",
+    label: "Spend",
+    href: "/spend",
+    icon: "report",
+    tabs: [
+      { href: "/spend", label: "Overview", match: ["/report"] },
+      { href: "/budgets", label: "Budgets", match: [] },
+      { href: "/usage", label: "Usage", match: ["/people"] },
+      { href: "/spend/subscriptions", label: "Subscriptions", match: [] },
+      { href: "/catalog", label: "Price list", match: [] },
+    ],
+  },
+  // Opportunities: il motore decisionale (prima Savings) e l'Impact simulator.
+  {
+    key: "opportunities",
+    label: "Opportunities",
+    href: "/opportunities",
+    icon: "savings",
+    tabs: [
+      { href: "/opportunities", label: "Opportunities", match: ["/savings", "/advisor", "/simulate", "/negotiate", "/contracts"] },
+      { href: "/impact", label: "Impact simulator", match: [] },
+    ],
+  },
   {
     key: "connect",
     label: "Connect",

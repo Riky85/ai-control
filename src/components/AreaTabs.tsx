@@ -9,7 +9,8 @@ import { locate } from "@/lib/areas";
 export default function AreaTabs() {
   const pathname = usePathname();
   const here = locate(pathname);
-  if (!here || here.area.tabs.length < 2) return null;
+  // Solo sulle pagine che sono schede: le pagine di dettaglio (/assets/…, /market/…) hanno il loro percorso.
+  if (!here || here.area.tabs.length < 2 || !here.area.tabs.some((t) => t.href === pathname)) return null;
   return (
     <nav className="print:hidden -mb-1 flex flex-wrap items-center gap-1 text-sm" aria-label={here.area.label}>
       {here.area.tabs.map((t) => {

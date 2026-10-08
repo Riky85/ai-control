@@ -11,12 +11,12 @@ export const dynamic = "force-dynamic";
 const KIND: Record<string, string> = { renewal: "Renewal", budget: "Budget", policy: "Policy", seats: "Seats", new_ai: "New AI", anomaly: "Anomaly", autopilot: "Autopilot", info: "Info", secret: "Exposed key", market: "AI market" };
 // Dove si risolve ogni tipo di avviso.
 const KIND_HREF: Record<string, { href: string; cta: string; noun: string }> = {
-  renewal: { href: "/savings?view=contracts", cta: "See contracts", noun: "renewals" },
+  renewal: { href: "/opportunities?view=contracts", cta: "See contracts", noun: "renewals" },
   budget: { href: "/budgets", cta: "Open budgets", noun: "budget alerts" },
   policy: { href: "/governance", cta: "Open governance", noun: "policy alerts" },
   seats: { href: "/usage?view=cleanup", cta: "Clean up seats", noun: "seat alerts" },
   new_ai: { href: "/review", cta: "Review new AI", noun: "new AI" },
-  anomaly: { href: "/savings", cta: "Open savings", noun: "anomalies" },
+  anomaly: { href: "/spend", cta: "Open spend", noun: "anomalies" },
   secret: { href: "/governance#exposed-keys", cta: "See exposed keys", noun: "exposed AI keys" },
   market: { href: "/market", cta: "See market changes", noun: "AI market changes" },
 };

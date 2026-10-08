@@ -70,7 +70,7 @@ export function UsageSummary({ d }: { d: UsageSummaryData }) {
         </span>
         {d.seatsPaid ? <SeatTrack used={d.seatsUsed ?? 0} paid={d.seatsPaid} /> : null}
       </Link>
-      <Link href="/savings?kind=seats" className={link}>
+      <Link href="/opportunities?cat=SAVE" className={link}>
         <span className={`flex items-center gap-2 ${lab}`}>
           {d.unusedSeats > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-signal" aria-hidden />}
           Unused seats

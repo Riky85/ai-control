@@ -12,7 +12,7 @@ export default async function SimulatePage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        crumbs={[{ label: "Savings", href: "/savings" }, { label: "Simulator" }]}
+        crumbs={[{ label: "Opportunities", href: "/opportunities" }, { label: "Simulator" }]}
         title="What if…"
         subtitle="Nothing is applied."
         action={

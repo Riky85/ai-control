@@ -76,7 +76,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
             <StatCard label="To decide" value={String(queue.length)} hint={candidates ? `${candidates} possible AI` : undefined} />
             <StatCard label="High risk" value={String(risky.length)} hint={risky.length ? "Decide first" : undefined} tone={risky.length ? "alarm" : undefined} />
             <StatCard label="New this week" value={String(newThisWeek)} />
-            <StatCard label="Decided" value={`${decided}%`} hint={`${reviewedCount} AI`} href="/#your-ai" />
+            <StatCard label="Decided" value={`${decided}%`} hint={`${reviewedCount} AI`} href="/estate" />
           </div>
         </>
       )}
@@ -84,7 +84,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
       {queue.length === 0 ? (
         <EmptyState
           text={reviewedCount ? "All caught up." : "Nothing to review yet."}
-          action={reviewedCount ? <Link href="/#your-ai" className="btn btn-secondary">See your AI</Link> : <Link href="/connect" className="btn btn-primary">Connect a source</Link>}
+          action={reviewedCount ? <Link href="/estate" className="btn btn-secondary">See your AI</Link> : <Link href="/connect" className="btn btn-primary">Connect a source</Link>}
         />
       ) : (
         <ul className="rounded-xl border border-line bg-panel divide-y divide-line overflow-hidden animate-rise">

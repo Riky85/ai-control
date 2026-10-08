@@ -33,7 +33,7 @@ export default async function NegotiatePage({ params }: { params: { id: string }
   return (
     <div className="flex flex-col gap-6">
       <PageHeader subtitle="Get a better price"
-        crumbs={[{ label: "Savings", href: "/savings" }, { label: "Contracts", href: "/savings?view=contracts" }, { label: d.asset.name }]}
+        crumbs={[{ label: "Opportunities", href: "/opportunities" }, { label: "Contracts", href: "/opportunities?view=contracts" }, { label: d.asset.name }]}
         title={`Negotiate ${d.asset.name}`}
         action={
           <Link href={`/assets/${d.asset.id}`} className="btn btn-ghost btn-sm">

@@ -25,7 +25,17 @@ export interface EstateData {
   applications: { id: string; name: string; vendor: string | null; kind: string; source: string }[];
   pending: PendingEdge[];
   /** Metriche dell'Overview (spec §15). */
-  metrics: { providerConcentration: { label: string; share: number } | null; unowned: number; highDependencies: number; systems: number };
+  metrics: {
+    providerConcentration: { label: string; share: number } | null;
+    unowned: number;
+    highDependencies: number;
+    systems: number;
+    /** Id degli AI system senza owner e di quelli ad alta dipendenza (stesse regole dei conteggi). */
+    unownedIds: string[];
+    highDependencyIds: string[];
+    /** AI system da cui dipende un processo ad alta criticità. */
+    criticalIds: string[];
+  };
 }
 
 export function assembleEstate(a: { input: EstateInput; rows: SystemRow[]; ctx: AssessContext; applications: EstateData["applications"] }): EstateData {
@@ -44,11 +54,12 @@ export function assembleEstate(a: { input: EstateInput; rows: SystemRow[]; ctx: 
   const ownedSystems = new Set(graph.edges.filter((e) => e.relation === "owned_by" && LIVE(e.status)).map((e) => e.from));
   const critical = new Set<string>();
   for (const p of input.processes.filter((p) => p.criticality === "high" || p.criticality === "critical")) for (const k of dependenciesOf(graph, nodeKey("process", p.id))) critical.add(k);
-  const highDependencies = rows.filter((r) => {
+  const highDependencyRows = rows.filter((r) => {
     const x = assessments.get(r.id)!;
     const spend = (r.cost.actualEur ?? r.cost.estimatedEur ?? 0) > 0;
     return x.exit.status === "Not ready" && (x.repl.applicable || r.uses.length > 0) && (spend || critical.has(nodeKey("system", r.id)));
-  }).length;
+  });
+  const unownedRows = rows.filter((r) => !ownedSystems.has(nodeKey("system", r.id)));
   const top = concentration.rows[0];
   return {
     graph,
@@ -60,9 +71,12 @@ export function assembleEstate(a: { input: EstateInput; rows: SystemRow[]; ctx: 
     pending,
     metrics: {
       providerConcentration: top && concentration.total > 0 ? { label: top.label, share: top.share } : null,
-      unowned: rows.filter((r) => !ownedSystems.has(nodeKey("system", r.id))).length,
-      highDependencies,
+      unowned: unownedRows.length,
+      highDependencies: highDependencyRows.length,
       systems: rows.length,
+      unownedIds: unownedRows.map((r) => r.id),
+      highDependencyIds: highDependencyRows.map((r) => r.id),
+      criticalIds: rows.filter((r) => critical.has(nodeKey("system", r.id))).map((r) => r.id),
     },
   };
 }

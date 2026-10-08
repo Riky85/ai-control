@@ -174,7 +174,7 @@ export async function autoRemoveSeats(organizationId: string) {
       severity: "info",
       title: `angar removed ${n} unused seat${n === 1 ? "" : "s"}`,
       body: "People said they don't need them, or didn't answer in 7 days. See the Seat clean-up and Savings pages.",
-      href: "/savings?view=progress",
+      href: "/opportunities?view=progress",
       dedupeKey: `seat-autoremoved:${organizationId}:${new Date().toISOString().slice(0, 10)}`,
     });
   }

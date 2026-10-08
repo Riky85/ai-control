@@ -3,19 +3,18 @@ import { currentOrgId } from "@/lib/org";
 import { AssetLimitNotice } from "@/components/PlanBanner";
 import { db } from "@/lib/db";
 import CsvDropzone from "@/components/CsvDropzone";
-import AiTable from "@/components/AiTable";
-import { StatCard, PageHeader, Tabs } from "@/components/ui";
-import EstateView from "@/components/estate/EstateView";
-import ExportMenu from "@/components/ExportMenu";
+import { PageHeader } from "@/components/ui";
+import { redirect } from "next/navigation";
 import { computeSavingsCached, monthlyOf, loadAssets } from "@/lib/savings";
-import { aiFilters, filterAssets, type AiFilterParams } from "@/lib/ai-filters";
-import FilterBar from "@/components/FilterBar";
+import type { AiFilterParams } from "@/lib/ai-filters";
 import { uploadSpendAction } from "@/lib/spend-actions";
 import { fmtEur } from "@/lib/format";
 import { currentSession } from "@/lib/auth";
 import ScoreCard, { type ScoreCardData } from "@/components/engine/ScoreCard";
 import { computeScoreCached, scoreHistory, scoreActions } from "@/lib/engine/score";
 import MarketChangesBlock from "@/components/market/MarketChangesBlock";
+import { loadOpportunitiesCached } from "@/lib/opportunities";
+import { OverviewMetricsRow, TopOpportunities } from "@/components/overview/TopOpportunities";
 
 export const dynamic = "force-dynamic";
 
@@ -27,12 +26,17 @@ function greeting(name?: string | null) {
   return first ? `${part}, ${first}` : "Welcome to angar";
 }
 
-// Home = i numeri (cliccabili) e la tabella delle AI. Andamento e benchmark stanno nel report mensile.
+// Home (spec §15): angar Score, le 6 metriche dell'estate, le opportunità migliori e i cambi di mercato
+// che contano. L'elenco delle AI è in AI Estate (/estate): i vecchi link "/?view=graph", "/?q=…#your-ai" vanno lì.
 export default async function OverviewPage({ searchParams }: { searchParams: { connected?: string; imported?: string; spend?: string; view?: string } & AiFilterParams }) {
+  if (searchParams.view === "graph") redirect("/estate/graph");
+  const moved = new URLSearchParams();
+  for (const k of ["q", "status", "paid", "category"] as const) if (searchParams[k]) moved.set(k, searchParams[k]!);
+  if (moved.toString()) redirect(`/estate?${moved}`);
   const orgId = currentOrgId();
   const session = currentSession();
   // Tutto in parallelo; risparmi e computer collegati sono condivisi con il layout (React cache).
-  const [org, { items: savings, totalMonthly: canSave, assets }, all, broken, toReview, spendCount] = await Promise.all([
+  const [org, { assets }, all, broken, toReview, spendCount] = await Promise.all([
     db.organization.findUnique({ where: { id: orgId } }),
     computeSavingsCached(orgId),
     loadAssets(orgId, { includeRejected: true }),
@@ -65,19 +69,18 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
 
   const costed = assets.map((a) => monthlyOf(a)).filter((m): m is NonNullable<typeof m> => !!m && m.eur > 0);
   const spend = costed.reduce((s, m) => s + m.eur, 0);
-  const estimated = costed.filter((m) => m.estimated).length;
   const estimatedEur = costed.filter((m) => m.estimated).reduce((t, m) => t + m.eur, 0);
-  // I server MCP non si pagano come un'AI: non contano tra "non pagate dall'azienda".
-  const unpaid = assets.filter((a) => a.type !== "MCP_SERVER" && !monthlyOf(a)).length;
-  const shown = filterAssets(all, searchParams);
+  // Opportunità (stesso totale del motore dei risparmi) e metriche dell'estate.
+  const opp = assets.length ? await loadOpportunitiesCached(orgId) : null;
+  const em = opp?.estate?.metrics ?? null;
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={greeting(session?.name)} subtitle={org?.name ?? undefined} action={
+      <PageHeader title={greeting(session?.name)} subtitle={org?.name ?? "Your AI at a glance"} action={
           assets.length ? (
             <div className="flex items-center gap-2">
               {spendCount > 0 && <Link href="/report" className="btn btn-ghost btn-sm">Monthly report →</Link>}
-              <ExportMenu dataset="assets" />
+              <Link href="/estate" className="btn btn-ghost btn-sm">See all AI →</Link>
             </div>
           ) : undefined
         } />
@@ -120,32 +123,24 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
         <>
           {scoreCard && <ScoreCard data={scoreCard} />}
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard label="AI in use" value={String(assets.length)} hint={toReview ? `${toReview} to review` : `${new Set(assets.map((a) => a.vendor).filter(Boolean)).size} providers`} href={toReview ? "/review" : "/providers"} />
-            <StatCard label="Monthly spend" value={spend ? fmtEur(spend) : "—"} hint={spend ? (estimated ? `${fmtEur(estimatedEur)} estimated` : `${fmtEur(spend * 12)} a year`) : "Add a bank statement"} href={spend ? "/report" : "/sources"} />
-            <StatCard label="You could save" value={canSave ? `${fmtEur(canSave)}/mo` : "—"} hint={canSave ? `${savings.length} suggestion${savings.length === 1 ? "" : "s"}` : undefined} href="/savings" />
-            <StatCard label="Not company-paid" value={String(unpaid)} hint={unpaid ? "Free or personal" : undefined} tone={unpaid ? "signal" : undefined} href={unpaid ? "/?paid=no#your-ai" : undefined} />
-          </div>
+          <OverviewMetricsRow
+            m={{
+              systems: em?.systems ?? assets.length,
+              toReview,
+              spend,
+              estimatedEur,
+              savingsMonthly: opp?.summary.totalMonthly ?? 0,
+              opportunities: opp?.summary.open ?? 0,
+              concentration: em?.providerConcentration ?? null,
+              unowned: em?.unowned ?? 0,
+              highDependencies: em?.highDependencies ?? 0,
+            }}
+          />
+          {opp && <TopOpportunities list={opp.list} />}
           <MarketChangesBlock orgId={orgId} />
-
-          <div id="your-ai" className="flex flex-col gap-3 scroll-mt-6">
-            <div className="flex items-end justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <h2 className="text-base font-bold text-ink-100">Your AI</h2>
-                {/* Elenco o grafo delle dipendenze (AI Estate). */}
-                <Tabs active={searchParams.view === "graph" ? "graph" : "list"} items={[{ key: "list", label: "List", href: "/#your-ai" }, { key: "graph", label: "Graph", href: "/?view=graph#your-ai" }]} />
-              </div>
-              <Link href="/connect" className="btn btn-ghost btn-sm">+ Add sources</Link>
-            </div>
-            {searchParams.view === "graph" ? (
-              <EstateView orgId={orgId} />
-            ) : (
-              <>
-                <FilterBar search={{ placeholder: "Find an AI" }} filters={aiFilters(all).filter((f) => f.param === "paid")} right={`${shown.length} of ${all.length}`} />
-                <AiTable assets={shown} savings={savings} empty="No match." />
-              </>
-            )}
-          </div>
+          <Link href="/estate" className="text-sm text-ink-400 hover:text-ink-100 w-fit">
+            See all {all.length} AI →
+          </Link>
         </>
       )}
     </div>

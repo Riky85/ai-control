@@ -70,7 +70,7 @@ export function DecisionsCard({ d }: { d: DecisionsData }) {
   const total = d.allowed + d.review + d.notAllowed;
   const next =
     d.blockedInUse > 0
-      ? { href: "/?status=UNAPPROVED#your-ai", label: `Stop ${d.blockedInUse} AI that ${d.blockedInUse === 1 ? "is" : "are"} not allowed but still used` }
+      ? { href: "/estate?status=UNAPPROVED", label: `Stop ${d.blockedInUse} AI that ${d.blockedInUse === 1 ? "is" : "are"} not allowed but still used` }
       : d.review > 0
         ? { href: "/review", label: `Review ${d.review} AI` }
         : d.noOwner > 0
@@ -87,9 +87,9 @@ export function DecisionsCard({ d }: { d: DecisionsData }) {
         <StackBar
           label="AI decisions"
           parts={[
-            { key: "ok", label: "Allowed", value: d.allowed, bar: "bg-steady/60", dot: "bg-steady", href: "/?status=APPROVED#your-ai" },
+            { key: "ok", label: "Allowed", value: d.allowed, bar: "bg-steady/60", dot: "bg-steady", href: "/estate?status=APPROVED" },
             { key: "rv", label: "To review", value: d.review, bar: "bg-signal/60", dot: "bg-signal", href: "/review" },
-            { key: "no", label: "Not allowed", value: d.notAllowed, bar: "bg-alarm/60", dot: "bg-alarm", href: "/?status=UNAPPROVED#your-ai" },
+            { key: "no", label: "Not allowed", value: d.notAllowed, bar: "bg-alarm/60", dot: "bg-alarm", href: "/estate?status=UNAPPROVED" },
           ]}
         />
         <dl className="divide-y divide-line border-t border-line text-sm">

@@ -357,7 +357,7 @@ function savingsOpp(f: ScoreFacts): RawDim {
   const pens: Pen[] = [];
   for (const c of ["HIGH", "MEDIUM", "LOW"] as OpportunityConfidence[]) {
     const e = f.opportunities.filter((o) => o.confidence === c).reduce((t, o) => t + o.monthlyEur, 0);
-    if (e >= 1) pens.push({ label: `${eur(e)} a month of ${CERTAINTY_WORD[c]} savings found`, pts: ((e * CERTAINTY_WEIGHT[c]) / f.monthlySpendEur) * 300, href: "/savings" });
+    if (e >= 1) pens.push({ label: `${eur(e)} a month of ${CERTAINTY_WORD[c]} savings found`, pts: ((e * CERTAINTY_WEIGHT[c]) / f.monthlySpendEur) * 300, href: "/opportunities" });
   }
   const scaled = scaleTo(pens, 100);
   return { value: clamp(100 - scaled.reduce((t, p) => t + p.pts, 0)), status: "measured", pens: scaled };
@@ -606,7 +606,7 @@ export function scoreActions(facts: ScoreFacts, base: ScoreResult = scoreFromFac
       monthlyEur: save,
       basis: `${t.paidSeats} seats × ${eurSeat(t.seatEur)} → ${keep} seats × ${eurSeat(t.seatEur)} = ${eur(save)} a month`,
       certainty: early ? "medium" : "high",
-      href: inProg ? "/savings?view=progress" : `/assets/${t.assetId}?tab=people`,
+      href: inProg ? "/opportunities?view=progress" : `/assets/${t.assetId}?tab=people`,
       cta: inProg ? "See progress" : "Review seats",
       inProgress: inProg,
       fix: { type: "seats", assetId: t.assetId },
@@ -636,7 +636,7 @@ export function scoreActions(facts: ScoreFacts, base: ScoreResult = scoreFromFac
       monthlyEur: o.monthlyEur,
       basis,
       certainty: CONF_TO_CERTAINTY[o.confidence],
-      href: o.inProgress ? "/savings?view=progress" : o.href,
+      href: o.inProgress ? "/opportunities?view=progress" : o.href,
       cta: o.inProgress ? "See progress" : o.confidence === "LOW" ? "Investigate" : "Review",
       inProgress: !!o.inProgress,
       fix: { type: "opportunity", key: o.key },

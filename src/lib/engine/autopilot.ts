@@ -381,7 +381,7 @@ async function runStep(task: TaskRow, step: AutopilotStep, org: { autoRemoveSeat
     }
     case "notify": {
       const text = task.kind === "idle" ? `Does anyone still use ${task.title.replace(/^Nobody seems to use /, "")}? If not, it will be cancelled.` : `${task.title}: ${step.label.replace(/^Tell the team to /, "")}.`;
-      await createAlert(orgId, { kind: "autopilot", severity: "info", title: step.label, body: text, href: "/savings", dedupeKey: `autopilot-notify:${task.id}:${step.ref ?? ""}` });
+      await createAlert(orgId, { kind: "autopilot", severity: "info", title: step.label, body: text, href: "/opportunities?view=autopilot", dedupeKey: `autopilot-notify:${task.id}:${step.ref ?? ""}` });
       const chat = await postToChat(orgId, `*${org.name}* · ${text}`).catch(() => false);
       return { state: "done", detail: chat ? "Posted to the team channel" : "Added to alerts" };
     }
@@ -461,7 +461,7 @@ export async function runTask(organizationId: string, taskId: string, actor = AU
         severity: "info",
         title: `Done: ${task.title}`,
         body: nothing ? "Everyone still needs their seat. Nothing to remove." : `angar checks the next bills to confirm ${fmtEur(task.expectedMonthlyEur)} a month.`,
-        href: "/savings",
+        href: "/opportunities?view=autopilot",
         dedupeKey: `autopilot-done:${task.id}`,
       });
       if (nothing && verify) Object.assign(verify, { done: true, at: now, detail: "Nothing to verify" });
@@ -477,7 +477,7 @@ export async function runTask(organizationId: string, taskId: string, actor = AU
       result = `${fmtEur(v.eur)} a month confirmed on the bills`;
       changed = true;
       await audit("autopilot.verified", task.title, { taskId: task.id, verifiedMonthlyEur: v.eur }, { orgId: organizationId, actorEmail: actor });
-      await createAlert(organizationId, { kind: "autopilot", severity: "info", title: `Confirmed on the bills: ${task.title}`, body: `${fmtEur(v.eur)} a month saved.`, href: "/savings?view=progress", dedupeKey: `autopilot-verified:${task.id}` });
+      await createAlert(organizationId, { kind: "autopilot", severity: "info", title: `Confirmed on the bills: ${task.title}`, body: `${fmtEur(v.eur)} a month saved.`, href: "/opportunities?view=progress", dedupeKey: `autopilot-verified:${task.id}` });
     } else if (out.state === "fail") {
       error = out.error;
       verify.detail = out.error;
@@ -497,7 +497,7 @@ export async function runTask(organizationId: string, taskId: string, actor = AU
       severity: "warning",
       title: `Autopilot stopped: ${task.title}`,
       body: error,
-      href: "/savings",
+      href: "/opportunities?view=autopilot",
       dedupeKey: `autopilot-failed:${task.id}:${now.slice(0, 10)}`,
     });
   }
@@ -615,7 +615,7 @@ export async function runAutopilot(organizationId: string) {
       severity: "info",
       title: `${waiting.length} saving${waiting.length === 1 ? "" : "s"} ready for approval`,
       body: `${fmtEur(eur)} a month. One click on the Savings page and angar does the rest.`,
-      href: "/savings",
+      href: "/opportunities?view=autopilot",
       dedupeKey: `autopilot-ready:${organizationId}:${new Date().toISOString().slice(0, 10)}`,
     });
   }

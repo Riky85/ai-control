@@ -35,7 +35,7 @@ export async function uploadSpendAction(formData: FormData) {
 }
 
 export async function dismissSavingAction(formData: FormData) {
-  const s = await requireRole("EDITOR", "/savings");
+  const s = await requireRole("EDITOR", "/opportunities");
   const key = String(formData.get("key") ?? "").slice(0, 500);
   if (key) {
     const { db } = await import("@/lib/db");
@@ -45,7 +45,7 @@ export async function dismissSavingAction(formData: FormData) {
 }
 
 export async function restoreSavingsAction() {
-  const s = await requireRole("EDITOR", "/savings");
+  const s = await requireRole("EDITOR", "/opportunities");
   const { db } = await import("@/lib/db");
   await db.savingDismissal.deleteMany({ where: { organizationId: s.orgId } });
   revalidatePath("/", "layout");

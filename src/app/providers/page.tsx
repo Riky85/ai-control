@@ -54,16 +54,16 @@ export default async function ProvidersPage() {
       <PageHeader subtitle="Who you depend on" title="Providers" action={<ExportMenu dataset="providers" />} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard href="/#your-ai" label="Providers" value={String(rows.length)} hint={`${assets.length} AI`} />
-        <StatCard href="/?paid=yes#your-ai" label="Monthly spend" value={total ? fmtEur(total) : "—"} hint={total ? `${fmtEur(total * 12)} a year` : undefined} />
+        <StatCard href="/estate" label="Providers" value={String(rows.length)} hint={`${assets.length} AI`} />
+        <StatCard href="/estate?paid=yes" label="Monthly spend" value={total ? fmtEur(total) : "—"} hint={total ? `${fmtEur(total * 12)} a year` : undefined} />
         <StatCard
-          href={top ? `/?q=${encodeURIComponent(top.vendor)}#your-ai` : "/"}
+          href={top ? `/estate?q=${encodeURIComponent(top.vendor)}` : "/estate"}
           label="Largest share"
           value={top ? `${topShare}%` : "—"}
           hint={top ? top.vendor : undefined}
           tone={topShare >= 60 ? "signal" : undefined}
         />
-        <StatCard href="/savings" label="Could save" value={totalSave >= 1 ? `${fmtEur(totalSave)}/mo` : "—"} hint={totalSave >= 1 ? `${fmtEur(totalSave * 12)} a year` : undefined} />
+        <StatCard href="/opportunities" label="Could save" value={totalSave >= 1 ? `${fmtEur(totalSave)}/mo` : "—"} hint={totalSave >= 1 ? `${fmtEur(totalSave * 12)} a year` : undefined} />
       </div>
 
       {above.length > 0 && (
@@ -81,7 +81,7 @@ export default async function ProvidersPage() {
           return (
             <tr key={r.vendor} className="hover:bg-ink-100/[0.02] transition-colors">
               <td className={td}>
-                <Link href={`/?q=${encodeURIComponent(r.vendor)}#your-ai`} className="flex items-center gap-3 group">
+                <Link href={`/estate?q=${encodeURIComponent(r.vendor)}`} className="flex items-center gap-3 group">
                   <VendorBadge vendor={r.vendor} name={r.list[0]?.name} size={32} />
                   <span>
                     <span className="block font-medium text-ink-100 group-hover:underline">{r.vendor}</span>
@@ -110,7 +110,7 @@ export default async function ProvidersPage() {
                 {r.spend ? <span className={r.estimated ? "text-ink-400" : "font-medium text-ink-100"}>{r.estimated ? "≈ " : ""}{fmtEur(r.spend)}</span> : <span className="text-ink-400">Not paid</span>}
               </td>
               <td className={`${td} text-right tabular`}>
-                {r.couldSave >= 1 ? <Link href="/savings" className="font-medium text-steady hover:underline">{fmtEur(Math.round(r.couldSave))}</Link> : <span className="text-ink-400">—</span>}
+                {r.couldSave >= 1 ? <Link href="/opportunities" className="font-medium text-steady hover:underline">{fmtEur(Math.round(r.couldSave))}</Link> : <span className="text-ink-400">—</span>}
               </td>
             </tr>
           );

@@ -85,7 +85,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
           {over.reduce((n, r) => n + r.teamsOver, 0)} team budget{over.reduce((n, r) => n + r.teamsOver, 0) === 1 ? " is" : "s are"} over this month, in {over.map((r) => r.name).join(", ")}.
         </Insight>
       ) : bestSave && t.save >= 1 && rows.length > 1 ? (
-        <Insight href={bestSave.id === s.orgId ? "/savings" : undefined} cta="Open savings">
+        <Insight href={bestSave.id === s.orgId ? "/opportunities" : undefined} cta="Open opportunities">
           <b className="font-medium">{bestSave.name}</b> holds {bestShare}% of the group&apos;s possible savings ({fmtEur(bestSave.canSave)}/mo) — start there.
         </Insight>
       ) : biggest && t.spend > 0 && rows.length > 1 ? (

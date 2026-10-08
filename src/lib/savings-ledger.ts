@@ -166,7 +166,7 @@ export async function verifySavingActions(organizationId: string, now = new Date
           severity: "info",
           title: `Saving not confirmed yet: ${a.title}`,
           body: `Marked done ${VERIFY_AFTER_DAYS}+ days ago, but the charges haven't dropped. Check the provider's billing — the change may not have been applied (${fmtEur(a.expectedMonthlyEur)}/month expected).`,
-          href: "/savings?view=progress",
+          href: "/opportunities?view=progress",
           dedupeKey: `saving-unconfirmed:${a.id}`,
         });
       }

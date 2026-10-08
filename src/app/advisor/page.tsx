@@ -7,7 +7,7 @@ import { fmtEur } from "@/lib/format";
 import { PRICES_AS_OF } from "@/lib/pricing/catalog";
 import { EmptyState } from "@/components/insight";
 
-const CRUMBS = [{ label: "Savings", href: "/savings" }, { label: "Advisor" }];
+const CRUMBS = [{ label: "Opportunities", href: "/opportunities" }, { label: "Advisor" }];
 
 export const dynamic = "force-dynamic";
 

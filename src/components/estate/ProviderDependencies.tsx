@@ -30,7 +30,7 @@ export function ProviderDependenciesTable({ est }: { est: EstateData }) {
       {rows.map(({ c, deps, exit }) => (
         <tr key={c.providerKey}>
           <td className={`${td} font-medium text-ink-100`}>
-            <Link href={`/?view=graph#your-ai`} className="hover:underline">{c.label}</Link>
+            <Link href="/estate/graph" className="hover:underline">{c.label}</Link>
             {/* Impact Simulator: cosa si ferma se il fornitore non risponde (solo fornitori del catalogo). */}
             {!c.providerKey.startsWith("provider:name:") && (
               <Link href={`/impact?s=outage&provider=${encodeURIComponent(c.providerKey.slice("provider:".length))}`} className="block text-xs font-normal text-ink-400 hover:text-ink-100 mt-0.5">

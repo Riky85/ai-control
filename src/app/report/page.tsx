@@ -51,14 +51,14 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard href="/#your-ai" label="AI in use" value={String(r.assets.length)} />
-        <StatCard href="/?paid=yes#your-ai" label="Monthly spend" value={r.spend ? fmtEur(r.spend) : "—"} hint={r.spend ? `${fmtEur(r.spend * 12)} a year` : undefined} />
-        <StatCard href="/savings" label="You could save" value={r.canSave ? `${fmtEur(r.canSave)}/mo` : "—"} hint={r.canSave ? `${fmtEur(r.canSave * 12)} a year` : undefined} />
-        <StatCard href="/savings?view=progress" label="Saved so far" value={r.saved.monthly >= 1 ? `${fmtEur(r.saved.monthly)}/mo` : "—"} hint={r.saved.verified >= 1 ? `${fmtEur(r.saved.verified)}/mo confirmed` : r.saved.monthly >= 1 ? `${fmtEur(r.saved.monthly * 12)} a year` : undefined} />
+        <StatCard href="/estate" label="AI in use" value={String(r.assets.length)} />
+        <StatCard href="/estate?paid=yes" label="Monthly spend" value={r.spend ? fmtEur(r.spend) : "—"} hint={r.spend ? `${fmtEur(r.spend * 12)} a year` : undefined} />
+        <StatCard href="/opportunities" label="You could save" value={r.canSave ? `${fmtEur(r.canSave)}/mo` : "—"} hint={r.canSave ? `${fmtEur(r.canSave * 12)} a year` : undefined} />
+        <StatCard href="/opportunities?view=progress" label="Saved so far" value={r.saved.monthly >= 1 ? `${fmtEur(r.saved.monthly)}/mo` : "—"} hint={r.saved.verified >= 1 ? `${fmtEur(r.saved.verified)}/mo confirmed` : r.saved.monthly >= 1 ? `${fmtEur(r.saved.monthly * 12)} a year` : undefined} />
       </div>
 
       {mom != null && Math.abs(mom) >= 5 && lastM && prevM ? (
-        <Insight tone={mom > 0 ? "signal" : "steady"} href={mom > 0 ? "/savings" : undefined} cta="See savings">
+        <Insight tone={mom > 0 ? "signal" : "steady"} href={mom > 0 ? "/opportunities" : undefined} cta="See opportunities">
           Spend {trendWord(mom)} in {monthLabel(lastM.month)}: {fmtEur(lastM.eur)} vs {fmtEur(prevM.eur)}
         </Insight>
       ) : topCost && topShare >= 30 ? (

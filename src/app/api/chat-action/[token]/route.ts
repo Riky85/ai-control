@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: { params: { token: string }
     return page(
       `Accept this saving?`,
       `${c.saving.title} — about ${eur(c.saving.monthlyEur)} a month. It goes to Savings → In progress, and angar confirms it on the next charges. You're signed in as ${c.email}.`,
-      `<form method="post"><button class="btn primary">Accept saving</button></form><a class="link" href="/savings">Open Savings</a>`
+      `<form method="post"><button class="btn primary">Accept saving</button></form><a class="link" href="/opportunities">Open Opportunities</a>`
     );
   }
   const verb = c.t.act === "approve" ? "Allow" : "Mark as not allowed";
@@ -45,7 +45,7 @@ export async function POST(req: Request, { params }: { params: { token: string }
   if (c.kind === "saving") {
     const r = await acceptSavingCore(c.t.org, c.t.asset, c.email, "chat-link");
     if (!r.ok) return page("Can't do that", r.error);
-    return NextResponse.redirect(new URL("/savings?view=progress", originOf(req)), 303);
+    return NextResponse.redirect(new URL("/opportunities?view=progress", originOf(req)), 303);
   }
   if (c.t.act !== "approve" && c.t.act !== "reject") return page("Can't do that", "Unknown action.");
   const r = await reviewAssetCore(c.t.org, c.t.asset, c.t.act, c.email, "chat-link");

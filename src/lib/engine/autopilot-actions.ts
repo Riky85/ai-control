@@ -7,8 +7,9 @@ import { requireRole } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { approveTask, dismissTask, retryTask, markStepDone, syncAutopilot, isMode } from "@/lib/engine/autopilot";
 
-const PATH = "/savings";
-const fail = (m: string) => redirect(`${PATH}?error=${encodeURIComponent(m)}`);
+// L'Autopilot è una scheda di Opportunities (prima su /savings).
+const PATH = "/opportunities";
+const fail = (m: string) => redirect(`${PATH}?view=autopilot&error=${encodeURIComponent(m)}`);
 
 /** Il piano esiste ed è di questa azienda (mai fidarsi dell'id del form). */
 async function ownTask(orgId: string, formData: FormData) {

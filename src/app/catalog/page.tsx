@@ -81,7 +81,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: { vi
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        crumbs={[{ label: "Savings", href: "/savings" }, { label: "AI price list" }]}
+        crumbs={[{ label: "Spend", href: "/spend" }, { label: "AI price list" }]}
         title="AI price list"
         subtitle={`Checked ${fmtDay(CATALOG_VERIFIED_AT)}`}
       />
