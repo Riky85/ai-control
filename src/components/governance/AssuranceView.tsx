@@ -58,7 +58,7 @@ export default async function AssuranceView({ orgId }: { orgId: string }) {
                       <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline truncate">
                         {asset.name}
                       </Link>
-                      <span className="text-xs text-ink-400 tabular shrink-0">{report.score}%</span>
+                      <span className="text-[15px] font-light tracking-[-0.02em] text-ink-100 tabular shrink-0">{report.score}<span className="text-xs tracking-normal text-ink-400">%</span></span>
                     </div>
                     {open.length > 0 && (
                       <ul className="mt-1.5 text-xs flex flex-col gap-1">

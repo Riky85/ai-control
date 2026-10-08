@@ -32,7 +32,7 @@ export function EstateViewBody({ est, admin }: { est: EstateData; admin: boolean
             {est.pending.slice(0, 20).map((p) => (
               <li key={p.table + p.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5 text-sm">
                 <span className="flex-1 min-w-0 truncate text-ink-100">
-                  {p.from} <span className="text-ink-400">{p.relation.replace(/_/g, " ")}</span> {p.to}
+                  {p.from} <span className="eyebrow mx-1">{p.relation.replace(/_/g, " ")}</span> {p.to}
                   {p.evidence && <span className="text-ink-400"> · {p.evidence}</span>}
                 </span>
                 {(["confirm", "reject"] as const).map((d) => (
@@ -52,7 +52,7 @@ export function EstateViewBody({ est, admin }: { est: EstateData; admin: boolean
 
       {admin && (
         <details className="rounded-xl border border-line bg-panel px-5 py-4">
-          <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none">Add a process or application</summary>
+          <summary className="cursor-pointer list-none eyebrow hover:!text-ink-100 select-none">Add a process or application</summary>
           <div className="grid sm:grid-cols-2 gap-4 mt-3">
             <form action={createProcessAction} className="flex flex-col gap-2">
               <input type="hidden" name="back" value={back} />

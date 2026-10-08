@@ -94,7 +94,7 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
         )}
         {concentration && concentration.share > 0 && (
           <span className="text-sm text-ink-400 sm:ml-auto">
-            <span className="text-ink-100 font-medium tabular">{Math.round(concentration.share * 100)}%</span> of AI spend depends on {concentration.label}
+            <span className={`text-lg font-light tracking-[-0.03em] tabular ${concentration.share >= 0.6 ? "text-accent" : "text-ink-100"}`}>{Math.round(concentration.share * 100)}%</span> of AI spend depends on {concentration.label}
           </span>
         )}
       </div>
@@ -103,9 +103,9 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
         <div className="rounded-xl border border-line bg-panel px-5 py-4 flex flex-col gap-2">
           <div className="text-sm">
             <span className="font-bold text-ink-100">{focused.label}</span>
-            <span className="text-ink-400"> · {TYPE_LABEL[focused.type]}</span>
-            {focused.href && <Link href={focused.href} className="ml-3 text-xs text-ink-400 hover:text-ink-100 underline">Open</Link>}
-            {simulate && <Link href={simulate} className="ml-3 text-xs text-ink-400 hover:text-ink-100 underline">Simulate</Link>}
+            <span className="eyebrow ml-2">{TYPE_LABEL[focused.type]}</span>
+            {focused.href && <Link href={focused.href} className="ml-3 eyebrow hover:!text-ink-100 transition-colors">Open [→]</Link>}
+            {simulate && <Link href={simulate} className="ml-3 eyebrow hover:!text-ink-100 transition-colors">Simulate [→]</Link>}
           </div>
           <div className="text-sm text-ink-400">
             {[
@@ -124,7 +124,7 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
           {impact.systems.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {impact.systems.slice(0, 12).map((s) => (
-                <Link key={s.node.key} href={s.node.href ?? "#"} className="text-xs rounded-full border border-line px-2 py-0.5 text-ink-400 hover:text-ink-100">
+                <Link key={s.node.key} href={s.node.href ?? "#"} className="inline-flex items-center rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-400 hover:text-ink-100 hover:border-ink-400 transition-colors">
                   {s.node.label}{s.fraction < 1 ? ` · ${Math.round(s.fraction * 100)}%` : ""}
                 </Link>
               ))}
@@ -136,8 +136,8 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
       <div className="rounded-xl border border-line bg-panel p-4 overflow-x-auto">
         <svg width={layout.width} height={layout.height + 24} viewBox={`0 -24 ${layout.width} ${layout.height + 24}`} role="img" aria-label="AI estate graph" className="block mx-auto max-w-none">
           {layout.cols.map((c, ci) => (
-            <text key={ci} x={ci * (NW + GAP_X)} y={-10} fontSize="11" fill="rgb(var(--c-muted))">
-              {[...new Set(c.map((n) => TYPE_LABEL[n.type]))].join(" · ")}
+            <text key={ci} x={ci * (NW + GAP_X)} y={-10} fontSize="10" letterSpacing="0.4" fontFamily="var(--font-plex-mono), ui-monospace, monospace" fill="rgb(var(--c-muted))">
+              {[...new Set(c.map((n) => TYPE_LABEL[n.type]))].join(" · ").toUpperCase()}
             </text>
           ))}
           {parts.edges.map((e) => {
@@ -161,8 +161,8 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
             return (
               <g key={n.key} transform={`translate(${p.x},${p.y})`} opacity={on ? 1 : 0.25} className="cursor-pointer" onClick={() => (setFocus(isFocus ? null : n.key), setQuery(isFocus ? "" : n.label))}>
                 <title>{`${TYPE_LABEL[n.type]}: ${n.label}${n.sub ? ` · ${n.sub}` : ""}`}</title>
-                <rect width={NW} height={NH} rx={6} fill="rgb(var(--c-panel))" stroke={isFocus ? "rgb(var(--c-text))" : "rgb(var(--c-line))"} strokeWidth={isFocus ? 1.5 : 1} />
-                <rect x={0} y={0} width={4} height={NH} rx={2} fill="rgb(var(--c-text))" fillOpacity={TONE[n.type] * 0.6} />
+                <rect width={NW} height={NH} rx={3} fill="rgb(var(--c-panel))" stroke={isFocus ? "rgb(var(--c-text))" : "rgb(var(--c-line))"} strokeWidth={isFocus ? 1.5 : 1} />
+                <rect x={0} y={0} width={3} height={NH} rx={1} fill="rgb(var(--c-text))" fillOpacity={TONE[n.type] * 0.6} />
                 <text x={12} y={NH / 2 + 4} fontSize="12" fill="rgb(var(--c-text))" fillOpacity={0.4 + TONE[n.type] * 0.6} fontWeight={n.type === "system" ? 600 : 400}>
                   {cut(n.label, 19)}
                 </text>
@@ -171,7 +171,7 @@ export default function EstateGraphView({ parts, concentration }: { parts: Graph
           })}
         </svg>
       </div>
-      <p className="text-xs text-ink-400" title="Solid lines are observed, declared or from the catalog; dashed lines are inferred and wait for confirmation. Click a node to see what depends on it.">Dashed = inferred</p>
+      <p className="eyebrow" title="Solid lines are observed, declared or from the catalog; dashed lines are inferred and wait for confirmation. Click a node to see what depends on it.">Dashed = inferred</p>
     </div>
   );
 }

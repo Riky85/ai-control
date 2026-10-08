@@ -81,7 +81,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
       <section className="relative overflow-hidden rounded-2xl border border-line bg-panel grid grid-cols-1 lg:grid-cols-[1fr_auto]">
         <div className="relative p-5 sm:p-7 lg:p-9 flex flex-col gap-5 min-w-0">
           <div className="flex items-center gap-2 text-xs text-ink-400">
-            <span className="rounded-full border border-line px-2 py-0.5 text-ink-100 tabular">v{DESKTOP_VERSION}</span>
+            <span className="rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-100 tabular">v{DESKTOP_VERSION}</span>
             <span>Linked to {company} automatically</span>
           </div>
           <div>
@@ -130,7 +130,7 @@ export default async function DownloadPage({ searchParams }: { searchParams: { v
           <p className="text-xs text-ink-400">Intune, Jamf, GPO or scripts — run as the signed-in user.</p>
           {it.map((x) => (
             <div key={x.os} className="flex items-center gap-2">
-              <span className="w-16 shrink-0 text-xs text-ink-400">{x.os}</span>
+              <span className="w-16 shrink-0 eyebrow">{x.os}</span>
               <code className="flex-1 min-w-0 truncate rounded-lg border border-line bg-ink px-2.5 py-1.5 text-[11px] text-ink-100" title={x.cmd}>{x.cmd}</code>
               <CopyButton text={x.cmd} label="Copy" className="btn btn-ghost btn-sm" />
             </div>

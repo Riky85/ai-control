@@ -28,7 +28,7 @@ export default function LockedFeature({ feature, label, className = "btn btn-sec
 /** Riga compatta: lucchetto + "Available on Growth" → Billing. */
 export function LockedNote({ feature }: { feature: Feature }) {
   return (
-    <Link href="/billing" className="inline-flex items-center gap-1.5 text-xs text-ink-400 hover:text-ink-100">
+    <Link href="/billing" className="eyebrow inline-flex items-center gap-1.5 hover:!text-ink-100 transition-colors">
       <LockIcon size={12} />
       {featureAvailability(feature)}
     </Link>

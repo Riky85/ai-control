@@ -26,7 +26,7 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
         <Link href="/docs" className="text-ink-400 hover:text-ink-100">← All docs</Link>
         {DOC_SECTIONS.map((s) => (
           <div key={s}>
-            <div className="text-xs font-medium text-ink-400 mb-1.5">{s}</div>
+            <div className="eyebrow mb-1.5">{s}</div>
             <div className="flex flex-col gap-0.5">
               {DOCS.filter((d) => d.section === s).map((d) => (
                 <Link key={d.slug} href={`/docs/${d.slug}`} className={`px-2.5 py-1.5 rounded-lg transition-colors ${d.slug === doc.slug ? "bg-ink text-ink-100 font-medium" : "text-ink-400 hover:text-ink-100"}`}>
@@ -46,13 +46,13 @@ export default function DocArticlePage({ params }: { params: { slug: string } })
         <div className="grid grid-cols-2 gap-4 mt-8 print:hidden">
           {prev ? (
             <Link href={`/docs/${prev.slug}`} className="rounded-xl border border-line bg-panel p-4 hover:border-ink-400 transition-colors">
-              <div className="text-xs text-ink-400">Previous</div>
+              <div className="eyebrow">Previous</div>
               <div className="text-sm font-medium text-ink-100">{prev.title}</div>
             </Link>
           ) : <span />}
           {next && (
             <Link href={`/docs/${next.slug}`} className="rounded-xl border border-line bg-panel p-4 text-right hover:border-ink-400 transition-colors">
-              <div className="text-xs text-ink-400">Next</div>
+              <div className="eyebrow">Next</div>
               <div className="text-sm font-medium text-ink-100">{next.title}</div>
             </Link>
           )}

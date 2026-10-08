@@ -103,7 +103,7 @@ export default async function ConnectPage() {
             <div className="p-5 flex flex-col gap-1">
               <h2 className="text-sm font-bold text-ink-100 flex items-center gap-2">
                 {c.title}
-                {c.key === next && <span className="rounded-full border border-line px-2 py-0.5 text-[11px] font-medium text-ink-400">Start here</span>}
+                {c.key === next && <span className="rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] border-accent/45 text-accent">Start here</span>}
               </h2>
               <p className="text-sm text-ink-400">{c.text}</p>
             </div>
@@ -111,7 +111,7 @@ export default async function ConnectPage() {
             {/* Piede del riquadro: stato e azione */}
             <div className="relative flex items-center gap-3 border-t border-line bg-ink px-5 py-3 text-sm bar-foot">
               <span className="flex-1 min-w-0 truncate text-xs">
-                {c.status ? <span className="text-ink-100"><span className="text-steady">✓</span> {c.status}</span> : <span className="text-ink-400">Not connected</span>}
+                {c.status ? <span className="text-ink-100"><span className="text-steady">✓</span> {c.status}</span> : <span className="eyebrow">Not connected</span>}
               </span>
               {/* Solo il passo consigliato usa il pulsante primario */}
               <Link href={c.href} className={`btn btn-sm shrink-0 ${c.key === next ? "btn-primary" : "btn-secondary"}`}>{c.cta}</Link>

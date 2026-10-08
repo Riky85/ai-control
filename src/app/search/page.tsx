@@ -62,7 +62,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           {quick.map((p) => (
             <Link key={p.href} href={p.href} className="flex items-center justify-between px-4 py-3 text-sm text-ink-100 hover:bg-ink-100/[0.02] transition-colors">
               {p.label}
-              <span className="text-ink-400">→</span>
+              <span className="font-mono text-[12px] text-ink-400" aria-hidden>[→]</span>
             </Link>
           ))}
         </Group>

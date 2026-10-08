@@ -14,7 +14,7 @@ export interface RowLike {
 
 const TONE: Record<string, string> = {
   allowed: "text-steady bg-steady/10",
-  redacted: "text-signal bg-signal/10",
+  redacted: "text-accent bg-accent/10",
   blocked: "text-alarm bg-alarm/10",
   error: "text-ink-400 bg-ink-400/10",
 };
@@ -22,7 +22,7 @@ const TONE: Record<string, string> = {
 const LABEL: Record<string, string> = { allowed: "Allowed", redacted: "Redacted", blocked: "Blocked", error: "Error" };
 
 export function ResultPill({ result }: { result: string }) {
-  return <span className={`inline-flex whitespace-nowrap text-xs font-medium px-1.5 py-0.5 rounded-md ${TONE[result] ?? TONE.error}`}>{LABEL[result] ?? result}</span>;
+  return <span className={`inline-flex whitespace-nowrap rounded-[2px] px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] ${TONE[result] ?? TONE.error}`}>{LABEL[result] ?? result}</span>;
 }
 
 /** "IBAN ×1, Email ×2" */

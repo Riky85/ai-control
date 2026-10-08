@@ -97,12 +97,12 @@ export default function GatewayView(p: GatewayViewProps) {
                       ← Newer
                     </Link>
                   )}
-                  <span className="tabular">
+                  <span className="eyebrow tabular">
                     Page {p.logs.page} of {p.logs.pages}
                   </span>
                   {p.logs.page < p.logs.pages && (
-                    <Link className="btn btn-secondary btn-sm" href={`/gateway?tab=logs&page=${p.logs.page + 1}${p.logs.result ? `&result=${p.logs.result}` : ""}`}>
-                      Older →
+                    <Link className="btn btn-secondary btn-sm btn-go" href={`/gateway?tab=logs&page=${p.logs.page + 1}${p.logs.result ? `&result=${p.logs.result}` : ""}`}>
+                      Older
                     </Link>
                   )}
                 </span>

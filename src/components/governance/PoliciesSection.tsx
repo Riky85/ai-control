@@ -44,7 +44,7 @@ export default function PoliciesSection({ policies, templates, canEdit, libraryT
       meta={
         policies.length ? (
           <>
-            <b className="font-medium text-ink-100 tabular">{active}</b> active{policies.length > active ? ` · ${policies.length - active} off` : ""}
+            <b className="font-normal text-ink-100 tabular">{active}</b> active{policies.length > active ? ` · ${policies.length - active} off` : ""}
           </>
         ) : (
           "No policies yet"

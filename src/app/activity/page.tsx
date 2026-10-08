@@ -220,7 +220,7 @@ async function EvidenceTab() {
                 <Link href={`/assets/${asset.id}`} className="font-medium text-sm text-ink-100 hover:underline">
                   {asset.name}
                 </Link>
-                <span className="text-xs text-ink-400">{checks.length} controls</span>
+                <span className="eyebrow">{checks.length} controls</span>
               </div>
               <Table columns={["Control", { label: "Status", className: "w-20" }, "Evidence"]}>
                   {checks.map((c) => (
@@ -253,7 +253,7 @@ async function EvidenceTab() {
               <div key={s.id} className="px-5 py-4">
                 <div className="flex items-start justify-between gap-3">
                   <span className="text-sm text-ink-100 min-w-0">{s.summary}</span>
-                  <span className="tabular text-xs text-ink-400 shrink-0">{fmtDateTime(s.createdAt)}</span>
+                  <span className="eyebrow tabular shrink-0">{fmtDateTime(s.createdAt)}</span>
                 </div>
                 {p?.highRiskCount > 0 && (
                   <div className="text-xs text-alarm mt-1">{p.highRiskCount} asset{p.highRiskCount === 1 ? "" : "s"} at high or critical risk at this point in time.</div>

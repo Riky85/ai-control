@@ -94,15 +94,15 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
           return (
             <Row key={label} title={label}>
               <div className="flex items-center gap-3 w-full max-w-xs">
-                <div className="flex-1 h-1.5 bg-ink rounded-full overflow-hidden">
+                <div className="flex-1 h-1 bg-ink-100/[0.08] rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full animate-grow ${pct >= 100 ? "bg-alarm" : pct >= 80 ? "bg-signal" : "bg-ink-100"}`}
+                    className={`h-full rounded-full animate-grow ${pct >= 100 ? "bg-alarm" : pct >= 80 ? "bg-accent" : "bg-ink-100/70"}`}
                     style={{ width: limit === null ? "4%" : `${Math.max(pct, 2)}%` }}
                   />
                 </div>
-                <span className="text-sm text-ink-100 font-semibold tabular whitespace-nowrap min-w-[4rem] text-right">
+                <span className={`text-[15px] font-light tracking-[-0.02em] tabular whitespace-nowrap min-w-[4rem] text-right ${pct >= 80 ? "text-accent" : "text-ink-100"}`}>
                   {used}
-                  <span className="text-ink-400 font-normal"> / {limit ?? "∞"}</span>
+                  <span className="text-xs tracking-normal text-ink-400"> / {limit ?? "∞"}</span>
                 </span>
               </div>
             </Row>
@@ -139,7 +139,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
                 <span className="text-[22px] font-light tracking-[-0.03em] tabular">€{EDGE.pricePerDevice}</span>
                 <span className="text-sm text-ink-400"> a month for each device</span>
               </div>
-              <div className="text-xs text-ink-400">Any plan · {EDGE.minMonths}-month minimum · shipping included · {org.edgeDevices} active</div>
+              <div className="eyebrow">Any plan · {EDGE.minMonths}-month minimum · shipping included · {org.edgeDevices} active</div>
               <Link href="/edge" className="text-xs text-ink-400 hover:text-ink-100 underline self-start">How it works</Link>
             </div>
           </div>

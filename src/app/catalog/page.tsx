@@ -25,7 +25,7 @@ const SOURCE_SHORT: Record<string, string> = { official: "Official", secondary: 
 function Lifecycle({ m }: { m: CatModel }) {
   const l = LIFECYCLE[m.lifecycle] ?? LIFECYCLE.active;
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap font-mono uppercase text-[11px] tracking-[0.04em]">
       <span className={`h-1.5 w-1.5 rounded-full ${l.dot}`} />
       {l.label}
       {m.retiresAt && m.lifecycle !== "retired" && <span className="text-ink-400">· {fmtDay(m.retiresAt)}</span>}
@@ -109,7 +109,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: { vi
         <Table
           columns={["Model", "Status", { label: "Input", className: "text-right" }, { label: "Cached", className: "text-right" }, { label: "Output", className: "text-right" }, { label: "Context", className: "text-right" }, "Source", "Checked"]}
           empty={models.length === 0 ? "No match." : false}
-          footer={<span className="text-xs text-ink-400" title={`Direct API, standard tier, global region. Estimates convert USD to EUR at ${USD_TO_EUR}.`}>Prices for 1M tokens</span>}
+          footer={<span className="eyebrow" title={`Direct API, standard tier, global region. Estimates convert USD to EUR at ${USD_TO_EUR}.`}>Prices for 1M tokens</span>}
         >
           {models.map((m) => {
             const i = getPrice(m.id, null, null, "input", now);

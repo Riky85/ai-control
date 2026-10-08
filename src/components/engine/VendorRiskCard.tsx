@@ -9,7 +9,7 @@ import { RESIDENCY_LABEL, type Residency, type Training, type VendorRisk } from 
 
 const TONE = {
   alarm: "text-alarm bg-alarm/10",
-  signal: "text-signal bg-signal/10",
+  signal: "text-accent bg-accent/10",
   steady: "text-steady bg-steady/10",
   muted: "text-ink-400 bg-ink-100/[0.06]",
 } as const;
@@ -43,7 +43,7 @@ export default function VendorRiskCard({ risk, tier, detailsHref }: { risk: Vend
   const certs = risk.certifications;
   const row = (label: React.ReactNode, value: React.ReactNode) => (
     <div className="-mt-px flex items-center justify-between gap-3 border-t border-line py-2">
-      <dt className="text-sm text-ink-400 min-w-0 truncate">{label}</dt>
+      <dt className="eyebrow min-w-0 truncate">{label}</dt>
       <dd className="flex flex-wrap justify-end gap-1 shrink-0">{value}</dd>
     </div>
   );
@@ -54,11 +54,11 @@ export default function VendorRiskCard({ risk, tier, detailsHref }: { risk: Vend
           <h2 id="vendor-risk-title" className="text-sm font-bold text-ink-100 truncate">
             Vendor terms · {risk.vendor}
           </h2>
-          <span className="text-[11px] text-ink-400 shrink-0">{risk.verified ? `checked ${risk.lastReviewed}` : "unverified"}</span>
+          <span className="eyebrow shrink-0">{risk.verified ? `checked ${risk.lastReviewed}` : "unverified"}</span>
         </div>
         {detailsHref && (
-          <Link href={detailsHref} className="text-xs text-ink-400 hover:text-ink-100 shrink-0">
-            Details →
+          <Link href={detailsHref} className="eyebrow hover:!text-ink-100 transition-colors shrink-0">
+            Details [→]
           </Link>
         )}
       </div>
@@ -66,7 +66,7 @@ export default function VendorRiskCard({ risk, tier, detailsHref }: { risk: Vend
         {row("EU data", <Pill tone={residency[risk.euResidency].tone} title={risk.residencyNote ?? RESIDENCY_LABEL[risk.euResidency]}>{residency[risk.euResidency].label}</Pill>)}
         {row(
           <span title={tier === "business" ? "Terms for business plans and the API" : "Terms for personal and free plans"}>
-            Trains on your data <span className="text-[11px]">({tier === "business" ? "business" : "personal"} plan)</span>
+            Trains on your data <span>({tier === "business" ? "business" : "personal"} plan)</span>
           </span>,
           <Pill tone={training[trains].tone} title={risk.trainingNote}>{training[trains].label}</Pill>
         )}

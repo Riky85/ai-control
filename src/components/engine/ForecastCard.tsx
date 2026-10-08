@@ -60,25 +60,25 @@ export default function ForecastCard({ history, projection, next12Eur, growthPct
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm bar-head">
         <h2 id="forecast-title" className="font-bold text-ink-100">Next 12 months</h2>
         {!empty && (
-          <div className="flex items-center gap-4 text-[11px] text-ink-400" aria-hidden>
+          <div className="flex items-center gap-4 eyebrow" aria-hidden>
             <span className="flex items-center gap-1.5"><svg width="16" height="4" className="text-ink-100"><path d="M0 2h16" stroke="currentColor" strokeWidth="2" /></svg>Actual</span>
             <span className="flex items-center gap-1.5"><svg width="16" height="4" className="text-ink-100"><path d="M0 2h16" stroke="currentColor" strokeWidth="2" strokeDasharray="4 3" /></svg>Forecast</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-sm bg-ink-100/10" />Likely range</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-[1px] bg-ink-100/10" />Likely range</span>
           </div>
         )}
       </div>
       <div className="relative flex flex-wrap items-end justify-between gap-4 px-5 pt-4">
         <div>
-          <div className="font-display text-[26px] leading-none font-light tracking-[-0.03em] tabular text-ink-100">{empty ? "—" : fmtEur(next12Eur)}</div>
+          <div className="font-display text-[30px] leading-none font-light tracking-[-0.03em] tabular text-ink-100">{empty ? "—" : fmtEur(next12Eur)}</div>
         </div>
         {!empty && (
           <div className="text-right">
-            <div className={`font-display text-lg font-semibold tabular leading-none ${growthPct === 0 ? "text-ink-100" : up ? "text-signal" : "text-steady"}`}>
+            <div className={`font-display text-xl font-light tracking-[-0.03em] tabular leading-none ${growthPct === 0 ? "text-ink-100" : up ? "text-accent" : "text-steady"}`}>
               <span aria-hidden>{growthPct === 0 ? "" : up ? "▲ " : "▼ "}</span>
               {growthPct > 0 ? "+" : ""}
               {growthPct}%
             </div>
-            <div className="text-xs text-ink-400 mt-1">monthly spend in a year</div>
+            <div className="eyebrow mt-1.5">monthly spend in a year</div>
           </div>
         )}
       </div>
@@ -109,16 +109,16 @@ export default function ForecastCard({ history, projection, next12Eur, growthPct
             <span aria-hidden className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink-100 ring-2 ring-panel" style={{ left: `${(x(off - 1) / W) * 100}%`, top: `${(y(hist[off - 1].eur) / H) * 100}%` }} />
           )}
           {proj.length > 0 && (
-            <span aria-hidden className="absolute right-0 -translate-y-full text-[11px] text-ink-400 tabular" style={{ top: `${(Math.max(PAD.t + 10, y(proj[proj.length - 1].high)) / H) * 100}%` }}>
+            <span aria-hidden className="absolute right-0 -translate-y-full font-mono text-[10px] text-ink-400 tabular" style={{ top: `${(Math.max(PAD.t + 10, y(proj[proj.length - 1].high)) / H) * 100}%` }}>
               {compact(proj[proj.length - 1].eur)}
             </span>
           )}
           </div>
           {/* Etichette dell'asse: primo mese, "Now", ultimo mese — mai sovrapposte. */}
-          <div aria-hidden className="relative h-5 mt-1 text-[11px]">
+          <div aria-hidden className="relative h-5 mt-1 font-mono uppercase tracking-[0.04em] text-[10px]">
             {n > 0 && off > 0 && (x(off) - x(0)) / W > 0.12 && <span className="absolute left-0 text-ink-400">{short(all[0].month)}</span>}
             {proj.length > 0 && (
-              <span className={`absolute font-medium text-ink-100 ${off === 0 ? "left-0" : "-translate-x-1/2"}`} style={off === 0 ? undefined : { left: `${(x(off) / W) * 100}%` }}>
+              <span className={`absolute text-ink-100 ${off === 0 ? "left-0" : "-translate-x-1/2"}`} style={off === 0 ? undefined : { left: `${(x(off) / W) * 100}%` }}>
                 Now
               </span>
             )}

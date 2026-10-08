@@ -97,7 +97,7 @@ export function Node({
   const showBrand = (vendor !== undefined && (kind === "provider" || kind === "system")) || externalBrand !== null;
   const body = (
     <g transform={`translate(${x}, ${y - h / 2})`}>
-      <rect width={w} height={h} rx={12} fill={fill} stroke={stroke} strokeWidth={1.2} />
+      <rect width={w} height={h} rx={4} fill={fill} stroke={stroke} strokeWidth={1.2} />
       {alarm && <circle cx={w - 14} cy={h / 2} r={3.5} fill={G.alarm} />}
       <g transform="translate(12, 12)">
         {showBrand ? <VendorIcon vendor={externalBrand ?? vendor ?? ""} name={name} size={16} /> : <KindGlyph kind={kind} color={G.muted} />}
@@ -106,7 +106,7 @@ export function Node({
         {cut(label, Math.floor((w - (alarm ? 60 : 44)) / 6.6))}
       </text>
       {sublabel && (
-        <text x={36} y={31} fontSize="10" fill={G.muted}>
+        <text x={36} y={31} fontSize="9" fill={G.muted} fontFamily="var(--font-plex-mono), ui-monospace, monospace" letterSpacing="0.4" style={{ textTransform: "uppercase" }}>
           {cut(sublabel, Math.floor((w - 44) / 5.6))}
         </text>
       )}
@@ -117,7 +117,7 @@ export function Node({
 
 export function ColumnTitle({ x, text }: { x: number; text: string }) {
   return (
-    <text x={x} y={12} fontSize="11" fontWeight={500} letterSpacing="0.6" fill={G.muted} fontFamily="var(--font-sans), ui-sans-serif, system-ui">
+    <text x={x} y={12} fontSize="11" letterSpacing="0.4" fill={G.muted} fontFamily="var(--font-plex-mono), ui-monospace, monospace" style={{ textTransform: "uppercase" }}>
       {text}
     </text>
   );
@@ -134,9 +134,9 @@ export function GraphHeader({ columns }: { columns: { label: string; count?: num
     <div className="grid grid-cols-3 pb-3 mb-2 border-b border-line">
       {columns.map((c, i) => (
         <div key={c.label} className={align[i]}>
-          <span className="text-sm font-medium text-ink-100">{c.label}</span>
-          {c.count !== undefined && <span className="ml-1.5 text-sm text-ink-400 tabular">{c.count}</span>}
-          {c.hint && <span className="block text-xs text-ink-400">{c.hint}</span>}
+          <span className="text-sm font-bold text-ink-100">{c.label}</span>
+          {c.count !== undefined && <span className="ml-1.5 font-mono text-[11px] text-ink-400 tabular">{c.count}</span>}
+          {c.hint && <span className="block eyebrow mt-0.5">{c.hint}</span>}
         </div>
       ))}
     </div>
@@ -174,9 +174,9 @@ export function GraphColumns({
           style={{ left: `${((x - inset + GRAPH_PAD) / total) * 100}%`, width: `${((COL + inset * 2) / total) * 100}%` }}
         >
           <div className="px-4 pt-3">
-            <span className="text-sm font-semibold text-ink-100">{columns[i]?.label}</span>
-            {columns[i]?.count !== undefined && <span className="ml-1.5 text-sm text-ink-400 tabular">{columns[i]?.count}</span>}
-            {columns[i]?.hint && <span className="block text-xs text-ink-400">{columns[i]?.hint}</span>}
+            <span className="text-sm font-bold text-ink-100">{columns[i]?.label}</span>
+            {columns[i]?.count !== undefined && <span className="ml-1.5 font-mono text-[11px] text-ink-400 tabular">{columns[i]?.count}</span>}
+            {columns[i]?.hint && <span className="block eyebrow mt-0.5">{columns[i]?.hint}</span>}
           </div>
         </div>
       ))}

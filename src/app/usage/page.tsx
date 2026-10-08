@@ -212,8 +212,8 @@ export default async function UsagePage({ searchParams }: { searchParams: { view
         subtitle="Last 30 days."
         action={
           // Una sola riga di schede (sotto): la rubrica delle persone è una pagina a parte, non una scheda.
-          <Link href="/people" className="btn btn-ghost btn-sm">
-            People directory →
+          <Link href="/people" className="btn btn-ghost btn-sm btn-go">
+            People directory
           </Link>
         }
       />

@@ -77,7 +77,7 @@ export function RegisterTable({ rows, canEdit, tiers }: { rows: RopaRow[]; canEd
             </td>
             <td className={`${td} align-top`}>
               <TierPill tier={r.aiAct.tier} title={[...r.aiAct.reasons, ...r.aiAct.obligations].join("\n")} />
-              {r.aiAct.source === "manual" && <div className="text-[11px] text-ink-400 mt-1">Set by hand</div>}
+              {r.aiAct.source === "manual" && <div className="eyebrow mt-1">Set by hand</div>}
             </td>
             {canEdit && (
               <td className={`${td} align-top text-right`}>
@@ -97,9 +97,9 @@ export function RegisterTable({ rows, canEdit, tiers }: { rows: RopaRow[]; canEd
 export function RegisterEdit({ row }: { row: RopaRow }) {
   return (
     <section id="edit" className="print:hidden rounded-xl border border-line bg-panel animate-rise scroll-mt-6">
-      <div className="px-5 py-3 border-b border-line flex flex-wrap items-center justify-between gap-2">
+      <div className="px-5 py-3 bg-ink border-b border-line rounded-t-xl bar-head flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-bold text-ink-100">Complete {row.name}</h2>
-        <Link href={`/governance/register#row-${row.id}`} className="text-sm text-ink-400 hover:text-ink-100">
+        <Link href={`/governance/register#row-${row.id}`} className="eyebrow hover:!text-ink-100 transition-colors">
           Cancel
         </Link>
       </div>

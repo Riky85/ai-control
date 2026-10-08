@@ -60,7 +60,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
           <span className="min-w-0">
             <span className="text-ink-100 group-hover:underline" title="Plan, seats, price, renewal and notice from a contract, order form or invoice">Read a contract (PDF)</span>
           </span>
-          <span className="text-ink-400 group-hover:text-ink-100 shrink-0" aria-hidden>→</span>
+          <span className="font-mono text-[12px] text-ink-400 group-hover:text-ink-100 shrink-0" aria-hidden>[→]</span>
         </Link>
       </Card>
 
@@ -74,21 +74,21 @@ export default async function SourcesPage({ searchParams }: { searchParams: { er
             return (
             <SourceRow key={p.id} label={p.label} detail={email ? <EmailHistoryLine provider={p.id} view={email} /> : undefined}>
               {p.connected ? (
-                <span className="text-xs text-steady">Connected</span>
+                <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">Connected</span>
               ) : p.available ? (
                 workplaceEnabled ? <a href={p.connectUrl} className="btn btn-secondary btn-sm">Connect</a> : <LockedNote feature={p.id === "GOOGLE_WORKSPACE" ? "googleWorkspace" : p.id === "OKTA" ? "okta" : "microsoft365"} />
               ) : (
-                <span className="text-xs text-ink-400">Coming soon</span>
+                <span className="eyebrow">Coming soon</span>
               )}
             </SourceRow>
             );
           })}
           <SourceRow label="AI provider keys" hint="OpenAI, Anthropic, Gemini, Azure OpenAI, Bedrock, Vertex AI…">
-            {keys.length > 0 && <span className="text-xs text-steady">{keys.length} connected</span>}
+            {keys.length > 0 && <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">{keys.length} connected</span>}
             <Link href="/connectors" className="btn btn-secondary btn-sm">{keys.length ? "Manage" : "Add a key"}</Link>
           </SourceRow>
           <SourceRow label="Network logs" hint="Cloudflare Gateway, Cisco Umbrella, Zscaler, Fortinet, DNS servers">
-            {networkLogs.length > 0 && <span className="text-xs text-steady">{networkLogs.length} connected</span>}
+            {networkLogs.length > 0 && <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">{networkLogs.length} connected</span>}
             <Link href="/connectors#network-logs" className="btn btn-secondary btn-sm">{networkLogs.length ? "Manage" : "Connect"}</Link>
           </SourceRow>
           <AutoRow label="Bank account" state={bankState} connectHref="/sources/bank" syncAction={syncBankAction} />
@@ -106,7 +106,7 @@ function Card({ title, status, children }: { title: string; status: string | nul
       {/* Barra grigia in alto: titolo e stato. */}
       <div className="-mx-5 -mt-5 flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
         <h2 className="text-sm font-bold text-ink-100">{title}</h2>
-        {status && <span className="text-xs text-steady">✓ {status}</span>}
+        {status && <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">✓ {status}</span>}
       </div>
       <div className="flex flex-col gap-3 mt-auto">{children}</div>
     </section>
@@ -134,7 +134,7 @@ function EmailHistoryLine({ provider, view }: { provider: string; view: EmailHis
       <span className="min-w-0 text-ink-400">
         <span className="block">{view.line}</span>
         {view.hint && (
-          <span className="block text-signal">
+          <span className="block text-accent">
             {view.hint.text}
             {view.hint.href && (
               <>
@@ -170,7 +170,7 @@ function AutoRow({ label, hint, state, connectHref, syncAction }: { label: strin
     <SourceRow label={label} hint={hint}>
       {state === "connected" ? (
         <>
-          <span className="text-xs text-steady">Connected</span>
+          <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">Connected</span>
           <form action={syncAction}>
             <button className="btn btn-secondary btn-sm">Sync now</button>
           </form>
@@ -178,7 +178,7 @@ function AutoRow({ label, hint, state, connectHref, syncAction }: { label: strin
       ) : state === "available" ? (
         <a href={connectHref} className="btn btn-secondary btn-sm">Connect</a>
       ) : (
-        <span className="text-xs text-ink-400">Coming soon</span>
+        <span className="eyebrow">Coming soon</span>
       )}
     </SourceRow>
   );

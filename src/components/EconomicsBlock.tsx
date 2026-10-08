@@ -11,17 +11,17 @@ import { discountText } from "@/lib/pricing/discount";
 // Quello che non si sa è UNKNOWN: mai un numero inventato.
 
 export function EstimatedTag() {
-  return <span className="ml-1.5 inline-block align-middle rounded border border-line px-1.5 py-px text-[10px] font-mono uppercase tracking-wide text-ink-400">Estimated</span>;
+  return <span className="ml-1.5 inline-block align-middle rounded-[2px] border border-line px-1.5 py-px text-[10px] font-mono uppercase tracking-[0.05em] text-ink-400">Estimated</span>;
 }
 
 function Unknown() {
-  return <span className="text-ink-400 font-medium tracking-wide">UNKNOWN</span>;
+  return <span className="font-mono text-[0.85em] text-ink-400 tracking-[0.05em]">UNKNOWN</span>;
 }
 
 function Item({ label, children, hint }: { label: string; children: React.ReactNode; hint?: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-ink-400">{label}</dt>
+      <dt className="eyebrow">{label}</dt>
       <dd className="text-sm mt-1 text-ink-100 break-words">{children}</dd>
       {hint && <dd className="text-xs text-ink-400 mt-0.5 break-words">{hint}</dd>}
     </div>
@@ -58,18 +58,18 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
       {/* Reale, stimato, scarto: i tre numeri da non confondere mai. */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pb-5 border-b border-line">
         <div className="min-w-0">
-          <div className="text-sm font-bold text-ink-100">Actual</div>
-          <div className="font-display text-2xl font-light tracking-[-0.03em] tabular text-ink-100 mt-1">{actual ? money(actual.eur) : <Unknown />}</div>
+          <div className="eyebrow">Actual</div>
+          <div className="font-display text-2xl font-light tracking-[-0.03em] tabular text-ink-100 mt-2">{actual ? money(actual.eur) : <Unknown />}</div>
           <div className="text-xs text-ink-400 mt-1 truncate">{actual ? actual.source : "No bill linked"}</div>
         </div>
         <div className="min-w-0">
-          <div className="text-sm font-bold text-ink-100 flex items-center">Estimated<EstimatedTag /></div>
-          <div className="font-display text-2xl font-light tracking-[-0.03em] tabular text-ink-100 mt-1">{estimated && estimated.eur > 0 ? money(estimated.eur) : <Unknown />}</div>
+          <div className="eyebrow flex items-center">Estimated<EstimatedTag /></div>
+          <div className="font-display text-2xl font-light tracking-[-0.03em] tabular text-ink-100 mt-2">{estimated && estimated.eur > 0 ? money(estimated.eur) : <Unknown />}</div>
           <div className="text-xs text-ink-400 mt-1 truncate" title={estimated?.basis}>{estimated ? estimated.basis : "Nothing to price"}</div>
         </div>
         <div className="min-w-0">
-          <div className="text-sm font-bold text-ink-100">Variance</div>
-          <div className="font-display text-2xl font-light tracking-[-0.03em] tabular text-ink-100 mt-1">{variance ? pct : <Unknown />}</div>
+          <div className="eyebrow">Variance</div>
+          <div className={`font-display text-2xl font-light tracking-[-0.03em] tabular mt-2 ${variance && variance.pct > 0.1 ? "text-accent" : "text-ink-100"}`}>{variance ? pct : <Unknown />}</div>
           {variance && <div className="text-xs text-ink-400 mt-1 tabular">{`${variance.eur >= 0 ? "+" : "−"}${fmtEur(Math.abs(variance.eur))} vs estimate`}</div>}
         </div>
       </div>
@@ -127,7 +127,7 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
         )}
         {/* Righe di posti: pagati / attivi, listino del catalogo con provenienza, contratto e sconto. */}
         <div className="col-span-2 sm:col-span-4 min-w-0">
-          <dt className="text-xs text-ink-400">Seats (paid / active)</dt>
+          <dt className="eyebrow">Seats (paid / active)</dt>
           {e.seatLines.length ? (
             e.seatLines.map((l, i) => (
               <dd key={i} className="mt-1.5 min-w-0">
@@ -162,18 +162,18 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
         </div>
         {m?.note && (
           <div className="col-span-2 sm:col-span-4 min-w-0">
-            <dt className="text-xs text-ink-400">Note</dt>
+            <dt className="eyebrow">Note</dt>
             <dd className="text-sm mt-1 text-ink-100 break-words whitespace-pre-line">{m.note}</dd>
           </div>
         )}
         {e.modelPrice && (
           <div className="col-span-2 sm:col-span-4 min-w-0">
-            <dt className="text-xs text-ink-400">Model list price</dt>
+            <dt className="eyebrow">Model list price</dt>
             <dd className="text-sm mt-1 text-ink-100 tabular">
               {e.modelPrice.name} · {tokenPriceText("Input", e.modelPrice.input)} · {tokenPriceText("Output", e.modelPrice.output)}
             </dd>
             {e.modelPrice.lifecycle !== "active" && (
-              <dd className="text-xs text-signal mt-0.5">
+              <dd className="eyebrow !text-accent mt-1">
                 {e.modelPrice.lifecycle === "deprecated" ? "Deprecated" : e.modelPrice.lifecycle === "retired" ? "Retired" : e.modelPrice.lifecycle === "preview" ? "Preview" : "Sunset"}
                 {e.modelPrice.retiresAt ? ` · retires ${fmtDay(e.modelPrice.retiresAt)}` : ""}
               </dd>
@@ -184,7 +184,7 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
 
       {e.provenance.length > 0 && (
         <details className="mt-5 pt-4 border-t border-line text-xs text-ink-400">
-          <summary className="cursor-pointer list-none hover:text-ink-100 select-none w-fit">Price sources</summary>
+          <summary className="eyebrow cursor-pointer list-none hover:!text-ink-100 select-none w-fit">Price sources</summary>
           <div className="mt-2 flex flex-col gap-1">
           {e.provenance.map((p) => (
             <span key={p.line}>
@@ -197,7 +197,7 @@ export default function EconomicsBlock({ e, assetId, canEdit = false }: { e: Eco
               )}
             </span>
           ))}
-          <Link href="/catalog" className="hover:text-ink-100 hover:underline w-fit">AI price list →</Link>
+          <Link href="/catalog" className="eyebrow hover:!text-ink-100 transition-colors w-fit mt-1">AI price list [→]</Link>
           </div>
         </details>
       )}

@@ -26,12 +26,12 @@ export function Money({ o }: { o: Opportunity }) {
   const counted = o.countedMonthlyEur >= o.savings.eur - 0.5;
   return (
     <div className="text-right" title={o.notCountedWhy ?? undefined}>
-      <div className={`font-display text-lg font-semibold tabular ${counted ? "text-ink-100" : "text-ink-400"}`}>
+      <div className={`font-display text-xl font-light tracking-[-0.03em] tabular ${counted ? "text-ink-100" : "text-ink-400"}`}>
         {o.savings.kind === "estimated" ? "≈ " : ""}
         {fmtEur(o.savings.eur)}
-        <span className="text-xs font-normal text-ink-400"> a month</span>
+        <span className="text-xs tracking-normal text-ink-400"> a month</span>
       </div>
-      <div className="text-xs text-ink-400 tabular">{fmtEur(o.savings.eur * 12)} a year{counted ? "" : " · not in total"}</div>
+      <div className="font-mono text-[11px] text-ink-400 tabular mt-0.5">{fmtEur(o.savings.eur * 12)} a year{counted ? "" : " · not in total"}</div>
     </div>
   );
 }
@@ -68,7 +68,7 @@ export function OpportunityRow({ o, base, canEdit }: { o: Opportunity; base: str
       <Link href={withOpen(base, o.key)} scroll={false} className="flex-1 min-w-0 flex items-center gap-3 group">
         <div className="hidden sm:flex -space-x-2 shrink-0 w-[52px]">
           {o.systems.slice(0, 2).map((a) => (
-            <span key={a.id} className="rounded-lg ring-2 ring-panel">
+            <span key={a.id} className="rounded-[4px] ring-2 ring-panel">
               <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={32} />
             </span>
           ))}
@@ -76,7 +76,7 @@ export function OpportunityRow({ o, base, canEdit }: { o: Opportunity; base: str
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <CategoryPill category={o.category} />
-            <span className="text-[15px] font-semibold text-ink-100 group-hover:underline">{o.title}</span>
+            <span className="text-[15px] font-bold text-ink-100 group-hover:underline">{o.title}</span>
             <StatusPill status={o.status} />
           </div>
           <p className="text-sm text-ink-400 mt-0.5 truncate">{o.reason}</p>
@@ -87,9 +87,9 @@ export function OpportunityRow({ o, base, canEdit }: { o: Opportunity; base: str
           <Money o={o} />
         </div>
         <dl className="hidden lg:grid grid-cols-2 gap-x-4 text-xs w-36">
-          <dt className="text-ink-400">Effort</dt>
+          <dt className="eyebrow">Effort</dt>
           <dd className="text-ink-100">{o.effort}</dd>
-          <dt className="text-ink-400">Confidence</dt>
+          <dt className="eyebrow">Confidence</dt>
           <dd className="text-ink-100">{CONF_LABEL[o.confidence]}</dd>
         </dl>
         <div className="flex items-center gap-1.5">
@@ -105,20 +105,20 @@ export function OpportunityRow({ o, base, canEdit }: { o: Opportunity; base: str
 function FigureBox({ label, f, years }: { label: string; f: Figure | null; years?: boolean }) {
   return (
     <div className="rounded-lg border border-line p-3 min-w-0">
-      <div className="text-xs text-ink-400">{label}</div>
+      <div className="eyebrow">{label}</div>
       {f ? (
         <>
-          <div className="font-display text-lg font-semibold text-ink-100 tabular mt-1">
+          <div className="font-display text-2xl font-light tracking-[-0.03em] text-ink-100 tabular mt-2">
             {fmtEur(f.eur)}
-            <span className="text-xs font-normal text-ink-400"> a month</span>
+            <span className="text-xs tracking-normal text-ink-400"> a month</span>
           </div>
-          {years && <div className="text-xs text-ink-400 tabular">{fmtEur(f.eur * 12)} a year</div>}
-          <div className="text-[11px] text-ink-400 mt-1 line-clamp-3" title={f.basis}>
+          {years && <div className="font-mono text-[11px] text-ink-400 tabular">{fmtEur(f.eur * 12)} a year</div>}
+          <div className="text-[11px] text-ink-400 mt-1.5 line-clamp-3" title={f.basis}>
             {KIND_LABEL[f.kind]} · {f.basis}
           </div>
         </>
       ) : (
-        <div className="text-sm text-ink-400 mt-1">Not known</div>
+        <div className="text-sm text-ink-400 mt-2">Not known</div>
       )}
     </div>
   );
@@ -154,8 +154,8 @@ export function OpportunityDrawer({ o, closeHref, back, canEdit }: { o: Opportun
           </div>
 
           <div className="rounded-lg bg-ink-100/[0.04] px-4 py-3">
-            <div className="text-xs text-ink-400">Recommended action</div>
-            <div className="text-sm font-semibold text-ink-100 mt-0.5">{o.recommendedAction}</div>
+            <div className="eyebrow">Recommended action</div>
+            <div className="text-sm font-bold text-ink-100 mt-1">{o.recommendedAction}</div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -173,8 +173,8 @@ export function OpportunityDrawer({ o, closeHref, back, canEdit }: { o: Opportun
               ["Score", o.scorePoints ? `+${o.scorePoints} points` : "—"],
             ].map(([k, v]) => (
               <div key={k}>
-                <dt className="text-xs text-ink-400">{k}</dt>
-                <dd className="text-ink-100 font-medium">{v}</dd>
+                <dt className="eyebrow">{k}</dt>
+                <dd className="text-ink-100 mt-0.5">{v}</dd>
               </div>
             ))}
           </dl>
@@ -183,7 +183,7 @@ export function OpportunityDrawer({ o, closeHref, back, canEdit }: { o: Opportun
             {o.systems.length ? (
               <div className="flex flex-wrap gap-1.5">
                 {o.systems.map((s) => (
-                  <Link key={s.id} href={`/assets/${s.id}`} className="inline-flex items-center gap-1.5 text-xs rounded-full border border-line pl-1 pr-2.5 py-0.5 text-ink-100 hover:border-ink-400">
+                  <Link key={s.id} href={`/assets/${s.id}`} className="inline-flex items-center gap-1.5 text-xs rounded-[2px] border border-line pl-1 pr-2 py-0.5 text-ink-100 hover:border-ink-400 transition-colors">
                     <VendorBadge vendor={s.vendor ?? ""} name={s.name} size={18} />
                     {s.name}
                   </Link>
@@ -231,7 +231,7 @@ export function OpportunityDrawer({ o, closeHref, back, canEdit }: { o: Opportun
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="text-xs font-bold text-ink-100 mb-1.5">{title}</h3>
+      <h3 className="eyebrow mb-2">{title}</h3>
       {children}
     </section>
   );

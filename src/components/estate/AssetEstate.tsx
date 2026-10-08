@@ -37,7 +37,7 @@ const isAdmin = () => {
 function Provenance({ e }: { e: GEdge }) {
   const label = SOURCE[e.source] ?? e.source;
   return (
-    <span title={e.evidence ?? undefined} className={`text-[11px] ${e.source === "inferred" && e.status !== "confirmed" ? "text-signal" : "text-ink-400"}`}>
+    <span title={e.evidence ?? undefined} className={`eyebrow ${e.source === "inferred" && e.status !== "confirmed" ? "!text-accent" : ""}`}>
       {e.status === "confirmed" && e.source === "inferred" ? "Confirmed" : label}
     </span>
   );
@@ -68,7 +68,7 @@ function Row({ rel, node, e, extra, back, admin }: { rel: string; node: GNode; e
   );
   return (
     <li className="flex items-center gap-3 px-5 py-2.5 text-sm">
-      <span className="w-24 shrink-0 text-xs text-ink-400">{rel}</span>
+      <span className="w-24 shrink-0 eyebrow">{rel}</span>
       <span className="flex-1 min-w-0 truncate">
         {name}
         <span className="text-ink-400"> · {TYPE[node.type]}{extra ? ` · ${extra}` : ""}</span>
@@ -104,7 +104,7 @@ export function DependenciesPanel({ est, assetId, admin }: { est: EstateData; as
       footer={
         admin ? (
           <details className="w-full group">
-            <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none">Link a process or application</summary>
+            <summary className="cursor-pointer list-none eyebrow hover:!text-ink-100 select-none">Link a process or application</summary>
             <div className="grid sm:grid-cols-3 gap-3 mt-3">
               {linkable.length > 0 && (
                 <form action={linkDependencyAction} className="flex flex-col gap-2">
@@ -167,7 +167,7 @@ function AltRow({ a, current }: { a: Alternative; current: number | null }) {
     <tr>
       <td className="px-5 py-2.5">
         <div className="text-ink-100" title={a.gaps.slice(0, 2).join(", ") || undefined}>{a.name}</div>
-        <div className="text-xs text-ink-400">{[a.providerName, a.inUse ? "in use" : null].filter(Boolean).join(" · ")}</div>
+        <div className="eyebrow mt-0.5">{[a.providerName, a.inUse ? "in use" : null].filter(Boolean).join(" · ")}</div>
       </td>
       <td className="px-3 py-2.5 text-right tabular text-ink-100" title={`Confidence ${CONF[a.confidence]} · ${a.tested ? "Tested" : "Not tested"}`}>{a.compatibility}%</td>
       <td className="px-3 py-2.5 text-ink-400">{a.effort}</td>
@@ -179,7 +179,7 @@ function AltRow({ a, current }: { a: Alternative; current: number | null }) {
   );
 }
 
-const STATUS_TONE: Record<string, string> = { "Not ready": "bg-alarm", "Partially ready": "bg-signal", Ready: "bg-steady", "Production-ready": "bg-steady" };
+const STATUS_TONE: Record<string, string> = { "Not ready": "bg-alarm", "Partially ready": "bg-accent", Ready: "bg-steady", "Production-ready": "bg-steady" };
 
 export async function AssetReplaceability({ assetId, orgId }: { assetId: string; orgId: string }) {
   return <ReplaceabilityPanel est={await loadEstateCached(orgId)} assetId={assetId} admin={isAdmin()} />;
@@ -205,12 +205,12 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
         footer={
           admin ? (
             <details className="w-full">
-              <summary className="cursor-pointer list-none text-sm text-ink-400 hover:text-ink-100 select-none">Requirements and tests</summary>
+              <summary className="cursor-pointer list-none eyebrow hover:!text-ink-100 select-none">Requirements and tests</summary>
               <div className="grid sm:grid-cols-2 gap-5 mt-3">
                 <form action={saveProfileAction} className="flex flex-col gap-2 text-xs text-ink-400">
                   <input type="hidden" name="back" value={back} />
                   <input type="hidden" name="assetId" value={assetId} />
-                  <span title="Leave empty to assume everything the current model does">Needs</span>
+                  <span className="eyebrow" title="Leave empty to assume everything the current model does">Needs</span>
                   <div className="flex flex-wrap gap-x-3 gap-y-1">
                     {capKeys.map((k) => (
                       <label key={k} className="flex items-center gap-1.5 text-ink-100">
@@ -235,7 +235,7 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
                     <input type="hidden" name="back" value={back} />
                     <input type="hidden" name="assetId" value={assetId} />
                     <input type="hidden" name="candidateType" value={repl.kind === "seat" ? "product" : "model"} />
-                    <span>Record a test you ran on real tasks</span>
+                    <span className="eyebrow">Record a test you ran on real tasks</span>
                     <select name="candidateId" className={INPUT} aria-label="Alternative">
                       {candidates.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
@@ -261,14 +261,14 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
           <div className="flex flex-col">
             <div className="grid sm:grid-cols-[180px_1fr] gap-x-6 gap-y-4 px-5 py-4">
               <div>
-                <div className="font-display text-[40px] leading-none font-light tracking-[-0.03em] tabular text-ink-100">
+                <div className={`font-display text-[40px] leading-none font-light tracking-[-0.04em] tabular ${repl.score != null && repl.score < 40 ? "text-accent" : "text-ink-100"}`}>
                   {repl.score}
-                  <span className="text-base text-ink-400 font-normal">/100</span>
+                  <span className="text-base tracking-normal text-ink-400 font-normal ml-0.5">/100</span>
                 </div>
-                <div className="text-sm text-ink-400 mt-2">Migration effort <span className="text-ink-100 font-medium">{repl.effort}</span></div>
+                <div className="eyebrow mt-3">Migration effort <span className="!text-ink-100">{repl.effort}</span></div>
                 {repl.limiters.length > 0 && (
                   <ul className="mt-3 flex flex-col gap-1">
-                    {repl.limiters.map((l) => <li key={l} className="text-xs text-signal">{l}</li>)}
+                    {repl.limiters.map((l) => <li key={l} className="text-xs text-accent">{l}</li>)}
                   </ul>
                 )}
               </div>
@@ -276,7 +276,7 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
                 {repl.components.map((c) => (
                   <li key={c.key} className="grid grid-cols-[1fr_44px] items-baseline gap-3 text-sm max-w-md">
                     <span className="text-ink-100" title={c.reason}>{c.label}</span>
-                    <span className="text-right tabular text-ink-100">{c.score == null ? "—" : c.score}</span>
+                    <span className={`text-right tabular ${c.score != null && c.score < 40 ? "text-accent" : "text-ink-100"}`}>{c.score == null ? "—" : c.score}</span>
                   </li>
                 ))}
               </ul>
@@ -285,10 +285,10 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
               <table className="w-full text-sm">
                 <thead>
                   <tr className="font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 text-left">
-                    <th className="px-5 py-2 font-medium">Alternatives</th>
-                    <th className="px-3 py-2 font-medium text-right">Fit</th>
-                    <th className="px-3 py-2 font-medium">Effort</th>
-                    <th className="px-5 py-2 font-medium text-right" title={`Estimates from list prices${repl.current.surface ? ` · current API: ${SURFACE_LABEL[repl.current.surface]}` : ""} · ranked by compatibility, not price${repl.required.assumed ? " · needs assumed from the current model" : ""}`}>A month</th>
+                    <th className="px-5 py-2 font-normal">Alternatives</th>
+                    <th className="px-3 py-2 font-normal text-right">Fit</th>
+                    <th className="px-3 py-2 font-normal">Effort</th>
+                    <th className="px-5 py-2 font-normal text-right" title={`Estimates from list prices${repl.current.surface ? ` · current API: ${SURFACE_LABEL[repl.current.surface]}` : ""} · ranked by compatibility, not price${repl.required.assumed ? " · needs assumed from the current model" : ""}`}>A month</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
@@ -300,13 +300,14 @@ export function ReplaceabilityPanel({ est, assetId, admin }: { est: EstateData; 
         )}
       </Panel>
 
-      <div className="rounded-xl border border-line bg-panel px-5 py-4 flex flex-wrap items-center gap-x-4 gap-y-2 animate-rise">
+      <div className={`rounded-xl border border-line bg-panel px-5 py-4 flex flex-wrap items-center gap-x-4 gap-y-2 animate-rise ${exit.status === "Not ready" || exit.status === "Partially ready" ? "tile-warn" : ""}`}>
         <span className="text-sm font-bold text-ink-100">Exit readiness</span>
         <span className="flex items-center gap-2 text-sm text-ink-100 tabular" title={exit.blockers.join(" · ") || undefined}>
-          <span className={`h-2 w-2 rounded-full ${STATUS_TONE[exit.status]}`} />
-          {exit.score}/100 · {exit.status}
+          <span className={`h-1.5 w-1.5 rounded-full ${STATUS_TONE[exit.status]}`} />
+          <span className="text-lg font-light tracking-[-0.03em]">{exit.score}<span className="text-xs tracking-normal text-ink-400">/100</span></span>
+          <span className={`eyebrow ${exit.status === "Not ready" || exit.status === "Partially ready" ? "!text-accent" : ""}`}>{exit.status}</span>
         </span>
-        {fallback.configured && <span className="text-xs text-ink-400">Fallback: {fallback.configured}</span>}
+        {fallback.configured && <span className="eyebrow">Fallback: {fallback.configured}</span>}
         {/* Impact Simulator: modello principale → alternativa più compatibile (mai la più economica); senza modelli, togliere l'AI. */}
         <Link href={impactLinkFor(row, repl)} className="btn btn-secondary btn-sm sm:ml-auto">
           What happens if I change this?

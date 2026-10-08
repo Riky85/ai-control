@@ -39,13 +39,13 @@ export default async function AccountPage({ searchParams }: { searchParams: { sa
         <Row title="Email" hint={`Member since ${fmtDate(account.createdAt)}`}>
           <span className="text-sm text-ink-100 break-all">{account.email}</span>
           {account.emailVerifiedAt ? (
-            <span className="text-xs text-steady">Confirmed</span>
+            <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">Confirmed</span>
           ) : emailEnabled() ? (
             <form action={resendVerificationAction}>
               <button className="btn btn-secondary btn-sm">Resend confirmation</button>
             </form>
           ) : (
-            <span className="text-xs text-signal">Not confirmed</span>
+            <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-accent">Not confirmed</span>
           )}
         </Row>
       </Section>

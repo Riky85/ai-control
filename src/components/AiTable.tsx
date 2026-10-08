@@ -68,7 +68,7 @@ export default function AiTable({
                   <span className="flex items-center gap-2">
                     <span className="font-medium text-ink-100 group-hover:underline truncate">{a.name}</span>
                   </span>
-                  <span className="block text-xs text-ink-400 truncate">{[a.vendor, cat ? CATEGORY_LABEL[cat] : null].filter(Boolean).join(" · ") || "—"}</span>
+                  <span className="block eyebrow mt-0.5 truncate">{[a.vendor, cat ? CATEGORY_LABEL[cat] : null].filter(Boolean).join(" · ") || "—"}</span>
                 </span>
               </Link>
             </td>
@@ -76,7 +76,7 @@ export default function AiTable({
             <td className="px-5 py-3 text-ink-400 tabular">{people}</td>
             <td className="px-5 py-3 text-right tabular">
               {m ? (
-                <span className={m.estimated ? "text-ink-400" : "text-ink-100 font-medium"} title={m.estimated ? "Estimated from list prices" : undefined}>
+                <span className={m.estimated ? "text-ink-400" : "text-ink-100"} title={m.estimated ? "Estimated from list prices" : undefined}>
                   {m.estimated ? "≈ " : ""}
                   {fmtEur(m.eur)}
                 </span>
@@ -87,7 +87,7 @@ export default function AiTable({
               )}
             </td>
             <td className="px-5 py-3 text-right tabular">
-              {couldSave >= 1 ? <Link href="/opportunities" className="font-medium text-steady hover:underline">{fmtEur(Math.round(couldSave))}</Link> : <span className="text-ink-400">—</span>}
+              {couldSave >= 1 ? <Link href="/opportunities" className="text-steady hover:underline">{fmtEur(Math.round(couldSave))}</Link> : <span className="text-ink-400">—</span>}
             </td>
             <td className="px-5 py-3 text-right">
               {needsDecision ? (

@@ -4,10 +4,10 @@
  * engine deterministico (src/lib/risk-engine.ts) ha bisogno di un posto
  * dove essere l'oggetto principale della pagina, non un dettaglio a lato.
  */
-// Stessa semantica di Badge: verde = basso, ambra = medio, rosso = alto/critico.
+// Stessa semantica di Badge: verde = basso, arancio = medio (da guardare), rosso = alto/critico.
 const TONE: Record<string, string> = {
   LOW: "rgb(var(--c-steady))",
-  MEDIUM: "rgb(var(--c-signal))",
+  MEDIUM: "#FF7323",
   HIGH: "rgb(var(--c-alarm))",
   CRITICAL: "rgb(var(--c-alarm))",
 };
@@ -39,10 +39,10 @@ export default function RiskGauge({ score, level }: { score: number; level: stri
           strokeDasharray={`${dash} ${circumference}`}
         />
       </svg>
-      <div className="tabular text-3xl font-display font-light -mt-6" style={{ color }}>
+      <div className="tabular text-[32px] font-display font-light tracking-[-0.03em] -mt-6" style={{ color }}>
         {score}
       </div>
-      <div className="text-xs text-ink-400 mt-0.5">out of 100</div>
+      <div className="eyebrow mt-1">out of 100</div>
     </div>
   );
 }

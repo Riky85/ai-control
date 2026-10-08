@@ -15,7 +15,7 @@ export default function KeysTab({ keys, teams, canEdit }: { keys: GwKeyRow[]; te
         <section id="new-key" className="rounded-xl border border-line bg-panel animate-rise scroll-mt-6">
           <div className="bar-head rounded-t-xl border-b border-line px-5 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
             <h2 className="text-sm font-bold text-ink-100">Create a key</h2>
-            <span className="text-xs text-ink-400">One key for each app makes the logs and caps clearer</span>
+            <span className="eyebrow">One key for each app makes the logs and caps clearer</span>
           </div>
           <div className="p-5">
             <KeyCreate teams={teams} />
@@ -26,7 +26,7 @@ export default function KeysTab({ keys, teams, canEdit }: { keys: GwKeyRow[]; te
       <div className="rounded-xl border border-line bg-panel animate-rise">
         <div className="bar-head rounded-t-xl border-b border-line px-5 py-3 flex items-center justify-between gap-4">
           <h2 className="text-sm font-bold text-ink-100">Keys</h2>
-          <span className="text-xs text-ink-400">{keys.filter((k) => !k.revokedAt).length} active</span>
+          <span className="eyebrow">{keys.filter((k) => !k.revokedAt).length} active</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -58,7 +58,7 @@ export default function KeysTab({ keys, teams, canEdit }: { keys: GwKeyRow[]; te
                     {k.allowedModels.length ? (
                       <div className="flex flex-wrap gap-1">
                         {k.allowedModels.map((m) => (
-                          <span key={m} className="font-mono text-[11px] rounded border border-line px-1.5 py-0.5 text-ink-100">
+                          <span key={m} className="font-mono text-[10px] rounded-[2px] border border-line px-1.5 py-0.5 text-ink-100">
                             {m}
                           </span>
                         ))}

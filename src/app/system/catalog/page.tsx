@@ -49,7 +49,7 @@ export default async function CatalogFreshnessPage({ searchParams }: { searchPar
             <td className={`${td} text-ink-100 whitespace-nowrap`}>{s.providerId ? providerNameOf(s.providerId) : "—"}</td>
             <td className={`${td} max-w-[360px]`}>
               {s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" className="block truncate text-ink-100 hover:underline" title={s.url}>{s.url.replace(/^https:\/\//, "")}</a> : <span className="text-alarm">No source URL</span>}
-              <span className="text-xs text-ink-400">{s.sourceTypes.join(", ")}</span>
+              <span className="eyebrow">{s.sourceTypes.join(", ")}</span>
             </td>
             <td className={`${td} text-right tabular text-ink-400`}>{s.items}</td>
             <td className={`${td} whitespace-nowrap ${s.stale ? "text-signal" : "text-ink-400"}`}>

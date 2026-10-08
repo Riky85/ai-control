@@ -21,7 +21,7 @@ const KIND_HREF: Record<string, { href: string; cta: string; noun: string }> = {
   market: { href: "/market", cta: "See market changes", noun: "AI market changes" },
 };
 const DAY = 86400000;
-const SEV: Record<string, string> = { critical: "bg-alarm", warning: "bg-signal", info: "bg-ink-400/60" };
+const SEV: Record<string, string> = { critical: "bg-alarm", warning: "bg-accent", info: "bg-ink-400/60" };
 
 // Centro avvisi: tutto ciò che angar ha notato e richiede una decisione.
 export default async function AlertsPage() {
@@ -75,7 +75,7 @@ export default async function AlertsPage() {
           {/* Intestazione: tutti gli avvisi e quanti da leggere (senza fascia grigia). */}
           <div className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
             <h2 className="font-bold text-ink-100">All alerts</h2>
-            <span className="text-xs text-ink-400 tabular">{unread ? `${unread} unread` : `${alerts.length} read`}</span>
+            <span className={`eyebrow tabular ${unread ? "!text-accent" : ""}`}>{unread ? `${unread} unread` : `${alerts.length} read`}</span>
           </div>
           {alerts.map((a) => (
             <form key={a.id} action={openAlertAction}>
@@ -89,7 +89,7 @@ export default async function AlertsPage() {
                   </span>
                   <span className="block text-sm text-ink-400 mt-0.5">{a.body}</span>
                 </span>
-                <span className="text-xs text-ink-400 shrink-0 tabular">{fmtAgo(a.createdAt)}</span>
+                <span className="eyebrow shrink-0 tabular">{fmtAgo(a.createdAt)}</span>
               </button>
             </form>
           ))}

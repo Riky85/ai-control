@@ -25,7 +25,8 @@ export function Section({
       {(title || action) && (
         <div className="flex items-center justify-between gap-3 min-h-11 px-5 py-2 bg-ink border-b border-line rounded-t-xl bar-head">
           {title && <h2 className="text-sm font-bold text-ink-100 min-w-0 truncate">{title}</h2>}
-          {action && <div className="flex items-center gap-2 shrink-0 text-xs text-ink-400">{action}</div>}
+          {/* Nota testuale (es. "Admins only") in mono come le note delle barre; pulsanti invariati. */}
+          {action && <div className={`flex items-center gap-2 shrink-0 ${typeof action === "string" ? "eyebrow" : "text-xs text-ink-400"}`}>{action}</div>}
         </div>
       )}
       <div className="divide-y divide-line">{children}</div>

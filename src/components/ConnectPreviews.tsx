@@ -76,9 +76,9 @@ export function DesktopPreview() {
         {rows.map(([n, min], i) => (
           <div key={n} className="flex items-center gap-2">
             <span className="w-14 text-[11px] text-ink-100">{n}</span>
-            <span className="flex-1 h-1.5 rounded-full bg-ink-100/[0.07] overflow-hidden">
+            <span className="flex-1 h-1 rounded-full bg-ink-100/[0.08] overflow-hidden">
               {/* un solo dettaglio arancione: la prima barra */}
-              <span className={`block h-full rounded-full ${i === 0 ? "bg-accent" : "bg-ink-400"}`} style={{ width: `${(min / 40) * 100}%` }} />
+              <span className={`block h-full rounded-full ${i === 0 ? "bg-accent" : "bg-ink-100/70"}`} style={{ width: `${(min / 40) * 100}%` }} />
             </span>
             <span className="w-10 text-right text-[10px] tabular text-ink-400">{min} min</span>
           </div>
@@ -95,7 +95,7 @@ export function GatewayPreview() {
     ["Invoice reader", "claude-sonnet", "mask"],
     ["HR assistant", "gpt-4o-mini", "stop"],
   ];
-  const pill = { ok: ["Allowed", "text-steady bg-steady/10"], mask: ["Redacted", "text-signal bg-signal/10"], stop: ["Blocked", "text-alarm bg-alarm/10"] } as const;
+  const pill = { ok: ["Allowed", "text-steady bg-steady/10"], mask: ["Redacted", "text-accent bg-accent/10"], stop: ["Blocked", "text-alarm bg-alarm/10"] } as const;
   return (
     <div className={`w-[270px] ${frame}`} aria-hidden>
       <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5">
@@ -109,7 +109,7 @@ export function GatewayPreview() {
               <span className="block truncate text-[11px] text-ink-100">{app}</span>
               <span className="block truncate text-[9px] text-ink-400">{model}</span>
             </span>
-            <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${pill[r][1]}`}>{pill[r][0]}</span>
+            <span className={`rounded-[2px] px-1 py-0.5 font-mono uppercase text-[8px] tracking-[0.05em] ${pill[r][1]}`}>{pill[r][0]}</span>
           </div>
         ))}
       </div>

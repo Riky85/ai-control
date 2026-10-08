@@ -26,7 +26,7 @@ export default function ImproveView({ result, plan }: { result: FullScore; plan:
   const together = plan.potential - result.score;
   const investigate = plan.actions.filter((a) => a.certainty === "investigate").reduce((t, a) => t + (a.monthlyEur ?? 0), 0);
   const cell = "bg-panel px-5 py-4 flex flex-col gap-1.5 min-w-0";
-  const big = "font-display text-[26px] leading-none font-semibold tabular text-ink-100";
+  const big = "font-display text-[30px] leading-none font-light tracking-[-0.03em] tabular text-ink-100";
 
   return (
     <div className="flex flex-col gap-6">
@@ -35,22 +35,22 @@ export default function ImproveView({ result, plan }: { result: FullScore; plan:
       {/* Riepilogo: punteggio attuale, potenziale, risparmi */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line animate-rise">
         <div className={cell}>
-          <span className="text-sm font-semibold text-ink-100">Score</span>
+          <span className="eyebrow">Score</span>
           <span className="flex items-end gap-2">
             <span className={big}>{result.score}</span>
             <LevelPill level={result.level} label={result.levelLabel} className="mb-0.5" />
           </span>
         </div>
         <div className={cell} title={together !== sumPts ? `Done together the actions add +${together}, not +${sumPts}: the score stops at 100.` : undefined}>
-          <span className="text-sm font-semibold text-ink-100">Potential</span>
+          <span className="eyebrow">Potential</span>
           <span className={big}>{plan.potential}</span>
           <span className="text-xs text-ink-400">{scored.length ? `${scored.length} ${scored.length === 1 ? "action" : "actions"}` : "Nothing to raise"}</span>
         </div>
         <div className={cell} title={investigate >= 1 ? `${eur(investigate)} a month needs investigation first` : undefined}>
-          <span className="text-sm font-semibold text-ink-100">Savings</span>
+          <span className="eyebrow">Savings</span>
           <span className={big}>
             {eur(plan.potentialSavingsEur)}
-            <span className="text-sm font-normal text-ink-400"> a month</span>
+            <span className="text-sm tracking-normal text-ink-400"> a month</span>
           </span>
           <span className="text-xs text-ink-400 tabular">{eur(plan.potentialSavingsEur * 12)} a year</span>
         </div>
@@ -78,15 +78,15 @@ export default function ImproveView({ result, plan }: { result: FullScore; plan:
           <ol className="divide-y divide-line">
             {(best ? [best, ...rest] : rest).map((a, i) => (
               <li key={a.key} className="px-5 py-4 grid grid-cols-[1.5rem_minmax(0,1fr)] sm:grid-cols-[1.5rem_minmax(0,1fr)_auto] gap-x-3 gap-y-3 items-center">
-                <span className="text-sm tabular text-ink-400">{i + 1}</span>
+                <span className="font-mono text-[11px] tabular text-ink-400">{String(i + 1).padStart(2, "0")}</span>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="text-sm font-semibold text-ink-100" title={`${AXIS_LABEL[a.axis]} · ${a.detail}`}>{a.title}</span>
-                    {a.inProgress && <span className="text-[11px] rounded-full border border-line px-2 py-0.5 text-ink-400">In progress</span>}
+                    <span className="text-sm font-bold text-ink-100" title={`${AXIS_LABEL[a.axis]} · ${a.detail}`}>{a.title}</span>
+                    {a.inProgress && <span className="inline-flex items-center rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-400">In progress</span>}
                   </div>
                   <Facts a={a} />
                 </div>
-                <Link href={a.href} className={`btn ${best && a.key === best.key ? "btn-primary" : "btn-secondary"} btn-sm col-start-2 sm:col-start-3 justify-self-start`}>
+                <Link href={a.href} className={`btn ${best && a.key === best.key ? "btn-primary btn-go" : "btn-secondary"} btn-sm col-start-2 sm:col-start-3 justify-self-start`}>
                   {a.cta}
                 </Link>
               </li>
@@ -102,7 +102,7 @@ export default function ImproveView({ result, plan }: { result: FullScore; plan:
 function Facts({ a }: { a: ScoreAction }) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-1 text-sm">
-      <span className="tabular font-semibold text-ink-100">{a.points > 0 ? `+${a.points} ${a.points === 1 ? "point" : "points"}` : "No score change"}</span>
+      <span className="tabular text-ink-100">{a.points > 0 ? `+${a.points} ${a.points === 1 ? "point" : "points"}` : "No score change"}</span>
       {a.monthlyEur != null && a.monthlyEur >= 1 && (
         <span className="tabular text-ink-100" title={a.basis ?? undefined}>
           {eur(a.monthlyEur)} <span className="text-ink-400">a month</span>

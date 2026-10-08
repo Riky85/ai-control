@@ -90,7 +90,7 @@ export default async function EmployeeNoticePage({ searchParams }: { searchParam
           <span>
             Privacy mode: <span className="text-ink-100">{privacyModeLabel(mode)}</span> — <Link href="/settings?tab=privacy" className="underline hover:text-ink-100">change</Link>
           </span>
-          {hasPlaceholders && <span className="text-signal">Fill in the highlighted parts before you hand it out.</span>}
+          {hasPlaceholders && <span className="text-accent">Fill in the highlighted parts before you hand it out.</span>}
         </div>
       </div>
 
@@ -127,7 +127,7 @@ function Filled({ text }: { text: string }) {
     <>
       {parts.map((p, i) =>
         p.startsWith("[[") ? (
-          <mark key={i} className="bg-signal/15 text-ink-100 rounded px-1">[{p.slice(2, -2)}]</mark>
+          <mark key={i} className="bg-accent/15 text-ink-100 rounded-[2px] px-1">[{p.slice(2, -2)}]</mark>
         ) : (
           <span key={i}>{p}</span>
         ),

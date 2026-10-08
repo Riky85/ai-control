@@ -21,7 +21,7 @@ export default function ExposedKeys({ rows, githubConnected }: { rows: ExposedKe
     <Section
       id="exposed-keys"
       title="Exposed AI keys"
-      action={rows.length ? <Pill tone="alarm">{rows.length} found</Pill> : <span className="text-xs text-ink-400">None found</span>}
+      action={rows.length ? <Pill tone="alarm">{rows.length} found</Pill> : <span className="eyebrow">None found</span>}
       footer={
         rows.length ? (
           <span className="flex items-center gap-2 text-ink-100">

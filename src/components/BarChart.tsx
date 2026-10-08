@@ -16,8 +16,8 @@ export default function BarChart({ rows, formatValue }: { rows: BarChartRow[]; f
     <div className="flex flex-col gap-3">
       {rows.map((r) => (
         <div key={r.label} className="flex items-center gap-3">
-          <div className="w-28 shrink-0 text-xs text-ink-400 truncate">{r.label}</div>
-          <div className="flex-1 h-4 bg-ink rounded-full overflow-hidden">
+          <div className="w-28 shrink-0 eyebrow truncate">{r.label}</div>
+          <div className="flex-1 h-1.5 bg-ink-100/[0.08] rounded-full overflow-hidden">
             <div
               className="h-full bg-ink-100/70 rounded-full animate-grow"
               style={{ width: r.value === 0 ? "0%" : `${Math.max((r.value / max) * 100, 4)}%` }}

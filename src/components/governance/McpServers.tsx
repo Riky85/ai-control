@@ -28,13 +28,13 @@ export default function McpServers({ rows, canDecide, newAppComputers }: { rows:
   const sensitive = rows.filter((r) => r.reach.some((x) => x.sensitive)).length;
   return (
     <section id="mcp" className="rounded-xl border border-line bg-panel animate-rise scroll-mt-6">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-3 bg-ink rounded-t-xl bar-head">
         <h2 className="text-sm font-bold text-ink-100">
-          AI agents &amp; MCP servers <span className="text-ink-400 font-normal tabular">· {rows.length}</span>
+          AI agents &amp; MCP servers <span className="font-mono text-[11px] text-ink-400 font-normal tabular ml-1">{rows.length}</span>
         </h2>
         <span className="flex items-center gap-2 text-xs text-ink-400">
-          {sensitive > 0 && <Pill tone="signal">{sensitive} reach sensitive data</Pill>}
-          {toReview > 0 && <Pill tone="signal">{toReview} to review</Pill>}
+          {sensitive > 0 && <Pill tone="accent">{sensitive} reach sensitive data</Pill>}
+          {toReview > 0 && <Pill tone="accent">{toReview} to review</Pill>}
         </span>
       </div>
 
@@ -46,8 +46,8 @@ export default function McpServers({ rows, canDecide, newAppComputers }: { rows:
               : "Needs the desktop app 0.5.6+."}
           </span>
           {newAppComputers === 0 && (
-            <Link href="/download" className="text-ink-100 hover:underline shrink-0">
-              Get the app →
+            <Link href="/download" className="eyebrow hover:!text-ink-100 transition-colors shrink-0">
+              Get the app [→]
             </Link>
           )}
         </div>

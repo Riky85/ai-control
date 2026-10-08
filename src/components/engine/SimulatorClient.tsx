@@ -29,7 +29,7 @@ function Toggle({ on, onChange, label, hint, disabled }: { on: boolean; onChange
         aria-checked={on}
         disabled={disabled}
         onClick={() => onChange(!on)}
-        className={`mt-0.5 relative h-5 w-9 shrink-0 rounded-full transition-colors ${on ? "bg-accent" : "bg-ink-100/15"}`}
+        className={`mt-0.5 relative h-5 w-9 shrink-0 rounded-full transition-colors ${on ? "bg-ink-100" : "bg-ink-100/15"}`}
       >
         <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-panel shadow transition-all ${on ? "left-[18px]" : "left-0.5"}`} />
       </button>
@@ -41,7 +41,7 @@ function Toggle({ on, onChange, label, hint, disabled }: { on: boolean; onChange
   );
 }
 
-const select = "rounded-lg border border-line bg-ink px-2.5 py-1.5 text-sm text-ink-100 max-w-full";
+const select = "rounded-[4px] border border-line bg-ink px-2.5 py-1.5 text-sm text-ink-100 max-w-full";
 
 export default function SimulatorClient({ model }: { model: SimModel }) {
   const [sc, setSc] = useState<Scenario>(EMPTY_SCENARIO);
@@ -58,19 +58,19 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
   const active = Object.values(sc.standardise).some(Boolean) || sc.removeUnused || sc.yearly || sc.blockUnapproved || sc.cut != null;
 
   const cell = "bg-panel px-5 py-4 flex flex-col gap-1 min-w-0";
-  const big = "font-display text-[26px] leading-tight font-semibold tracking-tight tabular";
+  const big = "font-display text-[30px] leading-tight font-light tracking-[-0.03em] tabular";
 
   return (
     <div className="flex flex-col gap-6">
       {/* Risultato */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-xl border border-line bg-line animate-rise" aria-live="polite" aria-label="Result">
         <div className={cell}>
-          <span className="text-xs text-ink-400">Monthly cost</span>
+          <span className="eyebrow">Monthly cost</span>
           <span className={`${big} text-ink-100`}>{eur(r.monthly)}</span>
           <span className="text-xs text-ink-400 truncate">{active ? <>Today <s>{eur(r.baseMonthly)}</s></> : "Today"}</span>
         </div>
         <div className={cell}>
-          <span className="text-xs text-ink-400">Yearly cost</span>
+          <span className="eyebrow">Yearly cost</span>
           <span className={`${big} text-ink-100`}>{eur(r.yearly)}</span>
           <span className="text-xs text-ink-400 truncate tabular">
             {r.seats.after} seat{r.seats.after === 1 ? "" : "s"}
@@ -78,15 +78,15 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
           </span>
         </div>
         <div className={cell}>
-          <span className="text-xs text-ink-400">You save</span>
-          <span className={`${big} ${r.saveYearly >= 1 ? "text-accent" : r.saveYearly <= -1 ? "text-alarm" : "text-ink-100"}`}>{r.saveYearly <= -1 ? `−${eur(-r.saveYearly)}` : eur(Math.max(0, r.saveYearly))}</span>
+          <span className="eyebrow">You save</span>
+          <span className={`${big} ${r.saveYearly >= 1 ? "text-steady" : r.saveYearly <= -1 ? "text-alarm" : "text-ink-100"}`}>{r.saveYearly <= -1 ? `−${eur(-r.saveYearly)}` : eur(Math.max(0, r.saveYearly))}</span>
           <span className="text-xs text-ink-400 truncate">a year · {eur(Math.max(0, r.saveMonthly))} a month</span>
         </div>
         <div className={cell}>
-          <span className="text-xs text-ink-400">angar Score</span>
+          <span className="eyebrow">angar Score</span>
           <span className={`${big} text-ink-100`}>
             {r.score.after}
-            {r.score.after !== r.score.before && <span className={`ml-2 text-sm font-medium ${r.score.after > r.score.before ? "text-steady" : "text-alarm"}`}>{signed(r.score.after - r.score.before)}</span>}
+            {r.score.after !== r.score.before && <span className={`ml-2 text-sm tracking-normal ${r.score.after > r.score.before ? "text-steady" : "text-alarm"}`}>{signed(r.score.after - r.score.before)}</span>}
           </span>
           <span className="text-xs text-ink-400 truncate">{r.score.levelLabel} · today {model.score.score}</span>
         </div>
@@ -98,7 +98,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
           <div className="flex items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm bar-head">
             <h2 className="font-bold text-ink-100">Scenarios</h2>
             {active && (
-              <button type="button" className="text-xs text-ink-400 hover:text-ink-100 underline" onClick={() => setSc(EMPTY_SCENARIO)}>
+              <button type="button" className="eyebrow hover:!text-ink-100 transition-colors" onClick={() => setSc(EMPTY_SCENARIO)}>
                 Reset
               </button>
             )}
@@ -169,7 +169,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
           <section className="rounded-xl border border-line bg-panel animate-rise">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm bar-head">
               <h2 className="font-bold text-ink-100">Effect on the score</h2>
-              <p className="text-xs text-ink-400">Same calculation as the angar Score</p>
+              <p className="eyebrow">Same calculation as the angar Score</p>
             </div>
             <ul className="divide-y divide-line">
               {AXES.map((a) => {
@@ -180,7 +180,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
                   return (
                     <li key={a} className="grid grid-cols-[9.5rem_minmax(0,1fr)_3rem] items-center gap-4 px-5 py-3">
                       <span className="block text-sm text-ink-100">{AXIS_LABEL[a]}</span>
-                      <span className="text-xs text-ink-400">Not measured yet</span>
+                      <span className="eyebrow">Not measured yet</span>
                       <span className="text-right text-sm text-ink-400">—</span>
                     </li>
                   );
@@ -196,11 +196,11 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
                       </span>
                     </span>
                     <div className="relative h-3" role="img" aria-label={`${AXIS_LABEL[a]} ${before} to ${after}`}>
-                      <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line" />
-                      <div className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-ink-100/20" style={{ width: `${before}%` }} />
+                      <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-ink-100/[0.08]" />
+                      <div className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-ink-100/40" style={{ width: `${before}%` }} />
                       {d !== 0 && (
                         <div
-                          className={`absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full ${d > 0 ? "bg-steady/60" : "bg-alarm/50"}`}
+                          className={`absolute top-1/2 h-1 -translate-y-1/2 rounded-full ${d > 0 ? "bg-steady/70" : "bg-accent"}`}
                           style={{ left: `${Math.min(before, after)}%`, width: `${Math.abs(d)}%` }}
                         />
                       )}
@@ -208,7 +208,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
                     </div>
                     <span className="text-right text-sm tabular text-ink-100">
                       {after}
-                      {d !== 0 && <span className={`block text-[11px] ${d > 0 ? "text-steady" : "text-alarm"}`}>{d > 0 ? "↑" : "↓"} {Math.abs(d)}</span>}
+                      {d !== 0 && <span className={`block font-mono text-[10px] ${d > 0 ? "text-steady" : "text-accent"}`}>{d > 0 ? "↑" : "↓"} {Math.abs(d)}</span>}
                     </span>
                   </li>
                 );
@@ -228,7 +228,7 @@ export default function SimulatorClient({ model }: { model: SimModel }) {
                 {r.changes.map((c) => (
                   <li key={c.key} className="flex items-start justify-between gap-4 px-5 py-3 text-sm">
                     <span className="text-ink-100 min-w-0">{c.text}</span>
-                    <span className={`shrink-0 tabular ${c.monthlyEur <= -1 ? "text-alarm" : "text-ink-100"}`}>
+                    <span className={`shrink-0 tabular ${c.monthlyEur <= -1 ? "text-accent" : "text-ink-100"}`}>
                       {Math.abs(c.monthlyEur) >= 1 ? `${c.monthlyEur > 0 ? "−" : "+"}${eur(Math.abs(c.monthlyEur))}` : "—"}
                       {Math.abs(c.monthlyEur) >= 1 && <span className="text-ink-400"> a month</span>}
                     </span>

@@ -86,7 +86,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { sen
             {r.savings.slice(0, 6).map((s) => (
               <div key={s.key} className="flex items-center justify-between gap-4 px-5 py-2.5 text-sm">
                 <span className="text-ink-100">{s.title}</span>
-                <span className="tabular text-ink-100 shrink-0">{fmtEur(s.monthlyEur)}/mo</span>
+                <span className="tabular text-ink-100 shrink-0">{fmtEur(s.monthlyEur)}<span className="text-xs text-ink-400">/mo</span></span>
               </div>
             ))}
             {r.savings.length === 0 && <p className="px-5 py-3 text-sm text-ink-400">Nothing to save.</p>}

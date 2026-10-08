@@ -35,7 +35,8 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
   const people = showsPeople(privacy);
   const rows = r.assets.map((a) => ({ a, sug: suggestionFor(a) }));
   const pendingUnclassified = rows.filter((x) => x.a.euAiActTier === "UNCLASSIFIED" && x.sug.tier !== "UNCLASSIFIED").length;
-  const bar = r.score >= 80 ? "bg-steady" : r.score >= 50 ? "bg-signal" : "bg-alarm";
+  // Barra neutra; arancio quando serve attenzione, rosso se critica.
+  const bar = r.score >= 80 ? "bg-ink-100/70" : r.score >= 50 ? "bg-accent" : "bg-alarm";
   const steps = timeline();
 
   return (
@@ -55,13 +56,13 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-4 animate-rise">
-          <div className="text-sm text-ink-400">Readiness</div>
+          <div className="eyebrow">Readiness</div>
           <div>
-            <div className="font-display text-[26px] leading-none font-light tracking-[-0.03em] tabular text-ink-100">
+            <div className="font-display text-[30px] leading-none font-light tracking-[-0.03em] tabular text-ink-100">
               {r.score}
-              <span className="text-base text-ink-400 font-normal">/100</span>
+              <span className="text-base tracking-normal text-ink-400 ml-0.5">/100</span>
             </div>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink-100/[0.06]">
+            <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-ink-100/[0.08]">
               <div className={`h-full rounded-full ${bar}`} style={{ width: `${r.score}%` }} />
             </div>
           </div>
@@ -74,14 +75,14 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link href="/compliance/evidence" className="rounded-xl border border-line bg-panel p-5 flex items-start gap-4 hover:border-ink-400 transition-colors">
           <div className="flex-1">
-            <div className="text-sm font-semibold text-ink-100">Evidence pack (AI Act / NIS2)</div>
+            <div className="text-sm font-bold text-ink-100">Evidence pack (AI Act / NIS2)</div>
             <div className="text-xs text-ink-400 mt-0.5">Inventory, readiness, training, policies, AI suppliers, critical incidents and a tamper-evident audit log — print it or download JSON with a SHA-256 fingerprint.</div>
           </div>
           <span className="btn btn-secondary btn-sm shrink-0">Open</span>
         </Link>
         <Link href="/compliance/employee-notice" className="rounded-xl border border-line bg-panel p-5 flex items-start gap-4 hover:border-ink-400 transition-colors">
           <div className="flex-1">
-            <div className="text-sm font-semibold text-ink-100">Employee notice</div>
+            <div className="text-sm font-bold text-ink-100">Employee notice</div>
             <div className="text-xs text-ink-400 mt-0.5">Ready-to-use GDPR notice for staff in English, Italian (art. 4 Statuto dei lavoratori) or German (§87 BetrVG) — from what angar really collects.</div>
           </div>
           <span className="btn btn-secondary btn-sm shrink-0">Open</span>
@@ -101,7 +102,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
                     <div className="text-sm text-ink-100">{c.href ? <Link href={c.href} className="hover:underline">{c.label}</Link> : c.label}</div>
                     <div className="text-xs text-ink-400">{c.detail}</div>
                   </div>
-                  <span className="text-xs text-ink-400 tabular shrink-0">
+                  <span className="eyebrow tabular shrink-0">
                     {Math.round(c.weight * c.fraction)}/{c.weight}
                   </span>
                 </li>
@@ -159,7 +160,7 @@ export default async function CompliancePage({ searchParams }: { searchParams: {
               </td>
               <td className={td}>
                 {sug.tier === a.euAiActTier ? (
-                  <span className="text-xs text-ink-400">Matches</span>
+                  <span className="eyebrow">Matches</span>
                 ) : (
                   <div className="flex items-center gap-2">
                     <span title={sug.reason}>

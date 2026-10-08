@@ -23,7 +23,7 @@ export default async function BenchmarkCard({ orgId, variant = "compact" }: { or
         <div className="text-sm text-ink-100">
           <Sentence b={b} />
         </div>
-        <div className="text-xs text-ink-400 mt-0.5">AI spend a month for each employee · anonymous, aggregated across angar customers</div>
+        <div className="eyebrow mt-1">AI spend a month for each employee · anonymous, aggregated across angar customers</div>
       </div>
       <RangeBar b={b} className="relative w-full md:w-64 shrink-0" />
     </section>
@@ -67,7 +67,7 @@ function Sentence({ b }: { b: Benchmark }) {
     <>
       You spend <b className="tabular">{you}</b> a month for each employee — median for {scopeLabel(b)} is <b className="tabular">{per(b.peers.median)}</b>
       {diff !== null && Math.abs(diff) >= 5 && (
-        <span className={`ml-1.5 text-xs font-medium rounded-full px-1.5 py-0.5 tabular ${diff > 0 ? "text-signal bg-signal/10" : "text-steady bg-steady/10"}`}>
+        <span className={`ml-1.5 inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] tabular align-middle ${diff > 0 ? "text-accent bg-accent/10" : "text-steady bg-steady/10"}`}>
           {diff > 0 ? `${diff}% above` : `${Math.abs(diff)}% below`}
         </span>
       )}
@@ -83,17 +83,17 @@ function RangeBar({ b, className = "" }: { b: Benchmark; className?: string }) {
   const pos = (v: number) => `${Math.min(100, Math.max(0, (v / max) * 100))}%`;
   return (
     <div className={className}>
-      <div className="relative h-2 rounded-full bg-ink">
-        <div className="absolute inset-y-0 rounded-full bg-ink-400/30" style={{ left: pos(p.p25), width: `calc(${pos(p.p75)} - ${pos(p.p25)})` }} />
+      <div className="relative h-1.5 rounded-full bg-ink-100/[0.08]">
+        <div className="absolute inset-y-0 rounded-full bg-ink-100/25" style={{ left: pos(p.p25), width: `calc(${pos(p.p75)} - ${pos(p.p25)})` }} />
         <div className="absolute -top-1 h-4 w-0.5 bg-ink-100" style={{ left: pos(p.median) }} title={`Median ${per(p.median)}`} />
-        <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink-100 ring-2 ring-panel" style={{ left: pos(you) }} title={`You ${per(you)}`} />
+        <div className={`absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-panel ${you > p.p75 ? "bg-accent" : "bg-ink-100"}`} style={{ left: pos(you) }} title={`You ${per(you)}`} />
       </div>
-      <div className="flex justify-between text-[11px] text-ink-400 mt-1.5 tabular">
+      <div className="flex justify-between font-mono uppercase tracking-[0.04em] text-[10px] text-ink-400 mt-2 tabular">
         <span>€0</span>
         <span className="flex items-center gap-3">
           <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-ink-100" />you</span>
           <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-0.5 bg-ink-100" />median</span>
-          <span className="flex items-center gap-1"><span className="inline-block h-2 w-3 rounded-sm bg-ink-400/30" />middle 50%</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-2 w-3 rounded-[1px] bg-ink-100/25" />middle 50%</span>
         </span>
         <span>{per(max)}</span>
       </div>
@@ -113,7 +113,7 @@ function Section({ b }: { b: Benchmark }) {
             <Figure label="You" value={per(b.yours)} />
             <Figure label="Median" value={per(b.peers.median)} />
             <Figure label="Middle 50%" value={`${per(b.peers.p25)}–${per(b.peers.p75)}`} />
-            <p className="col-span-3 text-xs text-ink-400">{b.peers.count} {scopeLabel(b)}</p>
+            <p className="col-span-3 eyebrow">{b.peers.count} {scopeLabel(b)}</p>
           </div>
           <RangeBar b={b} />
         </div>
@@ -129,8 +129,8 @@ function Section({ b }: { b: Benchmark }) {
 function Figure({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs text-ink-400">{label}</div>
-      <div className={`font-display text-xl font-semibold tabular mt-1 text-ink-100`}>{value}</div>
+      <div className="eyebrow">{label}</div>
+      <div className="font-display text-2xl font-light tracking-[-0.03em] tabular mt-2 text-ink-100">{value}</div>
     </div>
   );
 }

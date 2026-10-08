@@ -38,7 +38,7 @@ export function VerdictPill({ verdict, source, deltaPct }: { verdict: Verdict; s
   const ref = source === "list" ? "list" : "market";
   const d = deltaPct != null && Math.abs(deltaPct) >= 1 ? ` ${deltaPct > 0 ? "+" : "−"}${Math.abs(deltaPct)}%` : "";
   const map: Record<Verdict, { label: string; cls: string }> = {
-    above: { label: `Above ${ref}${d}`, cls: "text-alarm bg-alarm/10" },
+    above: { label: `Above ${ref}${d}`, cls: "text-accent bg-accent/10" },
     fair: { label: source === "list" ? "At list" : "Fair", cls: "text-ink-400 bg-ink-100/[0.06]" },
     below: { label: `Below ${ref}${d}`, cls: "text-steady bg-steady/10" },
     unknown: { label: "No seat price", cls: "text-ink-400 bg-ink-100/[0.06]" },
@@ -59,14 +59,14 @@ export function PriceRangeBar({ row, className = "" }: { row: Pick<PriceRow, "pe
   const lo = Math.min(...vals) * 0.8;
   const hi = Math.max(...vals) * 1.15;
   const x = (v: number) => `${Math.max(0, Math.min(100, ((v - lo) / (hi - lo || 1)) * 100))}%`;
-  const dot = row.verdict === "above" ? "bg-alarm" : row.verdict === "below" ? "bg-steady" : "bg-ink-100";
+  const dot = row.verdict === "above" ? "bg-accent" : row.verdict === "below" ? "bg-steady" : "bg-ink-100";
   const label = p
     ? `Market ${seat(p.p25)} to ${seat(p.p75)}, median ${seat(p.median)}${row.yourSeatEur != null ? `; you ${seat(row.yourSeatEur)}` : ""}`
     : `List ${seat(ref)}${row.yourSeatEur != null ? `; you ${seat(row.yourSeatEur)}` : ""}`;
   return (
     <div className={`relative h-3 ${className}`} role="img" aria-label={label} title={label}>
-      <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line" />
-      {p && <div className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-ink-100/20" style={{ left: x(p.p25), width: `calc(${x(p.p75)} - ${x(p.p25)})` }} />}
+      <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-ink-100/[0.08]" />
+      {p && <div className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-ink-100/30" style={{ left: x(p.p25), width: `calc(${x(p.p75)} - ${x(p.p25)})` }} />}
       <div className={`absolute top-0 h-3 w-px ${p ? "bg-ink-100" : "bg-ink-400"}`} style={{ left: x(ref) }} />
       {row.yourSeatEur != null && (
         <div className={`absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-panel ${dot}`} style={{ left: x(row.yourSeatEur) }} />
@@ -85,9 +85,9 @@ export default function PriceIndexCard({ rows, networkCompanies, minCompanies }:
         rounded="rounded-t-xl"
         title="Seat price vs market"
         action={
-          <span className="flex items-center gap-3 text-[11px] text-ink-400 shrink-0" aria-hidden>
+          <span className="flex items-center gap-3 eyebrow shrink-0" aria-hidden>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-ink-100" />You</span>
-            <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-ink-100/20" />{networkCompanies ? "Middle 50%" : "List"}</span>
+            <span className="flex items-center gap-1.5"><span className="h-1 w-3 rounded-full bg-ink-100/30" />{networkCompanies ? "Middle 50%" : "List"}</span>
           </span>
         }
       />
@@ -99,14 +99,14 @@ export default function PriceIndexCard({ rows, networkCompanies, minCompanies }:
           {shown.map((r) => (
             <li key={r.serviceId} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] items-center gap-x-5 gap-y-2 px-5 py-3">
               <div className="min-w-0">
-                <Link href={`/assets/${r.assetIds[0]}`} className="text-sm font-medium text-ink-100 hover:underline truncate block">{r.name}</Link>
-                <div className="text-xs text-ink-400 mt-0.5 flex flex-wrap gap-x-2 tabular">
+                <Link href={`/assets/${r.assetIds[0]}`} className="text-sm text-ink-100 hover:underline truncate block">{r.name}</Link>
+                <div className="eyebrow mt-0.5 flex flex-wrap gap-x-3 tabular">
                   <span>
-                    You <b className="font-medium text-ink-100">{r.yourSeatEur != null ? seat(r.yourSeatEur) : "—"}</b>
+                    You <b className={`font-normal ${r.verdict === "above" ? "text-accent" : "text-ink-100"}`}>{r.yourSeatEur != null ? seat(r.yourSeatEur) : "—"}</b>
                   </span>
                   <span>
                     {r.source === "peers" && r.peers ? "Market" : "List"}{" "}
-                    <b className="font-medium text-ink-100">{r.source === "peers" && r.peers ? seat(r.peers.median) : r.listSeatEur != null ? seat(r.listSeatEur) : "—"}</b>
+                    <b className="font-normal text-ink-100">{r.source === "peers" && r.peers ? seat(r.peers.median) : r.listSeatEur != null ? seat(r.listSeatEur) : "—"}</b>
                   </span>
                   {r.yourUtilisation != null && (
                     <span title="Seats used in the last 30 days">
@@ -122,7 +122,7 @@ export default function PriceIndexCard({ rows, networkCompanies, minCompanies }:
         </ul>
       )}
 
-      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-xl px-5 py-3 text-xs text-ink-400 bar-foot">
+      <div className="flex items-center justify-between gap-3 bg-ink border-t border-line rounded-b-xl px-5 py-3 eyebrow bar-foot">
         <span title={networkCompanies ? "Anonymous" : `Market data unlocks at ${minCompanies} similar companies`}>{networkCompanies ? `${networkCompanies} companies` : "List prices"}</span>
         {rows.length > MAX_ROWS && <span className="tabular shrink-0">+{rows.length - MAX_ROWS} more</span>}
       </div>
@@ -137,19 +137,19 @@ export function MarketPriceStrip({ row }: { row: PriceRow }) {
     <section className="rounded-xl border border-line bg-panel px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 animate-rise" aria-label="Market price">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-ink-100">Market price</span>
+          <span className="text-sm font-bold text-ink-100">Market price</span>
           <VerdictPill verdict={row.verdict} source={row.source} deltaPct={row.deltaPct} />
         </div>
         <div className="text-xs text-ink-400 mt-1 tabular">
-          One seat: you <b className="font-medium text-ink-100">{row.yourSeatEur != null ? seat(row.yourSeatEur) : "—"}</b>
+          One seat: you <b className={`font-normal ${row.verdict === "above" ? "text-accent" : "text-ink-100"}`}>{row.yourSeatEur != null ? seat(row.yourSeatEur) : "—"}</b>
           {" · "}
           {market ? (
             <>
-              market median <b className="font-medium text-ink-100">{seat(market.median)}</b> ({market.count} companies)
+              market median <b className="font-normal text-ink-100">{seat(market.median)}</b> ({market.count} companies)
             </>
           ) : row.listSeatEur != null ? (
             <>
-              list <b className="font-medium text-ink-100">{seat(row.listSeatEur)}</b>
+              list <b className="font-normal text-ink-100">{seat(row.listSeatEur)}</b>
               {row.planName ? ` (${row.planName})` : ""}
             </>
           ) : (

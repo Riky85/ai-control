@@ -42,7 +42,7 @@ export default async function PlanBanner({ orgId }: { orgId: string }) {
 
   const urgent = state.expired || (state.trialDaysLeft ?? 99) <= 3;
   return (
-    <div className={`print:hidden border-b border-line px-4 py-2 text-sm flex flex-wrap items-center justify-center gap-x-3 gap-y-1 ${urgent ? "bg-signal/10" : "bg-sidebar"}`}>
+    <div className={`print:hidden border-b border-line px-4 py-2 text-sm flex flex-wrap items-center justify-center gap-x-3 gap-y-1 ${urgent ? "bg-accent/[0.07]" : "bg-sidebar"}`}>
       {state.trialing ? (
         <span className="text-ink-100">
           {planLabel(TRIAL_PLAN)} trial · <b className="tabular">{state.trialDaysLeft}</b> day{state.trialDaysLeft === 1 ? "" : "s"} left

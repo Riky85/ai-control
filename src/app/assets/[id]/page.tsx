@@ -221,10 +221,10 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                   {mine.map((i) => (
                     <div key={i.key} className="flex items-start gap-4 px-5 py-3.5">
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-ink-100">{i.title} <span className="ml-1 text-[11px] font-normal text-ink-400">{CONF[i.confidence]}</span></div>
+                        <div className="text-sm font-medium text-ink-100">{i.title} <span className="eyebrow ml-1.5">{CONF[i.confidence]}</span></div>
                         <div className="text-sm text-ink-400 mt-0.5 truncate" title={i.detail}>{i.detail}</div>
                       </div>
-                      <div className="text-sm font-semibold text-ink-100 tabular shrink-0">{fmtEur(i.monthlyEur)}/mo</div>
+                      <div className="text-[17px] font-light tracking-[-0.03em] text-ink-100 tabular shrink-0">{fmtEur(i.monthlyEur)}<span className="text-xs tracking-normal text-ink-400">/mo</span></div>
                       <form action={dismissSavingAction}>
                         <input type="hidden" name="key" value={i.key} />
                         <button className="btn btn-ghost btn-sm" title="Not for us — hide">Hide</button>
@@ -243,13 +243,13 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                 </dl>
                 {(asset.dataAccess.length > 0 || asset.connectedSystems.length > 0) && (
                   <div className="mt-5 pt-5 border-t border-line">
-                    <div className="text-xs text-ink-400 mb-2">What it touches</div>
+                    <div className="eyebrow mb-2">What it touches</div>
                     <div className="flex flex-wrap gap-1.5">
                       {asset.dataAccess.map((d) => (
-                        <span key={d.id} className={`text-xs rounded-full px-2.5 py-1 ${SENSITIVE.includes(d.dataAsset.sensitivity) ? "bg-alarm/10 text-alarm" : "bg-ink text-ink-400"}`}>{d.dataAsset.name}</span>
+                        <span key={d.id} className={`rounded-[2px] px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] ${SENSITIVE.includes(d.dataAsset.sensitivity) ? "bg-alarm/10 text-alarm" : "border border-line text-ink-400"}`}>{d.dataAsset.name}</span>
                       ))}
                       {asset.connectedSystems.map((c) => (
-                        <span key={c.id} className="text-xs rounded-full px-2.5 py-1 bg-ink text-ink-400">{c.system}{c.detail ? ` · ${c.detail}` : ""}</span>
+                        <span key={c.id} className="rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-400">{c.system}{c.detail ? ` · ${c.detail}` : ""}</span>
                       ))}
                     </div>
                   </div>
@@ -281,7 +281,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
             <Panel title="EU AI Act" subtitle={`${aiAct.source === "manual" ? "Set by hand" : "Automatic"} · ${aiAct.role}`} action={<TierPill tier={aiAct.tier} />}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-medium text-ink-100 mb-2">Why</h3>
+                  <h3 className="eyebrow mb-2.5">Why</h3>
                   <ul className="flex flex-col gap-2 text-sm text-ink-400">
                     {aiAct.reasons.map((r, i) => (
                       <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-ink-400 shrink-0" />{r}</li>
@@ -289,7 +289,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-ink-100 mb-2">To do</h3>
+                  <h3 className="eyebrow mb-2.5">To do</h3>
                   <ul className="flex flex-col gap-2 text-sm text-ink-400">
                     {aiAct.obligations.map((o, i) => (
                       <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-steady shrink-0" />{o}</li>
@@ -310,7 +310,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                     </div>
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div>
-                        <h3 className="text-sm font-medium text-ink-100 mb-2">Why</h3>
+                        <h3 className="eyebrow mb-2.5">Why</h3>
                         <ul className="flex flex-col gap-2 text-sm text-ink-400">
                           {((risk.reasons as string[] | null) ?? []).map((r, i) => (
                             <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-alarm shrink-0" />{r}</li>
@@ -319,7 +319,7 @@ export default async function AssetDetailPage({ params, searchParams }: { params
                         </ul>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-ink-100 mb-2">To lower it</h3>
+                        <h3 className="eyebrow mb-2.5">To lower it</h3>
                         <ul className="flex flex-col gap-2 text-sm text-ink-400">
                           {((risk.mitigations as string[] | null) ?? []).map((m, i) => (
                             <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-steady shrink-0" />{m}</li>
@@ -513,7 +513,7 @@ const SENSITIVE = ["PII", "FINANCIAL", "SOURCE_CODE"];
 function Field({ label, value, empty = "—" }: { label: string; value?: string | null; empty?: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-ink-400">{label}</dt>
+      <dt className="eyebrow">{label}</dt>
       <dd className={`text-sm mt-1 truncate ${value ? "text-ink-100" : "text-ink-400"}`}>{value || empty}</dd>
     </div>
   );

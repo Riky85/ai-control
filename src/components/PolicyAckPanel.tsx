@@ -99,11 +99,11 @@ export default async function PolicyAckPanel({
           )}
           <Meter label="Literacy check" value={quizPct} big={s.avgScore == null ? "—" : `${s.avgScore}/${QUIZ_TOTAL}`} hint="Average" />
           <div className="min-w-0">
-            <div className="flex items-center justify-between gap-2 text-xs text-ink-400">
-              <span>Training recorded</span>
-              {training ? <Pill tone="steady">Yes</Pill> : <Pill tone="signal">Missing</Pill>}
+            <div className="flex items-center justify-between gap-2">
+              <span className="eyebrow">Training recorded</span>
+              {training ? <Pill tone="steady">Yes</Pill> : <Pill tone="accent">Missing</Pill>}
             </div>
-            <div className="font-display text-[22px] leading-tight font-light tabular text-ink-100 mt-1">{training ? fmtDate(training.date) : "—"}</div>
+            <div className="font-display text-[24px] leading-tight font-light tracking-[-0.03em] tabular text-ink-100 mt-1">{training ? fmtDate(training.date) : "—"}</div>
             <div className="text-xs text-ink-400 mt-1 truncate" title={training?.summary}>
               {training ? training.summary : <Link href="/compliance" className="underline hover:text-ink-100">Record it</Link>}
             </div>
@@ -112,7 +112,7 @@ export default async function PolicyAckPanel({
 
         {generic && (
           <div className="flex flex-col gap-1.5 border-t border-line pt-3">
-            <div className="text-xs text-ink-400">{s.personal ? "Generic link" : "Link for all employees"}</div>
+            <div className="eyebrow">{s.personal ? "Generic link" : "Link for all employees"}</div>
             <CopyField value={generic} />
           </div>
         )}
@@ -153,8 +153,8 @@ export default async function PolicyAckPanel({
 function Meter({ label, value, big, hint }: { label: string; value: number | null; big: string; hint: string }) {
   return (
     <div className="min-w-0">
-      <div className="text-xs text-ink-400">{label}</div>
-      <div className="font-display text-[22px] leading-tight font-light tabular text-ink-100 mt-1">{big}</div>
+      <div className="eyebrow">{label}</div>
+      <div className="font-display text-[24px] leading-tight font-light tracking-[-0.03em] tabular text-ink-100 mt-1">{big}</div>
       {value != null ? <AxisTrack value={value} className="mt-1.5" /> : <div className="relative h-3 mt-1.5" aria-hidden><div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line" /></div>}
       <div className="text-xs text-ink-400 mt-1 truncate" title={hint}>
         {hint}

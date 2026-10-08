@@ -6,7 +6,7 @@ import Link from "next/link";
  * (nessuna libreria) e uno stato vuoto con una sola azione.
  */
 
-const DOT = { accent: "bg-ink-400", signal: "bg-signal", alarm: "bg-alarm", steady: "bg-steady", muted: "bg-ink-400" } as const;
+const DOT = { accent: "bg-accent", signal: "bg-accent", alarm: "bg-alarm", steady: "bg-steady", muted: "bg-ink-400" } as const;
 export type InsightTone = keyof typeof DOT;
 
 /** Una frase che dice qualcosa di utile, con il link per agire. */
@@ -16,8 +16,8 @@ export function Insight({ tone = "muted", children, href, cta }: { tone?: Insigh
       <span className={`h-2 w-2 shrink-0 rounded-full ${DOT[tone]}`} aria-hidden />
       <span className="flex-1 min-w-0 text-ink-100">{children}</span>
       {href && (
-        <Link href={href} className="shrink-0 text-ink-400 hover:text-ink-100 whitespace-nowrap">
-          {cta ?? "Open"} →
+        <Link href={href} className="shrink-0 eyebrow hover:!text-ink-100 transition-colors whitespace-nowrap">
+          {cta ?? "Open"} [→]
         </Link>
       )}
     </div>
@@ -28,7 +28,7 @@ export function Insight({ tone = "muted", children, href, cta }: { tone?: Insigh
 export function EmptyState({ title, text, href, cta }: { title: string; text?: React.ReactNode; href?: string; cta?: string }) {
   return (
     <div className="rounded-xl border border-line bg-panel px-5 py-8 flex flex-col items-center gap-3 text-center animate-rise" title={typeof text === "string" ? text : undefined}>
-      <h2 className="text-sm font-semibold text-ink-100">{title}</h2>
+      <h2 className="text-sm font-bold text-ink-100">{title}</h2>
       {href && cta && (
         <Link href={href} className="btn btn-primary btn-sm">
           {cta}
@@ -40,7 +40,7 @@ export function EmptyState({ title, text, href, cta }: { title: string; text?: R
 
 /**
  * Barre giornaliere (dal più vecchio al più recente), SVG scritto a mano:
- * l'ultima barra in arancio pieno, le altre attenuate; tooltip nativo per barra.
+ * l'ultima barra piena, le altre attenuate (grigio neutro); tooltip nativo per barra.
  */
 export function DayBars({ values, labels, height = 44, unit = "" }: { values: number[]; labels?: string[]; height?: number; unit?: string }) {
   const n = values.length;
@@ -67,8 +67,8 @@ export function TrendPanel({ title, note, values, labels, unit }: { title: strin
   return (
     <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
       <div className="bg-ink border-b border-line rounded-t-xl px-5 py-3 flex items-baseline justify-between gap-3 text-sm bar-head">
-        <span className="font-semibold text-ink-100">{title}</span>
-        {note && <span className="text-xs text-ink-400 truncate">{note}</span>}
+        <span className="font-bold text-ink-100">{title}</span>
+        {note && <span className="eyebrow truncate">{note}</span>}
       </div>
       <div className="px-5 py-4">
         <DayBars values={values} labels={labels} unit={unit} />

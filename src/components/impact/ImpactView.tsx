@@ -12,8 +12,8 @@ import type { CompatStatus, ImpactResult, Kind, ScenarioKind, Val } from "@/lib/
  */
 
 const KIND_LABEL: Record<Kind, string> = { observed: "Observed", calculated: "Calculated", estimated: "Estimated", unknown: "Unknown" };
-const COMPAT_DOT: Record<CompatStatus, string> = { fits: "bg-steady", gaps: "bg-signal", blocked: "bg-alarm", unknown: "bg-ink-400", "n/a": "bg-line" };
-const RISK_DOT: Record<string, string> = { Low: "bg-steady", Medium: "bg-signal", High: "bg-alarm" };
+const COMPAT_DOT: Record<CompatStatus, string> = { fits: "bg-steady", gaps: "bg-accent", blocked: "bg-alarm", unknown: "bg-ink-400", "n/a": "bg-line" };
+const RISK_DOT: Record<string, string> = { Low: "bg-steady", Medium: "bg-accent", High: "bg-alarm" };
 const CONF: Record<string, string> = { HIGH: "High", MEDIUM: "Medium", LOW: "Low" };
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -30,7 +30,7 @@ function Amount({ v, signed = false, className = "" }: { v: Val; signed?: boolea
   );
 }
 
-const Tag = ({ kind }: { kind: Kind }) => <span className="text-[11px] text-ink-400">{KIND_LABEL[kind]}</span>;
+const Tag = ({ kind }: { kind: Kind }) => <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-ink-400">{KIND_LABEL[kind]}</span>;
 
 function Select({ name, label, options, value, placeholder, required }: { name: string; label: string; options: Opt[]; value?: string; placeholder?: string; required?: boolean }) {
   const groups: { group: string; items: Opt[] }[] = [];
@@ -41,7 +41,7 @@ function Select({ name, label, options, value, placeholder, required }: { name: 
     else groups.push({ group: g, items: [o] });
   }
   return (
-    <label className="flex flex-col gap-1.5 text-xs font-medium text-ink-400 min-w-0">
+    <label className="flex flex-col gap-1.5 eyebrow min-w-0">
       {label}
       <select name={name} defaultValue={value ?? ""} required={required} className="field w-full">
         {placeholder !== undefined && <option value="">{placeholder}</option>}
@@ -61,7 +61,7 @@ function Select({ name, label, options, value, placeholder, required }: { name: 
 
 function Input({ name, label, value, type = "text", placeholder, required, min, max, step }: { name: string; label: string; value?: string; type?: string; placeholder?: string; required?: boolean; min?: number; max?: number; step?: number }) {
   return (
-    <label className="flex flex-col gap-1.5 text-xs font-medium text-ink-400 min-w-0">
+    <label className="flex flex-col gap-1.5 eyebrow min-w-0">
       {label}
       <input name={name} type={type} defaultValue={value ?? ""} placeholder={placeholder} required={required} min={min} max={max} step={step} className="field w-full" />
     </label>
@@ -176,7 +176,7 @@ export default function ImpactView({
                 <Link
                   href={`/impact?s=${s.kind}`}
                   title={s.hint}
-                  className={`block rounded-lg px-3 py-2 text-sm transition-colors ${s.kind === kind ? "bg-ink-100/[0.06] text-ink-100 font-medium" : "text-ink-400 hover:text-ink-100"}`}
+                  className={`block rounded-[4px] px-3 py-2 text-sm transition-colors ${s.kind === kind ? "bg-ink-100/[0.06] text-ink-100" : "text-ink-400 hover:text-ink-100"}`}
                 >
                   {s.label}
                 </Link>
@@ -185,11 +185,11 @@ export default function ImpactView({
           </ul>
           {saved.length > 0 && (
             <div className="border-t border-line p-2">
-              <div className="px-3 pt-1 pb-1.5 text-xs font-bold text-ink-100">Saved</div>
+              <div className="px-3 pt-1 pb-1.5 eyebrow">Saved</div>
               <ul className="flex flex-col gap-0.5">
                 {saved.map((s) => (
                   <li key={s.id} className="flex items-center gap-1">
-                    <Link href={`/impact?${s.query}`} className="flex-1 min-w-0 truncate rounded-lg px-3 py-1.5 text-sm text-ink-400 hover:text-ink-100">
+                    <Link href={`/impact?${s.query}`} className="flex-1 min-w-0 truncate rounded-[4px] px-3 py-1.5 text-sm text-ink-400 hover:text-ink-100">
                       {s.name}
                     </Link>
                     {deleteAction && (
@@ -222,7 +222,7 @@ export default function ImpactView({
               <div className="p-5 grid sm:grid-cols-2 xl:grid-cols-4 gap-4 items-end">
                 <Fields kind={active.kind} raw={raw} o={options} />
                 <div className="flex items-end">
-                  <button className="btn btn-primary w-full sm:w-auto">Simulate</button>
+                  <button className="btn btn-primary btn-go w-full sm:w-auto">Simulate</button>
                 </div>
               </div>
             </form>
@@ -238,25 +238,25 @@ export default function ImpactView({
 function Chips({ title, items }: { title: string; items: { id: string; label: string; href?: string | null; sub?: string | null }[] }) {
   return (
     <div className="min-w-0">
-      <div className="text-xs font-bold text-ink-100 mb-2">
-        {title} <span className="text-ink-400 font-normal tabular">{items.length}</span>
+      <div className="eyebrow mb-2">
+        {title} <span className="!text-ink-100 tabular ml-1">{items.length}</span>
       </div>
       {items.length ? (
         <div className="flex flex-wrap gap-1.5">
           {items.map((n) =>
             n.href ? (
-              <Link key={n.id} href={n.href} className="text-xs rounded-full border border-line px-2 py-0.5 text-ink-400 hover:text-ink-100" title={n.sub ?? undefined}>
+              <Link key={n.id} href={n.href} className="inline-flex items-center rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-400 hover:text-ink-100 hover:border-ink-400 transition-colors" title={n.sub ?? undefined}>
                 {n.label}
               </Link>
             ) : (
-              <span key={n.id} className="text-xs rounded-full border border-line px-2 py-0.5 text-ink-400" title={n.sub ?? undefined}>
+              <span key={n.id} className="inline-flex items-center rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-400" title={n.sub ?? undefined}>
                 {n.label}
               </span>
             ),
           )}
         </div>
       ) : (
-        <span className="text-xs text-ink-400">None</span>
+        <span className="eyebrow">None</span>
       )}
     </div>
   );
@@ -265,7 +265,7 @@ function Chips({ title, items }: { title: string; items: { id: string; label: st
 function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData) => Promise<void> }) {
   const sp = r.spend;
   const involved = sp.current;
-  const deltaTone = sp.delta.eur == null || sp.exposedOnly ? "text-ink-100" : sp.delta.eur < 0 ? "text-steady" : sp.delta.eur > 0 ? "text-alarm" : "text-ink-100";
+  const deltaTone = sp.delta.eur == null || sp.exposedOnly ? "text-ink-100" : sp.delta.eur < 0 ? "text-steady" : sp.delta.eur > 0 ? "text-accent" : "text-ink-100";
   const query = scenarioQuery(r.scenario);
 
   if (r.empty)
@@ -283,15 +283,15 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
         <BlockHead title={r.title} note={r.question} />
         <div className="px-5 py-4 text-[15px] text-ink-100 tabular border-b border-line">
           {[plural(r.systems.length, "AI system"), plural(r.applications.length, "application"), plural(r.processes.length, "process", "processes"), plural(r.teams.length, "team")].join(" · ")} ·{" "}
-          <span className="font-semibold">
+          <span className="text-ink-100">
             <Amount v={involved} /> a month
           </span>{" "}
           {sp.exposedOnly ? "exposed" : "involved"}
         </div>
         <div className="grid sm:grid-cols-[1fr_auto_1fr_1fr] gap-x-6 gap-y-4 px-5 py-5 items-start">
           <div>
-            <div className="text-xs font-bold text-ink-100">Now</div>
-            <div className="font-display text-[28px] leading-none font-medium tracking-[-0.025em] mt-2">
+            <div className="eyebrow">Now</div>
+            <div className="font-display text-[32px] leading-none font-light tracking-[-0.03em] mt-3">
               <Amount v={sp.current} />
             </div>
             <div className="text-xs text-ink-400 mt-2 flex flex-col gap-0.5">
@@ -304,12 +304,12 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
               </span>
             </div>
           </div>
-          <div className="hidden sm:block text-ink-400 text-xl pt-6" aria-hidden>
-            →
+          <div className="hidden sm:block font-mono text-ink-400 text-sm pt-8" aria-hidden>
+            [→]
           </div>
           <div>
-            <div className="text-xs font-bold text-ink-100">{sp.exposedOnly ? "Exposed" : "After"}</div>
-            <div className="font-display text-[28px] leading-none font-medium tracking-[-0.025em] mt-2">
+            <div className="eyebrow">{sp.exposedOnly ? "Exposed" : "After"}</div>
+            <div className="font-display text-[32px] leading-none font-light tracking-[-0.03em] mt-3">
               <Amount v={sp.projected} />
             </div>
             <div className="text-xs text-ink-400 mt-2">
@@ -317,11 +317,11 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
             </div>
           </div>
           <div>
-            <div className="text-xs font-bold text-ink-100">{sp.exposedOnly ? "At risk" : "Difference"}</div>
+            <div className={`eyebrow ${sp.exposedOnly || (sp.delta.eur ?? 0) > 0 ? "!text-accent" : ""}`}>{sp.exposedOnly ? "At risk" : "Difference"}</div>
             {sp.exposedOnly ? (
-              <div className="font-display text-[28px] leading-none font-light tracking-[-0.03em] mt-2 tabular">{plural(r.systems.filter((s) => s.status?.startsWith("No fallback")).length, "AI", "AI")}</div>
+              <div className="font-display text-[32px] leading-none font-light tracking-[-0.03em] mt-3 tabular text-accent">{plural(r.systems.filter((s) => s.status?.startsWith("No fallback")).length, "AI", "AI")}</div>
             ) : (
-              <div className={`font-display text-[28px] leading-none font-medium tracking-[-0.025em] mt-2 ${deltaTone}`}>
+              <div className={`font-display text-[32px] leading-none font-light tracking-[-0.03em] mt-3 ${deltaTone}`}>
                 <Amount v={sp.delta} signed />
               </div>
             )}
@@ -332,12 +332,12 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
           {[
             { k: "Switching cost", v: <Amount v={r.switching} />, t: r.switching.basis },
             { k: "Effort", v: r.effort ?? "—", t: "Highest migration effort among the AI systems" },
-            { k: "Risk", v: <span className="flex items-center gap-2"><span className={`h-2 w-2 rounded-full ${RISK_DOT[r.risk]}`} />{r.risk}</span>, t: "Highest risk among the AI systems" },
+            { k: "Risk", v: <span className="flex items-center gap-2"><span className={`h-1.5 w-1.5 rounded-full ${RISK_DOT[r.risk]}`} /><span className={r.risk === "Low" ? "" : "text-accent"}>{r.risk}</span></span>, t: "Highest risk among the AI systems" },
             { k: "Confidence", v: CONF[r.confidence], t: r.confidenceWhy },
           ].map((x, i) => (
             <div key={x.k} className={`px-5 py-3 ${i ? "sm:border-l border-line" : ""} ${i % 2 ? "border-l sm:border-l" : ""} ${i > 1 ? "border-t sm:border-t-0" : ""}`} title={x.t}>
-              <div className="text-xs text-ink-400">{x.k}</div>
-              <div className="text-ink-100 font-medium mt-0.5">{x.v}</div>
+              <div className="eyebrow">{x.k}</div>
+              <div className="text-ink-100 mt-1">{x.v}</div>
             </div>
           ))}
         </div>
@@ -353,8 +353,8 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
           {r.budget.actions.slice(0, 12).map((a) => (
             <tr key={a.key} className={a.picked ? "" : "opacity-60"}>
               <td className={td}>
-                <div className="text-ink-100 font-medium flex items-center gap-2">
-                  {a.picked && <span className="h-2 w-2 rounded-full bg-steady shrink-0" title="Picked" />}
+                <div className="text-ink-100 flex items-center gap-2">
+                  {a.picked && <span className="h-1.5 w-1.5 rounded-full bg-steady shrink-0" title="Picked" />}
                   {a.title}
                 </div>
                 <div className="text-xs text-ink-400 mt-0.5 line-clamp-1" title={a.detail}>{a.detail}</div>
@@ -379,8 +379,8 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
         {r.systems.map((s) => (
           <tr key={s.id} className="align-top">
             <td className={`${td} min-w-[200px]`}>
-              <Link href={s.href} className="font-medium text-ink-100 hover:underline">{s.name}</Link>
-              <div className="text-xs text-ink-400 mt-0.5" title={s.fractionNote}>
+              <Link href={s.href} className="text-ink-100 hover:underline">{s.name}</Link>
+              <div className="eyebrow mt-0.5" title={s.fractionNote}>
                 {s.change}
                 {s.fraction != null && s.fraction < 1 ? ` · ${Math.round(s.fraction * 100)}%` : ""}
                 {s.status && s.status !== s.change ? ` · ${s.status}` : ""}
@@ -398,14 +398,14 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
               {s.compat.score != null ? (
                 <>
                   <span className="flex items-center gap-2 text-ink-100">
-                    <span className={`h-2 w-2 rounded-full shrink-0 ${COMPAT_DOT[s.compat.status]}`} />
-                    <span className="tabular">{s.compat.score}%</span>
+                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${COMPAT_DOT[s.compat.status]}`} />
+                    <span className={`tabular ${s.compat.status === "gaps" ? "text-accent" : ""}`}>{s.compat.score}%</span>
                   </span>
-                  <div className="text-xs text-ink-400 mt-0.5">{s.compat.label}</div>
+                  <div className="eyebrow mt-0.5">{s.compat.label}</div>
                 </>
               ) : (
                 <span className="flex items-start gap-2 text-ink-100">
-                  <span className={`h-2 w-2 rounded-full shrink-0 mt-1.5 ${COMPAT_DOT[s.compat.status]}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full shrink-0 mt-2 ${COMPAT_DOT[s.compat.status]}`} />
                   {s.compat.label}
                 </span>
               )}
@@ -413,8 +413,8 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
             <td className={td}>{s.effort ?? "—"}</td>
             <td className={td} title={s.riskWhy.join(" · ") || "No risk factor found"}>
               <span className="flex items-center gap-2 text-ink-100">
-                <span className={`h-2 w-2 rounded-full ${RISK_DOT[s.risk]}`} />
-                {s.risk}
+                <span className={`h-1.5 w-1.5 rounded-full ${RISK_DOT[s.risk]}`} />
+                <span className={s.risk === "Low" ? "" : "text-accent"}>{s.risk}</span>
               </span>
             </td>
             <td className={td} title={s.confidenceWhy}>{CONF[s.confidence]}</td>
@@ -435,9 +435,9 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
         <Table title="Contracts and renewals" columns={["AI system", "Billing", "Renewal", { label: "Committed until renewal", className: "text-right" }]}>
           {r.contracts.map((c) => (
             <tr key={c.systemId}>
-              <td className={`${td} text-ink-100 font-medium`}>{c.system}</td>
+              <td className={`${td} text-ink-100`}>{c.system}</td>
               <td className={`${td} text-ink-400 capitalize`}>{c.billingCycle ?? "—"}</td>
-              <td className={`${td} tabular`}>{c.renewalDate ? <>{c.renewalDate} <span className="text-ink-400">· in {c.inDays} days</span></> : <span className="text-ink-400">Not known</span>}</td>
+              <td className={`${td} tabular`}>{c.renewalDate ? <>{c.renewalDate} <span className="eyebrow ml-1">in {c.inDays} days</span></> : <span className="text-ink-400">Not known</span>}</td>
               <td className={`${td} text-right`}>
                 <Amount v={c.committed} className="text-ink-100" />
               </td>
@@ -472,7 +472,7 @@ function Result({ r, saveAction }: { r: ImpactResult; saveAction?: (f: FormData)
           <div className="border-t border-line px-5 py-4 grid md:grid-cols-2 gap-5">
             {r.systems.filter((s) => s.compat.checks.length || s.alternatives?.length).map((s) => (
               <div key={s.id} className="min-w-0">
-                <div className="text-xs font-bold text-ink-100 mb-1.5">
+                <div className="text-sm font-bold text-ink-100 mb-1.5">
                   {s.name}
                   {s.compat.target ? <span className="font-normal text-ink-400"> → {s.compat.target}</span> : null}
                 </div>

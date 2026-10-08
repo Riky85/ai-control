@@ -61,8 +61,8 @@ export default async function AdvisorPage() {
               <div className="flex items-center gap-3">
                 <VendorBadge vendor={s.tool.vendor ?? ""} name={s.tool.name} size={36} />
                 <div className="min-w-0">
-                  <div className="text-xs text-ink-400">{s.label}</div>
-                  <div className="text-[15px] font-semibold text-ink-100 truncate">{s.tool.name}</div>
+                  <div className="eyebrow">{s.label}</div>
+                  <div className="text-[15px] font-bold text-ink-100 truncate">{s.tool.name}</div>
                 </div>
               </div>
               <div className="flex items-end justify-between gap-3">
@@ -74,9 +74,9 @@ export default async function AdvisorPage() {
                   <div className="text-xs">{s.activeUsers} active in the last 30 days</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-display text-xl font-semibold text-ink-100 tabular">
+                  <div className="font-display text-[22px] leading-tight font-light tracking-[-0.03em] text-ink-100 tabular">
                     {fmtEur(s.estimatedEur)}
-                    <span className="text-sm text-ink-400 font-normal">/mo</span>
+                    <span className="text-xs tracking-normal text-ink-400">/mo</span>
                   </div>
                   <div className="text-xs text-ink-400 tabular">today {fmtEur(s.currentEur)}/mo</div>
                 </div>
@@ -91,7 +91,7 @@ export default async function AdvisorPage() {
         {/* Barra grigia in alto: titolo e ordine dei passi. */}
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-ink border-b border-line px-5 py-3 bar-head">
           <h2 className="text-sm font-bold text-ink-100">How to get there</h2>
-          <p className="text-xs text-ink-400">In order: consolidate first, then fix plans, seats and billing.</p>
+          <p className="eyebrow">In order: consolidate first, then fix plans, seats and billing.</p>
         </div>
         {recommendations.length === 0 ? (
           <p className="text-sm text-ink-400 p-5">Your stack already matches how people use AI — nothing to change right now.</p>
@@ -131,19 +131,19 @@ function RecRow({ r, n }: { r: Recommendation; n: number }) {
       <div className="text-right shrink-0">
         {r.monthlySaving >= 0 ? (
           <>
-            <div className="font-display text-xl font-semibold text-ink-100 tabular">
+            <div className="font-display text-[22px] leading-tight font-light tracking-[-0.03em] text-ink-100 tabular">
               {fmtEur(r.monthlySaving)}
-              <span className="text-sm text-ink-400 font-normal">/mo</span>
+              <span className="text-xs tracking-normal text-ink-400">/mo</span>
             </div>
             <div className="text-xs text-ink-400 tabular">{fmtEur(r.monthlySaving * 12)} a year</div>
           </>
         ) : (
           <>
-            <div className="font-display text-xl font-semibold text-signal tabular">
+            <div className="font-display text-[22px] leading-tight font-light tracking-[-0.03em] text-accent tabular">
               +{fmtEur(-r.monthlySaving)}
-              <span className="text-sm text-ink-400 font-normal">/mo</span>
+              <span className="text-xs tracking-normal text-ink-400">/mo</span>
             </div>
-            <div className="text-xs text-ink-400">for control</div>
+            <div className="eyebrow">for control</div>
           </>
         )}
       </div>

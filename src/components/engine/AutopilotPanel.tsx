@@ -69,7 +69,7 @@ export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin
       {/* Barra grigia in alto: titolo, stato e modalità. */}
       <header className="relative flex flex-wrap items-center justify-between gap-3 bg-ink border-b border-line rounded-t-xl px-5 py-2.5 text-sm bar-head">
         <div className="flex items-center gap-2.5">
-          <span aria-hidden className={`relative inline-flex h-2 w-2 rounded-full ${off ? "bg-ink-400/50" : "bg-steady"}`} />
+          <span aria-hidden className={`relative inline-flex h-1.5 w-1.5 rounded-full ${off ? "bg-ink-400/50" : "bg-steady"}`} />
           <h2 id="autopilot-title" className="font-bold text-ink-100">Autopilot</h2>
         </div>
         <ModeControl mode={summary.mode} canAdmin={canAdmin} />
@@ -95,7 +95,7 @@ export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin
             </ul>
           )}
 
-          <footer className="relative flex flex-wrap items-center justify-between gap-2 bg-ink border-t border-line rounded-b-xl px-5 py-3 text-[11px] text-ink-400 bar-foot">
+          <footer className="relative flex flex-wrap items-center justify-between gap-2 bg-ink border-t border-line rounded-b-xl px-5 py-3 eyebrow bar-foot">
             <span className="flex items-center gap-3">
               <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-ink-100" />angar does this</span>
               <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full ring-1 ring-ink-400" />you do this</span>
@@ -110,7 +110,7 @@ export default function AutopilotPanel({ summary, tasks, more, canEdit, canAdmin
 
 function ModeControl({ mode, canAdmin }: { mode: AutopilotMode; canAdmin: boolean }) {
   return (
-    <form action={setAutopilotModeAction} className="inline-flex rounded-lg border border-line bg-ink-100/[0.03] p-0.5" role="radiogroup" aria-label="Autopilot mode">
+    <form action={setAutopilotModeAction} className="inline-flex rounded-[4px] border border-line bg-ink-100/[0.03] p-0.5" role="radiogroup" aria-label="Autopilot mode">
       {MODES.map((m) => {
         const on = m.id === mode;
         return (
@@ -122,7 +122,7 @@ function ModeControl({ mode, canAdmin }: { mode: AutopilotMode; canAdmin: boolea
             aria-checked={on}
             disabled={!canAdmin || on}
             title={canAdmin ? m.hint : `${m.hint}. Admins can change it`}
-            className={`h-7 rounded-md px-3 text-xs font-medium transition-colors disabled:cursor-default ${on ? "bg-panel text-ink-100 shadow-sm ring-1 ring-line" : "text-ink-400 hover:text-ink-100 disabled:hover:text-ink-400"}`}
+            className={`h-7 rounded-[3px] px-3 font-mono uppercase text-[10px] tracking-[0.05em] transition-colors disabled:cursor-default ${on ? "bg-panel text-ink-100 shadow-sm ring-1 ring-line" : "text-ink-400 hover:text-ink-100 disabled:hover:text-ink-400"}`}
           >
             {m.label}
           </button>
@@ -135,31 +135,31 @@ function ModeControl({ mode, canAdmin }: { mode: AutopilotMode; canAdmin: boolea
 function Figure({ label, value, unit, hint, accent, good }: { label: string; value: string; unit?: string; hint: string; accent?: boolean; good?: boolean }) {
   return (
     <div className="bg-panel px-5 py-3.5 min-w-0">
-      <dt className="text-sm font-semibold text-ink-100">{label}</dt>
-      <dd className="mt-1">
-        <span className={`font-display text-2xl font-light tracking-[-0.03em] tabular ${accent ? "text-ink-100" : good ? "text-steady" : "text-ink-100"}`}>{value}</span>
+      <dt className={`eyebrow ${accent ? "!text-accent" : ""}`}>{label}</dt>
+      <dd className="mt-2">
+        <span className={`font-display text-[28px] leading-none font-light tracking-[-0.03em] tabular ${accent ? "text-accent" : good ? "text-steady" : "text-ink-100"}`}>{value}</span>
         {unit && <span className="ml-1 text-xs text-ink-400">{unit}</span>}
       </dd>
-      {hint && <dd className="text-[11px] text-ink-400 mt-0.5 truncate">{hint}</dd>}
+      {hint && <dd className="text-xs text-ink-400 mt-1.5 truncate">{hint}</dd>}
     </div>
   );
 }
 
 function TaskRow({ t, canEdit }: { t: AutopilotTaskView; canEdit: boolean }) {
-  const st = t.needsApproval && t.status !== "proposed" ? { label: "Needs you", cls: "text-signal bg-signal/10" } : STATUS[t.status];
+  const st = t.needsApproval && t.status !== "proposed" ? { label: "Needs you", cls: "text-accent bg-accent/10" } : STATUS[t.status];
   const active = t.status === "approved" || t.status === "running";
   return (
     <li className="px-5 py-3.5 flex flex-col gap-2.5">
       <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
         <div className="flex-1 min-w-[12rem]">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-ink-100">{t.title}</span>
+            <span className="text-sm font-bold text-ink-100">{t.title}</span>
             <span className={`text-[10px] rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] shrink-0 ${st.cls}`}>{st.label}</span>
           </div>
           {t.result && <p className={`text-xs mt-0.5 ${t.status === "failed" ? "text-alarm" : "text-ink-400"}`}>{t.result}</p>}
         </div>
         <div className="text-right shrink-0">
-          <span className="font-display text-lg font-semibold tabular text-ink-100">{fmtEur(t.expectedMonthlyEur)}</span>
+          <span className="font-display text-xl font-light tracking-[-0.03em] tabular text-ink-100">{fmtEur(t.expectedMonthlyEur)}</span>
           <span className="ml-1 text-xs text-ink-400">a month</span>
         </div>
         {canEdit && (t.needsApproval || t.status === "failed") && (
@@ -220,7 +220,7 @@ function Steps({ t, canMark }: { t: AutopilotTaskView; canMark: boolean }) {
         return (
           <li key={`${s.id}:${s.ref ?? ""}:${i}`} className="flex items-center gap-1">
             {i > 0 && <span aria-hidden className="h-px w-2 bg-line" />}
-            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] ${cls}`} title={s.detail ?? undefined}>
+            <span className={`inline-flex items-center gap-1.5 rounded-[2px] border px-2 py-0.5 text-[11px] ${cls}`} title={s.detail ?? undefined}>
               {mark}
               {label}
               {s.detail && !s.done && <span className="text-ink-400">· {s.detail}</span>}
@@ -228,7 +228,7 @@ function Steps({ t, canMark }: { t: AutopilotTaskView; canMark: boolean }) {
                 <form action={markAutopilotStepAction} className="contents">
                   <input type="hidden" name="id" value={t.id} />
                   <input type="hidden" name="step" value={i} />
-                  <button className="ml-0.5 rounded-full px-1.5 text-[10px] font-medium text-ink-100 hover:bg-ink-100/10" title="Mark this step done">Done</button>
+                  <button className="ml-0.5 rounded-[2px] px-1.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-100 hover:bg-ink-100/10" title="Mark this step done">Done</button>
                 </form>
               )}
             </span>

@@ -21,7 +21,7 @@ const STATUS_ORDER: Record<string, number> = { accepted: 0, done: 1, verified: 2
 
 function statusOf(r: SavedSoFar["rows"][number], notConfirmed: Set<string>) {
   if (r.status === "accepted") return { label: "To do", cls: "text-ink-100 bg-ink-100/10" };
-  if (r.status === "done") return notConfirmed.has(r.id) ? { label: "Not confirmed yet", cls: "text-signal bg-signal/10" } : { label: "Checking bills", cls: "text-ink-400 bg-ink-100/[0.06]" };
+  if (r.status === "done") return notConfirmed.has(r.id) ? { label: "Not confirmed yet", cls: "text-accent bg-accent/10" } : { label: "Checking bills", cls: "text-ink-400 bg-ink-100/[0.06]" };
   if (r.status === "verified") return { label: "Confirmed", cls: "text-steady bg-steady/10" };
   return { label: "Didn't work", cls: "text-alarm bg-alarm/10" };
 }
@@ -38,14 +38,14 @@ export function Progress({ saved, org, extra }: { saved: SavedSoFar; canSave?: n
         <section className="rounded-xl border border-line bg-panel flex flex-col animate-rise">
           <div className="flex items-baseline justify-between gap-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head">
             <h2 className="text-sm font-bold text-ink-100">90-day guarantee</h2>
-            <span className="text-xs text-ink-400">{day <= 90 ? `Day ${day} of 90` : "Done"}</span>
+            <span className="eyebrow">{day <= 90 ? `Day ${day} of 90` : "Done"}</span>
           </div>
           <div className="p-5 flex flex-col gap-3">
-          <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-ink-100/[0.06]">
-            <span className={`h-full ${pct >= 100 ? "bg-steady" : "bg-ink-100/40"}`} style={{ width: `${pct}%` }} />
+          <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-ink-100/[0.08]">
+            <span className={`h-full rounded-full animate-grow ${pct >= 100 ? "bg-steady" : "bg-ink-100/70"}`} style={{ width: `${pct}%` }} />
           </div>
           <p className="text-sm text-ink-400 tabular" title={GUARANTEE}>
-            <span className="text-ink-100 font-medium">{fmtEur(saved.savedMonthly)}/mo</span> of {fmtEur(price)}/mo
+            <span className="text-2xl font-light tracking-[-0.03em] text-ink-100">{fmtEur(saved.savedMonthly)}<span className="text-xs tracking-normal text-ink-400">/mo</span></span> of {fmtEur(price)}/mo
             {pct >= 100 ? " · paid for itself" : ""}
           </p>
           </div>
@@ -62,7 +62,7 @@ export function Progress({ saved, org, extra }: { saved: SavedSoFar; canSave?: n
             <tr key={r.id}>
               <td className={`${td} text-ink-100`}>
                 {r.assetId ? <Link href={`/assets/${r.assetId}`} className="hover:underline">{r.title}</Link> : r.title}
-                <span className="block text-xs text-ink-400">{LEDGER_KIND_LABEL[r.kind as LedgerKind] ?? r.kind} · {r.createdBy}</span>
+                <span className="block eyebrow mt-0.5">{LEDGER_KIND_LABEL[r.kind as LedgerKind] ?? r.kind} · {r.createdBy}</span>
               </td>
               <td className={td}>
                 <span className={`text-[10px] rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] whitespace-nowrap ${st.cls}`} title={st.label === "Not confirmed yet" ? `No lower charge ${VERIFY_AFTER_DAYS} days after it was done — check the provider's billing.` : undefined}>
@@ -117,15 +117,15 @@ export function Contracts({ rows }: { rows: Awaited<ReturnType<typeof contractRo
                 <VendorBadge vendor={r.vendor ?? ""} name={r.name} size={24} />
                 {r.name}
               </Link>
-              {(r.poNumber || r.costCenter) && <span className="block text-xs text-ink-400">{[r.poNumber && `PO ${r.poNumber}`, r.costCenter].filter(Boolean).join(" · ")}</span>}
+              {(r.poNumber || r.costCenter) && <span className="block eyebrow mt-0.5">{[r.poNumber && `PO ${r.poNumber}`, r.costCenter].filter(Boolean).join(" · ")}</span>}
             </td>
             <td className={`${td} text-ink-400`}>{r.owner ?? "—"}</td>
             <td className={`${td} text-ink-400`}>{r.autoRenew == null ? "—" : r.autoRenew ? "Yes" : "No"}</td>
             <td className={`${td} tabular whitespace-nowrap`} title={r.termEnd ? `Term ends ${fmtDate(r.termEnd)}` : undefined}>
               {r.deadline ? (
-                <span className={r.daysLeft! < 0 ? "text-ink-400" : r.daysLeft! <= NOTICE_ALERT_DAYS ? "text-signal font-medium" : "text-ink-100"}>
+                <span className={r.daysLeft! < 0 ? "text-ink-400" : r.daysLeft! <= NOTICE_ALERT_DAYS ? "text-accent" : "text-ink-100"}>
                   {fmtDate(r.deadline)}
-                  <span className="text-xs text-ink-400"> · {r.daysLeft! < 0 ? "passed" : r.daysLeft === 0 ? "today" : `${r.daysLeft} days`}</span>
+                  <span className="font-mono text-[11px] uppercase text-ink-400"> · {r.daysLeft! < 0 ? "passed" : r.daysLeft === 0 ? "today" : `${r.daysLeft} days`}</span>
                 </span>
               ) : (
                 <span className="text-ink-400">—</span>
@@ -168,10 +168,10 @@ export function Subscriptions({ rows }: { rows: SubscriptionRow[] }) {
               {r.monthly ? (
                 <>
                   <span className="text-ink-100">{fmtMoney(Math.round(r.monthly.amount * 100) / 100, r.monthly.currency)} a month</span>
-                  <span className="block text-xs text-ink-400">{BASIS_LABEL[r.monthly.basis]}</span>
+                  <span className="block eyebrow mt-0.5">{BASIS_LABEL[r.monthly.basis]}</span>
                 </>
               ) : (
-                <span className="text-ink-400">UNKNOWN</span>
+                <span className="font-mono text-[11px] tracking-[0.05em] text-ink-400">UNKNOWN</span>
               )}
             </td>
           </tr>
@@ -188,15 +188,15 @@ export function ComingRenewals({ rows }: { rows: { assetId: string; name: string
   if (!soon.length) return null;
   return (
     <details className="rounded-xl border border-line bg-panel overflow-hidden group" open>
-      <summary className="cursor-pointer list-none bg-ink px-5 py-3 text-sm font-semibold text-ink-100 flex items-center justify-between select-none group-open:border-b group-open:border-line bar-head">
-        Coming renewals · {soon.length}
+      <summary className="cursor-pointer list-none bg-ink px-5 py-3 text-sm font-bold text-ink-100 flex items-center justify-between select-none group-open:border-b group-open:border-line bar-head">
+        <span>Coming renewals <span className="font-mono text-[11px] font-normal text-ink-400 ml-1">{soon.length}</span></span>
         <span className="text-ink-400 transition-transform group-open:rotate-90">›</span>
       </summary>
       <div className="divide-y divide-line">
         {soon.map((r) => (
           <Link key={r.assetId + r.date.toISOString()} href={`/assets/${r.assetId}`} className="flex items-center gap-4 px-5 py-3 hover:bg-ink-100/[0.02] transition-colors">
-            <span className="w-24 text-sm text-ink-400 tabular">{fmtDate(r.date)}</span>
-            <span className="flex-1 text-sm text-ink-100">{r.name} <span className="text-ink-400">· {r.annual ? "yearly" : "monthly"}</span></span>
+            <span className="w-24 font-mono text-[11px] uppercase text-ink-400 tabular">{fmtDate(r.date)}</span>
+            <span className="flex-1 text-sm text-ink-100">{r.name} <span className="eyebrow ml-1">{r.annual ? "yearly" : "monthly"}</span></span>
             <span className="text-sm tabular text-ink-100">{fmtEur(r.amountEur)}</span>
           </Link>
         ))}

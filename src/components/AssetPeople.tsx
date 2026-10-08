@@ -56,9 +56,9 @@ export default async function AssetPeople({
     return (
       <>
         {inactive.length > 0 && (
-          <div className="rounded-xl border border-line bg-panel px-5 py-4 flex items-center gap-4">
+          <div className="rounded-xl border border-line bg-panel tile-warn px-5 py-4 flex items-center gap-4">
             <div className="flex-1">
-              <div className="text-sm font-medium text-ink-100">{inactive.length} {inactive.length === 1 ? "person hasn't" : "people haven't"} used {asset.name} in 30 days</div>
+              <div className="text-sm font-bold text-ink-100">{inactive.length} {inactive.length === 1 ? "person hasn't" : "people haven't"} used {asset.name} in 30 days</div>
               <div className="text-sm text-ink-400">Ask if they still need it.</div>
             </div>
             <a
@@ -104,13 +104,13 @@ export default async function AssetPeople({
               <tr key={u.id}>
                 <td className={`${td} text-ink-100`}>
                   {u.user?.name ?? displayableRef(u.user?.email) ?? displayableRef(u.externalUserRef) ?? (u.user?.email || u.externalUserRef ? "Anonymous person" : "Unknown")}
-                  {u.user?.name && <span className="block text-xs text-ink-400">{u.user.email}</span>}
+                  {u.user?.name && <span className="block font-mono text-[11px] text-ink-400">{u.user.email}</span>}
                 </td>
                 <td className={`${td} text-ink-400`}>{u.user?.department ?? "—"}</td>
                 <td className={`${td} text-ink-400 tabular`}>{u.lastSeenAt ? fmtDate(u.lastSeenAt) : "—"}</td>
                 <td className={`${td} text-right whitespace-nowrap`}>
                   {gone ? (
-                    <span className="text-xs text-ink-400">Seat removed {fmtDate(gone)}</span>
+                    <span className="eyebrow">Seat removed {fmtDate(gone)}</span>
                   ) : u.user?.email && isAdmin && support?.mode === "api" ? (
                     <SeatRemoveButton assetId={asset.id} email={u.user.email} />
                   ) : null}
@@ -158,9 +158,9 @@ export default async function AssetPeople({
 function Total({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="rounded-xl border border-line bg-panel p-4">
-      <div className="text-sm text-ink-400">{label}</div>
-      <div className="font-display text-2xl font-light tabular text-ink-100 mt-1">{value}</div>
-      {hint && <div className="text-xs text-ink-400 mt-1">{hint}</div>}
+      <div className="eyebrow">{label}</div>
+      <div className="font-display text-[28px] leading-none font-light tracking-[-0.03em] tabular text-ink-100 mt-3">{value}</div>
+      {hint && <div className="text-xs text-ink-400 mt-2">{hint}</div>}
     </div>
   );
 }

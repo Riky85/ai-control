@@ -139,8 +139,8 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                 <td className={`${td} text-ink-400`}>{planById(c.plan as Parameters<typeof planById>[0]).displayName}</td>
                 <td className={`${td} text-right tabular text-ink-100`}>{c.aiCount}</td>
                 <td className={`${td} text-right tabular text-ink-100`}>{c.monthlySpend ? `${fmtEur(c.monthlySpend)}/mo` : "—"}</td>
-                <td className={`${td} text-right tabular ${c.canSave ? "text-steady font-medium" : "text-ink-400"}`}>{c.canSave ? `${fmtEur(c.canSave)}/mo` : "—"}</td>
-                <td className={`${td} text-right tabular ${c.toReview ? "text-signal" : "text-ink-400"}`}>{c.toReview}</td>
+                <td className={`${td} text-right tabular ${c.canSave ? "text-steady" : "text-ink-400"}`}>{c.canSave ? `${fmtEur(c.canSave)}/mo` : "—"}</td>
+                <td className={`${td} text-right tabular ${c.toReview ? "text-accent" : "text-ink-400"}`}>{c.toReview}</td>
                 <td className={`${td} text-right tabular text-ink-100`}>
                   <span className="inline-flex items-center gap-1.5">
                     {c.computersOnline > 0 && <span className="h-2 w-2 rounded-full bg-steady" />}
@@ -197,9 +197,9 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
           <section className="rounded-xl border border-line bg-panel p-4 flex flex-col gap-3">
             <div className="-mx-4 -mt-4 flex flex-wrap items-baseline justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3 bar-head">
               <h2 className="text-sm font-bold text-ink-100">
-                Partner economics <span className="font-normal text-ink-400">· estimate</span>
+                Partner economics <span className="eyebrow ml-1">Estimate</span>
               </h2>
-              <span className="text-xs text-ink-400">
+              <span className="eyebrow">
                 List prices minus your {EDGE.partnerDiscountPct}% partner discount · Edge software free on {planById(EDGE.softwareFromPlan).displayName}+
               </span>
             </div>
@@ -224,7 +224,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                         {r.edgeDevices > 0 && ` + ${r.edgeDevices} device${r.edgeDevices > 1 ? "s" : ""}`}
                       </span>
                       <span className="w-20 text-right tabular text-ink-400">{fmtEur(r.list)}</span>
-                      <span className="w-20 text-right tabular text-steady font-medium">+{fmtEur(r.margin)}</span>
+                      <span className="w-20 text-right tabular text-steady">+{fmtEur(r.margin)}</span>
                     </div>
                   ))}
                 </div>
@@ -248,7 +248,7 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
               <td className={`${td} text-ink-100`}>{f.clientName}</td>
               <td className={`${td} font-medium text-ink-100`}>
                 {f.name}
-                {f.blockEnabled && <span className="ml-2 text-[11px] text-ink-400">blocking</span>}
+                {f.blockEnabled && <span className="ml-2 rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-400">Blocking</span>}
               </td>
               <td className={`${td} text-ink-400`}>
                 {KIND_LABEL[f.kind] ?? f.kind}
@@ -261,8 +261,8 @@ export default async function PartnerPage({ searchParams }: { searchParams: { er
                 ) : null}
               </td>
               <td className={td}>
-                <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${f.online ? "text-steady" : "text-alarm"}`}>
-                  <span className={`h-2 w-2 rounded-full ${f.online ? "bg-steady" : "bg-alarm"}`} />
+                <span className={`inline-flex items-center gap-1.5 font-mono uppercase text-[11px] tracking-[0.04em] ${f.online ? "text-steady" : "text-alarm"}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${f.online ? "bg-steady" : "bg-alarm"}`} />
                   {f.online ? "Online" : f.lastSeenAt ? "Offline" : "Never connected"}
                 </span>
               </td>
@@ -298,8 +298,8 @@ const KIND_LABEL: Record<string, string> = {
 function Figure({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }) {
   return (
     <div>
-      <div className="text-xs text-ink-400">{label}</div>
-      <div className={`text-lg font-semibold tabular ${accent ? "text-steady" : "text-ink-100"}`}>{value}</div>
+      <div className="eyebrow">{label}</div>
+      <div className={`text-[22px] leading-tight font-light tracking-[-0.03em] tabular mt-1 ${accent ? "text-steady" : "text-ink-100"}`}>{value}</div>
       {hint && <div className="text-xs text-ink-400">{hint}</div>}
     </div>
   );

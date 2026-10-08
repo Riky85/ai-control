@@ -205,7 +205,7 @@ export default function SubscriptionForm({
     <form onSubmit={save} className="flex flex-col gap-4">
       {/* Prodotto e piano */}
       <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
-        <h2 className="text-sm font-bold text-ink-100">Product and plan</h2>
+        <h2 className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head text-sm font-bold text-ink-100">Product and plan</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Label text="Product">
             <select value={productId} onChange={(e) => pickProduct(e.target.value)} className="field w-full" required>
@@ -245,7 +245,7 @@ export default function SubscriptionForm({
 
       {/* Righe di posti */}
       <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-bold text-ink-100">Seats</h2>
           <span className="text-xs text-ink-400">
             Leave active seats empty to use what angar sees{observedActive != null ? ` (${observedActive} active in the last 30 days)` : ""}.
@@ -372,23 +372,23 @@ export default function SubscriptionForm({
         {/* Riepilogo: listino, contratto, sconto (al mese, nella valuta scelta). */}
         <dl className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-line text-sm">
           <div>
-            <dt className="text-xs text-ink-400">List price</dt>
-            <dd className="text-ink-100 tabular mt-0.5">{summary.listMonthly != null ? `${money(summary.listMonthly, currency)} a month` : "UNKNOWN"}</dd>
+            <dt className="eyebrow">List price</dt>
+            <dd className="text-[20px] leading-tight font-light tracking-[-0.03em] text-ink-100 tabular mt-1">{summary.listMonthly != null ? `${money(summary.listMonthly, currency)} a month` : "UNKNOWN"}</dd>
           </div>
           <div>
-            <dt className="text-xs text-ink-400">Contract price</dt>
-            <dd className="text-ink-100 tabular mt-0.5">{summary.contractMonthly != null ? `${money(summary.contractMonthly, currency)} a month` : priceMode === "none" ? "Not known" : "UNKNOWN"}</dd>
+            <dt className="eyebrow">Contract price</dt>
+            <dd className="text-[20px] leading-tight font-light tracking-[-0.03em] text-ink-100 tabular mt-1">{summary.contractMonthly != null ? `${money(summary.contractMonthly, currency)} a month` : priceMode === "none" ? "Not known" : "UNKNOWN"}</dd>
           </div>
           <div>
-            <dt className="text-xs text-ink-400">Discount</dt>
-            <dd className="text-ink-100 tabular mt-0.5">{summary.contractMonthly != null ? (summary.discount != null ? discountText(summary.discount) : "UNKNOWN") : "—"}</dd>
+            <dt className="eyebrow">Discount</dt>
+            <dd className="text-[20px] leading-tight font-light tracking-[-0.03em] text-ink-100 tabular mt-1">{summary.contractMonthly != null ? (summary.discount != null ? discountText(summary.discount) : "UNKNOWN") : "—"}</dd>
           </div>
         </dl>
       </section>
 
       {/* Contratto e fatturato */}
       <section className="rounded-xl border border-line bg-panel p-5 flex flex-col gap-4">
-        <h2 className="text-sm font-bold text-ink-100">Contract and billing</h2>
+        <h2 className="-mx-5 -mt-5 bg-ink border-b border-line rounded-t-xl px-5 py-3 bar-head text-sm font-bold text-ink-100">Contract and billing</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Label text="Contract start">
             <input type="date" value={contractStart} onChange={(e) => setContractStart(e.target.value)} className="field w-full" />

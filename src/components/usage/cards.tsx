@@ -38,11 +38,11 @@ export interface UsageSummaryData {
 
 /** Una sola riga di numeri: persone attive, AI in uso, posti usati/pagati, posti non usati in €. */
 export function UsageSummary({ d }: { d: UsageSummaryData }) {
-  // Stessa grafica di StatCard: etichetta in grassetto, numero grande, nota breve.
+  // Stessa grafica di StatCard: etichetta mono maiuscola, numero grande e sottile, nota breve.
   const cell = "rounded-xl border border-line bg-panel p-5 min-h-[112px] flex flex-col justify-between gap-3 min-w-0";
   const link = `${cell} hover:border-ink-400 transition-colors`;
-  const big = "font-display text-[26px] leading-none font-semibold tracking-tight tabular";
-  const lab = "text-sm font-semibold text-ink-100";
+  const big = "font-display text-[30px] leading-none font-light tracking-[-0.03em] tabular";
+  const lab = "eyebrow";
   return (
     <section className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-rise" aria-label="Usage summary">
       <Link href={d.peopleHref} className={link}>
@@ -56,13 +56,13 @@ export function UsageSummary({ d }: { d: UsageSummaryData }) {
       <Link href={d.seatsHref} className={link}>
         <span className={`flex items-center justify-between gap-2 ${lab}`}>
           Seats used
-          {d.seatsPaid ? <span className="tabular text-xs font-normal text-ink-400">{pct(d.seatsUsed ?? 0, d.seatsPaid)}%</span> : null}
+          {d.seatsPaid ? <span className="tabular">{pct(d.seatsUsed ?? 0, d.seatsPaid)}%</span> : null}
         </span>
         <span className={`${big} text-ink-100`}>
           {d.seatsPaid ? (
             <>
               {d.seatsUsed}
-              <span className="text-sm font-normal text-ink-400"> / {d.seatsPaid}</span>
+              <span className="text-sm tracking-normal text-ink-400"> / {d.seatsPaid}</span>
             </>
           ) : (
             "—"
@@ -70,12 +70,11 @@ export function UsageSummary({ d }: { d: UsageSummaryData }) {
         </span>
         {d.seatsPaid ? <SeatTrack used={d.seatsUsed ?? 0} paid={d.seatsPaid} /> : null}
       </Link>
-      <Link href="/opportunities?cat=SAVE" className={link}>
-        <span className={`flex items-center gap-2 ${lab}`}>
-          {d.unusedSeats > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-signal" aria-hidden />}
+      <Link href="/opportunities?cat=SAVE" className={`${link} ${d.unusedSeats > 0 ? "tile-warn" : ""}`}>
+        <span className={`flex items-center gap-2 ${lab} ${d.unusedSeats > 0 ? "!text-accent" : ""}`}>
           Unused seats
         </span>
-        <span className={`${big} text-ink-100`}>{d.unusedEur >= 1 ? eur(d.unusedEur) : d.unusedSeats || "—"}</span>
+        <span className={`${big} ${d.unusedSeats > 0 ? "text-accent" : "text-ink-100"}`}>{d.unusedEur >= 1 ? eur(d.unusedEur) : d.unusedSeats || "—"}</span>
         <span className="text-xs text-ink-400 truncate tabular">{d.unusedEur >= 1 ? `a month · ${d.unusedSeats} seats` : d.unusedSeats ? "No seat price" : "All used"}</span>
       </Link>
     </section>
@@ -114,22 +113,22 @@ export function ByAiList({ rows }: { rows: AiUsageRow[] }) {
                 <Link href={`/assets/${r.id}?tab=people`} className="flex items-center gap-3 min-w-0 group">
                   <VendorBadge vendor={r.vendor ?? ""} name={r.name} size={30} />
                   <span className="min-w-0">
-                    <span className="block text-sm font-medium text-ink-100 truncate group-hover:underline">{r.name}</span>
-                    <span className="block text-xs text-ink-400 tabular truncate">
-                      <b className="font-medium text-ink-100">{r.people}</b> {r.people === "1" ? "person" : "people"}
+                    <span className="block text-sm text-ink-100 truncate group-hover:underline">{r.name}</span>
+                    <span className="block eyebrow tabular truncate mt-0.5">
+                      <b className="font-normal text-ink-100">{r.people}</b> {r.people === "1" ? "person" : "people"}
                     </span>
                   </span>
                 </Link>
                 <div className="hidden sm:block min-w-0">
                   {r.seats && r.measured && used != null ? (
                     <>
-                      <div className="text-xs text-ink-400 tabular mb-0.5">
-                        <b className="font-medium text-ink-100">{used}</b> / {r.seats} seats
+                      <div className="eyebrow tabular mb-0.5">
+                        <b className="font-normal text-ink-100">{used}</b> / {r.seats} seats
                       </div>
                       <SeatTrack used={used} paid={r.seats} />
                     </>
                   ) : (
-                    <div className="text-xs text-ink-400">{r.seats ? `${r.seats} seats` : "—"}</div>
+                    <div className="eyebrow">{r.seats ? `${r.seats} seats` : "—"}</div>
                   )}
                 </div>
                 <div className="flex items-center sm:justify-end gap-2 empty:hidden">
@@ -173,8 +172,8 @@ export function RankList({ id, title, meta, rows, href, cta, empty }: { id: stri
       title={title}
       meta={meta}
       action={
-        <Link href={href} className="text-sm text-ink-400 hover:text-ink-100">
-          {cta} →
+        <Link href={href} className="eyebrow hover:!text-ink-100 transition-colors">
+          {cta} [→]
         </Link>
       }
     >
@@ -186,16 +185,16 @@ export function RankList({ id, title, meta, rows, href, cta, empty }: { id: stri
             <li key={r.key} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_minmax(0,16rem)_8rem] items-center gap-x-5 gap-y-1 px-5 py-2.5">
               <div className="min-w-0">
                 <div className="text-sm text-ink-100 truncate">{r.label}</div>
-                {r.sub && <div className="text-xs text-ink-400 truncate">{r.sub}</div>}
+                {r.sub && <div className="eyebrow truncate mt-0.5">{r.sub}</div>}
               </div>
               <div className="hidden sm:flex items-center gap-3 min-w-0" title={r.barLabel}>
                 <div className="relative h-3 flex-1" aria-hidden>
-                  <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line" />
-                  <div className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-ink-100/20" style={{ width: `${Math.max(2, Math.min(100, (r.bar / Math.max(1, r.barMax)) * 100))}%` }} />
+                  <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-ink-100/[0.08]" />
+                  <div className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-ink-100/70" style={{ width: `${Math.max(2, Math.min(100, (r.bar / Math.max(1, r.barMax)) * 100))}%` }} />
                 </div>
-                <span className="text-xs text-ink-400 tabular shrink-0 w-20 text-right whitespace-nowrap">{r.barLabel}</span>
+                <span className="font-mono text-[11px] text-ink-400 tabular shrink-0 w-20 text-right whitespace-nowrap">{r.barLabel}</span>
               </div>
-              <span className="text-xs text-ink-400 tabular text-right">{r.right}</span>
+              <span className="font-mono text-[11px] text-ink-400 tabular text-right">{r.right}</span>
             </li>
           ))}
         </ul>

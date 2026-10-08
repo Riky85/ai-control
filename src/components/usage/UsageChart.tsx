@@ -34,18 +34,18 @@ export default function UsageChart({ values, labels, unit = "visits", weekChange
       <div className="flex flex-wrap items-end justify-between gap-4 px-5 pt-4">
         <div>
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-[26px] leading-none font-light tracking-[-0.03em] tabular text-ink-100">{fmtN(total)}</span>
-            <span className="text-sm text-ink-400">{unit}</span>
+            <span className="font-display text-[30px] leading-none font-light tracking-[-0.03em] tabular text-ink-100">{fmtN(total)}</span>
+            <span className="eyebrow">{unit}</span>
           </div>
         </div>
         {weekChange != null && (
           <div className="sm:text-right">
-            <div className={`font-display text-lg font-semibold tabular leading-none ${weekChange === 0 ? "text-ink-100" : up ? "text-steady" : "text-signal"}`}>
+            <div className={`font-display text-xl font-light tracking-[-0.03em] tabular leading-none ${weekChange === 0 ? "text-ink-100" : up ? "text-steady" : "text-accent"}`}>
               <span aria-hidden>{weekChange === 0 ? "" : up ? "▲ " : "▼ "}</span>
               {weekChange > 0 ? "+" : ""}
               {weekChange}%
             </div>
-            <div className="text-xs text-ink-400 mt-1">vs last week</div>
+            <div className="eyebrow mt-1.5">vs last week</div>
           </div>
         )}
       </div>
@@ -59,24 +59,24 @@ export default function UsageChart({ values, labels, unit = "visits", weekChange
           {n > 0 && values[peak] > 0 && peak !== n - 1 && (
             <>
               <circle cx={x(peak)} cy={y(values[peak])} r={2.5} fill="currentColor" />
-              <text x={x(peak)} y={y(values[peak]) - 7} textAnchor={peak < 3 ? "start" : peak > n - 4 ? "end" : "middle"} className="fill-ink-400 text-[11px] tabular">
+              <text x={x(peak)} y={y(values[peak]) - 7} textAnchor={peak < 3 ? "start" : peak > n - 4 ? "end" : "middle"} className="fill-ink-400 font-mono text-[10px] tabular">
                 {fmtN(values[peak])}
               </text>
             </>
           )}
           {n > 0 && <circle cx={x(n - 1)} cy={y(values[n - 1])} r={4} fill="currentColor" className="stroke-panel" strokeWidth={2} />}
           {n > 0 && (
-            <text x={x(0)} y={H - 6} className="fill-ink-400 text-[11px]">
+            <text x={x(0)} y={H - 6} className="fill-ink-400 font-mono text-[10px] uppercase">
               {labels[0]}
             </text>
           )}
           {n > 2 && (
-            <text x={x(Math.floor((n - 1) / 2))} y={H - 6} textAnchor="middle" className="fill-ink-400 text-[11px]">
+            <text x={x(Math.floor((n - 1) / 2))} y={H - 6} textAnchor="middle" className="fill-ink-400 font-mono text-[10px] uppercase">
               {labels[Math.floor((n - 1) / 2)]}
             </text>
           )}
           {n > 1 && (
-            <text x={x(n - 1)} y={H - 6} textAnchor="end" className="fill-ink-100 text-[11px] font-medium">
+            <text x={x(n - 1)} y={H - 6} textAnchor="end" className="fill-ink-100 font-mono text-[10px] uppercase">
               Today
             </text>
           )}
@@ -86,7 +86,7 @@ export default function UsageChart({ values, labels, unit = "visits", weekChange
             </rect>
           ))}
         </svg>
-        <figcaption className="flex items-center gap-4 text-[11px] text-ink-400 mt-1">
+        <figcaption className="flex items-center gap-4 eyebrow mt-2">
           <span className="flex items-center gap-1.5" aria-hidden>
             <svg width="16" height="4" className="text-ink-100">
               <path d="M0 2h16" stroke="currentColor" strokeWidth="2" />

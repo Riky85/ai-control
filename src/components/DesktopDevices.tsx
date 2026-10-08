@@ -30,17 +30,17 @@ export default async function DesktopDevices({ organizationId, compact = false }
             <h2 className="text-sm font-bold text-ink-100">Connected computers</h2>
             <p className="text-xs text-ink-400">Totals only — names of people and computers are hidden by the employee privacy mode.</p>
           </div>
-          <span className={`shrink-0 text-sm font-medium rounded-full px-2.5 py-1 tabular ${online > 0 ? "text-steady bg-steady/10" : "text-ink-400 bg-ink-400/10"}`}>
+          <span className={`shrink-0 inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] tabular ${online > 0 ? "text-steady bg-steady/10" : "text-ink-400 bg-ink-400/10"}`}>
             {online} of {devices.length} connected
           </span>
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
           <div>
-            <dt className="text-xs text-ink-400 mb-1">Operating system</dt>
+            <dt className="eyebrow mb-2">Operating system</dt>
             {os.map(([k, n]) => <dd key={k} className="flex justify-between text-ink-100"><span>{k}</span><span className="tabular text-ink-400">{n}</span></dd>)}
           </div>
           <div>
-            <dt className="text-xs text-ink-400 mb-1">App version</dt>
+            <dt className="eyebrow mb-2">App version</dt>
             {versions.map(([k, n]) => <dd key={k} className="flex justify-between text-ink-100"><span>{k}</span><span className="tabular text-ink-400">{n}</span></dd>)}
           </div>
         </dl>
@@ -56,12 +56,12 @@ export default async function DesktopDevices({ organizationId, compact = false }
           <p className="text-xs text-ink-400">People sending AI usage to angar right now.</p>
         </div>
         {online > 0 ? (
-          <span className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-steady bg-steady/10 rounded-full px-2.5 py-1">
-            <span className="h-2 w-2 rounded-full bg-steady animate-pulse" />
+          <span className="shrink-0 inline-flex items-center gap-1.5 rounded-[2px] px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-steady bg-steady/10">
+            <span className="h-1.5 w-1.5 rounded-full bg-steady animate-pulse" />
             {online} connected
           </span>
         ) : (
-          <span className="shrink-0 text-sm tabular text-ink-400">{devices.length} installed · waiting</span>
+          <span className="shrink-0 eyebrow tabular">{devices.length} installed · waiting</span>
         )}
       </div>
       <div className="divide-y divide-line">
@@ -72,19 +72,19 @@ export default async function DesktopDevices({ organizationId, compact = false }
               <span className="flex items-center gap-2 min-w-0">
                 <span className="text-sm text-ink-100 truncate">{displayableRef(d.email) ?? d.host}</span>
                 {d.legacy && (
-                  <span className="shrink-0 text-[11px] font-medium rounded-full px-1.5 py-px text-ink-400 bg-ink-400/10" title="Set up with the old company-wide token, which isn't tied to one person. Reinstall from the company link to give this computer its own token.">
+                  <span className="shrink-0 font-mono uppercase text-[10px] tracking-[0.05em] rounded-[2px] px-1.5 py-px text-ink-400 border border-line" title="Set up with the old company-wide token, which isn't tied to one person. Reinstall from the company link to give this computer its own token.">
                     legacy
                   </span>
                 )}
               </span>
-              <span className="block text-xs text-ink-400 truncate">
+              <span className="block font-mono text-[11px] text-ink-400 truncate">
                 {d.host}
                 {d.os && OS_LABEL[d.os] ? ` · ${OS_LABEL[d.os]}` : ""}
                 {d.appVersion ? ` · v${d.appVersion}` : ""}
               </span>
             </div>
-            <span className="text-sm tabular text-ink-400 shrink-0 w-24 text-right">{d.aiCount} {d.aiCount === 1 ? "AI" : "AI"}</span>
-            <span className={`text-sm tabular shrink-0 w-28 text-right ${d.online ? "text-steady" : "text-ink-400"}`}>{fmtAgo(d.lastSeenAt)}</span>
+            <span className="font-mono text-[11px] uppercase tabular text-ink-400 shrink-0 w-24 text-right">{d.aiCount} {d.aiCount === 1 ? "AI" : "AI"}</span>
+            <span className={`font-mono text-[11px] tabular shrink-0 w-28 text-right ${d.online ? "text-steady" : "text-ink-400"}`}>{fmtAgo(d.lastSeenAt)}</span>
           </div>
         ))}
       </div>

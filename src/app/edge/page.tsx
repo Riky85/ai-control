@@ -44,13 +44,13 @@ export default function EdgePage() {
           <p className="text-sm text-ink-400">Only AI service names, counts and upload sizes. Never URLs, prompts, messages or files.</p>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-ink-400">
             <span>
-              <span className="text-ink-100 font-medium">10 min</span> to install
+              <span className="text-[17px] font-light tracking-[-0.03em] tabular text-ink-100">10 min</span> to install
             </span>
             <span>
-              <span className="text-ink-100 font-medium">0</span> installs on computers
+              <span className="text-[17px] font-light tracking-[-0.03em] tabular text-ink-100">0</span> installs on computers
             </span>
             <span>
-              <span className="text-ink-100 font-medium">Included</span> from {fromPlan}
+              <span className="text-[17px] font-light tracking-[-0.03em] text-ink-100">Included</span> from {fromPlan}
             </span>
           </div>
           <div className="flex items-center gap-3 pt-1">
@@ -91,11 +91,11 @@ export default function EdgePage() {
         ].map((x) => (
           <div key={x.t} className="rounded-xl border border-line bg-panel flex flex-col">
             <div className="flex items-center justify-between gap-2 bg-ink border-b border-line rounded-t-xl px-4 py-3 bar-head">
-              <span className="text-sm font-semibold text-ink-100">{x.t}</span>
+              <span className="text-sm font-bold text-ink-100">{x.t}</span>
               <span className="text-[10px] text-ink-400 border border-line rounded-[2px] px-1.5 py-0.5 font-mono uppercase tracking-[0.05em] whitespace-nowrap">{x.tag}</span>
             </div>
             <p className="flex-1 px-4 py-3 text-sm text-ink-400">{x.d}</p>
-            <p className="bg-ink border-t border-line rounded-b-xl px-4 py-2.5 text-xs text-ink-400 bar-foot">{x.foot}</p>
+            <p className="bg-ink border-t border-line rounded-b-xl px-4 py-2.5 eyebrow bar-foot">{x.foot}</p>
           </div>
         ))}
       </section>
@@ -216,7 +216,7 @@ export default function EdgePage() {
 function Row({ k, a, b }: { k: string; a: string; b: string }) {
   return (
     <>
-      <div className="px-3 py-1.5 border-b border-line text-ink-400">{k}</div>
+      <div className="px-3 py-1.5 border-b border-line eyebrow">{k}</div>
       <div className="px-3 py-1.5 border-b border-line text-ink-100 text-[13px]">{a}</div>
       <div className="px-3 py-1.5 border-b border-line text-ink-100 text-[13px]">{b}</div>
     </>

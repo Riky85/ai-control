@@ -2,7 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { vendorRiskFor, vendorFlags, RESIDENCY_LABEL, TRAINING_LABEL, type Residency, type Training } from "@/lib/vendor-risk";
 
-const tone = (v: Residency | Training, good: string[]) => (good.includes(v) ? "text-steady" : v === "unknown" ? "text-ink-400" : v === "enterprise" || v === "choice" ? "text-signal" : "text-alarm");
+const tone = (v: Residency | Training, good: string[]) => (good.includes(v) ? "text-steady" : v === "unknown" ? "text-ink-400" : v === "enterprise" || v === "choice" ? "text-accent" : "text-alarm");
 
 /** Scheda compatta "Vendor risk" per il passaporto di un'AI. */
 export default function VendorRiskCard({ asset }: { asset: { vendor: string | null; serviceId: string | null; type?: string; dataAccess?: { dataAsset: { sensitivity: string } }[]; cost?: { planId: string | null } | null } }) {
@@ -11,7 +11,7 @@ export default function VendorRiskCard({ asset }: { asset: { vendor: string | nu
   const flags = vendorFlags(r, { type: asset.type, dataSensitivities: asset.dataAccess?.map((d) => d.dataAsset.sensitivity), paidPlan: !!asset.cost?.planId });
   const row = (label: string, value: React.ReactNode, cls = "text-ink-100") => (
     <div className="flex items-start justify-between gap-3 py-1.5">
-      <dt className="text-ink-400 shrink-0">{label}</dt>
+      <dt className="eyebrow shrink-0 pt-0.5">{label}</dt>
       <dd className={`text-right ${cls}`}>{value}</dd>
     </div>
   );
@@ -29,7 +29,7 @@ export default function VendorRiskCard({ asset }: { asset: { vendor: string | nu
       {flags.length > 0 && (
         <ul className="mb-3 flex flex-col gap-1.5">
           {flags.map((f) => (
-            <li key={f.kind} className="text-xs rounded-md bg-alarm/10 text-alarm px-2.5 py-1.5">{f.label}</li>
+            <li key={f.kind} className="text-xs rounded-[2px] border border-alarm/30 bg-alarm/[0.07] text-alarm px-2.5 py-1.5">{f.label}</li>
           ))}
         </ul>
       )}
@@ -38,9 +38,9 @@ export default function VendorRiskCard({ asset }: { asset: { vendor: string | nu
         {row("EU data residency", <span title={r.residencyNote}>{RESIDENCY_LABEL[r.euResidency]}</span>, tone(r.euResidency, ["yes"]))}
         {row("Trains on data — consumer plans", <span title={r.trainingNote}>{TRAINING_LABEL[r.trainsConsumer]}</span>, tone(r.trainsConsumer, ["no"]))}
         {row("Trains on data — business plans", <span title={r.trainingNote}>{TRAINING_LABEL[r.trainsBusiness]}</span>, tone(r.trainsBusiness, ["no"]))}
-        {row("DPA", r.dpaUrl ? <a href={r.dpaUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-accent">Available ↗</a> : r.verified ? "Not found" : "Check", r.dpaUrl ? "text-ink-100" : "text-ink-400")}
+        {row("DPA", r.dpaUrl ? <a href={r.dpaUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-ink-400">Available ↗</a> : r.verified ? "Not found" : "Check", r.dpaUrl ? "text-ink-100" : "text-ink-400")}
         {row("Certifications", r.certifications.length ? r.certifications.join(", ") : r.verified ? "None found" : "Check", r.certifications.length ? "text-ink-100" : "text-ink-400")}
-        {r.subprocessorsUrl && row("Sub-processors", <a href={r.subprocessorsUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-accent">List ↗</a>)}
+        {r.subprocessorsUrl && row("Sub-processors", <a href={r.subprocessorsUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-ink-400">List ↗</a>)}
       </dl>
       {(r.residencyNote || r.trainingNote) && <p className="text-xs text-ink-400 mt-3">{[r.residencyNote, r.trainingNote].filter(Boolean).join(" ")}</p>}
     </div>
@@ -66,7 +66,7 @@ export async function VendorRiskFlags({ orgId }: { orgId: string }) {
       <ul className="flex flex-col divide-y divide-line">
         {shown.map(({ a, flags }) => (
           <li key={a.id} className="py-2 flex items-start gap-3">
-            <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${flags.some((f) => f.kind === "personal_data_no_eu") ? "bg-alarm" : "bg-signal"}`} />
+            <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${flags.some((f) => f.kind === "personal_data_no_eu") ? "bg-alarm" : "bg-accent"}`} />
             <Link href={`/assets/${a.id}?tab=risk`} className="flex-1 min-w-0 hover:underline">
               <span className="text-sm text-ink-100">{a.name}</span>
               <span className="block text-xs text-ink-400">{flags.map((f) => f.label).join(" · ")}</span>
@@ -74,7 +74,7 @@ export async function VendorRiskFlags({ orgId }: { orgId: string }) {
           </li>
         ))}
       </ul>
-      {hits.length > shown.length && <p className="-mx-5 -mb-5 mt-2 bg-ink border-t border-line rounded-b-xl px-5 py-3 text-xs text-ink-400 bar-foot">+{hits.length - shown.length} more — see the Risk tab of each AI.</p>}
+      {hits.length > shown.length && <p className="-mx-5 -mb-5 mt-2 bg-ink border-t border-line rounded-b-xl px-5 py-3 eyebrow bar-foot">+{hits.length - shown.length} more — see the Risk tab of each AI.</p>}
     </div>
   );
 }

@@ -50,11 +50,11 @@ export default async function ClaimDevicePage({ searchParams }: { searchParams: 
           <input type="hidden" name="serial" value={device!.serial} />
           <div className="flex items-baseline justify-between gap-4">
             <div>
-              <div className="text-xs text-ink-400">Device</div>
+              <div className="eyebrow">Device</div>
               <div className="font-mono text-ink-100">{device!.serial}</div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-ink-400">Model</div>
+              <div className="eyebrow">Model</div>
               <div className="text-ink-100">{MODEL_LABEL[device!.model] ?? device!.model}</div>
             </div>
           </div>

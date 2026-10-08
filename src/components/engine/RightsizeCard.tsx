@@ -18,7 +18,7 @@ const eur = (n: number) => fmtEur(Math.round(n));
 const SEG: { key: Segment; label: string; bar: string; dot: string }[] = [
   { key: "heavy", label: "Heavy", bar: "bg-ink-100/60", dot: "bg-ink-100" },
   { key: "regular", label: "Regular", bar: "bg-ink-400/40", dot: "bg-ink-400" },
-  { key: "light", label: "Light", bar: "bg-signal/50", dot: "bg-signal" },
+  { key: "light", label: "Light", bar: "bg-accent/60", dot: "bg-accent" },
   { key: "inactive", label: "Inactive", bar: "bg-alarm/40", dot: "bg-alarm" },
 ];
 
@@ -42,7 +42,7 @@ function SegmentBar({ counts, className = "" }: { counts: Record<Segment, number
   const total = SEG.reduce((t, s) => t + counts[s.key], 0);
   if (!total) return <div className={className} />;
   return (
-    <div className={`flex h-1.5 w-full overflow-hidden rounded-full bg-ink-100/[0.06] gap-px ${className}`} role="img" aria-label={SEG.map((s) => `${s.label} ${counts[s.key]}`).join(", ")}>
+    <div className={`flex h-1 w-full overflow-hidden rounded-full bg-ink-100/[0.08] gap-px ${className}`} role="img" aria-label={SEG.map((s) => `${s.label} ${counts[s.key]}`).join(", ")}>
       {SEG.map((s) => (counts[s.key] ? <span key={s.key} className={`h-full ${s.bar}`} style={{ width: `${(counts[s.key] / total) * 100}%` }} /> : null))}
     </div>
   );
@@ -61,14 +61,14 @@ export default function RightsizeCard({ assets, saveMonthlyEur, upgradeMonthlyEu
     <Section
       id="right-plan"
       title="Right plan"
-      action={saveMonthlyEur >= 1 ? <span className="text-sm font-semibold tabular text-ink-100">{eur(saveMonthlyEur)} a month</span> : undefined}
+      action={saveMonthlyEur >= 1 ? <span className="text-sm tabular text-ink-100">{eur(saveMonthlyEur)} <span className="eyebrow">a month</span></span> : undefined}
       footer={
         total > 0 ? (
-          <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-400">
+          <span className="flex flex-wrap items-center gap-x-4 gap-y-1 eyebrow w-full">
             {SEG.map((s) => (
               <span key={s.key} className="flex items-center gap-1.5 tabular">
                 <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} aria-hidden />
-                {s.label} <b className="font-medium text-ink-100">{n(counts[s.key])}</b>
+                {s.label} <b className="font-normal text-ink-100">{n(counts[s.key])}</b>
               </span>
             ))}
             {upgradeMonthlyEur >= 1 && <span className="ml-auto tabular">Upgrades +{eur(upgradeMonthlyEur)} a month</span>}
@@ -91,16 +91,16 @@ export default function RightsizeCard({ assets, saveMonthlyEur, upgradeMonthlyEu
                   <Link href={`/assets/${a.assetId}?tab=people`} className="flex items-center gap-3 min-w-0 group">
                     <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={28} />
                     <span className="min-w-0">
-                      <span className="block text-sm font-medium text-ink-100 truncate group-hover:underline">{a.name}</span>
-                      <span className="block text-xs text-ink-400 truncate tabular">
+                      <span className="block text-sm text-ink-100 truncate group-hover:underline">{a.name}</span>
+                      <span className="block eyebrow mt-0.5 truncate tabular">
                         {a.planName ?? "Seats"} · {fmtEur(a.seatEur, { decimals: a.seatEur < 100 })} a seat
                       </span>
                     </span>
                   </Link>
                   <SegmentBar counts={a.counts} className="hidden sm:flex" />
-                  <span className="text-sm tabular text-ink-100 text-right">
+                  <span className="text-lg font-light tracking-[-0.03em] tabular text-ink-100 text-right leading-tight">
                     {a.saveMonthlyEur >= 1 ? eur(a.saveMonthlyEur) : "—"}
-                    <span className="block text-xs text-ink-400">a month</span>
+                    <span className="block eyebrow tracking-[0.04em]">a month</span>
                   </span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -113,7 +113,7 @@ export default function RightsizeCard({ assets, saveMonthlyEur, upgradeMonthlyEu
                 </div>
                 {named && (
                   <details className="mt-2 group">
-                    <summary className="cursor-pointer list-none text-xs text-ink-400 hover:text-ink-100 select-none">
+                    <summary className="cursor-pointer list-none eyebrow hover:!text-ink-100 select-none">
                       Who <span className="inline-block transition-transform group-open:rotate-90">›</span>
                     </summary>
                     <dl className="mt-1.5 grid grid-cols-1 sm:grid-cols-[9rem_minmax(0,1fr)] gap-x-4 gap-y-1 text-xs">
@@ -121,7 +121,7 @@ export default function RightsizeCard({ assets, saveMonthlyEur, upgradeMonthlyEu
                         .filter((x) => x.people?.length)
                         .map((x) => (
                           <div key={x.kind + (x.toPlan ?? "")} className="contents">
-                            <dt className="text-ink-400">{x.kind === "remove" ? "Remove" : x.kind === "upgrade" ? "Heavy users" : x.kind === "free" ? "Free or shared" : `To ${x.toPlan}`}</dt>
+                            <dt className="eyebrow">{x.kind === "remove" ? "Remove" : x.kind === "upgrade" ? "Heavy users" : x.kind === "free" ? "Free or shared" : `To ${x.toPlan}`}</dt>
                             <dd className="text-ink-100">{x.people!.join(", ")}</dd>
                           </div>
                         ))}

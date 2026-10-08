@@ -24,7 +24,7 @@ export default async function AccountSecurityPage({ searchParams }: { searchPara
       <PageHeader subtitle="Password and sign-in" title="Security" crumbs={[{ label: "Account", href: "/account" }, { label: "Security" }]} />
       {searchParams.required && !enabled && <Notice tone="error">{required?.organization.name ?? "Your workspace"} requires two-step verification. Set it up to continue.</Notice>}
       {searchParams.off && <Notice tone="success">Two-step verification is off.</Notice>}
-      <Section title="Two-step verification" action={enabled ? <span className="text-steady">On</span> : "Off"}>
+      <Section title="Two-step verification" action={enabled ? <span className="eyebrow !text-steady">On</span> : "Off"}>
         <div className="px-5 py-4">
         {account.ssoOnly ? (
           <p className="text-sm text-ink-400">You sign in with Microsoft or Google, so two-step verification is handled by your company&apos;s account there.</p>

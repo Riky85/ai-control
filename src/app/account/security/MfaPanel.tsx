@@ -72,7 +72,7 @@ export default function MfaPanel({
           <div className="rounded-lg overflow-hidden border border-line bg-white p-1 shrink-0" dangerouslySetInnerHTML={{ __html: qrSvg }} />
           <div className="flex flex-col gap-3 min-w-0 flex-1">
             <div>
-              <div className="text-xs text-ink-400">Key</div>
+              <div className="eyebrow">Key</div>
               <code className="block font-mono text-sm text-ink-100 break-all select-all">{secret.match(/.{1,4}/g)?.join(" ")}</code>
             </div>
             <form action={confirm} className="flex flex-col gap-2">

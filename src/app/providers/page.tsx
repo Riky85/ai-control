@@ -92,7 +92,7 @@ export default async function ProvidersPage() {
               <td className={td}>
                 <div className="flex flex-wrap gap-1.5">
                   {r.list.map((a) => (
-                    <Link key={a.id} href={`/assets/${a.id}`} className="text-xs rounded-full border border-line px-2 py-0.5 text-ink-400 hover:text-ink-100 hover:border-ink-400 transition-colors">
+                    <Link key={a.id} href={`/assets/${a.id}`} className="rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] border-line text-ink-400 hover:text-ink-100 hover:border-ink-400 transition-colors">
                       {a.name}
                     </Link>
                   ))}
@@ -100,17 +100,17 @@ export default async function ProvidersPage() {
               </td>
               <td className={td}>
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 h-1.5 rounded-full bg-ink overflow-hidden">
-                    <div className="h-full rounded-full bg-ink-100 animate-grow" style={{ width: `${Math.max(share, share ? 3 : 0)}%` }} />
+                  <div className="flex-1 h-1 rounded-full bg-ink-100/[0.08] overflow-hidden">
+                    <div className="h-full rounded-full bg-ink-100/70 animate-grow" style={{ width: `${Math.max(share, share ? 3 : 0)}%` }} />
                   </div>
-                  <span className="w-10 text-right text-xs text-ink-400 tabular">{Math.round(share)}%</span>
+                  <span className="w-10 text-right eyebrow tabular">{Math.round(share)}%</span>
                 </div>
               </td>
               <td className={`${td} text-right tabular`}>
-                {r.spend ? <span className={r.estimated ? "text-ink-400" : "font-medium text-ink-100"}>{r.estimated ? "≈ " : ""}{fmtEur(r.spend)}</span> : <span className="text-ink-400">Not paid</span>}
+                {r.spend ? <span className={r.estimated ? "text-ink-400" : "text-ink-100"}>{r.estimated ? "≈ " : ""}{fmtEur(r.spend)}</span> : <span className="text-ink-400">Not paid</span>}
               </td>
               <td className={`${td} text-right tabular`}>
-                {r.couldSave >= 1 ? <Link href="/opportunities" className="font-medium text-steady hover:underline">{fmtEur(Math.round(r.couldSave))}</Link> : <span className="text-ink-400">—</span>}
+                {r.couldSave >= 1 ? <Link href="/opportunities" className="text-steady hover:underline">{fmtEur(Math.round(r.couldSave))}</Link> : <span className="text-ink-400">—</span>}
               </td>
             </tr>
           );

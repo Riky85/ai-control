@@ -30,18 +30,18 @@ function Bars({ rows, total, max = 6, more }: { rows: SpendBar[]; total: number;
         return (
           <div key={r.key} className="px-5 py-2.5 grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] items-center gap-4">
             {r.href ? <Link href={r.href} className="min-w-0 hover:underline">{label}</Link> : <span className="min-w-0">{label}</span>}
-            <span className="h-1.5 rounded-full bg-ink-100/[0.06] overflow-hidden">
-              <span className="block h-full rounded-full bg-ink-100/70" style={{ width: `${Math.max(2, (r.eur / top) * 100)}%` }} />
+            <span className="h-1 rounded-full bg-ink-100/[0.08] overflow-hidden">
+              <span className="block h-full rounded-full bg-ink-100/70 animate-grow" style={{ width: `${Math.max(2, (r.eur / top) * 100)}%` }} />
             </span>
             <span className="text-sm tabular text-ink-100 text-right w-24">
               {r.estimatedEur >= r.eur - 0.5 && r.eur > 0 ? "≈ " : ""}
               {fmtEur(r.eur)}
-              <span className="block text-[11px] text-ink-400">{total > 0 ? `${Math.round((r.eur / total) * 100)}%` : ""}</span>
+              <span className="block font-mono text-[10px] text-ink-400">{total > 0 ? `${Math.round((r.eur / total) * 100)}%` : ""}</span>
             </span>
           </div>
         );
       })}
-      {(rows.length > max || more) && <div className="px-5 py-2.5 text-xs text-ink-400">{rows.length > max ? `+${rows.length - max} more` : ""}{more ? `${rows.length > max ? " · " : ""}${more}` : ""}</div>}
+      {(rows.length > max || more) && <div className="px-5 py-2.5 eyebrow">{rows.length > max ? `+${rows.length - max} more` : ""}{more ? `${rows.length > max ? " · " : ""}${more}` : ""}</div>}
     </div>
   );
 }
@@ -87,11 +87,11 @@ export default function SpendView({ s, forecast, anomalies, priceChanges }: { s:
                 <tr key={v.id}>
                   <td className={td}>
                     <Link href={`/assets/${v.id}`} className="text-ink-100 hover:underline">{v.name}</Link>
-                    <span className="block text-xs text-ink-400 truncate max-w-md" title={`${v.source} · ${v.basis}`}>{v.source}</span>
+                    <span className="block eyebrow mt-0.5 truncate max-w-md" title={`${v.source} · ${v.basis}`}>{v.source}</span>
                   </td>
                   <td className={`${td} text-right tabular text-ink-100`}>{fmtEur(v.actual)}</td>
                   <td className={`${td} text-right tabular text-ink-400`}>{fmtEur(v.estimated)}</td>
-                  <td className={`${td} text-right tabular ${Math.abs(v.pct) >= 0.1 ? "text-signal font-medium" : "text-ink-100"}`}>
+                  <td className={`${td} text-right tabular ${Math.abs(v.pct) >= 0.1 ? "text-accent" : "text-ink-100"}`}>
                     {v.pct > 0 ? "+" : v.pct < 0 ? "−" : ""}
                     {Math.abs(Math.round(v.pct * 1000) / 10)}%
                   </td>
@@ -102,14 +102,14 @@ export default function SpendView({ s, forecast, anomalies, priceChanges }: { s:
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             <AnomalyList anomalies={anomalies} limit={5} />
-            <Panel flush title="Price changes" subtitle="Effect on your AI" action={<Link href="/market" className="eyebrow hover:!text-ink-100 transition-colors">All [→]</Link>}>
+            <Panel flush title="Price changes" subtitle="Effect on your AI" action={<Link href="/market" className="eyebrow hover:!text-ink-100 transition-colors">See all [→]</Link>}>
               {priceChanges.length ? (
                 <div className="divide-y divide-line">
                   {priceChanges.slice(0, 5).map((p) => (
                     <div key={p.id} className="flex items-center gap-3 px-5 py-3 text-sm">
                       <Link href={`/market/${p.id}`} className="flex-1 min-w-0 hover:underline">
                         <span className="block text-ink-100 truncate">{p.title}</span>
-                        <span className="block text-xs text-ink-400">{p.impact}</span>
+                        <span className="block text-xs text-ink-400 mt-0.5">{p.impact}</span>
                       </Link>
                       {p.simulateHref && <Link href={p.simulateHref} className="btn btn-ghost btn-sm shrink-0">Simulate</Link>}
                     </div>

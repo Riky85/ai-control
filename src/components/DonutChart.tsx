@@ -52,8 +52,8 @@ export default function DonutChart({ slices, centerLabel }: { slices: DonutSlice
         </svg>
         {centerLabel && (
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-display text-lg font-bold text-ink-100 leading-none">{total}</span>
-            <span className="text-[9px] text-ink-400 mt-0.5">{centerLabel}</span>
+            <span className="font-display text-xl font-light tracking-[-0.03em] tabular text-ink-100 leading-none">{total}</span>
+            <span className="font-mono uppercase tracking-[0.04em] text-[9px] text-ink-400 mt-1">{centerLabel}</span>
           </div>
         )}
       </div>
@@ -62,9 +62,9 @@ export default function DonutChart({ slices, centerLabel }: { slices: DonutSlice
           const pct = Math.round((s.value / total) * 100);
           const row = (
             <div className="flex items-center gap-2 text-xs">
-              <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
-              <span className="text-ink-100 font-medium">{s.label}</span>
-              <span className="text-ink-400">{s.value} · {pct}%</span>
+              <span className="h-2 w-2 rounded-[1px] shrink-0" style={{ backgroundColor: s.color }} />
+              <span className="text-ink-100">{s.label}</span>
+              <span className="font-mono text-[11px] text-ink-400 tabular">{s.value} · {pct}%</span>
             </div>
           );
           return s.href ? (

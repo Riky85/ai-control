@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { StatCard } from "@/components/ui";
+import { BlockFoot, BlockHead, StatCard } from "@/components/ui";
 import { fmtEur } from "@/lib/format";
 import type { RedactKind } from "@/lib/gateway/detect";
 import type { GwOverview, TeamSpend } from "@/lib/gateway/data";
@@ -39,8 +39,8 @@ export default function GatewayOverview({ data, endpointHost }: { data: GwOvervi
             <>
               <span>
                 {fmtInt(data.live.length)} of {fmtInt(data.requestsToday)} today ·{" "}
-                <Link href="/gateway?tab=logs" className="font-medium text-ink-100 hover:underline">
-                  Open logs →
+                <Link href="/gateway?tab=logs" className="eyebrow hover:!text-ink-100 transition-colors">
+                  Open logs [→]
                 </Link>
               </span>
             </>
@@ -55,35 +55,34 @@ function TeamSpendPanel({ teams, endpointHost }: { teams: TeamSpend[]; endpointH
   const max = Math.max(1, ...teams.map((t) => Math.max(t.eur, t.capEur ?? 0)));
   return (
     <section className="rounded-xl border border-line bg-panel animate-rise">
-      <div className="bar-head rounded-t-xl border-b border-line px-5 py-3 flex items-center justify-between gap-4">
-        <h2 className="text-sm font-bold text-ink-100">Spend by team</h2>
-        <span className="text-xs text-ink-400">This month</span>
-      </div>
+      <BlockHead title="Spend by team" note="This month" />
       <div className="px-5 py-4 flex flex-col gap-4">
         {teams.length === 0 && <p className="text-sm text-ink-400 py-4 text-center">No spend yet.</p>}
         {teams.map((t) => {
           const used = t.capEur ? pct(t.eur, t.capEur) : null;
           const over = used !== null && used >= 100;
+          // Vicino al tetto: segnale arancio (da guardare); oltre: allarme.
+          const near = used !== null && used >= 80 && !over;
           return (
             <div key={t.team || "(none)"}>
               <div className="flex items-baseline justify-between gap-3 text-sm">
                 <span className="font-medium text-ink-100 truncate">{t.team || "No team"}</span>
-                <span className="font-medium tabular text-ink-100">{fmtEur(t.eur)}</span>
+                <span className={`text-[17px] font-light tracking-[-0.03em] tabular ${near ? "text-accent" : "text-ink-100"}`}>{fmtEur(t.eur)}</span>
               </div>
-              <div className="relative mt-2 h-1.5 rounded-full bg-ink-100/[0.08]">
-                <div className={`absolute inset-y-0 left-0 rounded-full ${over ? "bg-alarm" : "bg-ink-400"}`} style={{ width: `${Math.min(100, (t.eur / max) * 100)}%` }} />
+              <div className="relative mt-2 h-1 rounded-full bg-ink-100/[0.08]">
+                <div className={`absolute inset-y-0 left-0 rounded-full ${over ? "bg-alarm" : near ? "bg-accent" : "bg-ink-100/70"}`} style={{ width: `${Math.min(100, (t.eur / max) * 100)}%` }} />
                 {t.capEur && <div className="absolute -top-1 -bottom-1 w-px bg-ink-100" style={{ left: `${Math.min(100, (t.capEur / max) * 100)}%` }} title={`Cap ${fmtEur(t.capEur)}`} />}
               </div>
-              <div className={`text-xs mt-1.5 ${over ? "text-alarm" : "text-ink-400"}`}>
+              <div className={`eyebrow mt-1.5 ${over ? "!text-alarm" : near ? "!text-accent" : ""}`}>
                 {t.capEur ? `${fmtEur(t.eur)} of ${fmtEur(t.capEur)} cap · ${used}% used` : `${t.keys} key${t.keys === 1 ? "" : "s"}`}
               </div>
             </div>
           );
         })}
       </div>
-      <div className="bar-foot rounded-b-xl border-t border-line px-5 py-3 text-sm text-ink-400 break-words">
-        Endpoint <span className="font-medium text-ink-100">{endpointHost}</span>
-      </div>
+      <BlockFoot className="text-ink-400 break-words">
+        <span className="eyebrow">Endpoint</span> <span className="font-mono text-xs text-ink-100 break-all">{endpointHost}</span>
+      </BlockFoot>
     </section>
   );
 }

@@ -90,11 +90,11 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
           {others.map((e) => (
             <Link key={e.id} href={`/activity/${e.id}`} className="flex items-center justify-between gap-4 px-5 py-3 text-sm hover:bg-ink-100/[0.025] transition-colors">
               <span className="text-ink-100 truncate">{e.eventType}</span>
-              <span className="tabular text-xs text-ink-400 shrink-0">{fmtDateTime(e.occurredAt)}</span>
+              <span className="eyebrow tabular shrink-0">{fmtDateTime(e.occurredAt)}</span>
             </Link>
           ))}
-          <Link href={`/activity?q=${encodeURIComponent(activity.aiAsset.name)}`} className="block px-5 py-3 text-xs text-ink-400 hover:text-ink-100">
-            All events for {activity.aiAsset.name} →
+          <Link href={`/activity?q=${encodeURIComponent(activity.aiAsset.name)}`} className="block px-5 py-3 eyebrow hover:!text-ink-100 transition-colors">
+            All events for {activity.aiAsset.name} [→]
           </Link>
         </div>
       )}
@@ -117,7 +117,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-ink-400">{label}</dt>
+      <dt className="eyebrow pt-0.5">{label}</dt>
       <dd className="text-right">{children}</dd>
     </div>
   );

@@ -29,7 +29,7 @@ export default function Onboarding({ searchParams }: { searchParams: { error?: s
       </form>
 
       <div>
-        <div className="text-xs text-ink-400 font-mono uppercase tracking-wide mb-3">Or start from</div>
+        <div className="eyebrow mb-3">Or start from</div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Option href="/sources#accounts" title="Company accounts" text="Microsoft 365 or Google Workspace — who uses which AI." />
           <Option href="/connectors" title="An AI provider key" text="Claude, OpenAI, Gemini, Mistral… exact API costs." />
@@ -62,7 +62,7 @@ export default function Onboarding({ searchParams }: { searchParams: { error?: s
 function Option({ href, title, text }: { href: string; title: string; text: string }) {
   return (
     <Link href={href} className="rounded-xl border border-line bg-panel p-4 hover:border-ink-400 transition-colors">
-      <div className="text-sm font-semibold text-ink-100">{title}</div>
+      <div className="text-sm font-bold text-ink-100">{title}</div>
       <div className="text-xs text-ink-400 mt-1">{text}</div>
     </Link>
   );

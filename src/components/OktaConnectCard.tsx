@@ -14,13 +14,13 @@ export default function OktaConnectCard({ row, error }: { row?: Connector; error
   return (
     <section id="OKTA" className="scroll-mt-6">
       <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise">
-        <h2 className="border-b border-line px-4 py-3 text-sm font-bold text-ink-100">Identity</h2>
+        <h2 className="bg-ink border-b border-line px-4 py-3 text-sm font-bold text-ink-100 bar-head">Identity</h2>
         <div className="flex flex-wrap items-center gap-3 px-4 py-3">
           <VendorBadge vendor="Okta" name="Okta" size={32} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-ink-100">Okta</span>
-              {connected && <span className="text-xs text-steady">✓ Connected</span>}
+              {connected && <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">✓ Connected</span>}
             </div>
             <div className="text-xs text-ink-400 truncate">
               {connected

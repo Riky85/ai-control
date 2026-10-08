@@ -185,7 +185,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                             <button
                               disabled={!canEdit}
                               title={canEdit ? `Turn ${t.label} ${t.v ? "off" : "on"}` : "Only admins can change this"}
-                              className={`text-xs rounded-full border px-2.5 py-1 transition-colors disabled:cursor-default ${t.v ? "border-steady/50 text-steady" : "border-line text-ink-400 hover:text-ink-100"}`}
+                              className={`rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] transition-colors disabled:cursor-default ${t.v ? "border-steady/50 text-steady" : "border-line text-ink-400 hover:text-ink-100"}`}
                             >
                               {t.label} {t.v ? "on" : "off"}
                             </button>
@@ -327,7 +327,7 @@ export default async function EdgeSensorsPage({ searchParams }: { searchParams: 
                 <tr key={g.key}>
                   <td className={td}>{aiName(g.first.serviceId, g.name)}</td>
                   {people && <td className={td}>{clientCell(g.first)}</td>}
-                  <td className={`${td} text-right tabular text-ink-100 font-medium`}>{mbStr(g.bytes)}</td>
+                  <td className={`${td} text-right tabular text-ink-100`}>{mbStr(g.bytes)}</td>
                   <td className={`${td} text-right tabular text-ink-400`}>{n(g.hits)}</td>
                   <td className={td}>
                     <span className={st === "APPROVED" ? "text-steady" : st === "UNAPPROVED" ? "text-alarm" : "text-signal"}>{st === "APPROVED" ? "Approved" : st === "UNAPPROVED" ? "Not allowed" : "Not reviewed"}</span>

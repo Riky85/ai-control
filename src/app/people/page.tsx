@@ -170,7 +170,7 @@ async function PeopleAggregate({ mode }: { mode: PrivacyMode }) {
       )}
 
       {mode === "department" ? (
-        <Table columns={["Department", { label: "People", className: "text-right" }, { label: "Using AI (30 days)", className: "text-right" }, "Most used AI"]} empty={users.length === 0 && "Nobody yet — people appear when Microsoft 365, Google Workspace or an Admin key is connected."} footer={<span className="text-xs text-ink-400">Counts under {MIN_GROUP} are shown as &ldquo;&lt;{MIN_GROUP}&rdquo; so nobody can be singled out.</span>}>
+        <Table columns={["Department", { label: "People", className: "text-right" }, { label: "Using AI (30 days)", className: "text-right" }, "Most used AI"]} empty={users.length === 0 && "Nobody yet — people appear when Microsoft 365, Google Workspace or an Admin key is connected."} footer={<span className="eyebrow">Counts under {MIN_GROUP} are shown as &ldquo;&lt;{MIN_GROUP}&rdquo; so nobody can be singled out.</span>}>
           {groupByDepartment(users, (u) => u.id, (u) => u.department).map((g) =>
             g.suppressed ? (
               <tr key="suppressed">
@@ -194,7 +194,7 @@ async function PeopleAggregate({ mode }: { mode: PrivacyMode }) {
           )}
         </Table>
       ) : (
-        <Table columns={["AI", { label: "People using it", className: "text-right" }]} empty={all.length === 0 && "No AI use recorded yet."} footer={<span className="text-xs text-ink-400">Counts under {MIN_GROUP} are shown as &ldquo;&lt;{MIN_GROUP}&rdquo; so nobody can be singled out.</span>}>
+        <Table columns={["AI", { label: "People using it", className: "text-right" }]} empty={all.length === 0 && "No AI use recorded yet."} footer={<span className="eyebrow">Counts under {MIN_GROUP} are shown as &ldquo;&lt;{MIN_GROUP}&rdquo; so nobody can be singled out.</span>}>
           {all.map(([name, n]) => (
             <tr key={name}>
               <td className={`${td} text-ink-100`}>{name}</td>

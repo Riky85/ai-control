@@ -3,7 +3,7 @@ import { Table, td } from "@/components/ui";
 import { loadEstateCached, dependencyFraction, bestCost, type EstateData } from "@/lib/estate/graph";
 import { providerExit } from "@/lib/estate/exit-readiness";
 
-const TONE: Record<string, string> = { "Not ready": "bg-alarm", "Partially ready": "bg-signal", Ready: "bg-steady", "Production-ready": "bg-steady" };
+const TONE: Record<string, string> = { "Not ready": "bg-alarm", "Partially ready": "bg-accent", Ready: "bg-steady", "Production-ready": "bg-steady" };
 
 /** Fornitori: chi dipende da ciascuno (anche via modello o deployment) ed Exit readiness. */
 export default async function ProviderDependencies({ orgId }: { orgId: string }) {
@@ -33,26 +33,27 @@ export function ProviderDependenciesTable({ est }: { est: EstateData }) {
             <Link href="/estate/graph" className="hover:underline">{c.label}</Link>
             {/* Impact Simulator: cosa si ferma se il fornitore non risponde (solo fornitori del catalogo). */}
             {!c.providerKey.startsWith("provider:name:") && (
-              <Link href={`/impact?s=outage&provider=${encodeURIComponent(c.providerKey.slice("provider:".length))}`} className="block text-xs font-normal text-ink-400 hover:text-ink-100 mt-0.5">
-                Simulate
+              <Link href={`/impact?s=outage&provider=${encodeURIComponent(c.providerKey.slice("provider:".length))}`} className="block eyebrow hover:!text-ink-100 transition-colors mt-0.5">
+                Simulate [→]
               </Link>
             )}
           </td>
           <td className={td}>
             <div className="flex flex-wrap gap-1.5">
               {deps.slice(0, 6).map((d) => (
-                <Link key={d.r.id} href={`/assets/${d.r.id}`} className="text-xs rounded-full border border-line px-2 py-0.5 text-ink-400 hover:text-ink-100">
+                <Link key={d.r.id} href={`/assets/${d.r.id}`} className="inline-flex items-center rounded-[2px] border border-line px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-ink-400 hover:text-ink-100 hover:border-ink-400 transition-colors">
                   {d.r.name}{d.f < 1 ? ` · ${Math.round(d.f * 100)}%` : ""}
                 </Link>
               ))}
-              {deps.length > 6 && <span className="text-xs text-ink-400">+{deps.length - 6}</span>}
+              {deps.length > 6 && <span className="eyebrow">+{deps.length - 6}</span>}
             </div>
           </td>
           <td className={`${td} text-right tabular text-ink-100`}>{est.concentration.total > 0 ? `${Math.round(c.share * 100)}%` : "—"}</td>
           <td className={`${td} whitespace-nowrap`}>
             <span className="flex items-center gap-2 text-sm text-ink-100 tabular" title={exit.blockers.slice(0, 2).join(" · ") || undefined}>
-              <span className={`h-2 w-2 rounded-full ${TONE[exit.status]}`} />
-              {exit.score} · {exit.status}
+              <span className={`h-1.5 w-1.5 rounded-full ${TONE[exit.status]}`} />
+              {exit.score}
+              <span className={`eyebrow ${exit.status === "Not ready" || exit.status === "Partially ready" ? "!text-accent" : ""}`}>{exit.status}</span>
             </span>
           </td>
         </tr>

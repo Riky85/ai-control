@@ -93,8 +93,8 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
         >
           {rows.map((r) => {
             const pct = r.budget ? (r.eur / r.budget) * 100 : null;
-            const bar = pct == null ? "bg-ink-400/40" : pct > 100 ? "bg-alarm" : pct >= 80 ? "bg-signal" : "bg-steady";
-            const text = pct == null ? "text-ink-400" : pct > 100 ? "text-alarm" : pct >= 80 ? "text-signal" : "text-steady";
+            const bar = pct == null ? "bg-ink-400/40" : pct > 100 ? "bg-alarm" : pct >= 80 ? "bg-accent" : "bg-ink-100/70";
+            const text = pct == null ? "" : pct > 100 ? "!text-alarm" : pct >= 80 ? "!text-accent" : "";
             return (
               <tr key={r.department}>
                 <td className={td}>
@@ -104,9 +104,9 @@ export default async function BudgetsPage({ searchParams }: { searchParams: { er
                 <td className={td}>
                   <div className="flex items-baseline justify-between gap-2 text-sm">
                     <span className="text-ink-100 tabular">{fmtEur(r.eur)}</span>
-                    <span className={`text-xs tabular ${text}`}>{r.budget ? `${Math.round(pct!)}% of ${fmtEur(r.budget)}` : "No budget"}</span>
+                    <span className={`eyebrow tabular ${text}`}>{r.budget ? `${Math.round(pct!)}% of ${fmtEur(r.budget)}` : "No budget"}</span>
                   </div>
-                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-ink-100/[0.06]">
+                  <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-ink-100/[0.08]">
                     <div className={`h-full rounded-full ${bar}`} style={{ width: `${pct == null ? 0 : Math.min(100, pct)}%` }} />
                   </div>
                 </td>

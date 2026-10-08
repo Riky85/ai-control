@@ -181,7 +181,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: { 
                 </form>
               ) : (
                 <>
-                  <span className="text-xs text-ink-400">Limit reached</span>
+                  <span className="eyebrow !text-accent">Limit reached</span>
                   <Link href="/billing" className="btn btn-secondary btn-sm btn-go">See plans</Link>
                 </>
               )}

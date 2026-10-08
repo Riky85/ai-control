@@ -185,15 +185,15 @@ export default async function GovernancePage({ searchParams }: { searchParams: {
           {(vendorFlagged > 0 || vendorRows.length > 0) && (
             <details id="vendor-risk" className="group scroll-mt-6">
               <summary className="cursor-pointer list-none select-none rounded-xl border border-line bg-panel px-4 py-3 flex items-center gap-3 text-sm hover:border-ink-400 transition-colors animate-rise">
-                <span className={`h-2 w-2 shrink-0 rounded-full ${vendorFlagged > 0 ? "bg-signal" : "bg-steady"}`} aria-hidden />
+                <span className={`h-2 w-2 shrink-0 rounded-full ${vendorFlagged > 0 ? "bg-accent" : "bg-steady"}`} aria-hidden />
                 <span className="flex-1 min-w-0 text-ink-100">
                   {vendorFlagged > 0 ? (
                     <>
-                      <b className="font-medium tabular">{vendorFlagged}</b> AI with vendor terms to check
+                      <b className="font-normal text-accent tabular">{vendorFlagged}</b> AI with vendor terms to check
                     </>
                   ) : (
                     <>
-                      Vendor terms · <b className="font-medium tabular">{vendorRows.length}</b> {vendorRows.length === 1 ? "vendor" : "vendors"} in use
+                      Vendor terms · <b className="font-normal tabular">{vendorRows.length}</b> {vendorRows.length === 1 ? "vendor" : "vendors"} in use
                     </>
                   )}
                 </span>

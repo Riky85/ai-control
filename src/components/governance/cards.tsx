@@ -31,7 +31,7 @@ export function GovernanceHeader({ governance, readiness, holds }: { governance:
           </div>
         </div>
         <div className="min-w-0 flex flex-col">
-          <div className="text-xs text-ink-400 mb-1.5">To fix</div>
+          <div className="eyebrow mb-1.5">To fix</div>
           {holds.length === 0 ? (
             <p className="text-sm text-ink-400 flex items-center gap-2 py-2">
               <span className="h-1.5 w-1.5 rounded-full bg-steady" aria-hidden />
@@ -43,7 +43,7 @@ export function GovernanceHeader({ governance, readiness, holds }: { governance:
                 <li key={h.label}>
                   <Link href={h.href} className="flex items-baseline gap-3 py-2 text-sm group">
                     <span className="flex-1 min-w-0 truncate text-ink-100 group-hover:underline">{h.label}</span>
-                    <span className="tabular text-ink-100 font-medium shrink-0">+{h.pts}</span>
+                    <span className="tabular text-accent shrink-0">+{h.pts}</span>
                   </Link>
                 </li>
               ))}
@@ -94,12 +94,12 @@ export function DecisionsCard({ d }: { d: DecisionsData }) {
         />
         <dl className="divide-y divide-line border-t border-line text-sm">
           <div className="flex items-center justify-between gap-3 pt-2.5 pb-2">
-            <dt className="text-ink-400" title="In the last 30 days">Not allowed, still used</dt>
+            <dt className="eyebrow" title="In the last 30 days">Not allowed, still used</dt>
             <dd>{d.blockedInUse ? <Pill tone="alarm">{d.blockedInUse}</Pill> : <span className="tabular text-ink-400">0</span>}</dd>
           </div>
           <div className="flex items-center justify-between gap-3 pt-2 pb-0.5">
-            <dt className="text-ink-400">No owner</dt>
-            <dd>{d.noOwner ? <Pill tone="signal">{d.noOwner}</Pill> : <span className="tabular text-ink-400">0</span>}</dd>
+            <dt className="eyebrow">No owner</dt>
+            <dd>{d.noOwner ? <Pill tone="accent">{d.noOwner}</Pill> : <span className="tabular text-ink-400">0</span>}</dd>
           </div>
         </dl>
       </div>
@@ -152,8 +152,8 @@ export function AiActCard({ d }: { d: AiActData }) {
       id="ai-act"
       title="EU AI Act"
       action={
-        <Link href="/compliance" className="text-sm text-ink-400 hover:text-ink-100">
-          Open →
+        <Link href="/compliance" className="eyebrow hover:!text-ink-100 transition-colors">
+          Open [→]
         </Link>
       }
       footer={next ? <NextStep href={next.href} label={next.label} /> : undefined}
@@ -164,15 +164,15 @@ export function AiActCard({ d }: { d: AiActData }) {
             const n = d.tiers[t.key];
             return (
               <li key={t.key} className="grid grid-cols-[7.5rem_minmax(0,1fr)_2rem] items-center gap-3 text-sm">
-                <span className="flex items-center gap-2 text-ink-400">
-                  <span className={`h-2 w-2 rounded-full ${t.dot}`} aria-hidden />
+                <span className="eyebrow flex items-center gap-2">
+                  <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} aria-hidden />
                   {t.label}
                 </span>
                 <span className="relative h-3" aria-hidden>
                   <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line" />
                   {n > 0 && <span className={`absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full ${t.bar}`} style={{ width: `${Math.max(3, (n / max) * 100)}%` }} />}
                 </span>
-                <span className={`text-right tabular ${n ? "text-ink-100 font-medium" : "text-ink-400"}`}>{n}</span>
+                <span className={`text-right tabular ${n ? "text-ink-100" : "text-ink-400"}`}>{n}</span>
               </li>
             );
           })}
@@ -210,10 +210,10 @@ export function RecordsCard({ links }: { links: RecordLink[] }) {
             <>
               <span className="min-w-0">
                 <span className="block text-sm text-ink-100 group-hover:underline truncate">{l.label}</span>
-                <span className="block text-xs text-ink-400 truncate">{l.locked ? "Available on Save" : l.tag}</span>
+                <span className="block eyebrow truncate mt-0.5">{l.locked ? "Available on Save" : l.tag}</span>
               </span>
-              <span className="text-ink-400 group-hover:text-ink-100 shrink-0" aria-hidden>
-                {l.locked ? <LockIcon /> : l.download ? "↓" : "→"}
+              <span className="font-mono text-[12px] text-ink-400 group-hover:text-ink-100 shrink-0" aria-hidden>
+                {l.locked ? <LockIcon /> : l.download ? "[↓]" : "[→]"}
               </span>
             </>
           );
@@ -261,8 +261,8 @@ export function RegisterCard({ d }: { d: RegisterCardData }) {
       title="AI Act & GDPR register"
       meta={`${d.rows} ${d.rows === 1 ? "record" : "records"}`}
       action={
-        <Link href="/governance/register" className="text-sm text-ink-400 hover:text-ink-100">
-          Open →
+        <Link href="/governance/register" className="eyebrow hover:!text-ink-100 transition-colors">
+          Open [→]
         </Link>
       }
       footer={

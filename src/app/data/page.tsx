@@ -103,7 +103,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
                     }`}
                   />
                   <span className="text-sm font-medium text-ink-100">{d.name}</span>
-                  <span className="text-xs text-ink-400">{SENSITIVITY_LABEL[d.sensitivity] ?? d.sensitivity}</span>
+                  <span className="eyebrow">{SENSITIVITY_LABEL[d.sensitivity] ?? d.sensitivity}</span>
                 </div>
                 {d.accessedBy.length > 0 ? (
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -112,7 +112,7 @@ export default async function DataRegistryPage({ searchParams }: { searchParams:
                         key={a.id}
                         href={`/assets/${a.aiAssetId}`}
                         title={a.aiAsset.status === "APPROVED" ? "Approved" : "Not approved"}
-                        className={`text-xs border rounded px-2 py-0.5 hover:text-ink-100 transition-colors ${
+                        className={`rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] hover:text-ink-100 transition-colors ${
                           a.aiAsset.status !== "APPROVED" && SENSITIVE_TIERS.includes(d.sensitivity) ? "text-alarm border-alarm/40" : "text-ink-400 border-line"
                         }`}
                       >

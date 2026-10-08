@@ -35,15 +35,15 @@ export function TopOpportunities({ list, max = 5 }: { list: Opportunity[]; max?:
   const top = list.filter((o) => o.status === "new").slice(0, max);
   if (!top.length) return null;
   return (
-    <Panel title="Top opportunities" flush action={<Link href="/opportunities" className="eyebrow hover:!text-ink-100 transition-colors">All [→]</Link>}>
+    <Panel title="Top opportunities" flush action={<Link href="/opportunities" className="eyebrow hover:!text-ink-100 transition-colors">See all [→]</Link>}>
       <div className="divide-y divide-line">
         {top.map((o) => (
           <Link key={o.key} href={`/opportunities?open=${encodeURIComponent(o.key)}`} className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm hover:bg-ink/60 transition-colors">
             <span className="w-32 shrink-0 hidden sm:block">
               <CategoryPill category={o.category} />
             </span>
-            <span className="text-ink-100 font-medium min-w-0 flex-1 truncate">{o.title}</span>
-            <span className="text-ink-400 text-xs whitespace-nowrap hidden md:block">
+            <span className="text-ink-100 min-w-0 flex-1 truncate">{o.title}</span>
+            <span className="eyebrow whitespace-nowrap hidden md:block">
               {o.effort} effort · {o.confidence === "HIGH" ? "High" : o.confidence === "MEDIUM" ? "Medium" : "Low"} confidence
             </span>
             <span className="w-28 text-right tabular whitespace-nowrap text-ink-100">
@@ -51,7 +51,7 @@ export function TopOpportunities({ list, max = 5 }: { list: Opportunity[]; max?:
                 <>
                   {o.savings.kind === "estimated" ? "≈ " : ""}
                   {fmtEur(o.savings.eur)}
-                  <span className="text-xs text-ink-400">/mo</span>
+                  <span className="text-xs text-ink-400 ml-0.5">/mo</span>
                 </>
               ) : (
                 <span className="text-ink-400">—</span>

@@ -24,7 +24,7 @@ export default function EdgeOrder({
     <form action={payments ? checkoutAction : requestAction} className="flex flex-col gap-2 mt-auto">
       <input type="hidden" name="quantity" value={n} />
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-ink-400">Devices</span>
+        <span className="eyebrow">Devices</span>
         <div className="flex items-center gap-2">
           <button type="button" aria-label="One less" onClick={() => set(n - 1)} disabled={n <= 1} className={step}>
             −
@@ -34,7 +34,7 @@ export default function EdgeOrder({
             inputMode="numeric"
             value={n}
             onChange={(e) => set(Number(e.target.value.replace(/\D/g, "")))}
-            className="w-10 text-center font-semibold tabular text-ink-100 bg-transparent outline-none"
+            className="w-10 text-center text-[17px] font-light tracking-[-0.03em] tabular text-ink-100 bg-transparent outline-none"
           />
           <button type="button" aria-label="One more" onClick={() => set(n + 1)} disabled={n >= max} className={step}>
             +
@@ -42,10 +42,10 @@ export default function EdgeOrder({
         </div>
       </div>
       <div className="flex items-baseline justify-between text-sm">
-        <span className="text-ink-400">Total</span>
-        <span className="text-ink-100 font-semibold tabular">
+        <span className="eyebrow">Total</span>
+        <span className="text-[20px] font-light tracking-[-0.03em] text-ink-100 tabular">
           €{price * n}
-          <span className="text-ink-400 font-normal"> a month</span>
+          <span className="text-xs tracking-normal text-ink-400"> a month</span>
         </span>
       </div>
       <button className="btn btn-secondary w-full">{payments ? `Order ${n} device${n === 1 ? "" : "s"}` : `Request ${n} device${n === 1 ? "" : "s"}`}</button>

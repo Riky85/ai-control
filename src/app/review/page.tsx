@@ -96,9 +96,9 @@ export default async function ReviewPage({ searchParams }: { searchParams: { rev
                 <VendorBadge vendor={a.vendor ?? ""} name={a.name} size={30} />
                 <Link href={`/assets/${a.id}`} className="flex-1 min-w-0 hover:underline">
                   <span className="flex items-center gap-2 text-sm font-medium text-ink-100 truncate">
-                    {lvl && <span title={`Risk: ${lvl.toLowerCase()}`} className={`h-2 w-2 rounded-full shrink-0 ${lvl === "HIGH" || lvl === "CRITICAL" ? "bg-alarm" : lvl === "MEDIUM" ? "bg-signal" : "bg-steady"}`} />}
+                    {lvl && <span title={`Risk: ${lvl.toLowerCase()}`} className={`h-2 w-2 rounded-full shrink-0 ${lvl === "HIGH" || lvl === "CRITICAL" ? "bg-alarm" : lvl === "MEDIUM" ? "bg-accent" : "bg-steady"}`} />}
                     {a.name}
-                    {candidate && <span className="text-[11px] font-medium text-ink-400 rounded-full border border-line px-2 py-0.5">Possible AI</span>}
+                    {candidate && <span className="rounded-[2px] border px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] border-line text-ink-400">Possible AI</span>}
                   </span>
                   <span className="block text-xs text-ink-400 truncate">
                     {a.vendor ?? "Unknown"} · {seenIn(a.connector?.provider)}

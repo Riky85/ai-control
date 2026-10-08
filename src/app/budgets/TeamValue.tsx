@@ -60,12 +60,12 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
         <div className="min-w-0">
           <h2 id="team-value-title" className="text-sm font-bold text-ink-100">Value by team</h2>
           {idleTotal >= 1 && (
-            <p className="text-xs text-ink-400 mt-0.5 tabular">
-              <b className="font-medium text-ink-100">{fmtEur(idleTotal)}</b> a month idle
+            <p className="eyebrow !text-accent mt-0.5 tabular">
+              {fmtEur(idleTotal)} a month idle
             </p>
           )}
         </div>
-        <span className="flex items-center gap-3 text-[11px] text-ink-400 shrink-0" aria-hidden>
+        <span className="eyebrow flex items-center gap-3 shrink-0" aria-hidden>
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-ink-100/60" />Used</span>
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-3 rounded-full bg-ink-100/15" />Idle</span>
         </span>
@@ -84,11 +84,11 @@ export default async function TeamValue({ orgId }: { orgId: string }) {
               <div className="min-w-0">
                 <div className="flex items-baseline gap-2">
                   <span className={`text-sm font-medium truncate ${t.merged ? "text-ink-400" : "text-ink-100"}`}>{t.department}</span>
-                  <span className="text-sm tabular text-ink-100 shrink-0">{fmtEur(t.monthlyEur)}</span>
+                  <span className="text-[15px] font-light tracking-[-0.03em] tabular text-ink-100 shrink-0">{fmtEur(t.monthlyEur)}</span>
                 </div>
                 <div className="text-xs text-ink-400 mt-0.5 flex flex-wrap gap-x-2 tabular">
                   <span title="People who used AI in the last 30 days">
-                    <b className="font-medium text-ink-100">{t.activePeople}</b> of {t.people} active
+                    <b className="font-normal text-ink-100">{t.activePeople}</b> of {t.people} active
                   </span>
                   {t.seats > 0 && (
                     <span title="Paid seats used in the last 30 days">

@@ -1,7 +1,8 @@
 /**
  * Pillola di stato unica per tutta la piattaforma (stessa grafica di
  * "Needs attention"): testo + sfondo tenue del colore semantico.
- * verde = ok · ambra = attenzione · rosso = rischio/errore · grigio = neutro.
+ * verde = ok · arancio = da guardare · rosso = rischio/errore · grigio = neutro.
+ * Forma quadrata in mono maiuscolo (stile Exein).
  */
 type Tone = "ok" | "warn" | "bad" | "neutral";
 
@@ -55,7 +56,7 @@ const STATES: Record<string, [string, Tone]> = {
 
 const TONE: Record<Tone, string> = {
   ok: "text-steady bg-steady/10",
-  warn: "text-signal bg-signal/10",
+  warn: "text-accent bg-accent/10",
   bad: "text-alarm bg-alarm/10",
   neutral: "text-ink-400 bg-ink-400/10",
 };
@@ -63,5 +64,5 @@ const TONE: Record<Tone, string> = {
 export default function Badge({ children }: { children: string }) {
   const key = children.toUpperCase().replace(/[\s-]+/g, "_");
   const [label, tone] = STATES[key] ?? [children, "neutral" as Tone];
-  return <span className={`inline-flex whitespace-nowrap text-xs font-medium px-2 py-0.5 rounded-full ${TONE[tone]}`}>{label}</span>;
+  return <span className={`inline-flex items-center whitespace-nowrap font-mono uppercase text-[10px] tracking-[0.05em] px-1.5 py-0.5 rounded-[2px] ${TONE[tone]}`}>{label}</span>;
 }

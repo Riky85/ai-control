@@ -66,7 +66,7 @@ export function NextStep({ href, label, done }: { href?: string; label: React.Re
     <Link href={href} className="flex items-center gap-2 group">
       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink-400" aria-hidden />
       <span className="flex-1 min-w-0 truncate text-ink-100 group-hover:underline">{label}</span>
-      <span className="text-ink-400 group-hover:text-ink-100 shrink-0">→</span>
+      <span className="font-mono text-[12px] text-ink-400 group-hover:text-ink-100 shrink-0" aria-hidden>[→]</span>
     </Link>
   );
 }
@@ -83,13 +83,13 @@ export function StackBar({ parts, label }: { parts: StackPart[]; label: string }
       <div className="flex h-2 w-full gap-0.5 overflow-hidden rounded-full bg-ink-100/[0.06]" role="img" aria-label={summary} title={summary}>
         {total > 0 && shown.map((p) => <div key={p.key} className={`h-full first:rounded-l-full last:rounded-r-full ${p.bar}`} style={{ width: `${(p.value / total) * 100}%` }} />)}
       </div>
-      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-400">
+      <ul className="eyebrow flex flex-wrap gap-x-4 gap-y-1">
         {parts.map((p) => {
           const inner = (
             <>
               <span className={`h-2 w-2 rounded-full ${p.dot}`} aria-hidden />
               {p.label}
-              <b className="font-medium text-ink-100 tabular">{p.value}</b>
+              <b className="font-normal text-ink-100 tabular">{p.value}</b>
             </>
           );
           return (

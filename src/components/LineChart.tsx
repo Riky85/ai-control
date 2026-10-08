@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 export interface LineSeries {
   name: string;
   values: number[];
-  /** "main" = arancio pieno; "ghost" = grigio tratteggiato (proiezione). */
+  /** "main" = linea piena; "ghost" = grigio tratteggiato (proiezione). */
   style?: "main" | "ghost";
 }
 
@@ -43,11 +43,11 @@ export default function LineChart({ labels, series, unit = "count", height = 150
         {ticks.map((t) => (
           <g key={t}>
             <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="rgb(var(--c-line))" strokeWidth={1} />
-            <text x={pad.l - 10} y={y(t) + 4} textAnchor="end" fontSize="11" fill="rgb(var(--c-muted))">{format(t)}</text>
+            <text x={pad.l - 10} y={y(t) + 4} textAnchor="end" fontSize="10" fontFamily="var(--font-plex-mono)" fill="rgb(var(--c-muted))">{format(t)}</text>
           </g>
         ))}
         {labels.map((l, i) => (
-          <text key={l + i} x={x(i)} y={H - 8} textAnchor="middle" fontSize="11" fill="rgb(var(--c-muted))">{l}</text>
+          <text key={l + i} x={x(i)} y={H - 8} textAnchor="middle" fontSize="10" fontFamily="var(--font-plex-mono)" fill="rgb(var(--c-muted))">{l}</text>
         ))}
         {hover !== null && <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={H - pad.b} stroke="rgb(var(--c-muted))" strokeOpacity={0.5} strokeWidth={1} />}
         {series.map((s) => {
@@ -68,7 +68,7 @@ export default function LineChart({ labels, series, unit = "count", height = 150
           className="pointer-events-none absolute top-2 rounded-lg border border-line bg-panel shadow-xl px-3 py-2 text-xs"
           style={{ left: `calc(${(x(hover) / W) * 100}% + ${x(hover) > W * 0.6 ? "-170px" : "12px"})` }}
         >
-          <div className="font-medium text-ink-100 mb-1">{labels[hover]}</div>
+          <div className="eyebrow !text-ink-100 mb-1">{labels[hover]}</div>
           {series.map((s) => (
             <div key={s.name} className="flex items-center justify-between gap-4 text-ink-400">
               <span className="flex items-center gap-1.5">

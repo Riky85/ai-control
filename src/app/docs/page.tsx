@@ -28,7 +28,7 @@ export default function DocsIndex({ searchParams }: { searchParams: { q?: string
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {docs.map((d) => (
                 <Link key={d.slug} href={`/docs/${d.slug}`} className="rounded-xl border border-line bg-panel p-4 hover:border-ink-400 transition-colors">
-                  <div className="text-sm font-semibold text-ink-100">{d.title}</div>
+                  <div className="text-sm font-bold text-ink-100">{d.title}</div>
                   <p className="text-sm text-ink-400 mt-1">{d.summary}</p>
                 </Link>
               ))}

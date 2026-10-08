@@ -56,7 +56,7 @@ function UploadResult({ netlog, fmt, warn }: { netlog?: string; fmt?: string; wa
   if (!m) return null;
   const [lines, services, people] = [Number(m[1]), Number(m[2]), Number(m[3])];
   return (
-    <div className="mx-4 mb-3 rounded-lg border border-line px-3 py-2 text-xs text-ink-400">
+    <div className="mx-4 mb-3 rounded-[4px] border border-line px-3 py-2 text-xs text-ink-400">
       <span className="text-steady">✓</span> <span className="text-ink-100">{n(lines)} lines read</span>
       {fmt ? ` (${fmt})` : ""} · <span className="text-ink-100">{services} AI service{services === 1 ? "" : "s"} found</span> ·{" "}
       {people < 0 ? "people hidden (company totals only)" : `${n(people)} ${people === 1 ? "person or device" : "people or devices"}`}
@@ -74,7 +74,7 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
   return (
     <section id="network-logs" className="scroll-mt-6">
       <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise divide-y divide-line">
-        <div className="px-4 py-3">
+        <div className="bg-ink px-4 py-3 bar-head">
           <h2 className="text-sm font-bold text-ink-100" title="Only AI services, days and counts are kept.">Network logs</h2>
         </div>
         {API_SOURCES.map((p) => {
@@ -87,8 +87,8 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
                 <VendorBadge vendor={p.vendor} name={p.label} size={32} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-ink-100">{p.label}</span>
-                    {connected && <span className="text-xs text-steady">✓ Connected</span>}
+                    <span className="text-sm font-bold text-ink-100">{p.label}</span>
+                    {connected && <span className="inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-steady bg-steady/10">Connected</span>}
                   </div>
                   <div className="text-xs text-ink-400 truncate">
                     {connected ? (row?.lastSyncedAt ? `Synced ${fmtDateTime(row.lastSyncedAt)} · updates daily` : "First sync pending") : p.text}
@@ -110,7 +110,7 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
               {connected && (row?.lastSyncError || err) && <p className="px-4 pb-3 text-xs text-alarm">{err ?? row?.lastSyncError}</p>}
               {!connected && (
                 <details className="group" open={Boolean(err)}>
-                  <summary className="cursor-pointer list-none px-4 pb-2.5 text-xs text-ink-400 hover:text-ink-100 select-none">
+                  <summary className="cursor-pointer list-none px-4 pb-2.5 eyebrow hover:!text-ink-100 select-none">
                     Connect <span className="inline-block transition-transform group-open:rotate-90">›</span>
                   </summary>
                   <form action={p.action} className="px-4 pb-4 flex flex-col gap-2">
@@ -122,7 +122,7 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs text-ink-400 min-w-0 flex-1">
                         {p.hint}{" "}
-                        <a href={p.docsUrl} target="_blank" rel="noreferrer" className="underline hover:text-ink-100">Open console →</a>
+                        <a href={p.docsUrl} target="_blank" rel="noreferrer" className="underline hover:text-ink-100">Open console ↗</a>
                       </p>
                       <button className="btn btn-secondary btn-sm">Test & connect</button>
                     </div>
@@ -137,13 +137,13 @@ export default function NetworkLogCards({ rows, errorFor, error, uploadError, re
           <div className="flex flex-wrap items-center gap-3 px-4 py-3">
             <VendorBadge vendor="Firewall" name="Firewall" size={32} />
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-ink-100">Firewall &amp; DNS logs</div>
-              <div className="text-xs text-ink-400">Zscaler, Fortinet, others</div>
+              <div className="text-sm font-bold text-ink-100">Firewall &amp; DNS logs</div>
+              <div className="eyebrow mt-0.5">Zscaler, Fortinet, others</div>
             </div>
           </div>
           <UploadResult {...(result ?? {})} />
           <details className="group" open={Boolean(uploadError) || Boolean(result?.netlog)}>
-            <summary className="cursor-pointer list-none px-4 pb-2.5 text-xs text-ink-400 hover:text-ink-100 select-none">
+            <summary className="cursor-pointer list-none px-4 pb-2.5 eyebrow hover:!text-ink-100 select-none">
               Upload logs <span className="inline-block transition-transform group-open:rotate-90">›</span>
             </summary>
             <form action={uploadNetworkLogAction} className="px-4 pb-4 flex flex-col gap-2">

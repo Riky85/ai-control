@@ -29,7 +29,7 @@ export default function GoalBox({
   const chip = (k: GoalKind, label: string) => {
     const href = k === "save" ? `/opportunities?goal=save&target=${target}` : `/opportunities?goal=${k}`;
     return (
-      <Link key={k} href={href} scroll={false} className={`rounded-full border px-3 py-1 text-sm transition-colors ${goal === k ? "border-ink-100 text-ink-100 font-medium" : "border-line text-ink-400 hover:text-ink-100 hover:border-ink-400"}`}>
+      <Link key={k} href={href} scroll={false} className={`rounded-[4px] border px-3 py-1 text-sm transition-colors ${goal === k ? "border-ink-100 text-ink-100 bg-ink-100/[0.04]" : "border-line text-ink-400 hover:text-ink-100 hover:border-ink-400"}`}>
         {k === "save" ? `Save ${fmtEur(target)} a year` : k === "dependency" ? `Reduce dependency${providers[0] ? ` on ${providers.find((p) => p.id === provider)?.label ?? providers[0].label}` : ""}` : label}
       </Link>
     );
@@ -44,13 +44,13 @@ export default function GoalBox({
           <form method="get" action="/opportunities" className="flex flex-wrap items-end gap-2">
             <input type="hidden" name="goal" value={goal!} />
             {goal === "save" && (
-              <label className="flex flex-col gap-1 text-xs text-ink-400">
+              <label className="flex flex-col gap-1.5 eyebrow">
                 Target, € a year
                 <input name="target" type="number" min={100} step={100} defaultValue={target} className="field w-40 tabular" />
               </label>
             )}
             {goal === "dependency" && (
-              <label className="flex flex-col gap-1 text-xs text-ink-400">
+              <label className="flex flex-col gap-1.5 eyebrow">
                 Provider
                 <select name="provider" defaultValue={provider ?? providers[0]?.id} className="field w-56">
                   {providers.map((p) => (
@@ -62,7 +62,7 @@ export default function GoalBox({
               </label>
             )}
             {goal === "deprecation" && (
-              <label className="flex flex-col gap-1 text-xs text-ink-400">
+              <label className="flex flex-col gap-1.5 eyebrow">
                 Model
                 <select name="model" defaultValue={model ?? models[0]?.id} className="field w-64">
                   {models.map((m) => (
@@ -80,28 +80,28 @@ export default function GoalBox({
         {answer && (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-ink-100">
-              <span className="font-semibold">{answer.title}.</span> {answer.summary}
+              <span className="font-bold">{answer.title}.</span> {answer.summary}
             </p>
             {answer.steps.length > 0 && (
               <div className="rounded-lg border border-line overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400 bg-ink">
-                      <th className="text-left font-medium px-4 py-2 w-8">#</th>
-                      <th className="text-left font-medium px-4 py-2">Step</th>
-                      <th className="text-right font-medium px-4 py-2 whitespace-nowrap">Change a month</th>
-                      <th className="text-left font-medium px-4 py-2">Effort</th>
-                      <th className="text-left font-medium px-4 py-2">Risk</th>
-                      <th className="text-left font-medium px-4 py-2">Confidence</th>
+                      <th className="text-left font-normal px-4 py-2 w-8">#</th>
+                      <th className="text-left font-normal px-4 py-2">Step</th>
+                      <th className="text-right font-normal px-4 py-2 whitespace-nowrap">Change a month</th>
+                      <th className="text-left font-normal px-4 py-2">Effort</th>
+                      <th className="text-left font-normal px-4 py-2">Risk</th>
+                      <th className="text-left font-normal px-4 py-2">Confidence</th>
                       <th className="px-4 py-2" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">
                     {answer.steps.slice(0, 8).map((s, i) => (
                       <tr key={s.key} className={s.picked ? "" : "opacity-60"}>
-                        <td className="px-4 py-2.5 text-ink-400 tabular">{i + 1}</td>
+                        <td className="px-4 py-2.5 font-mono text-[11px] text-ink-400 tabular">{String(i + 1).padStart(2, "0")}</td>
                         <td className="px-4 py-2.5 min-w-[220px]">
-                          <div className="text-ink-100 font-medium">{s.title}</div>
+                          <div className="text-ink-100">{s.title}</div>
                           <div className="text-xs text-ink-400">{s.detail}</div>
                         </td>
                         <td className="px-4 py-2.5 text-right tabular whitespace-nowrap" title={s.monthly?.basis}>
@@ -116,7 +116,7 @@ export default function GoalBox({
                           )}
                         </td>
                         <td className="px-4 py-2.5 text-ink-100">{s.effort ?? "—"}</td>
-                        <td className="px-4 py-2.5 text-ink-100">{s.risk ?? "—"}</td>
+                        <td className={`px-4 py-2.5 ${s.risk === "High" || s.risk === "Medium" ? "text-accent" : "text-ink-100"}`}>{s.risk ?? "—"}</td>
                         <td className="px-4 py-2.5 text-ink-100">{s.confidence ? CONF_LABEL[s.confidence] : "—"}</td>
                         <td className="px-4 py-2.5 text-right whitespace-nowrap">{s.href && <Link href={s.href} className="eyebrow hover:!text-ink-100 transition-colors">Open [→]</Link>}</td>
                       </tr>
@@ -131,7 +131,7 @@ export default function GoalBox({
       {answer && (
         <BlockFoot className="justify-between text-xs text-ink-400">
           <span className="min-w-0">{answer.basis}</span>
-          {answer.impactHref && <Link href={answer.impactHref} className="text-ink-100 hover:underline shrink-0">Open in Impact simulator →</Link>}
+          {answer.impactHref && <Link href={answer.impactHref} className="eyebrow hover:!text-ink-100 transition-colors shrink-0">Open in Impact simulator [→]</Link>}
         </BlockFoot>
       )}
     </section>

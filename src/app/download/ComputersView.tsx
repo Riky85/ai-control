@@ -18,7 +18,7 @@ export default async function ComputersView({ orgId }: { orgId: string }) {
           Network sensors (angar Edge)
           <span className="text-ink-400">{sensors ? `${online} of ${sensors} online` : "see AI on phones, servers and devices without the app"}</span>
         </span>
-        <span className="text-sm text-ink-400">{sensors ? "Manage" : "Set up"} →</span>
+        <span className="eyebrow">{sensors ? "Manage" : "Set up"} [→]</span>
       </Link>
     </div>
   );

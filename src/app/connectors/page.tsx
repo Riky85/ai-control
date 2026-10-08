@@ -65,7 +65,7 @@ export default async function ConnectorsPage({
       <PageHeader subtitle="Keys, logs and cloud accounts"
         crumbs={[{ label: "Connect", href: "/connect" }]}
         title="AI provider keys"
-        action={<span className="text-sm text-ink-400">{connectedCount} connected</span>}
+        action={<span className="eyebrow">{connectedCount} connected</span>}
       />
 
       {searchParams.connected && (
@@ -95,8 +95,8 @@ export default async function ConnectorsPage({
                   <div className="text-sm font-medium text-ink-100 truncate">{p.label}</div>
                   {connected && (
                     <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs">
-                      {row?.status === "ERROR" ? <Badge>SYNC_FAILED</Badge> : <span className="text-steady">✓ Connected</span>}
-                      {mode === "admin" && <span className="text-ink-400">Admin key</span>}
+                      {row?.status === "ERROR" ? <Badge>SYNC_FAILED</Badge> : <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">✓ Connected</span>}
+                      {mode === "admin" && <span className="eyebrow">Admin key</span>}
                     </div>
                   )}
                 </div>
@@ -120,7 +120,7 @@ export default async function ConnectorsPage({
                     <input name="apiKey" type="password" autoComplete="off" required placeholder={`Paste API key (${p.hint})`} className={input} />
                     <button className={btnPrimary}>Connect</button>
                     <a href={p.keyUrl} target="_blank" rel="noreferrer" className="text-xs text-ink-400 hover:text-ink-100 underline">
-                      Get a key from {p.label.split(" ")[0]} →
+                      Get a key from {p.label.split(" ")[0]} ↗
                     </a>
                     {error && <p className="text-xs text-alarm">{error}</p>}
                   </form>
@@ -142,7 +142,7 @@ export default async function ConnectorsPage({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-ink-100">GitHub</span>
-                {githubConnected && <span className="text-xs text-steady">✓ Connected</span>}
+                {githubConnected && <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-steady">✓ Connected</span>}
               </div>
               <div className="text-xs text-ink-400 truncate">
                 {githubConnected

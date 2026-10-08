@@ -28,9 +28,9 @@ export default function VendorFacts({ rows }: { rows: VendorFactRow[] }) {
   if (!rows.length) return null;
   return (
     <section className="rounded-xl border border-line bg-panel overflow-hidden animate-rise" aria-label="Vendors of the AI in use">
-      <div className="flex items-baseline justify-between gap-3 bg-ink border-b border-line px-4 py-3 bar-head">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 bg-ink border-b border-line px-5 py-3 bar-head">
         <h3 className="text-sm font-bold text-ink-100">Vendors in use</h3>
-        <span className="text-xs text-ink-400">From public vendor documents · not legal advice</span>
+        <span className="eyebrow">From public vendor documents · not legal advice</span>
       </div>
       <ul className="divide-y divide-line">
         {rows.map((r) => (

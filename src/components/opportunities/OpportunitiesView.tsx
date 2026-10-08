@@ -105,12 +105,12 @@ export default function OpportunitiesView({
         <>
           {open.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 -mt-2" aria-label="Category">
-              <Link href={catHref(null)} scroll={false} className={`rounded-full px-3 py-1 text-sm ${!category ? "bg-ink-100/[0.08] text-ink-100 font-medium" : "text-ink-400 hover:text-ink-100"}`}>
+              <Link href={catHref(null)} scroll={false} className={`rounded-[4px] px-3 py-1 text-sm transition-colors ${!category ? "bg-ink-100/[0.08] text-ink-100" : "text-ink-400 hover:text-ink-100"}`}>
                 All categories
               </Link>
               {CATEGORIES.filter((c) => summary.byCategory[c] > 0).map((c) => (
-                <Link key={c} href={catHref(c)} scroll={false} className={`rounded-full px-3 py-1 text-sm ${category === c ? "bg-ink-100/[0.08] text-ink-100 font-medium" : "text-ink-400 hover:text-ink-100"}`}>
-                  {CATEGORY_LABEL[c]} <span className="text-ink-400 tabular">{summary.byCategory[c]}</span>
+                <Link key={c} href={catHref(c)} scroll={false} className={`rounded-[4px] px-3 py-1 text-sm transition-colors ${category === c ? "bg-ink-100/[0.08] text-ink-100" : "text-ink-400 hover:text-ink-100"}`}>
+                  {CATEGORY_LABEL[c]} <span className="font-mono text-[11px] text-ink-400 tabular ml-0.5">{summary.byCategory[c]}</span>
                 </Link>
               ))}
             </div>

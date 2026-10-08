@@ -85,7 +85,7 @@ export default function FilterBar({
             setQ("");
             push(Object.fromEntries([sp, ...filters.map((f) => f.param)].map((k) => [k, null])));
           }}
-          className="h-9 px-2 text-sm text-ink-400 hover:text-ink-100 transition-colors"
+          className="h-9 px-2 eyebrow hover:!text-ink-100 transition-colors"
         >
           Clear all
         </button>
@@ -118,8 +118,8 @@ function FilterMenu({ def, value, onChange }: { def: FilterDef; value: string | 
         }`}
       >
         <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="h-full inline-flex items-center gap-1.5 pl-3 pr-2.5">
-          <span className="text-ink-400">{def.label}</span>
-          <span className="font-medium">{current?.label ?? "All"}</span>
+          <span className="font-mono uppercase text-[11px] tracking-[0.04em] text-ink-400">{def.label}</span>
+          <span>{current?.label ?? "All"}</span>
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className={`text-ink-400 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden>
             <path d="M2.5 4l2.5 2.5L7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
           </svg>
@@ -147,7 +147,7 @@ function FilterMenu({ def, value, onChange }: { def: FilterDef; value: string | 
                 className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm text-left transition-colors ${on ? "bg-ink text-ink-100 font-medium" : "text-ink-100 hover:bg-ink-100/[0.04]"}`}
               >
                 <span className="flex-1">{o.label}</span>
-                {"count" in o && typeof o.count === "number" && <span className="text-xs text-ink-400 tabular">{o.count}</span>}
+                {"count" in o && typeof o.count === "number" && <span className="font-mono text-[11px] text-ink-400 tabular">{o.count}</span>}
                 {on && (
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-ink-100" aria-hidden>
                     <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />

@@ -23,7 +23,7 @@ function Switch({ field, on, disabled, label }: { field: string; on: boolean; di
       >
         <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${on ? "left-[18px]" : "left-0.5"}`} />
       </button>
-      <span className="text-sm text-ink-400 w-16">{on ? "Enabled" : "Disabled"}</span>
+      <span className="eyebrow w-16">{on ? "Enabled" : "Disabled"}</span>
     </form>
   );
 }
@@ -53,7 +53,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
       <section className={card}>
         <div className={head}>
           <h2 className="text-sm font-bold text-ink-100">Rules</h2>
-          <span className="text-xs text-ink-400">{ro ? "View only" : ""}</span>
+          <span className="eyebrow">{ro ? "View only" : ""}</span>
         </div>
         <div className="divide-y divide-line">
           <Rule
@@ -75,7 +75,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
               {p.allowedModels.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {p.allowedModels.map((m) => (
-                    <span key={m} className="font-mono text-xs rounded-md border border-line px-2 py-0.5 text-ink-100">
+                    <span key={m} className="font-mono text-[11px] rounded-[2px] border border-line px-1.5 py-0.5 text-ink-100">
                       {m}
                     </span>
                   ))}
@@ -106,15 +106,15 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
                       <div className="text-sm text-ink-100">{team}</div>
                       {cap ? (
                         <>
-                          <div className="mt-1.5 h-1.5 max-w-sm rounded-full bg-ink-100/[0.08] overflow-hidden">
-                            <div className={`h-full rounded-full ${used >= 100 ? "bg-alarm" : "bg-ink-400"}`} style={{ width: `${used}%` }} />
+                          <div className="mt-1.5 h-1 max-w-sm rounded-full bg-ink-100/[0.08] overflow-hidden">
+                            <div className={`h-full rounded-full ${used >= 100 ? "bg-alarm" : used >= 80 ? "bg-accent" : "bg-ink-100/70"}`} style={{ width: `${used}%` }} />
                           </div>
-                          <div className="text-xs text-ink-400 mt-1">
+                          <div className={`eyebrow mt-1 ${used >= 100 ? "!text-alarm" : used >= 80 ? "!text-accent" : ""}`}>
                             {fmtEur(spent)} of {fmtEur(cap)} used
                           </div>
                         </>
                       ) : (
-                        <div className="text-xs text-ink-400 mt-0.5">{fmtEur(spent)} this month · no cap</div>
+                        <div className="eyebrow mt-0.5">{fmtEur(spent)} this month · no cap</div>
                       )}
                     </div>
                     {canEdit && (
@@ -160,26 +160,26 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
         <section id="connect" className={`${card} scroll-mt-6`}>
           <div className={head}>
             <h2 className="text-sm font-bold text-ink-100">How to connect</h2>
-            <span className="text-xs text-ink-400">Two lines</span>
+            <span className="eyebrow">Two lines</span>
           </div>
           <div className="p-5 flex flex-col gap-4">
             <p className="text-sm text-ink-400">Keep your SDK, change the base URL.</p>
             <ConnectSnippets openaiUrl={openaiUrl} anthropicUrl={anthropicUrl} />
             <dl className="text-sm divide-y divide-line">
               <div className="flex justify-between gap-4 py-2">
-                <dt className="text-ink-400 shrink-0">Works with</dt>
+                <dt className="eyebrow shrink-0 pt-0.5">Works with</dt>
                 <dd className="text-ink-100 text-right">OpenAI and Anthropic SDKs, Azure OpenAI and Mistral endpoints</dd>
               </div>
               <div className="flex justify-between gap-4 py-2">
-                <dt className="text-ink-400 shrink-0">Endpoint</dt>
+                <dt className="eyebrow shrink-0 pt-0.5">Endpoint</dt>
                 <dd className="text-ink-100 text-right break-all">{endpointHost}</dd>
               </div>
               <div className="flex justify-between gap-4 py-2">
-                <dt className="text-ink-400 shrink-0">Gateway region</dt>
+                <dt className="eyebrow shrink-0 pt-0.5">Gateway region</dt>
                 <dd className="text-ink-100 text-right">{HOSTING.country}</dd>
               </div>
               <div className="flex justify-between gap-4 py-2">
-                <dt className="text-ink-400 shrink-0">Supported</dt>
+                <dt className="eyebrow shrink-0 pt-0.5">Supported</dt>
                 <dd className="text-ink-100 text-right font-mono text-xs">chat/completions · embeddings · models · messages</dd>
               </div>
             </dl>
@@ -189,7 +189,7 @@ export default function PoliciesTab({ view, canEdit, openaiUrl, anthropicUrl, en
         <section id="providers" className={`${card} scroll-mt-6`}>
           <div className={head}>
             <h2 className="text-sm font-bold text-ink-100">Provider keys</h2>
-            <span className="text-xs text-ink-400">Encrypted, never shown again</span>
+            <span className="eyebrow">Encrypted, never shown again</span>
           </div>
           <div className="divide-y divide-line">
             {view.upstreams.map((u) => (

@@ -87,7 +87,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
               </form>
             </Row>
             <Row title="People">
-              <Link href="/people" className="btn btn-secondary btn-sm">{userCount} {userCount === 1 ? "person" : "people"} →</Link>
+              <Link href="/people" className="btn btn-secondary btn-sm btn-go">{userCount} {userCount === 1 ? "person" : "people"}</Link>
               <details className="relative">
                 <summary className="btn btn-secondary btn-sm list-none cursor-pointer">Add by hand</summary>
                 <form action={addUserAction} className="absolute left-0 md:left-auto md:right-0 z-20 mt-2 w-72 max-w-[calc(100vw-3rem)] rounded-xl border border-line bg-panel p-3 shadow-card flex flex-col gap-2">
@@ -208,7 +208,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { t
                   <VendorBadge vendor={c.provider} size={22} />
                 </span>
               ))}
-              <Link href="/sources" className="btn btn-secondary btn-sm">{connectors.length ? "Manage →" : "Connect →"}</Link>
+              <Link href="/sources" className="btn btn-secondary btn-sm btn-go">{connectors.length ? "Manage" : "Connect"}</Link>
             </Row>
             <Row
               title="Slack or Teams"

@@ -53,7 +53,7 @@ export default async function MarketChangePage({ params }: { params: { id: strin
         <div className="divide-y divide-line">
           {facts.map(([k, v]) => (
             <div key={k} className="flex flex-wrap sm:flex-nowrap gap-x-4 gap-y-1 px-5 py-3 text-sm">
-              <span className="sm:w-40 shrink-0 text-ink-400">{k}</span>
+              <span className="sm:w-40 shrink-0 eyebrow pt-0.5">{k}</span>
               <span className="text-ink-100 min-w-0">{v}</span>
             </div>
           ))}

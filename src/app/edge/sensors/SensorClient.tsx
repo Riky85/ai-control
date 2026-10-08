@@ -12,7 +12,7 @@ type Created = { id?: string; name: string; kind: string; token: string };
 function Cmd({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-ink-400">{label}</span>
+      <span className="eyebrow">{label}</span>
       <div className="flex items-start gap-2">
         <code className="flex-1 min-w-0 rounded-lg border border-line bg-ink px-3 py-2 text-xs text-ink-100 font-mono break-all select-all">{value}</code>
         <CopyButton text={value} />
@@ -146,7 +146,7 @@ export function AddSensor({ appUrl, edgeImage, canEdit }: { appUrl: string; edge
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           {options.map((o) => (
-            <label key={o.id} className={`rounded-lg border p-3 cursor-pointer transition-colors ${kind === o.id ? "border-accent bg-ink" : "border-line hover:border-ink-400"}`}>
+            <label key={o.id} className={`rounded-lg border p-3 cursor-pointer transition-colors ${kind === o.id ? "border-ink-100/60 bg-ink" : "border-line hover:border-ink-400"}`}>
               <input type="radio" name="kind" value={o.id} checked={kind === o.id} onChange={() => setKind(o.id)} className="sr-only" />
               <div className="text-sm font-medium text-ink-100">{o.title}</div>
               <div className="text-xs text-ink-400 mt-0.5">{o.desc}</div>

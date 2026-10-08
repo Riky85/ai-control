@@ -43,7 +43,7 @@ export default function ContractReader({ assets, plans }: { assets: { id: string
 function Review({ state, assets, plans }: { state: Extract<NonNullable<ReadState>, { ok: true }>; assets: { id: string; label: string }[]; plans: { id: string; name: string }[] }) {
   const f = state.fields;
   const found = [f.plan ?? f.vendor, f.seats && `${f.seats} seats`, f.contractEnd && `ends ${f.contractEnd}`].filter(Boolean).join(" · ");
-  const pill = (on: boolean) => `inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${on ? "text-steady bg-steady/10" : "text-ink-400 bg-ink-100/[0.06]"}`;
+  const pill = (on: boolean) => `inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] whitespace-nowrap ${on ? "text-steady bg-steady/10" : "text-ink-400 bg-ink-100/[0.06]"}`;
   const empty = (v: unknown) => v == null || v === "";
   const cls = (v: unknown) => `field w-full ${empty(v) ? "border-dashed" : ""}`;
 
@@ -137,7 +137,7 @@ function Review({ state, assets, plans }: { state: Extract<NonNullable<ReadState
         </label>
 
         <div className="col-span-2 sm:col-span-3 border-t border-line pt-3 mt-1">
-          <div className="text-xs text-ink-400 mb-1.5">Data clauses mentioned</div>
+          <div className="eyebrow mb-1.5">Data clauses mentioned</div>
           {f.dataClauses.length === 0 ? (
             <p className="text-sm text-ink-400">None found — ask the vendor for their DPA.</p>
           ) : (

@@ -89,7 +89,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
               {r.lines.length > 3 && <div className="text-xs">+{r.lines.length - 3} more</div>}
             </td>
             <td className={`${td} text-right tabular text-ink-100`}>{r.people ? people(r.people) : "—"}</td>
-            <td className={`${td} text-right tabular text-ink-100 font-medium`}>{fmtEur(r.eur)}</td>
+            <td className={`${td} text-right tabular text-ink-100`}>{fmtEur(r.eur)}</td>
           </tr>
         ))}
       </Table>
@@ -114,7 +114,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
       <details className="rounded-xl border border-line bg-panel overflow-hidden group">
         <summary className="cursor-pointer list-none flex items-center justify-between gap-3 bg-ink px-5 py-3 group-open:border-b group-open:border-line [&::-webkit-details-marker]:hidden bar-head">
           <span>
-            <span className="text-sm font-semibold text-ink-100">Accounting accounts</span>
+            <span className="text-sm font-bold text-ink-100">Accounting accounts</span>
             {accountsSet && (
               <span className="block text-xs text-ink-400 mt-0.5">
                 Expense {settings!.expenseAccount}
@@ -122,7 +122,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
               </span>
             )}
           </span>
-          <span className="text-xs text-ink-400 group-open:hidden">Edit</span>
+          <span className="eyebrow group-open:hidden">Edit</span>
         </summary>
         <form action={setAccountingSettingsAction} className="p-5 flex flex-wrap items-end gap-3">
           <input type="hidden" name="month" value={month} />
@@ -142,7 +142,7 @@ export default async function Chargeback({ orgId, month: asked }: { orgId: strin
 function ExportLink({ href, tag, title, hint }: { href: string; tag: string; title: string; hint: string }) {
   return (
     <a href={href} className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-ink-100 hover:bg-ink-100/[0.04] transition-colors">
-      <span className="h-6 w-7 rounded-md bg-ink text-ink-100 border border-line text-[10px] font-bold flex items-center justify-center shrink-0">{tag}</span>
+      <span className="h-6 w-7 rounded-[2px] bg-ink text-ink-100 border border-line font-mono uppercase text-[10px] tracking-[0.05em] flex items-center justify-center shrink-0">{tag}</span>
       <span>
         <span className="block">{title}</span>
         <span className="block text-xs text-ink-400">{hint}</span>

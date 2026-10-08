@@ -64,7 +64,7 @@ export default function CloudAiCards({ rows, errorFor, error }: { rows: Map<Conn
   return (
     <section id="cloud-ai" className="scroll-mt-6">
       <div className="rounded-xl border border-line bg-panel overflow-hidden animate-rise divide-y divide-line">
-        <h2 className="px-4 py-3 text-sm font-bold text-ink-100">Cloud AI platforms</h2>
+        <h2 className="bg-ink px-4 py-3 text-sm font-bold text-ink-100 bar-head">Cloud AI platforms</h2>
         {CLOUD_AI.map((p) => {
           const row = rows.get(p.provider);
           const connected = cloudAiConnected(row);
@@ -75,8 +75,8 @@ export default function CloudAiCards({ rows, errorFor, error }: { rows: Map<Conn
                 <VendorBadge vendor={p.vendor} name={p.badgeName} size={32} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-ink-100">{p.label}</span>
-                    {connected && <span className="text-xs text-steady">✓ Connected</span>}
+                    <span className="text-sm font-bold text-ink-100">{p.label}</span>
+                    {connected && <span className="inline-flex items-center rounded-[2px] px-1.5 py-0.5 font-mono uppercase text-[10px] tracking-[0.05em] text-steady bg-steady/10">Connected</span>}
                   </div>
                   <div className="text-xs text-ink-400 truncate">
                     {connected ? (row?.lastSyncedAt ? `Synced ${fmtDateTime(row.lastSyncedAt)} · updates daily` : "First sync pending") : p.text}
@@ -98,7 +98,7 @@ export default function CloudAiCards({ rows, errorFor, error }: { rows: Map<Conn
               {connected && row?.lastSyncError && <p className="px-4 pb-3 text-xs text-alarm">{row.lastSyncError}</p>}
               {!connected && (
                 <details className="group" open={Boolean(err)}>
-                  <summary className="cursor-pointer list-none px-4 pb-2.5 text-xs text-ink-400 hover:text-ink-100 select-none">
+                  <summary className="cursor-pointer list-none px-4 pb-2.5 eyebrow hover:!text-ink-100 select-none">
                     Connect <span className="inline-block transition-transform group-open:rotate-90">›</span>
                   </summary>
                   <form action={connectCloudAiAction} className="px-4 pb-4 flex flex-col gap-2">
@@ -115,7 +115,7 @@ export default function CloudAiCards({ rows, errorFor, error }: { rows: Map<Conn
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs text-ink-400 min-w-0 flex-1">
                         {p.hint}{" "}
-                        <a href={p.docsUrl} target="_blank" rel="noreferrer" className="underline hover:text-ink-100">Open console →</a>
+                        <a href={p.docsUrl} target="_blank" rel="noreferrer" className="underline hover:text-ink-100">Open console ↗</a>
                       </p>
                       <button className="btn btn-secondary btn-sm">Test & connect</button>
                     </div>

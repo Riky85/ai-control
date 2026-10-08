@@ -38,7 +38,7 @@ export default function RequestsTable({
       {title && (
         <div className="bar-head rounded-t-xl border-b border-line px-5 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <h2 className="text-sm font-bold text-ink-100">{title}</h2>
-          {note && <span className="text-xs text-ink-400">{note}</span>}
+          {note && <span className="eyebrow">{note}</span>}
         </div>
       )}
       <div className={`overflow-x-auto ${title ? "" : "rounded-t-xl"}`}>
@@ -129,7 +129,7 @@ function RequestDrawer({ row, onClose }: { row: GwRequestRow; onClose: () => voi
         <div className="px-6 pt-5 pb-4 border-b border-line flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="font-mono text-xs text-ink-400">{row.id}</div>
-            <h2 className="font-display text-lg font-semibold text-ink-100 mt-1 truncate">{row.keyName || "Deleted key"}</h2>
+            <h2 className="font-display text-lg font-bold text-ink-100 mt-1 truncate">{row.keyName || "Deleted key"}</h2>
             <div className="text-sm text-ink-400 mt-0.5">
               {when}
               {row.team && <> · {row.team}</>} · <span className="font-mono">{keyHint(row.keyLast4)}</span>
@@ -166,13 +166,13 @@ function RequestDrawer({ row, onClose }: { row: GwRequestRow; onClose: () => voi
           <section>
             <div className="flex items-baseline justify-between gap-3 mb-2">
               <h3 className="text-sm font-bold text-ink-100">Redactions found</h3>
-              {total > 0 && <span className="text-xs text-ink-400">{redactionText(row.redactions)}</span>}
+              {total > 0 && <span className="eyebrow !text-accent">{redactionText(row.redactions)}</span>}
             </div>
             {total > 0 ? (
               <div className="rounded-lg border border-line divide-y divide-line">
                 {redacted.map(([k, n]) => (
                   <div key={k} className="flex items-center justify-between px-4 py-2.5 text-sm">
-                    <span className="text-ink-400">{REDACT_LABEL[k]}</span>
+                    <span className="eyebrow">{REDACT_LABEL[k]}</span>
                     <span className="font-mono text-ink-100">
                       [{k}] ×{n}
                     </span>
@@ -224,8 +224,8 @@ function RequestDrawer({ row, onClose }: { row: GwRequestRow; onClose: () => voi
 function Mini({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-line px-4 py-3">
-      <div className="text-xs text-ink-400">{label}</div>
-      <div className="font-display text-xl font-semibold tabular text-ink-100 mt-1">{value}</div>
+      <div className="eyebrow">{label}</div>
+      <div className="font-display text-[22px] leading-tight font-light tracking-[-0.03em] tabular text-ink-100 mt-1">{value}</div>
     </div>
   );
 }
@@ -233,7 +233,7 @@ function Mini({ label, value }: { label: string; value: string }) {
 function Line({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex items-start justify-between gap-6 py-2.5">
-      <dt className="text-ink-400 shrink-0">{k}</dt>
+      <dt className="eyebrow shrink-0 pt-0.5">{k}</dt>
       <dd className="text-ink-100 text-right">{v}</dd>
     </div>
   );

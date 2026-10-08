@@ -107,7 +107,7 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
       >
         {rows.map((r) => {
           const pct = r.budget ? (r.budgetSpend / r.budget) * 100 : null;
-          const bar = pct == null ? "bg-ink-400/40" : pct > 100 ? "bg-alarm" : pct >= 80 ? "bg-signal" : "bg-steady";
+          const bar = pct == null ? "bg-ink-400/40" : pct > 100 ? "bg-alarm" : pct >= 80 ? "bg-accent" : "bg-ink-100/70";
           return (
             <tr key={r.id}>
               <td className={td}>
@@ -123,14 +123,14 @@ export default async function GroupPage({ searchParams }: { searchParams: { id?:
                   <>
                     <div className="flex items-baseline justify-between gap-2 text-xs">
                       <span className="tabular text-ink-100">{fmtEur(r.budgetSpend)} of {fmtEur(r.budget)}</span>
-                      {r.teamsOver > 0 && <span className="text-alarm">{r.teamsOver} over</span>}
+                      {r.teamsOver > 0 && <span className="font-mono uppercase text-[10px] tracking-[0.05em] text-alarm">{r.teamsOver} over</span>}
                     </div>
-                    <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-ink-100/[0.06]">
+                    <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-ink-100/[0.08]">
                       <div className={`h-full rounded-full ${bar}`} style={{ width: `${Math.min(100, pct!)}%` }} />
                     </div>
                   </>
                 ) : (
-                  <span className="text-xs text-ink-400">No budgets</span>
+                  <span className="eyebrow">No budgets</span>
                 )}
               </td>
               <td className={`${td} text-right`}>

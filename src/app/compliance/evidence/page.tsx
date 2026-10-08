@@ -41,7 +41,7 @@ export default async function EvidencePackPage() {
       </div>
 
       <section className="rounded-xl border border-line bg-panel p-5">
-        <h1 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-semibold text-ink-100 bar-head">AI Act / NIS2 evidence pack — {pack.organisation.name}</h1>
+        <h1 className="-mx-5 -mt-5 mb-4 bg-ink border-b border-line rounded-t-xl px-5 py-3 text-sm font-bold text-ink-100 bar-head">AI Act / NIS2 evidence pack — {pack.organisation.name}</h1>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1.5 text-sm">
           <Row label="Organisation" value={pack.organisation.name} />
           <Row label="Country" value={pack.organisation.country ?? "—"} />
@@ -106,7 +106,7 @@ export default async function EvidencePackPage() {
                 <div className="text-xs text-ink-400">{p.description}</div>
               </td>
               <td className={`${td} text-ink-400`}>{type(p.category)}</td>
-              <td className={`${td} ${p.enabled ? "text-steady" : "text-ink-400"}`}>{p.enabled ? "Enabled" : "Disabled"}</td>
+              <td className={`${td} font-mono uppercase text-[11px] tracking-[0.04em] ${p.enabled ? "text-steady" : "text-ink-400"}`}>{p.enabled ? "Enabled" : "Disabled"}</td>
               <td className={`${td} text-ink-400 tabular whitespace-nowrap`}>{fmtDate(new Date(p.updatedAt))}</td>
             </tr>
           ))}
@@ -189,7 +189,7 @@ export default async function EvidencePackPage() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-line py-1">
-      <dt className="text-ink-400">{label}</dt>
+      <dt className="eyebrow">{label}</dt>
       <dd className="text-ink-100 text-right">{value}</dd>
     </div>
   );
