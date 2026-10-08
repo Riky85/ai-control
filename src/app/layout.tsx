@@ -136,7 +136,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ScrollReset targetId="app-scroll" />
           {/* Senza padding in alto: la barra del titolo (PageHeader) è la prima cosa della pagina.
               Le pagine senza barra mostrano una barra vuota con i pulsanti fissi (globals.css). */}
-          <main className="relative flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pb-24">
+          <main className="relative flex-1 w-full px-4 sm:px-6 lg:px-10 pb-24">
             {/* Pulsanti fissi (avvisi, computer, voce, documentazione): dentro la barra del titolo,
                 allineati a destra e centrati sulla sua altezza (56px), anche durante lo scroll (da tablet in su). */}
             <div className="hdr-tools-row relative sm:sticky top-0 z-40 h-0 print:hidden">

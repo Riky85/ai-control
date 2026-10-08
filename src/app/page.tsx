@@ -146,7 +146,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: { c
             <StatCard label="AI systems" value={String(em?.systems ?? assets.length)} hint={toReview ? `${toReview} to review` : "All reviewed"} tone={toReview ? "warn" : undefined} href={toReview ? "/review" : "/estate"} />
           </div>
 
-          <NextActions list={next} total={opp?.summary.open ?? next.length} canEdit={session?.role !== "VIEWER"} />
+          <NextActions list={next} total={opp?.summary.open ?? next.length} />
 
           <AiTable
             title="Your AI"

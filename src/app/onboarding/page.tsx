@@ -30,7 +30,7 @@ export default async function Onboarding({ searchParams }: { searchParams: { err
           </>
         }
       />
-      <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
+      <div className="w-full max-w-3xl flex flex-col gap-6">
       {empty && s?.role !== "VIEWER" && <ImportCheckOffer />}
 
       <Panel title="Drop a bank or card statement" subtitle="Only AI charges are kept">
